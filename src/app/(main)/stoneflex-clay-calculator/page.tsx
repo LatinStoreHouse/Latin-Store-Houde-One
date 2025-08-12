@@ -191,8 +191,8 @@ export default function StoneflexClayCalculatorPage() {
   const [reference, setReference] = useState('');
   const [sqMeters, setSqMeters] = useState<number | string>(1);
   const [sheets, setSheets] = useState(1);
-  const [discount, setDiscount] = useState(0);
-  const [wastePercentage, setWastePercentage] = useState(0);
+  const [discount, setDiscount] = useState<number | string>(0);
+  const [wastePercentage, setWastePercentage] = useState<number | string>(0);
   const [includeSealant, setIncludeSealant] = useState(true);
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
   const [calculationMode, setCalculationMode] = useState<'sqm' | 'sheets'>('sqm');
@@ -216,18 +216,27 @@ export default function StoneflexClayCalculatorPage() {
     }
     return 1; // Default
   }
+  
+  const parseDecimal = (value: string | number) => {
+    if (typeof value === 'number') return value;
+    return parseFloat(value.replace(',', '.')) || 0;
+  };
+
 
   const handleAddProduct = () => {
     if (!reference) return;
+    
+    const wasteValue = parseDecimal(wastePercentage);
+    const discountValue = parseDecimal(discount);
 
     const sqmPerSheet = getSqmPerSheet(reference);
-    const wasteFactor = 1 + wastePercentage / 100;
+    const wasteFactor = 1 + wasteValue / 100;
     
     let baseSqm = 0;
     let baseSheets = 0;
 
     if (calculationMode === 'sqm') {
-      baseSqm = typeof sqMeters === 'string' ? parseFloat(sqMeters.replace(',', '.')) : sqMeters;
+      baseSqm = parseDecimal(sqMeters);
       baseSheets = Math.ceil(baseSqm / sqmPerSheet);
     } else {
       baseSheets = sheets;
@@ -247,7 +256,7 @@ export default function StoneflexClayCalculatorPage() {
       reference,
       sqMeters: finalSqm,
       sheets: finalSheets,
-      discount,
+      discount: discountValue,
       includeSealant,
       includeAdhesive,
       calculationMode,
@@ -404,11 +413,11 @@ export default function StoneflexClayCalculatorPage() {
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
   };
 
-  const handleSqmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDecimalInputChange = (setter: React.Dispatch<React.SetStateAction<string | number>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const sanitizedValue = value.replace(',', '.');
     if (/^\d*\.?\d*$/.test(sanitizedValue)) {
-      setSqMeters(value);
+      setter(value);
     }
   };
 
@@ -456,7 +465,7 @@ export default function StoneflexClayCalculatorPage() {
                   id="sqm-input"
                   type="text"
                   value={sqMeters}
-                  onChange={handleSqmChange}
+                  onChange={handleDecimalInputChange(setSqMeters)}
                   className="w-full"
                 />
               </div>
@@ -478,10 +487,9 @@ export default function StoneflexClayCalculatorPage() {
                   <Label htmlFor="waste-input">Desperdicio (%)</Label>
                   <Input
                     id="waste-input"
-                    type="number"
+                    type="text"
                     value={wastePercentage}
-                    onChange={(e) => setWastePercentage(Math.max(0, Number(e.target.value)))}
-                    min="0"
+                    onChange={handleDecimalInputChange(setWastePercentage)}
                     className="w-full"
                   />
                 </div>
@@ -489,11 +497,9 @@ export default function StoneflexClayCalculatorPage() {
                   <Label htmlFor="discount-input">Descuento (%)</Label>
                   <Input
                     id="discount-input"
-                    type="number"
+                    type="text"
                     value={discount}
-                    onChange={(e) => setDiscount(Math.max(0, Math.min(100, Number(e.target.value))))}
-                    min="0"
-                    max="100"
+                    onChange={handleDecimalInputChange(setDiscount)}
                     className="w-full"
                   />
                 </div>
