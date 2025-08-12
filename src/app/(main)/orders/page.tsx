@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, FileDown, Search, MoreHorizontal, Trash2, Copy } from 'lucide-react';
+import { PlusCircle, FileDown, Search, MoreHorizontal, Trash2, Copy, ChevronDown } from 'lucide-react';
 import { Role } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import {
@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -245,6 +246,48 @@ export default function DispatchPage() {
     doc.save('Reporte de Despachos.pdf');
   };
 
+  const handleExportHTML = () => {
+    const tableHeaders = [
+        'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
+        'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
+        'Guía', 'Convención', 'Validado', 'Factura #'
+    ];
+    let html = '<table><thead><tr>';
+    tableHeaders.forEach(header => html += `<th>${header}</th>`);
+    html += '</tr></thead><tbody>';
+
+    filteredData.forEach(item => {
+        html += '<tr>';
+        html += `<td>${item.vendedor}</td>`;
+        html += `<td>${item.fechaSolicitud}</td>`;
+        html += `<td>${item.cotizacion}</td>`;
+        html += `<td>${item.cliente}</td>`;
+        html += `<td>${item.ciudad}</td>`;
+        html += `<td>${item.direccion}</td>`;
+        html += `<td>${item.remision}</td>`;
+        html += `<td>${item.observacion}</td>`;
+        html += `<td>${item.rutero}</td>`;
+        html += `<td>${item.fechaDespacho}</td>`;
+        html += `<td>${item.guia}</td>`;
+        html += `<td>${item.convencion}</td>`;
+        html += `<td>${item.validado ? 'Aprobado' : 'Pendiente'}</td>`;
+        html += `<td>${item.factura}</td>`;
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Reporte de Despachos.xls';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -262,10 +305,19 @@ export default function DispatchPage() {
                         Nuevo Despacho
                     </Button>
                 )}
-                <Button variant="outline" onClick={handleExportPDF}>
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Exportar a PDF
-                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                            <FileDown className="mr-2 h-4 w-4" />
+                            Descargar
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={handleExportPDF}>Descargar como PDF</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportHTML}>Descargar para Excel (HTML)</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </div>
       </CardHeader>
