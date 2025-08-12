@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -93,9 +94,11 @@ export default function UsersPage() {
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                Gestionar Permisos
+            <Button variant="outline" asChild>
+                <Link href="/roles">
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    Gestionar Permisos
+                </Link>
             </Button>
             <Button onClick={handleAddUser}>
               <UserPlus className="mr-2 h-4 w-4" />
