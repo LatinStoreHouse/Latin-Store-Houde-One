@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Container, Ship, CalendarIcon, FileDown, ChevronDown } from 'lucide-react';
+import { PlusCircle, Container, Ship, CalendarIcon, FileDown, ChevronDown, Edit } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -73,6 +73,8 @@ export default function TransitPage() {
   const [newContainerEta, setNewContainerEta] = useState('');
   const [newContainerCarrier, setNewContainerCarrier] = useState('');
   const [isAddContainerDialogOpen, setIsAddContainerDialogOpen] = useState(false);
+  const [isEditContainerDialogOpen, setIsEditContainerDialogOpen] = useState(false);
+  const [editingContainer, setEditingContainer] = useState<Container | null>(null);
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
   const [newProductName, setNewProductName] = useState('');
   const [newProductQuantity, setNewProductQuantity] = useState(0);
@@ -117,6 +119,20 @@ export default function TransitPage() {
     setIsAddContainerDialogOpen(false);
     toast({ title: 'Éxito', description: 'Contenedor agregado correctamente.' });
   };
+  
+  const handleOpenEditDialog = (container: Container) => {
+    setEditingContainer(container);
+    setIsEditContainerDialogOpen(true);
+  };
+
+  const handleEditContainer = () => {
+    if (!editingContainer) return;
+    setContainers(containers.map(c => c.id === editingContainer.id ? editingContainer : c));
+    setIsEditContainerDialogOpen(false);
+    setEditingContainer(null);
+    toast({ title: 'Éxito', description: 'Contenedor actualizado correctamente.' });
+  };
+
 
   const handleAddProductToContainer = () => {
     if (!selectedContainerId || !newProductName || newProductQuantity <= 0) {
@@ -361,7 +377,11 @@ a.href = url;
                     </Table>
                 </CardContent>
                 {canEdit && (
-                    <CardFooter className="flex justify-end p-4">
+                    <CardFooter className="flex justify-end p-4 gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleOpenEditDialog(container)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                        </Button>
                         <Dialog>
                             <DialogTrigger asChild>
                             <Button variant="outline" size="sm" onClick={() => setSelectedContainerId(container.id)}>Agregar Producto</Button>
@@ -398,6 +418,33 @@ a.href = url;
           </div>
         </CardContent>
       </Card>
+      {editingContainer && (
+        <Dialog open={isEditContainerDialogOpen} onOpenChange={setIsEditContainerDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Editar Contenedor {editingContainer.id}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-container-id">ID del Contenedor</Label>
+                        <Input id="edit-container-id" value={editingContainer.id} onChange={(e) => setEditingContainer({...editingContainer, id: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-container-eta">Fecha Estimada de Llegada (ETA)</Label>
+                        <Input id="edit-container-eta" type="date" value={editingContainer.eta} onChange={(e) => setEditingContainer({...editingContainer, eta: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-container-carrier">Transportista</Label>
+                        <Input id="edit-container-carrier" value={editingContainer.carrier} onChange={(e) => setEditingContainer({...editingContainer, carrier: e.target.value})} />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="ghost" onClick={() => setEditingContainer(null)}>Cancelar</Button></DialogClose>
+                    <Button onClick={handleEditContainer}>Guardar Cambios</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
