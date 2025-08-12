@@ -213,11 +213,15 @@ export default function StoneflexClayCalculatorPage() {
   const handleAddProduct = () => {
     if (!reference) return;
 
+    const sqmPerSheet = getSqmPerSheet(reference);
+    const calculatedSqm = calculationMode === 'sqm' ? sqMeters : sheets * sqmPerSheet;
+    const calculatedSheets = calculationMode === 'sheets' ? sheets : Math.ceil(sqMeters / sqmPerSheet);
+
     const newItem: QuoteItem = {
       id: Date.now(),
       reference,
-      sqMeters: calculationMode === 'sqm' ? sqMeters : sheets * getSqmPerSheet(reference),
-      sheets: calculationMode === 'sheets' ? sheets : Math.ceil(sqMeters / getSqmPerSheet(reference)),
+      sqMeters: calculatedSqm,
+      sheets: calculatedSheets,
       discount,
       includeSealant,
       includeAdhesive,
@@ -236,6 +240,9 @@ export default function StoneflexClayCalculatorPage() {
     let totalDiscountAmount = 0;
     let totalSealantCost = 0;
     let totalAdhesiveCost = 0;
+    let totalSealantUnits = 0;
+    let totalAdhesiveUnits = 0;
+    let isWarrantyVoid = false;
 
     quoteItems.forEach(item => {
       const refDetails = referenceLines[item.reference];
@@ -243,15 +250,17 @@ export default function StoneflexClayCalculatorPage() {
 
       const { line, brand } = refDetails;
       const pricePerSqm = linePricing[line];
-      const sqmPerSheet = getSqmPerSheet(item.reference);
-
-      let calculatedSheets = item.sheets;
-      let calculatedSqm = item.sqMeters;
+      const calculatedSqm = item.sqMeters;
+      const calculatedSheets = item.sheets;
 
       const productCost = pricePerSqm * calculatedSqm;
       const discountAmount = productCost * (item.discount / 100);
       totalProductCost += productCost;
       totalDiscountAmount += discountAmount;
+
+      if (!item.includeSealant || !item.includeAdhesive) {
+        isWarrantyVoid = true;
+      }
 
       if (item.includeSealant) {
         let sealantYield = 15; // Default for Stoneflex
@@ -259,6 +268,7 @@ export default function StoneflexClayCalculatorPage() {
           sealantYield = 11;
         }
         const calculatedSealantUnits = Math.ceil(calculatedSqm / sealantYield);
+        totalSealantUnits += calculatedSealantUnits;
         totalSealantCost += calculatedSealantUnits * linePricing['Sellante'];
       }
 
@@ -278,6 +288,7 @@ export default function StoneflexClayCalculatorPage() {
                 calculatedAdhesiveUnits = Math.ceil(calculatedSqm / 1); 
             }
         }
+        totalAdhesiveUnits += calculatedAdhesiveUnits;
         totalAdhesiveCost += calculatedAdhesiveUnits * linePricing['Adhesivo'];
       }
     });
@@ -297,6 +308,9 @@ export default function StoneflexClayCalculatorPage() {
       totalDiscountAmount,
       totalSealantCost,
       totalAdhesiveCost,
+      totalSealantUnits,
+      totalAdhesiveUnits,
+      isWarrantyVoid,
       subtotal,
       ivaAmount,
       totalCost,
@@ -452,18 +466,14 @@ export default function StoneflexClayCalculatorPage() {
                   <span className="text-muted-foreground">Descuento Total</span>
                   <span>-{formatCurrency(quote.totalDiscountAmount)}</span>
                 </div>
-                {quote.totalSealantCost > 0 && (
-                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Costo Sellante</span>
-                    <span>{formatCurrency(quote.totalSealantCost)}</span>
-                  </div>
-                )}
-                {quote.totalAdhesiveCost > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Costo Adhesivo</span>
-                    <span>{formatCurrency(quote.totalAdhesiveCost)}</span>
-                  </div>
-                )}
+                 <div className="flex justify-between">
+                  <span className="text-muted-foreground">Costo Sellante ({quote.totalSealantUnits} u.)</span>
+                  <span>{formatCurrency(quote.totalSealantCost)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Costo Adhesivo ({quote.totalAdhesiveUnits} u.)</span>
+                  <span>{formatCurrency(quote.totalAdhesiveCost)}</span>
+                </div>
                  <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>{formatCurrency(quote.subtotal)}</span>
@@ -481,9 +491,16 @@ export default function StoneflexClayCalculatorPage() {
                   Costo Total Estimado: {formatCurrency(quote.totalCost)}
                 </p>
               </div>
-              <p className="text-xs text-muted-foreground pt-2 text-center">
-                Esta es una cotización preliminar y no incluye costos de envío o instalación.
-              </p>
+              <div className="text-xs text-muted-foreground pt-2 space-y-1 text-center">
+                  <p>
+                    Esta es una cotización preliminar y no incluye costos de envío o instalación.
+                  </p>
+                  {quote.isWarrantyVoid && (
+                    <p className="font-semibold text-destructive">
+                      La no inclusión de sellante o adhesivo puede anular la garantía del producto.
+                    </p>
+                  )}
+              </div>
             </CardContent>
           </Card>
         )}
