@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, FileDown, Search, MoreHorizontal, Trash2, Copy, ChevronDown } from 'lucide-react';
+import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy } from 'lucide-react';
 import { Role } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import {
@@ -158,8 +158,7 @@ export default function DispatchPage() {
 
   const canEditAsesor = currentUser.role === 'Administrador' || currentUser.role === 'Asesor de Ventas';
   const canEditLogistica = currentUser.role === 'Administrador' || currentUser.role === 'Logística';
-  const canEditContador = currentUser.role === 'Administrador' || currentUser.role === 'Contador';
-
+  
   const handleInputChange = (id: number, field: string, value: string | boolean) => {
     setDispatchData(prevData =>
       prevData.map(item =>
@@ -439,7 +438,7 @@ export default function DispatchPage() {
                 <TableHead className="p-0">Fecha Desp.</TableHead>
                 <TableHead className="p-0">Guía</TableHead>
                 <TableHead className="p-0">Convención</TableHead>
-                {/* Contador */}
+                {/* Contador (Read-only) */}
                 <TableHead className="p-0">Factura #</TableHead>
                 <TableHead className="p-0">Validado</TableHead>
                 <TableHead className="text-right p-0">Acciones</TableHead>
@@ -530,14 +529,13 @@ export default function DispatchPage() {
                     </Select>
                   </TableCell>
 
-                  {/* Contador Fields */}
-                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
+                  {/* Contador Fields (Read-Only) */}
+                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.factura} disabled /></TableCell>
                   <TableCell className="p-0 h-full">
                     <div className="flex items-center justify-center h-full bg-background/50">
                         <Checkbox
                             checked={item.validado}
-                            onCheckedChange={(checked) => handleInputChange(item.id, 'validado', Boolean(checked))}
-                            disabled={!canEditContador}
+                            disabled
                         />
                     </div>
                   </TableCell>
