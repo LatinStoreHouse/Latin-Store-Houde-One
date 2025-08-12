@@ -61,84 +61,112 @@ const initialProductPrices: { [key: string]: number } = {
     'CRYSTAL WHITE 2.44 X 1.22': 239247,
     'HIMALAYA GOLD 2.44 X 1.22': 239247,
     'CORTEN STEEL 2.44 X 1.22': 267819,
+    'PERGOLA 9x4 - 3 MTS COFFEE': 50000,
+    'PERGOLA 9x4 - 3 MTS CHOCOLATE': 50000,
+    'PERGOLA 10x5 - 3 COFFEE': 55000,
+    'PERGOLA 10x5 - 3 MTS CHOCOLATE': 55000,
+    'DECK ESTANDAR 14.5 CM X 2.2 CM X 2.21 MTS COFFEE': 40000,
+    'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR CF - WN': 45000,
+    'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR EB - LG': 45000,
+    'LISTON 6.8x2.5 - 3 MTS CAMEL': 30000,
+    'LISTON 6.8x2.5 - 3 MTS COFFEE': 30000,
+    'LISTON 6.8x2.5 - 3 MTS CHOCOLATE': 30000,
     'Sellante': 50000,
     'Adhesivo': 30000,
 };
 
-const productLines: { [key: string]: string[] } = {
-  'Clay': [
-    'CUT STONE 120 X 60',
-    'TRAVERTINO',
-    'CONCRETO ENCOFRADO',
-    'TAPIA NEGRA',
-  ],
-  'Pizarra': [
-    'BLACK 1.22 X 0.61',
-    'KUND MULTY 1.22 X 0.61',
-    'TAN 1.22 X 0.61',
-    'INDIAN AUTUMN 1.22 X 0.61',
-    'BLACK 2.44 X 1.22',
-    'TAN 2.44 X 1.22',
-    'kUND MULTY 2.44 X 1.22',
-    'INDIAN AUTUMN 2.44 X 1.22',
-  ],
-  'Cuarcitas': [
-    'BURNING FOREST 1.22 X 0.61',
-    'COPPER 1.22 X 0.61',
-    'JEERA GREEN 1.22 X 0.61',
-    'SILVER SHINE 1.22 X 0.61',
-    'SILVER SHINE GOLD 1.22 X 0.61',
-    'STEEL GRAY 1.22 X 0.61',
-    'COPPER 2.44 X 1.22',
-    'BURNING FOREST 2.44 X 1.22',
-    'JEERA GREEN 2.44 X 1.22',
-    'SILVER SHINE 2.44 X 1.22',
-    'SILVER SHINE GOLD 2.44 X 1.22',
-    'STEEL GREY 2.44 X 1.22',
-  ],
-  'Concreto': [
-    'CONCRETO BLANCO 1.22 X 0.61',
-    'CONCRETO GRIS 1.22 X 0.61',
-    'CONCRETE WITH HOLES 1.22 X 0.61',
-    'CONCRETO GRIS MEDIUM 1.22 X 0.61',
-    'CONCRETO BLANCO 2.44 X 1.22',
-    'CONCRETO GRIS 2.44 X 1.22',
-    'CONCRETO MEDIO 2.44 X 1.22',
-    'CONCRETO WITH HOLES 2.44 X 1.22',
-  ],
-  'Mármol': [
-    'CARRARA 1.22 X 0.61',
-    'CRYSTAL WHITE 1.22 X 0.61',
-    'HIMALAYA GOLD 1.22X0.61 MTS',
-    'MINT WHITE 1.22 X 0.61',
-    'CARRARA 2.44 X 1.22',
-    'CRYSTAL WHITE 2.44 X 1.22',
-    'HIMALAYA GOLD 2.44 X 1.22',
-  ],
-  'Translucida': [
-    'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61',
-    'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22',
-  ],
-  'Madera': [
-    'MADERA NOGAL 0.15 X 2.44 MTS',
-    'MADERA TEKA 0.15 X 2.44 MTS',
-  ],
-  'Metales': [
-    'CORTEN STELL - 2.44 X 0.61',
-    'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61',
-    'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61',
-    'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61',
-    'CORTEN STEEL 2.44 X 1.22',
-  ],
-  '3D autoadhesiva': [
-    '3D ADHESIVO - 0,90 M2 - BLACK',
-    '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC',
-    '3D ADHESIVO - 0,90 M2 - TAN',
-  ],
-  'Insumos': [
-    'Sellante',
-    'Adhesivo',
-  ],
+const productStructure: { [brand: string]: { [line: string]: string[] } } = {
+  'CLAY': {
+    'Clay': [
+      'CUT STONE 120 X 60',
+      'TRAVERTINO',
+      'CONCRETO ENCOFRADO',
+      'TAPIA NEGRA',
+    ],
+  },
+  'STONEFLEX': {
+    'Pizarra': [
+      'BLACK 1.22 X 0.61',
+      'KUND MULTY 1.22 X 0.61',
+      'TAN 1.22 X 0.61',
+      'INDIAN AUTUMN 1.22 X 0.61',
+      'BLACK 2.44 X 1.22',
+      'TAN 2.44 X 1.22',
+      'kUND MULTY 2.44 X 1.22',
+      'INDIAN AUTUMN 2.44 X 1.22',
+    ],
+    'Cuarcitas': [
+      'BURNING FOREST 1.22 X 0.61',
+      'COPPER 1.22 X 0.61',
+      'JEERA GREEN 1.22 X 0.61',
+      'SILVER SHINE 1.22 X 0.61',
+      'SILVER SHINE GOLD 1.22 X 0.61',
+      'STEEL GRAY 1.22 X 0.61',
+      'COPPER 2.44 X 1.22',
+      'BURNING FOREST 2.44 X 1.22',
+      'JEERA GREEN 2.44 X 1.22',
+      'SILVER SHINE 2.44 X 1.22',
+      'SILVER SHINE GOLD 2.44 X 1.22',
+      'STEEL GREY 2.44 X 1.22',
+    ],
+    'Concreto': [
+      'CONCRETO BLANCO 1.22 X 0.61',
+      'CONCRETO GRIS 1.22 X 0.61',
+      'CONCRETE WITH HOLES 1.22 X 0.61',
+      'CONCRETO GRIS MEDIUM 1.22 X 0.61',
+      'CONCRETO BLANCO 2.44 X 1.22',
+      'CONCRETO GRIS 2.44 X 1.22',
+      'CONCRETO MEDIO 2.44 X 1.22',
+      'CONCRETO WITH HOLES 2.44 X 1.22',
+    ],
+    'Mármol': [
+      'CARRARA 1.22 X 0.61',
+      'CRYSTAL WHITE 1.22 X 0.61',
+      'HIMALAYA GOLD 1.22X0.61 MTS',
+      'MINT WHITE 1.22 X 0.61',
+      'CARRARA 2.44 X 1.22',
+      'CRYSTAL WHITE 2.44 X 1.22',
+      'HIMALAYA GOLD 2.44 X 1.22',
+    ],
+    'Translucida': [
+      'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61',
+      'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22',
+    ],
+    'Madera': [
+      'MADERA NOGAL 0.15 X 2.44 MTS',
+      'MADERA TEKA 0.15 X 2.44 MTS',
+    ],
+    'Metales': [
+      'CORTEN STELL - 2.44 X 0.61',
+      'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61',
+      'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61',
+      'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61',
+      'CORTEN STEEL 2.44 X 1.22',
+    ],
+    '3D autoadhesiva': [
+      '3D ADHESIVO - 0,90 M2 - BLACK',
+      '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC',
+      '3D ADHESIVO - 0,90 M2 - TAN',
+    ],
+    'Insumos': [
+      'Sellante',
+      'Adhesivo',
+    ],
+  },
+  'Starwood': {
+      'Productos': [
+        'PERGOLA 9x4 - 3 MTS COFFEE',
+        'PERGOLA 9x4 - 3 MTS CHOCOLATE',
+        'PERGOLA 10x5 - 3 COFFEE',
+        'PERGOLA 10x5 - 3 MTS CHOCOLATE',
+        'DECK ESTANDAR 14.5 CM X 2.2 CM X 2.21 MTS COFFEE',
+        'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR CF - WN',
+        'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR EB - LG',
+        'LISTON 6.8x2.5 - 3 MTS CAMEL',
+        'LISTON 6.8x2.5 - 3 MTS COFFEE',
+        'LISTON 6.8x2.5 - 3 MTS CHOCOLATE',
+      ]
+  }
 };
 
 export default function PricingPage() {
@@ -156,7 +184,7 @@ export default function PricingPage() {
     setLinePrices(prev => ({ ...prev, [line]: formattedValue }));
   };
 
-  const handleApplyPriceToLine = (line: string) => {
+  const handleApplyPriceToLine = (brand: string, line: string) => {
     const newPriceValue = linePrices[line];
     if (newPriceValue === undefined || newPriceValue === '') {
       toast({
@@ -170,7 +198,7 @@ export default function PricingPage() {
     const numericPrice = Number(newPriceValue);
     if (isNaN(numericPrice)) return;
 
-    const productsInLine = productLines[line];
+    const productsInLine = productStructure[brand][line];
     const updatedPrices = { ...prices };
     productsInLine.forEach(product => {
       updatedPrices[product] = numericPrice;
@@ -191,7 +219,6 @@ export default function PricingPage() {
   };
 
   const handleSaveChanges = () => {
-    // Here you would typically send the updated prices to your backend
     console.log('Saving prices:', prices);
     toast({
       title: 'Precios actualizados',
@@ -199,68 +226,79 @@ export default function PricingPage() {
     });
   };
   
-  const lines = Object.keys(productLines);
+  const brands = Object.keys(productStructure);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Gestión de Precios de Productos</CardTitle>
         <CardDescription>
-          Ajuste los precios para cada producto individual o actualice una línea de productos completa. Los precios (excepto insumos) son por metro cuadrado (M²).
+          Ajuste los precios para cada producto individual o actualice una línea de productos completa. Los precios (excepto insumos) son por metro cuadrado (M²) o por unidad, según corresponda.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue={lines[0]} className="w-full">
+        <Tabs defaultValue={brands[0]} className="w-full">
           <TabsList>
-            {lines.map((line) => (
-              <TabsTrigger value={line} key={line}>{line}</TabsTrigger>
+            {brands.map((brand) => (
+              <TabsTrigger value={brand} key={brand}>{brand}</TabsTrigger>
             ))}
           </TabsList>
-          {lines.map((line) => (
-            <TabsContent value={line} key={line}>
-              {line !== 'Insumos' && (
-                <div className="mb-6 rounded-md border p-4">
-                    <div className="flex items-end gap-4">
-                      <div className="flex-1 space-y-1.5">
-                        <Label htmlFor={`line-price-${line}`}>Nuevo Precio para la Línea {line}</Label>
-                         <Input
-                           id={`line-price-${line}`}
-                           type="text"
-                           placeholder="Ingrese un nuevo precio..."
-                           value={new Intl.NumberFormat('es-CO').format(Number(linePrices[line] || 0))}
-                           onChange={(e) => handleLinePriceChange(line, e.target.value)}
-                         />
-                      </div>
-                      <Button onClick={() => handleApplyPriceToLine(line)}>Aplicar a Todos</Button>
-                  </div>
-                 </div>
-              )}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Producto</TableHead>
-                    <TableHead className="text-right">Precio (COP)</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {productLines[line].map((product) => (
-                    <TableRow key={product}>
-                      <TableCell>
-                        <Label htmlFor={`price-${product}`} className="font-medium">{product}</Label>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Input
-                          id={`price-${product}`}
-                          type="text"
-                          value={new Intl.NumberFormat('es-CO').format(prices[product] || 0)}
-                          onChange={(e) => handlePriceChange(product, e.target.value)}
-                          className="w-48 ml-auto text-right"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+          {brands.map((brand) => (
+            <TabsContent value={brand} key={brand}>
+                <Tabs defaultValue={Object.keys(productStructure[brand])[0]} className="w-full">
+                    <TabsList>
+                        {Object.keys(productStructure[brand]).map((line) => (
+                          <TabsTrigger value={line} key={line}>{line}</TabsTrigger>
+                        ))}
+                    </TabsList>
+                    {Object.keys(productStructure[brand]).map((line) => (
+                        <TabsContent value={line} key={line}>
+                          {line !== 'Insumos' && (
+                            <div className="mb-6 rounded-md border p-4">
+                                <div className="flex items-end gap-4">
+                                  <div className="flex-1 space-y-1.5">
+                                    <Label htmlFor={`line-price-${brand}-${line}`}>Nuevo Precio para la Línea {line}</Label>
+                                     <Input
+                                       id={`line-price-${brand}-${line}`}
+                                       type="text"
+                                       placeholder="Ingrese un nuevo precio..."
+                                       value={new Intl.NumberFormat('es-CO').format(Number(linePrices[line] || 0))}
+                                       onChange={(e) => handleLinePriceChange(line, e.target.value)}
+                                     />
+                                  </div>
+                                  <Button onClick={() => handleApplyPriceToLine(brand, line)}>Aplicar a Todos</Button>
+                              </div>
+                             </div>
+                          )}
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Producto</TableHead>
+                                <TableHead className="text-right">Precio (COP)</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {productStructure[brand][line].map((product) => (
+                                <TableRow key={product}>
+                                  <TableCell>
+                                    <Label htmlFor={`price-${product}`} className="font-medium">{product}</Label>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <Input
+                                      id={`price-${product}`}
+                                      type="text"
+                                      value={new Intl.NumberFormat('es-CO').format(prices[product] || 0)}
+                                      onChange={(e) => handlePriceChange(product, e.target.value)}
+                                      className="w-48 ml-auto text-right"
+                                    />
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TabsContent>
+                    ))}
+                </Tabs>
             </TabsContent>
           ))}
         </Tabs>
