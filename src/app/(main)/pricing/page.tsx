@@ -143,11 +143,43 @@ const productLines: { [key: string]: string[] } = {
 
 export default function PricingPage() {
   const [prices, setPrices] = useState(initialProductPrices);
+  const [linePrices, setLinePrices] = useState<{ [key: string]: string }>({});
   const { toast } = useToast();
 
   const handlePriceChange = (product: string, value: string) => {
     const numericValue = Number(value.replace(/[^0-9]/g, ''));
     setPrices(prev => ({ ...prev, [product]: isNaN(numericValue) ? 0 : numericValue }));
+  };
+
+  const handleLinePriceChange = (line: string, value: string) => {
+    const formattedValue = value.replace(/[^0-9]/g, '');
+    setLinePrices(prev => ({ ...prev, [line]: formattedValue }));
+  };
+
+  const handleApplyPriceToLine = (line: string) => {
+    const newPriceValue = linePrices[line];
+    if (newPriceValue === undefined || newPriceValue === '') {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Por favor, ingrese un precio para aplicar a la línea.',
+      });
+      return;
+    }
+
+    const numericPrice = Number(newPriceValue);
+    if (isNaN(numericPrice)) return;
+
+    const productsInLine = productLines[line];
+    const updatedPrices = { ...prices };
+    productsInLine.forEach(product => {
+      updatedPrices[product] = numericPrice;
+    });
+    setPrices(updatedPrices);
+    toast({
+      title: 'Precios actualizados',
+      description: `Todos los productos en la línea "${line}" han sido actualizados a ${formatCurrency(numericPrice)}.`,
+    });
   };
   
   const formatCurrency = (value: number) => {
@@ -174,7 +206,7 @@ export default function PricingPage() {
       <CardHeader>
         <CardTitle>Gestión de Precios de Productos</CardTitle>
         <CardDescription>
-          Ajuste los precios para cada producto individual. Los precios de los productos (excepto insumos) son por metro cuadrado (M²).
+          Ajuste los precios para cada producto individual o actualice una línea de productos completa. Los precios (excepto insumos) son por metro cuadrado (M²).
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -186,6 +218,23 @@ export default function PricingPage() {
           </TabsList>
           {lines.map((line) => (
             <TabsContent value={line} key={line}>
+              {line !== 'Insumos' && (
+                <div className="mb-6 rounded-md border p-4">
+                    <div className="flex items-end gap-4">
+                      <div className="flex-1 space-y-1.5">
+                        <Label htmlFor={`line-price-${line}`}>Nuevo Precio para la Línea {line}</Label>
+                         <Input
+                           id={`line-price-${line}`}
+                           type="text"
+                           placeholder="Ingrese un nuevo precio..."
+                           value={new Intl.NumberFormat('es-CO').format(Number(linePrices[line] || 0))}
+                           onChange={(e) => handleLinePriceChange(line, e.target.value)}
+                         />
+                      </div>
+                      <Button onClick={() => handleApplyPriceToLine(line)}>Aplicar a Todos</Button>
+                  </div>
+                 </div>
+              )}
               <Table>
                 <TableHeader>
                   <TableRow>
