@@ -6,6 +6,7 @@ export type Permission =
   // Orders
   'orders:view' |
   'orders:create' |
+  'orders:validate' |
   // Validation
   'validation:view' |
   // Customers
@@ -55,6 +56,7 @@ export const roles: RoleConfig[] = [
             'inventory:view',
             'orders:view',
             'orders:create',
+            'orders:validate',
             'validation:view',
             'customers:view',
             'customers:create',
@@ -92,6 +94,7 @@ export const roles: RoleConfig[] = [
         permissions: [
             'dashboard:view',
             'orders:view',
+            'orders:validate',
             'validation:view',
             'pricing:view',
             'reports:view'

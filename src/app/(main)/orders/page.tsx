@@ -24,6 +24,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Combobox } from '@/components/ui/combobox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -73,6 +74,7 @@ const initialDispatchData = [
     guia: '',
     convencion: 'Prealistamiento de pedido',
     factura: '',
+    validado: false,
   },
   {
     id: 2,
@@ -89,6 +91,7 @@ const initialDispatchData = [
     guia: 'TCC-98765',
     convencion: 'Despachado',
     factura: 'FAC-201',
+    validado: true,
   },
   {
     id: 3,
@@ -105,6 +108,7 @@ const initialDispatchData = [
     guia: 'ENV-12345',
     convencion: 'Entrega parcial',
     factura: 'FAC-202',
+    validado: true,
   },
 ];
 
@@ -180,6 +184,7 @@ export default function DispatchPage() {
         guia: '',
         convencion: 'none' as 'none',
         factura: '',
+        validado: false,
     };
     setDispatchData(prev => [newDispatch, ...prev]);
   }
@@ -202,6 +207,7 @@ export default function DispatchPage() {
         guia: '',
         convencion: 'none' as 'none',
         factura: '',
+        validado: false,
     };
     setDispatchData(prev => [newDispatch, ...prev]);
   };
@@ -241,7 +247,7 @@ export default function DispatchPage() {
         [
           'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
           'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
-          'Guía', 'Convención', 'Factura #'
+          'Guía', 'Convención', 'Factura #', 'Validado'
         ],
       ],
       body: filteredData.map(item => [
@@ -258,6 +264,7 @@ export default function DispatchPage() {
         item.guia,
         item.convencion,
         item.factura,
+        item.validado ? 'Sí' : 'No',
       ]),
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185] },
@@ -270,7 +277,7 @@ export default function DispatchPage() {
     const tableHeaders = [
         'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
         'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
-        'Guía', 'Convención', 'Factura #'
+        'Guía', 'Convención', 'Factura #', 'Validado'
     ];
     let html = '<table><thead><tr>';
     tableHeaders.forEach(header => html += `<th>${header}</th>`);
@@ -291,6 +298,7 @@ export default function DispatchPage() {
         html += `<td>${item.guia}</td>`;
         html += `<td>${item.convencion}</td>`;
         html += `<td>${item.factura}</td>`;
+        html += `<td>${item.validado ? 'Sí' : 'No'}</td>`;
         html += '</tr>';
     });
 
@@ -410,6 +418,7 @@ export default function DispatchPage() {
                 <TableHead className="p-0">Convención</TableHead>
                 {/* Contador */}
                 <TableHead className="p-0">Factura #</TableHead>
+                <TableHead className="p-0">Validado</TableHead>
                 <TableHead className="text-right p-0">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -500,6 +509,15 @@ export default function DispatchPage() {
 
                   {/* Contador Fields */}
                   <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
+                  <TableCell className="p-0 h-full">
+                    <div className="flex items-center justify-center h-full bg-background/50">
+                        <Checkbox
+                            checked={item.validado}
+                            onCheckedChange={(checked) => handleInputChange(item.id, 'validado', Boolean(checked))}
+                            disabled={!canEditContador}
+                        />
+                    </div>
+                  </TableCell>
                   <TableCell className="text-right p-0">
                     {(currentUser.role === 'Asesor de Ventas' && currentUser.name === item.vendedor) && (
                       <div className="flex items-center justify-end h-full">
