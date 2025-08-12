@@ -76,7 +76,7 @@ const initialProductPrices: { [key: string]: number } = {
     'Adhesivo': 30000,
 };
 
-const productStructure: { [brand: string]: { [line: string]: string[] } } = {
+const productStructure: { [key: string]: { [line: string]: string[] } } = {
   'CLAY': {
     'Clay': [
       'CUT STONE 120 X 60',
