@@ -198,6 +198,13 @@ const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
 export default function InventoryPage() {
   const brands = Object.keys(inventoryData);
 
+  const formatBrandName = (brand: string) => {
+    if (brand === 'CLAY' || brand === 'STONEFLEX' ) {
+      return brand.charAt(0) + brand.slice(1).toLowerCase();
+    }
+    return brand;
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -211,7 +218,7 @@ export default function InventoryPage() {
          <Tabs defaultValue={brands[0]} className="w-full">
             <TabsList>
                 {brands.map((brand) => (
-                    <TabsTrigger value={brand} key={brand}>{brand}</TabsTrigger>
+                    <TabsTrigger value={brand} key={brand} className="capitalize">{brand.toLowerCase()}</TabsTrigger>
                 ))}
             </TabsList>
             {brands.map((brand) => (
@@ -235,5 +242,3 @@ export default function InventoryPage() {
     </Card>
   );
 }
-
-    
