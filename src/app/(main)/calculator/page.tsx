@@ -129,52 +129,53 @@ const linePricing: { [key: string]: number } = {
   'Metales': 267819,
   '3D autoadhesiva': 207072,
   'Clay': 176000,
-  'Default': 100000, // Precio por defecto para productos sin línea definida
-  'Sellante': 50000, // Precio del sellante
+  'Default': 100000, 
+  'Sellante': 50000, 
+  'Adhesivo': 30000, 
 };
 
-const referenceLines: { [key: string]: keyof typeof linePricing } = {
+const referenceLines: { [key: string]: { line: keyof typeof linePricing, brand: string } } = {
   // Clay
-  'CUT STONE 120 X 60': 'Clay',
-  'TRAVERTINO': 'Clay',
-  'CONCRETO ENCOFRADO': 'Clay',
-  'TAPIA NEGRA': 'Clay',
+  'CUT STONE 120 X 60': { line: 'Clay', brand: 'CLAY' },
+  'TRAVERTINO': { line: 'Clay', brand: 'CLAY' },
+  'CONCRETO ENCOFRADO': { line: 'Clay', brand: 'CLAY' },
+  'TAPIA NEGRA': { line: 'Clay', brand: 'CLAY' },
   // Pizarra
-  'BLACK 1.22 X 0.61': 'Pizarra',
-  'KUND MULTY 1.22 X 0.61': 'Pizarra',
-  'TAN 1.22 X 0.61': 'Pizarra',
-  'INDIAN AUTUMN 1.22 X 0.61': 'Pizarra',
+  'BLACK 1.22 X 0.61': { line: 'Pizarra', brand: 'STONEFLEX' },
+  'KUND MULTY 1.22 X 0.61': { line: 'Pizarra', brand: 'STONEFLEX' },
+  'TAN 1.22 X 0.61': { line: 'Pizarra', brand: 'STONEFLEX' },
+  'INDIAN AUTUMN 1.22 X 0.61': { line: 'Pizarra', brand: 'STONEFLEX' },
   // Translucida
-  'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61': 'Translucida',
+  'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61': { line: 'Translucida', brand: 'STONEFLEX' },
   // Cuarcitas
-  'BURNING FOREST 1.22 X 0.61': 'Cuarcitas',
-  'COPPER 1.22 X 0.61': 'Cuarcitas',
-  'JEERA GREEN 1.22 X 0.61': 'Cuarcitas',
-  'SILVER SHINE 1.22 X 0.61': 'Cuarcitas',
-  'SILVER SHINE GOLD 1.22 X 0.61': 'Cuarcitas',
-  'STEEL GRAY 1.22 X 0.61': 'Cuarcitas',
+  'BURNING FOREST 1.22 X 0.61': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'COPPER 1.22 X 0.61': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'JEERA GREEN 1.22 X 0.61': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'SILVER SHINE 1.22 X 0.61': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'SILVER SHINE GOLD 1.22 X 0.61': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'STEEL GRAY 1.22 X 0.61': { line: 'Cuarcitas', brand: 'STONEFLEX' },
   // Mármol
-  'CARRARA 1.22 X 0.61': 'Mármol',
-  'CRYSTAL WHITE 1.22 X 0.61': 'Mármol',
-  'HIMALAYA GOLD 1.22X0.61 MTS': 'Mármol',
-  'MINT WHITE 1.22 X 0.61': 'Mármol',
+  'CARRARA 1.22 X 0.61': { line: 'Mármol', brand: 'STONEFLEX' },
+  'CRYSTAL WHITE 1.22 X 0.61': { line: 'Mármol', brand: 'STONEFLEX' },
+  'HIMALAYA GOLD 1.22X0.61 MTS': { line: 'Mármol', brand: 'STONEFLEX' },
+  'MINT WHITE 1.22 X 0.61': { line: 'Mármol', brand: 'STONEFLEX' },
   // Concreto
-  'CONCRETO BLANCO 1.22 X 0.61': 'Concreto',
-  'CONCRETO GRIS 1.22 X 0.61': 'Concreto',
-  'CONCRETE WITH HOLES 1.22 X 0.61': 'Concreto',
-  'CONCRETO GRIS MEDIUM 1.22 X 0.61': 'Concreto',
+  'CONCRETO BLANCO 1.22 X 0.61': { line: 'Concreto', brand: 'STONEFLEX' },
+  'CONCRETO GRIS 1.22 X 0.61': { line: 'Concreto', brand: 'STONEFLEX' },
+  'CONCRETE WITH HOLES 1.22 X 0.61': { line: 'Concreto', brand: 'STONEFLEX' },
+  'CONCRETO GRIS MEDIUM 1.22 X 0.61': { line: 'Concreto', brand: 'STONEFLEX' },
   // Metales
-  'CORTEN STELL - 2.44 X 0.61': 'Metales',
-  'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61': 'Metales',
-  'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61': 'Metales',
-  'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61': 'Metales',
+  'CORTEN STELL - 2.44 X 0.61': { line: 'Metales', brand: 'STONEFLEX' },
+  'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61': { line: 'Metales', brand: 'STONEFLEX' },
+  'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61': { line: 'Metales', brand: 'STONEFLEX' },
+  'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61': { line: 'Metales', brand: 'STONEFLEX' },
   // Madera
-  'MADERA NOGAL 0.15 X 2.44 MTS': 'Madera',
-  'MADERA TEKA 0.15 X 2.44 MTS': 'Madera',
+  'MADERA NOGAL 0.15 X 2.44 MTS': { line: 'Madera', brand: 'STONEFLEX' },
+  'MADERA TEKA 0.15 X 2.44 MTS': { line: 'Madera', brand: 'STONEFLEX' },
   // 3D autoadhesiva
-  '3D ADHESIVO - 0,90 M2 - BLACK': '3D autoadhesiva',
-  '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC': '3D autoadhesiva',
-  '3D ADHESIVO - 0,90 M2 - TAN': '3D autoadhesiva',
+  '3D ADHESIVO - 0,90 M2 - BLACK': { line: '3D autoadhesiva', brand: 'STONEFLEX' },
+  '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC': { line: '3D autoadhesiva', brand: 'STONEFLEX' },
+  '3D ADHESIVO - 0,90 M2 - TAN': { line: '3D autoadhesiva', brand: 'STONEFLEX' },
 };
 
 const allReferences = Object.values(inventoryData)
@@ -185,13 +186,13 @@ const allReferences = Object.values(inventoryData)
 export default function CalculatorPage() {
   const [reference, setReference] = useState('');
   const [sqMeters, setSqMeters] = useState(1);
-  const [totalCost, setTotalCost] = useState<number | null>(null);
-  const [sealantCost, setSealantCost] = useState(0);
-  const [sheets, setSheets] = useState(0);
-  const [sealantUnits, setSealantUnits] = useState(0);
+  const [quote, setQuote] = useState<any>(null);
 
   const handleCalculate = () => {
-    const line = referenceLines[reference] || 'Default';
+    const refDetails = referenceLines[reference];
+    if (!refDetails) return;
+    
+    const { line, brand } = refDetails;
     const pricePerSqm = linePricing[line];
     
     let calculatedSheets = 0;
@@ -199,21 +200,43 @@ export default function CalculatorPage() {
       calculatedSheets = Math.ceil(sqMeters / 0.7442);
     } else if (reference.includes('2.44 X 1.22')) {
       calculatedSheets = Math.ceil(sqMeters / 2.9768);
+    } else if (reference.includes('0.15 X 2.44')) {
+      calculatedSheets = Math.ceil(sqMeters / 0.366);
+    } else if (reference.includes('0,90 M2')) {
+      calculatedSheets = Math.ceil(sqMeters / 0.9);
     }
-    setSheets(calculatedSheets);
 
     let calculatedSealantUnits = 0;
-    if (line === 'Metales') {
-      calculatedSealantUnits = calculatedSheets; // 1 por lamina
-    } else if (reference.includes('1.22 X 0.61') || reference.includes('120 X 60')) {
-      calculatedSealantUnits = Math.ceil(calculatedSheets / 2); // 1 por cada 2
+    if (brand === 'CLAY') {
+      calculatedSealantUnits = Math.ceil(sqMeters / 12) || 1;
+    } else if (brand === 'STONEFLEX') {
+      calculatedSealantUnits = Math.ceil(sqMeters / 15) || 1;
     }
-    setSealantUnits(calculatedSealantUnits);
-    
-    const currentSealantCost = calculatedSealantUnits * linePricing['Sellante'];
-    setSealantCost(currentSealantCost);
 
-    setTotalCost(pricePerSqm * sqMeters + currentSealantCost);
+    const calculatedAdhesiveUnits = Math.ceil(sqMeters / 1); // Asumiendo 1 unidad por 1 m2
+
+    const productCost = pricePerSqm * sqMeters;
+    const sealantCost = calculatedSealantUnits * linePricing['Sellante'];
+    const adhesiveCost = calculatedAdhesiveUnits * linePricing['Adhesivo'];
+    const totalCost = productCost + sealantCost + adhesiveCost;
+    
+    const creationDate = new Date();
+    const expiryDate = new Date(creationDate);
+    expiryDate.setDate(expiryDate.getDate() + 7);
+
+    setQuote({
+      reference,
+      sqMeters,
+      sheets: calculatedSheets,
+      sealantUnits: calculatedSealantUnits,
+      adhesiveUnits: calculatedAdhesiveUnits,
+      productCost,
+      sealantCost,
+      adhesiveCost,
+      totalCost,
+      creationDate: creationDate.toLocaleDateString('es-CO'),
+      expiryDate: expiryDate.toLocaleDateString('es-CO'),
+    });
   };
 
   const formatCurrency = (value: number) => {
@@ -227,9 +250,9 @@ export default function CalculatorPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Calculadora de Costos</CardTitle>
+        <CardTitle>Calculadora de Cotizaciones</CardTitle>
         <CardDescription>
-          Estime el costo de los productos por metro cuadrado, incluyendo el sellante necesario.
+          Estime el costo de los productos por metro cuadrado, incluyendo materiales necesarios.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -261,35 +284,44 @@ export default function CalculatorPage() {
           <div className="flex items-end">
             <Button onClick={handleCalculate} className="w-full" disabled={!reference}>
               <Calculator className="mr-2 h-4 w-4" />
-              Calcular Costo
+              Generar Cotización
             </Button>
           </div>
         </div>
-         {totalCost !== null && (
+         {quote && (
           <Card className="bg-primary/5">
             <CardHeader>
-              <CardTitle>Costo Total Estimado</CardTitle>
+              <CardTitle>Resumen de la Cotización</CardTitle>
+              <CardDescription>
+                Cotización válida hasta el {quote.expiryDate}.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-3xl font-bold">{formatCurrency(totalCost)}</p>
-              <p className="text-sm text-muted-foreground">
-                Para <strong>{sqMeters} M²</strong> de <strong>{reference}</strong>.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Se necesitarían aproximadamente <strong>{sheets} láminas</strong>.
-              </p>
-               {sealantCost > 0 && (
-                <>
-                <p className="text-sm text-muted-foreground">
-                  Costo del producto: {formatCurrency(totalCost - sealantCost)}
+            <CardContent className="space-y-4">
+              <div>
+                <h3 className="font-semibold">{quote.reference} ({quote.sqMeters} M²)</h3>
+                <p className="text-muted-foreground">Costo Producto: {formatCurrency(quote.productCost)}</p>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p className="font-semibold">Láminas</p>
+                  <p>{quote.sheets} unidades</p>
+                </div>
+                <div>
+                  <p className="font-semibold">Sellante (1/4 Gal)</p>
+                  <p>{quote.sealantUnits} unidades ({formatCurrency(quote.sealantCost)})</p>
+                </div>
+                <div>
+                  <p className="font-semibold">Adhesivo</p>
+                  <p>{quote.adhesiveUnits} unidades ({formatCurrency(quote.adhesiveCost)})</p>
+                </div>
+              </div>
+              <div className="border-t pt-4 mt-4">
+                <p className="text-lg font-bold text-right">
+                  Costo Total Estimado: {formatCurrency(quote.totalCost)}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  Costo del sellante ({sealantUnits} unidades): {formatCurrency(sealantCost)}
-                </p>
-               </>
-              )}
+              </div>
               <p className="text-xs text-muted-foreground pt-2">
-                No incluye valor de adhesivo.
+                Esta es una cotización preliminar y no incluye costos de envío o instalación.
               </p>
             </CardContent>
           </Card>
