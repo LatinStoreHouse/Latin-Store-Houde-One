@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   SidebarProvider,
@@ -42,18 +43,9 @@ const navItems = [
 ];
 
 const Logo = () => (
-<svg width="140" height="40" viewBox="0 0 250 50" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-sidebar-primary">
-<text x="10" y="40" fontFamily="Arial, sans-serif" fontSize="30" fontWeight="bold" fill="white">
-LATIN
-<tspan dy="-5" fontSize="20">
-<svg x="88" y="5" width="20" height="20" viewBox="0 0 24 24">
-<path fill="white" d="M12,17.27L18.18,21L17,14.64L22,9.73L15.45,8.5L12,2.5L8.55,8.5L2,9.73L7,14.64L5.82,21L12,17.27Z"/>
-</svg>
-</tspan>
-</text>
-<text x="10" y="70" fontFamily="Arial, sans-serif" fontSize="30" fontWeight="bold" fill="white">STORE</text>
-<text x="10" y="100" fontFamily="Arial, sans-serif" fontSize="30" fontWeight="bold" fill="white">HOUSE</text>
-</svg>
+  <div className="relative h-10 w-32">
+    <Image src="/logo.png" alt="Latin Store House Logo" fill style={{ objectFit: 'contain' }} />
+  </div>
 );
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -64,7 +56,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <Sidebar>
         <SidebarHeader className="p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg">
+            <div className="flex h-10 items-center justify-center rounded-lg">
               <Logo />
             </div>
             <span className="text-lg font-semibold text-sidebar-foreground">Latin Store House</span>
