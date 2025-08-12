@@ -166,6 +166,9 @@ const getAllInventoryProducts = () => {
 
 const initialReservations: Reservation[] = [
     { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, sourceId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'En espera de validación', source: 'Contenedor' },
+    { id: 'RES-002', customer: 'Diseños Modernos', product: 'CONCRETO GRIS 1.22 X 0.61', quantity: 10, sourceId: 'Bodega', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'En espera de validación', source: 'Bodega' },
+    { id: 'RES-003', customer: 'Arquitectura Andina', product: 'KUND MULTY 1.22 X 0.61', quantity: 25, sourceId: 'Zona Franca', advisor: 'Jane Smith', quoteNumber: 'COT-2024-003', status: 'Validada', source: 'Zona Franca' },
+    { id: 'RES-004', customer: 'Hogar Futuro', product: 'TAN 1.22 X 0.61', quantity: 30, sourceId: 'Bodega', advisor: 'John Doe', quoteNumber: 'COT-2024-004', status: 'Rechazada', source: 'Bodega' },
 ];
 
 export default function ReservationsPage() {
@@ -193,6 +196,20 @@ export default function ReservationsPage() {
             return [];
     }
   }, [reservationSource, inventoryProducts]);
+  
+  const pendingReservations = useMemo(() => reservations.filter(r => 
+    r.status === 'En espera de validación' &&
+    (r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase()))
+  ), [reservations, searchTerm]);
+
+  const historyReservations = useMemo(() => reservations.filter(r => 
+    r.status !== 'En espera de validación' &&
+    (r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase()))
+  ), [reservations, searchTerm]);
 
   const handleCreateReservation = () => {
     if (!customerName || !productName || quantity <= 0 || !quoteNumber) {
@@ -226,12 +243,6 @@ export default function ReservationsPage() {
     setIsNewReservationDialogOpen(false);
     toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
   };
-  
-  const filteredReservations = reservations.filter(r => 
-    r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase())
-  );
   
   const getSelectedProductInfo = () => {
     if (!productName) return null;
@@ -327,7 +338,60 @@ export default function ReservationsPage() {
                     />
                 </div>
             </div>
-          <Table>
+          <Card>
+            <CardHeader>
+                <CardTitle>Reservas Pendientes de Validación</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead># Cotización</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Producto</TableHead>
+                    <TableHead>Cantidad</TableHead>
+                    <TableHead>Origen</TableHead>
+                    <TableHead>Asesor</TableHead>
+                    <TableHead>Estado</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingReservations.map((reservation) => (
+                    <TableRow key={reservation.id}>
+                      <TableCell>{reservation.quoteNumber}</TableCell>
+                      <TableCell>{reservation.customer}</TableCell>
+                      <TableCell>{reservation.product}</TableCell>
+                      <TableCell>{reservation.quantity}</TableCell>
+                      <TableCell>{reservation.source === 'Contenedor' ? reservation.sourceId : reservation.source}</TableCell>
+                      <TableCell>{reservation.advisor}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(reservation.status)}>
+                            {reservation.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {pendingReservations.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground">
+                            No se encontraron reservas pendientes.
+                        </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+            <CardTitle>Historial de Reservas</CardTitle>
+            <CardDescription>Reservas que ya han sido validadas o rechazadas.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead># Cotización</TableHead>
@@ -340,7 +404,7 @@ export default function ReservationsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredReservations.map((reservation) => (
+              {historyReservations.map((reservation) => (
                 <TableRow key={reservation.id}>
                   <TableCell>{reservation.quoteNumber}</TableCell>
                   <TableCell>{reservation.customer}</TableCell>
@@ -355,10 +419,10 @@ export default function ReservationsPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {filteredReservations.length === 0 && (
+              {historyReservations.length === 0 && (
                 <TableRow>
                     <TableCell colSpan={7} className="text-center text-muted-foreground">
-                        No se encontraron reservas.
+                        No hay registros en el historial.
                     </TableCell>
                 </TableRow>
               )}
@@ -369,5 +433,3 @@ export default function ReservationsPage() {
     </div>
   );
 }
-
-    
