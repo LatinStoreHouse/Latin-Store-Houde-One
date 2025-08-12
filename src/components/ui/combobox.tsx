@@ -51,31 +51,28 @@ export function Combobox({
   const [inputValue, setInputValue] = React.useState(value || '')
 
   React.useEffect(() => {
-    setInputValue(value || '')
-  }, [value])
+    if (value) {
+      const selectedLabel = options.find(o => o.value === value)?.label || value;
+      setInputValue(selectedLabel);
+    } else {
+      setInputValue('');
+    }
+  }, [value, options]);
 
   const handleSelect = (currentValue: string) => {
     const selectedOption = options.find(o => o.label.toLowerCase() === currentValue.toLowerCase());
     const newValue = selectedOption ? selectedOption.value : (allowFreeText ? currentValue : "");
     onValueChange?.(newValue);
-    setInputValue(newValue);
+    setInputValue(selectedOption ? selectedOption.label : newValue);
     setOpen(false);
   };
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
-    if (allowFreeText) {
-      onValueChange?.(newValue);
+  const handleInputChange = (search: string) => {
+    setInputValue(search);
+     if (allowFreeText) {
+      onValueChange?.(search);
     }
   }
-  
-  const handleBlur = () => {
-     if (allowFreeText) {
-        onValueChange?.(inputValue)
-     }
-  }
-
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -99,8 +96,7 @@ export function Combobox({
           <CommandInput
             placeholder={searchPlaceholder}
             value={inputValue}
-            onValueChange={allowFreeText ? setInputValue : undefined}
-            onBlur={handleBlur}
+            onValueChange={handleInputChange}
           />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
