@@ -21,13 +21,10 @@ import {
   LayoutDashboard,
   Users,
   Warehouse,
-  Package,
   UserCog,
-  Truck,
-  Settings,
   LogOut,
-  PackageSearch,
   ClipboardCheck,
+  Calculator,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -37,6 +34,7 @@ const navItems = [
   { href: '/inventory', label: 'Inventario', icon: Warehouse },
   { href: '/orders', label: 'Pedidos y Validación', icon: ClipboardCheck },
   { href: '/customers', label: 'Clientes', icon: Users },
+  { href: '/calculator', label: 'Calculadora', icon: Calculator },
   { href: '/users', label: 'Usuarios', icon: UserCog },
   { href: '/reports', label: 'Reportes', icon: FileText },
   { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare },
