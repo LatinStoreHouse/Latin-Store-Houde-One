@@ -240,7 +240,6 @@ export default function CalculatorPage() {
         calculatedSealantUnits = Math.ceil(calculatedSheets / 2) || 0;
     }
 
-
     let calculatedAdhesiveUnits = 0;
     if (includeAdhesive) {
         const adhesiveLines = ['Pizarra', 'Cuarcitas', 'Concreto', 'Clay'];
