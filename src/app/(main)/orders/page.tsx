@@ -22,6 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Combobox } from '@/components/ui/combobox';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -124,6 +125,15 @@ const months = [
     { value: '11', label: 'Noviembre' },
     { value: '12', label: 'Diciembre' },
 ];
+
+const colombianCities = [
+  "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta", 
+  "Soacha", "Soledad", "Bucaramanga", "Ibagué", "Santa Marta", "Villavicencio", 
+  "Pereira", "Manizales", "Pasto", "Neiva", "Armenia", "Popayán", "Sincelejo", 
+  "Montería", "Valledupar", "Tunja", "Riohacha", "Florencia", "Yopal", 
+  "Quibdó", "Arauca", "San Andrés", "Mocoa", "Leticia", "Inírida", 
+  "San José del Guaviare", "Puerto Carreño", "Mitú"
+].map(city => ({ value: city, label: city }));
 
 // In a real app, this would come from an auth context.
 const currentUser = {
@@ -377,7 +387,19 @@ export default function DispatchPage() {
                   <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" type="date" value={item.fechaSolicitud} onChange={e => handleInputChange(item.id, 'fechaSolicitud', e.target.value)} disabled={!canEditAsesor} /></TableCell>
                   <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.cotizacion} onChange={e => handleInputChange(item.id, 'cotizacion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
                   <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.cliente} onChange={e => handleInputChange(item.id, 'cliente', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.ciudad} onChange={e => handleInputChange(item.id, 'ciudad', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell className="p-0 min-w-[200px]">
+                    <Combobox
+                      options={colombianCities}
+                      value={item.ciudad}
+                      onValueChange={(value) => handleInputChange(item.id, 'ciudad', value)}
+                      placeholder="Seleccione una ciudad"
+                      searchPlaceholder="Buscar ciudad..."
+                      emptyPlaceholder="No se encontró la ciudad."
+                      className="bg-background/50 border-0 rounded-none focus:ring-1 focus:ring-offset-0 h-full"
+                      disabled={!canEditAsesor}
+                      allowFreeText
+                    />
+                  </TableCell>
                   <TableCell className="p-0"><Input className="min-w-[200px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.direccion} onChange={e => handleInputChange(item.id, 'direccion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
                   <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor} /></TableCell>
                   
@@ -416,7 +438,7 @@ export default function DispatchPage() {
                            {conventionOptions.map(option => (
                             <SelectItem key={option.value} value={option.value}>
                                 <div className="flex items-center gap-2">
-                                    {option.value && option.value !== 'none' && <div className={cn("w-2 h-2 rounded-full", option.bgColor.replace('/50',''))}></div>}
+                                    {option.value && option.value !== 'none' && <div className={cn("w-2 h-2 rounded-full", option.bgColor?.replace('/50',''))}></div>}
                                     {option.label}
                                 </div>
                             </SelectItem>
