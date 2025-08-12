@@ -48,30 +48,26 @@ export function Combobox({
   allowFreeText = false
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState(value || '')
-
-  React.useEffect(() => {
-    if (value) {
-      const selectedLabel = options.find(o => o.value === value)?.label || value;
-      setInputValue(selectedLabel);
-    } else {
-      setInputValue('');
-    }
-  }, [value, options]);
 
   const handleSelect = (currentValue: string) => {
-    const selectedOption = options.find(o => o.label.toLowerCase() === currentValue.toLowerCase());
+    const selectedOption = options.find(o => o.value.toLowerCase() === currentValue.toLowerCase());
     const newValue = selectedOption ? selectedOption.value : (allowFreeText ? currentValue : "");
     onValueChange?.(newValue);
-    setInputValue(selectedOption ? selectedOption.label : newValue);
     setOpen(false);
   };
   
   const handleInputChange = (search: string) => {
-    setInputValue(search);
      if (allowFreeText) {
       onValueChange?.(search);
     }
+  }
+
+  const getDisplayValue = () => {
+    if (value) {
+      const selectedOption = options.find(o => o.value === value);
+      return selectedOption ? selectedOption.label : (allowFreeText ? value : placeholder);
+    }
+    return placeholder;
   }
 
   return (
@@ -84,9 +80,7 @@ export function Combobox({
           className={cn("w-full justify-between", className)}
         >
           <span className="truncate">
-          {value
-            ? options.find((option) => option.value === value)?.label || value
-            : placeholder}
+            {getDisplayValue()}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -95,7 +89,6 @@ export function Combobox({
         <Command shouldFilter={!allowFreeText}>
           <CommandInput
             placeholder={searchPlaceholder}
-            value={inputValue}
             onValueChange={handleInputChange}
           />
           <CommandList>
@@ -104,7 +97,7 @@ export function Combobox({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label}
+                  value={option.value}
                   onSelect={handleSelect}
                 >
                   <Check
