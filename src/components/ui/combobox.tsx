@@ -89,6 +89,7 @@ export function Combobox({
           <CommandInput
             placeholder={searchPlaceholder}
             onValueChange={handleInputChange}
+            value={allowFreeText ? value : undefined}
           />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
