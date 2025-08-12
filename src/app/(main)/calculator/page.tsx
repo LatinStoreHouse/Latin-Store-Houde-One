@@ -182,10 +182,12 @@ const allReferences = Object.values(inventoryData)
   .flatMap(brand => Object.values(brand))
   .flatMap(category => Object.keys(category));
 
+const IVA_RATE = 0.19; // 19%
 
 export default function CalculatorPage() {
   const [reference, setReference] = useState('');
   const [sqMeters, setSqMeters] = useState(1);
+  const [discount, setDiscount] = useState(0);
   const [quote, setQuote] = useState<any>(null);
 
   const handleCalculate = () => {
@@ -213,12 +215,18 @@ export default function CalculatorPage() {
       calculatedSealantUnits = Math.ceil(sqMeters / 15) || 1;
     }
 
-    const calculatedAdhesiveUnits = Math.ceil(sqMeters / 1); // Asumiendo 1 unidad por 1 m2
+    const calculatedAdhesiveUnits = Math.ceil(sqMeters / 1); 
 
     const productCost = pricePerSqm * sqMeters;
+    const discountAmount = productCost * (discount / 100);
+    const discountedProductCost = productCost - discountAmount;
+    
     const sealantCost = calculatedSealantUnits * linePricing['Sellante'];
     const adhesiveCost = calculatedAdhesiveUnits * linePricing['Adhesivo'];
-    const totalCost = productCost + sealantCost + adhesiveCost;
+
+    const subtotal = discountedProductCost + sealantCost + adhesiveCost;
+    const ivaAmount = subtotal * IVA_RATE;
+    const totalCost = subtotal + ivaAmount;
     
     const creationDate = new Date();
     const expiryDate = new Date(creationDate);
@@ -231,8 +239,12 @@ export default function CalculatorPage() {
       sealantUnits: calculatedSealantUnits,
       adhesiveUnits: calculatedAdhesiveUnits,
       productCost,
+      discountAmount,
+      discountedProductCost,
       sealantCost,
       adhesiveCost,
+      subtotal,
+      ivaAmount,
       totalCost,
       creationDate: creationDate.toLocaleDateString('es-CO'),
       expiryDate: expiryDate.toLocaleDateString('es-CO'),
@@ -256,7 +268,7 @@ export default function CalculatorPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
              <label className="text-sm font-medium">Referencia de Producto</label>
              <Select onValueChange={setReference} value={reference}>
@@ -281,6 +293,18 @@ export default function CalculatorPage() {
               className="w-full" 
             />
           </div>
+          <div>
+            <label htmlFor="discount-input" className="text-sm font-medium">Descuento (%)</label>
+            <Input
+              id="discount-input"
+              type="number"
+              value={discount}
+              onChange={(e) => setDiscount(Math.max(0, Math.min(100, Number(e.target.value))))}
+              min="0"
+              max="100"
+              className="w-full"
+            />
+          </div>
           <div className="flex items-end">
             <Button onClick={handleCalculate} className="w-full" disabled={!reference}>
               <Calculator className="mr-2 h-4 w-4" />
@@ -297,11 +321,19 @@ export default function CalculatorPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-semibold">{quote.reference} ({quote.sqMeters} M²)</h3>
-                <p className="text-muted-foreground">Costo Producto: {formatCurrency(quote.productCost)}</p>
+              <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold">{quote.reference} ({quote.sqMeters} M²)</h3>
+                    <p className="text-muted-foreground">Costo Producto: {formatCurrency(quote.productCost)}</p>
+                  </div>
+                  <div className="space-y-2 text-sm text-right">
+                     <p>Subtotal: {formatCurrency(quote.subtotal)}</p>
+                     <p className="text-red-500">Descuento: -{formatCurrency(quote.discountAmount)}</p>
+                     <p>IVA (19%): {formatCurrency(quote.ivaAmount)}</p>
+                  </div>
               </div>
-              <div className="grid grid-cols-3 gap-4 text-sm">
+
+              <div className="grid grid-cols-3 gap-4 text-sm border-t pt-4 mt-4">
                 <div>
                   <p className="font-semibold">Láminas</p>
                   <p>{quote.sheets} unidades</p>
