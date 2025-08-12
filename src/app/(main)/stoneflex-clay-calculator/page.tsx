@@ -188,7 +188,7 @@ interface QuoteItem {
 export default function StoneflexClayCalculatorPage() {
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
-  const [sqMeters, setSqMeters] = useState(1);
+  const [sqMeters, setSqMeters] = useState<number | string>(1);
   const [sheets, setSheets] = useState(1);
   const [discount, setDiscount] = useState(0);
   const [wastePercentage, setWastePercentage] = useState(0);
@@ -226,7 +226,7 @@ export default function StoneflexClayCalculatorPage() {
     let baseSheets = 0;
 
     if (calculationMode === 'sqm') {
-      baseSqm = sqMeters;
+      baseSqm = typeof sqMeters === 'string' ? parseFloat(sqMeters.replace(',', '.')) : sqMeters;
       baseSheets = Math.ceil(baseSqm / sqmPerSheet);
     } else {
       baseSheets = sheets;
@@ -396,6 +396,15 @@ export default function StoneflexClayCalculatorPage() {
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
   };
 
+  const handleSqmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const sanitizedValue = value.replace(',', '.');
+    if (/^\d*\.?\d*$/.test(sanitizedValue)) {
+      setSqMeters(value);
+    }
+  };
+
+
   return (
     <Card>
       <CardHeader>
@@ -435,13 +444,12 @@ export default function StoneflexClayCalculatorPage() {
             {calculationMode === 'sqm' ? (
               <div className="space-y-2">
                 <Label htmlFor="sqm-input">Metros Cuadrados (M²)</Label>
-                <Input 
+                <Input
                   id="sqm-input"
-                  type="number" 
-                  value={sqMeters} 
-                  onChange={(e) => setSqMeters(Number(e.target.value))}
-                  min="1"
-                  className="w-full" 
+                  type="text"
+                  value={sqMeters}
+                  onChange={handleSqmChange}
+                  className="w-full"
                 />
               </div>
             ) : (
