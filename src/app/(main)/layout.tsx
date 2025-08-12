@@ -35,6 +35,7 @@ import {
   ClipboardCheck,
   Calculator,
   ChevronDown,
+  Tags,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ const navItems = [
       { href: '/starwood-calculator', label: 'Starwood' },
     ],
   },
+  { href: '/pricing', label: 'Precios', icon: Tags },
   { href: '/users', label: 'Usuarios', icon: UserCog },
   { href: '/reports', label: 'Reportes', icon: FileText },
   { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare },
