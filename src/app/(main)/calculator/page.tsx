@@ -212,10 +212,22 @@ export default function CalculatorPage() {
     if (brand === 'CLAY') {
       calculatedSealantUnits = Math.ceil(sqMeters / 12) || 1;
     } else if (brand === 'STONEFLEX') {
-      calculatedSealantUnits = Math.ceil(sqMeters / 15) || 1;
+      if (line === 'Metales') {
+        calculatedSealantUnits = calculatedSheets;
+      } else if (reference.includes('1.22 X 0.61')) {
+        calculatedSealantUnits = Math.ceil(calculatedSheets / 2);
+      } else {
+        calculatedSealantUnits = Math.ceil(sqMeters / 15) || 1;
+      }
     }
 
-    const calculatedAdhesiveUnits = Math.ceil(sqMeters / 1); 
+    let calculatedAdhesiveUnits = 0;
+    const adhesiveLines = ['Pizarra', 'Cuarcitas', 'Concreto', 'Clay'];
+    if (adhesiveLines.includes(line)) {
+        calculatedAdhesiveUnits = calculatedSheets * 2;
+    } else {
+        calculatedAdhesiveUnits = Math.ceil(sqMeters / 1); 
+    }
 
     const productCost = pricePerSqm * sqMeters;
     const discountAmount = productCost * (discount / 100);
