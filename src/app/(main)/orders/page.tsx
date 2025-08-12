@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, FileDown, Search } from 'lucide-react';
 import { Role } from '@/lib/roles';
+import { cn } from '@/lib/utils';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -16,6 +17,22 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
   }
 }
+
+const conventionOptions = [
+    { value: 'Prealistamiento de pedido', label: 'Prealistamiento de pedido', bgColor: 'bg-purple-200/50', textColor: 'text-purple-800' },
+    { value: 'Listo en Bodega', label: 'Listo en Bodega', bgColor: 'bg-blue-200/50', textColor: 'text-blue-800' },
+    { value: 'Despachado', label: 'Despachado', bgColor: 'bg-green-200/50', textColor: 'text-green-800' },
+    { value: 'Producto Separado', label: 'Producto Separado', bgColor: 'bg-amber-200/50', textColor: 'text-amber-800' },
+    { value: 'Transito naviero', label: 'Transito naviero', bgColor: 'bg-yellow-200/50', textColor: 'text-yellow-800' },
+    { value: 'Novedad Bodega interno', label: 'Novedad Bodega interno', bgColor: 'bg-orange-200/50', textColor: 'text-orange-800' },
+    { value: 'Entrega parcial', label: 'Entrega parcial', bgColor: 'bg-red-200/50', textColor: 'text-red-800' },
+];
+
+const getConventionClasses = (value: string) => {
+    const option = conventionOptions.find(opt => opt.value === value);
+    if (!option) return '';
+    return `${option.bgColor} ${option.textColor}`;
+};
 
 // Mocked data for dispatch requests
 const initialDispatchData = [
@@ -32,7 +49,7 @@ const initialDispatchData = [
     rutero: '',
     fechaDespacho: '',
     guia: '',
-    convencion: '',
+    convencion: 'Prealistamiento de pedido',
     validado: false,
     factura: '',
   },
@@ -49,7 +66,7 @@ const initialDispatchData = [
     rutero: 'R-BOG-01',
     fechaDespacho: '2024-07-30',
     guia: 'TCC-98765',
-    convencion: 'Feria Construcción',
+    convencion: 'Despachado',
     validado: true,
     factura: 'FAC-201',
   },
@@ -66,7 +83,7 @@ const initialDispatchData = [
     rutero: 'R-MED-05',
     fechaDespacho: '2024-06-18',
     guia: 'ENV-12345',
-    convencion: '',
+    convencion: 'Entrega parcial',
     validado: true,
     factura: 'FAC-202',
   },
@@ -271,7 +288,27 @@ export default function DispatchPage() {
                   <TableCell><Input className="min-w-[150px]" value={item.rutero} onChange={e => handleInputChange(item.id, 'rutero', e.target.value)} disabled={!canEditLogistica} /></TableCell>
                   <TableCell><Input className="min-w-[150px]" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
                   <TableCell><Input className="min-w-[150px]" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input className="min-w-[150px]" value={item.convencion} onChange={e => handleInputChange(item.id, 'convencion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className={cn("min-w-[200px]", getConventionClasses(item.convencion))}>
+                     <Select
+                        value={item.convencion}
+                        onValueChange={(value) => handleInputChange(item.id, 'convencion', value)}
+                        disabled={!canEditLogistica}
+                    >
+                        <SelectTrigger className="bg-transparent border-0 focus:ring-0">
+                           <SelectValue placeholder="Seleccionar estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {conventionOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                                <div className="flex items-center gap-2">
+                                    <div className={cn("w-2 h-2 rounded-full", option.bgColor.replace('/50',''))}></div>
+                                    {option.label}
+                                </div>
+                            </SelectItem>
+                           ))}
+                        </SelectContent>
+                    </Select>
+                  </TableCell>
 
                   {/* Contador Fields */}
                   <TableCell className="text-center">
