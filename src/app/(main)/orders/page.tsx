@@ -29,6 +29,13 @@ declare module 'jspdf' {
   }
 }
 
+const ruteroOptions = [
+    { value: 'none', label: 'Seleccionar rutero' },
+    { value: 'Transportadora', label: 'Transportadora' },
+    { value: 'Ruta Interna', label: 'Ruta Interna' },
+    { value: 'Cliente Recoge', label: 'Cliente Recoge' },
+];
+
 const conventionOptions = [
     { value: 'none', label: 'Sin estado', bgColor: '', textColor: '' },
     { value: 'Prealistamiento de pedido', label: 'Prealistamiento de pedido', bgColor: 'bg-purple-200/50', textColor: 'text-purple-800' },
@@ -42,7 +49,7 @@ const conventionOptions = [
 
 const getConventionClasses = (value: string) => {
     const option = conventionOptions.find(opt => opt.value === value);
-    if (!option || !option.bgColor) return '';
+    if (!option || !option.bgColor || value === 'none') return '';
     return `${option.bgColor} ${option.textColor}`;
 };
 
@@ -58,7 +65,7 @@ const initialDispatchData = [
     direccion: 'Calle Falsa 123',
     remision: 'REM-001',
     observacion: '',
-    rutero: '',
+    rutero: 'Transportadora',
     fechaDespacho: '',
     guia: '',
     convencion: 'Prealistamiento de pedido',
@@ -152,10 +159,10 @@ export default function DispatchPage() {
         direccion: '',
         remision: '',
         observacion: '',
-        rutero: '',
+        rutero: 'none',
         fechaDespacho: '',
         guia: '',
-        convencion: 'none',
+        convencion: 'none' as 'none',
         validado: false,
         factura: '',
     };
@@ -175,7 +182,7 @@ export default function DispatchPage() {
         ...originalDispatch,
         id: newId,
         fechaSolicitud: new Date().toISOString().split('T')[0],
-        rutero: '',
+        rutero: 'none',
         fechaDespacho: '',
         guia: '',
         convencion: 'none' as 'none',
@@ -324,7 +331,24 @@ export default function DispatchPage() {
                   
                   {/* Logística Fields */}
                   <TableCell className="p-0"><Input className="min-w-[200px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.rutero} onChange={e => handleInputChange(item.id, 'rutero', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="min-w-[200px] p-0">
+                     <Select
+                        value={item.rutero}
+                        onValueChange={(value) => handleInputChange(item.id, 'rutero', value)}
+                        disabled={!canEditLogistica}
+                    >
+                        <SelectTrigger className="bg-background/50 border-0 rounded-none focus:ring-1 focus:ring-offset-0 h-full">
+                           <SelectValue placeholder="Seleccionar rutero" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {ruteroOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                            </SelectItem>
+                           ))}
+                        </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
                   <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
                   <TableCell className="min-w-[200px] p-0">
