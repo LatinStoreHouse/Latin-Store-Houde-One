@@ -236,8 +236,18 @@ export default function CalculatorPage() {
     }
     
     let calculatedSealantUnits = 0;
-    if (includeSealant) {
-        calculatedSealantUnits = Math.ceil(calculatedSheets / 2) || 0;
+    if (includeSealant && calculatedSqm > 0) {
+      if (brand === 'CLAY') {
+        calculatedSealantUnits = Math.ceil(calculatedSqm / 11);
+      } else if (brand === 'STONEFLEX') {
+        calculatedSealantUnits = Math.ceil(calculatedSqm / 15);
+      } else {
+        // Default sealant calculation if brand is not CLAY or STONEFLEX
+        calculatedSealantUnits = Math.ceil(calculatedSqm / 15);
+      }
+      if (calculatedSealantUnits === 0 && calculatedSqm > 0) {
+        calculatedSealantUnits = 1;
+      }
     }
 
     let calculatedAdhesiveUnits = 0;
