@@ -17,31 +17,31 @@ import { Warehouse, Truck, PackageSearch } from 'lucide-react';
 
 const overviewItems = [
   {
-    title: 'In Warehouse',
+    title: 'En Almacén',
     value: '12,504',
     icon: Warehouse,
-    description: '+2.5% from last month',
+    description: '+2.5% desde el mes pasado',
   },
   {
-    title: 'In Transit',
+    title: 'En Tránsito',
     value: '1,230',
     icon: Truck,
-    description: '+15.1% from last month',
+    description: '+15.1% desde el mes pasado',
   },
   {
-    title: 'In Free Zone',
+    title: 'En Zona Franca',
     value: '3,456',
     icon: PackageSearch,
-    description: '-3.2% from last month',
+    description: '-3.2% desde el mes pasado',
   },
 ];
 
 const recentActivities = [
-    { id: 'ORD-001', item: 'High-Performance Laptops', quantity: 50, status: 'Shipped', date: '2023-10-26' },
-    { id: 'ORD-002', item: 'Ergonomic Office Chairs', quantity: 100, status: 'Processing', date: '2023-10-25' },
-    { id: 'ORD-003', item: '4K Monitors', quantity: 75, status: 'Delivered', date: '2023-10-24' },
-    { id: 'ORD-004', item: 'Mechanical Keyboards', quantity: 200, status: 'Awaiting Shipment', date: '2023-10-23' },
-    { id: 'ORD-005', item: 'Webcams', quantity: 150, status: 'Shipped', date: '2023-10-22' },
+    { id: 'ORD-001', item: 'Laptops de Alto Rendimiento', quantity: 50, status: 'Enviado', date: '2023-10-26' },
+    { id: 'ORD-002', item: 'Sillas de Oficina Ergonómicas', quantity: 100, status: 'Procesando', date: '2023-10-25' },
+    { id: 'ORD-003', item: 'Monitores 4K', quantity: 75, status: 'Entregado', date: '2023-10-24' },
+    { id: 'ORD-004', item: 'Teclados Mecánicos', quantity: 200, status: 'Esperando Envío', date: '2023-10-23' },
+    { id: 'ORD-005', item: 'Cámaras Web', quantity: 150, status: 'Enviado', date: '2023-10-22' },
 ];
 
 export default function DashboardPage() {
@@ -66,17 +66,17 @@ export default function DashboardPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>Actividad Reciente</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Item</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead>ID de Pedido</TableHead>
+                <TableHead>Artículo</TableHead>
+                <TableHead>Cantidad</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Fecha</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -86,7 +86,7 @@ export default function DashboardPage() {
                   <TableCell>{activity.item}</TableCell>
                   <TableCell>{activity.quantity}</TableCell>
                   <TableCell>
-                    <Badge variant={activity.status === 'Delivered' ? 'default' : activity.status === 'Shipped' ? 'secondary' : 'outline'}>{activity.status}</Badge>
+                    <Badge variant={activity.status === 'Entregado' ? 'default' : activity.status === 'Enviado' ? 'secondary' : 'outline'}>{activity.status}</Badge>
                   </TableCell>
                   <TableCell>{activity.date}</TableCell>
                 </TableRow>

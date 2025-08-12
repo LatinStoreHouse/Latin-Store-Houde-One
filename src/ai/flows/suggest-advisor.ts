@@ -15,15 +15,15 @@ import {z} from 'genkit';
 const SuggestAdvisorInputSchema = z.object({
   messageContent: z
     .string()
-    .describe('The content of the customer message from Instagram, WhatsApp, or email.'),
+    .describe('El contenido del mensaje del cliente de Instagram, WhatsApp o correo electrónico.'),
 });
 export type SuggestAdvisorInput = z.infer<typeof SuggestAdvisorInputSchema>;
 
 const SuggestAdvisorOutputSchema = z.object({
   suggestedAdvisor: z
     .string()
-    .describe('The name or identifier of the suggested sales advisor.'),
-  reason: z.string().describe('The reason for suggesting this advisor.'),
+    .describe('El nombre o identificador del asesor de ventas sugerido.'),
+  reason: z.string().describe('La razón para sugerir este asesor.'),
 });
 export type SuggestAdvisorOutput = z.infer<typeof SuggestAdvisorOutputSchema>;
 
@@ -35,12 +35,12 @@ const prompt = ai.definePrompt({
   name: 'suggestAdvisorPrompt',
   input: {schema: SuggestAdvisorInputSchema},
   output: {schema: SuggestAdvisorOutputSchema},
-  prompt: `You are an AI assistant designed to analyze customer messages and suggest the most relevant sales advisor.
+  prompt: `Eres un asistente de IA diseñado para analizar los mensajes de los clientes y sugerir el asesor de ventas más relevante.
 
-  Analyze the following customer message and determine which sales advisor would be best suited to handle the inquiry.
-  Consider the expertise of each advisor and the content of the message when making your suggestion. Return the advisor's name and a brief reason for your suggestion.
+  Analiza el siguiente mensaje del cliente y determina qué asesor de ventas sería el más adecuado para atender la consulta.
+  Considera la experiencia de cada asesor y el contenido del mensaje al hacer tu sugerencia. Devuelve el nombre del asesor y una breve razón para tu sugerencia.
 
-  Message Content: {{{messageContent}}}
+  Contenido del Mensaje: {{{messageContent}}}
   `,
 });
 

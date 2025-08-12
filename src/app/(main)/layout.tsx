@@ -32,13 +32,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/inventory', label: 'Inventory', icon: Warehouse },
-  { href: '/orders', label: 'Orders & Validation', icon: ClipboardCheck },
-  { href: '/customers', label: 'Customers', icon: Users },
-  { href: '/users', label: 'Users', icon: UserCog },
-  { href: '/reports', label: 'Reports', icon: FileText },
-  { href: '/advisor', label: 'AI Advisor', icon: BotMessageSquare },
+  { href: '/', label: 'Tablero', icon: LayoutDashboard },
+  { href: '/inventory', label: 'Inventario', icon: Warehouse },
+  { href: '/orders', label: 'Pedidos y Validación', icon: ClipboardCheck },
+  { href: '/customers', label: 'Clientes', icon: Users },
+  { href: '/users', label: 'Usuarios', icon: UserCog },
+  { href: '/reports', label: 'Reportes', icon: FileText },
+  { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare },
 ];
 
 const Logo = () => (
@@ -115,7 +115,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               <AvatarFallback>AD</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold">Admin User</span>
+              <span className="text-sm font-semibold">Usuario Admin</span>
               <span className="text-xs text-muted-foreground">admin@latinhouse.com</span>
             </div>
             <Button variant="ghost" size="icon" className="ml-auto">
@@ -128,7 +128,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <header className="flex h-14 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur-sm">
           <SidebarTrigger />
           <h1 className="text-lg font-semibold md:text-xl">
-            {navItems.find((item) => item.href === pathname)?.label || 'Dashboard'}
+            {navItems.find((item) => item.href === pathname)?.label || 'Tablero'}
           </h1>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>

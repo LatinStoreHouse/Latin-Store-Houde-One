@@ -27,11 +27,11 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Search, Instagram, Mail } from 'lucide-react';
 
 const customerData = [
-  { id: 1, name: 'Alice Johnson', phone: '555-0101', source: 'Instagram', assignedTo: 'John Doe', status: 'New Lead' },
-  { id: 2, name: 'Bob Williams', phone: '555-0102', source: 'WhatsApp', assignedTo: 'Jane Smith', status: 'Contacted' },
-  { id: 3, name: 'Charlie Brown', phone: '555-0103', source: 'Email', assignedTo: 'John Doe', status: 'Converted' },
-  { id: 4, name: 'Diana Miller', phone: '555-0104', source: 'Instagram', assignedTo: 'Peter Jones', status: 'Inactive' },
-  { id: 5, name: 'Ethan Davis', phone: '555-0105', source: 'Email', assignedTo: 'Jane Smith', status: 'New Lead' },
+  { id: 1, name: 'Alice Johnson', phone: '555-0101', source: 'Instagram', assignedTo: 'John Doe', status: 'Nuevo Lead' },
+  { id: 2, name: 'Bob Williams', phone: '555-0102', source: 'WhatsApp', assignedTo: 'Jane Smith', status: 'Contactado' },
+  { id: 3, name: 'Charlie Brown', phone: '555-0103', source: 'Email', assignedTo: 'John Doe', status: 'Convertido' },
+  { id: 4, name: 'Diana Miller', phone: '555-0104', source: 'Instagram', assignedTo: 'Peter Jones', status: 'Inactivo' },
+  { id: 5, name: 'Ethan Davis', phone: '555-0105', source: 'Email', assignedTo: 'Jane Smith', status: 'Nuevo Lead' },
 ];
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -51,9 +51,9 @@ export default function CustomersPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Customer Management</CardTitle>
+        <CardTitle>Gestión de Clientes</CardTitle>
         <CardDescription>
-          Search, view, and manage your customers.
+          Busque, vea y gestione a sus clientes.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -61,22 +61,22 @@ export default function CustomersPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or phone..."
+              placeholder="Buscar por nombre o teléfono..."
               className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button>Add Customer</Button>
+          <Button>Agregar Cliente</Button>
         </div>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Source</TableHead>
-              <TableHead>Assigned Advisor</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Fuente</TableHead>
+              <TableHead>Asesor Asignado</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,7 +95,7 @@ export default function CustomersPage() {
                 <TableCell>{customer.assignedTo}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={customer.status === 'Converted' ? 'default' : 'secondary'}
+                    variant={customer.status === 'Convertido' ? 'default' : 'secondary'}
                   >
                     {customer.status}
                   </Badge>
@@ -108,9 +108,9 @@ export default function CustomersPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Reassign Advisor</DropdownMenuItem>
-                      <DropdownMenuItem>Update Status</DropdownMenuItem>
+                      <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
+                      <DropdownMenuItem>Reasignar Asesor</DropdownMenuItem>
+                      <DropdownMenuItem>Actualizar Estado</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

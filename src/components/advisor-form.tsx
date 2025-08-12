@@ -22,12 +22,12 @@ function SubmitButton() {
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Analyzing...
+          Analizando...
         </>
       ) : (
         <>
           <Sparkles className="mr-2 h-4 w-4" />
-          Get Suggestion
+          Obtener Sugerencia
         </>
       )}
     </Button>
@@ -52,7 +52,7 @@ export function AdvisorForm() {
     <form action={formAction} className="space-y-4">
       <Textarea
         name="messageContent"
-        placeholder="e.g., 'Hi, I saw your new laptop on Instagram and I have some questions about international shipping and bulk discounts...'"
+        placeholder="ej., 'Hola, vi su nueva laptop en Instagram y tengo algunas preguntas sobre envíos internacionales y descuentos por volumen...'"
         rows={6}
         required
         className="w-full"
@@ -65,7 +65,7 @@ export function AdvisorForm() {
           <CardHeader>
             <div className="flex items-center gap-3">
               <UserCheck className="h-6 w-6 text-primary" />
-              <CardTitle>Advisor Suggestion</CardTitle>
+              <CardTitle>Sugerencia de Asesor</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">

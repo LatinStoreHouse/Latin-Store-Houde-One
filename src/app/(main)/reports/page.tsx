@@ -6,17 +6,17 @@ import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 
 const salesData = [
-  { month: 'Jan', sales: 4000 },
+  { month: 'Ene', sales: 4000 },
   { month: 'Feb', sales: 3000 },
   { month: 'Mar', sales: 5000 },
-  { month: 'Apr', sales: 4500 },
+  { month: 'Abr', sales: 4500 },
   { month: 'May', sales: 6000 },
   { month: 'Jun', sales: 5500 },
 ];
 
 const chartConfig = {
   sales: {
-    label: "Sales",
+    label: "Ventas",
     color: "hsl(var(--primary))",
   },
 }
@@ -27,57 +27,57 @@ export default function ReportsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Monthly Summary</CardTitle>
-            <CardDescription>Key metrics for the current month.</CardDescription>
+            <CardTitle>Resumen Mensual</CardTitle>
+            <CardDescription>Métricas clave para el mes actual.</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline">
               <Calendar className="mr-2 h-4 w-4" />
-              Select Period
+              Seleccionar Período
             </Button>
             <Button>
               <Download className="mr-2 h-4 w-4" />
-              Download Report
+              Descargar Reporte
             </Button>
           </div>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">Ingresos Totales</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">$45,231.89</div>
-              <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+              <p className="text-xs text-muted-foreground">+20.1% desde el mes pasado</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">New Customers</CardTitle>
+              <CardTitle className="text-sm font-medium">Nuevos Clientes</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">+235</div>
-              <p className="text-xs text-muted-foreground">+18.1% from last month</p>
+              <p className="text-xs text-muted-foreground">+18.1% desde el mes pasado</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Orders Fulfilled</CardTitle>
+              <CardTitle className="text-sm font-medium">Pedidos Completados</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">+1,286</div>
-              <p className="text-xs text-muted-foreground">+12.2% from last month</p>
+              <p className="text-xs text-muted-foreground">+12.2% desde el mes pasado</p>
             </CardContent>
           </Card>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Sales Performance</CardTitle>
-          <CardDescription>Revenue over the last 6 months.</CardDescription>
+          <CardTitle>Rendimiento de Ventas</CardTitle>
+          <CardDescription>Ingresos de los últimos 6 meses.</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px] w-full">

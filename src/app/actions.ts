@@ -4,7 +4,7 @@ import { suggestAdvisor, SuggestAdvisorInput, SuggestAdvisorOutput } from '@/ai/
 import { z } from 'zod';
 
 const AdvisorSchema = z.object({
-  messageContent: z.string().min(10, { message: 'Message must be at least 10 characters long.' }),
+  messageContent: z.string().min(10, { message: 'El mensaje debe tener al menos 10 caracteres.' }),
 });
 
 type AdvisorState = {
@@ -24,7 +24,7 @@ export async function getAdvisorSuggestion(
   if (!validatedFields.success) {
     return {
       error: validatedFields.error.flatten().fieldErrors.messageContent?.[0],
-      message: 'Validation failed.',
+      message: 'La validación falló.',
     };
   }
 
@@ -33,12 +33,12 @@ export async function getAdvisorSuggestion(
       messageContent: validatedFields.data.messageContent,
     };
     const result = await suggestAdvisor(input);
-    return { result, message: 'Suggestion successfully generated.' };
+    return { result, message: 'Sugerencia generada exitosamente.' };
   } catch (e: any) {
     console.error(e);
     return {
-      error: e.message || 'An unexpected error occurred.',
-      message: 'Failed to get suggestion.',
+      error: e.message || 'Ocurrió un error inesperado.',
+      message: 'No se pudo obtener la sugerencia.',
     };
   }
 }

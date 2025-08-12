@@ -16,19 +16,19 @@ export default function OrdersPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Pending Validations</CardTitle>
-          <CardDescription>Review and approve or reject pending orders.</CardDescription>
+          <CardTitle>Validaciones Pendientes</CardTitle>
+          <CardDescription>Revise y apruebe o rechace los pedidos pendientes.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Requested By</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>ID de Pedido</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Monto</TableHead>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Solicitado por</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -56,27 +56,27 @@ export default function OrdersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Document Center</CardTitle>
-          <CardDescription>Generate new quotes, remittances, or invoices for customers.</CardDescription>
+          <CardTitle>Centro de Documentos</CardTitle>
+          <CardDescription>Genere nuevas cotizaciones, remitos o facturas para los clientes.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
             <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border-2 border-dashed p-8 text-center">
                 <FilePlus2 className="h-10 w-10 text-muted-foreground" />
-                <h3 className="font-semibold">New Quote</h3>
-                <p className="text-sm text-muted-foreground">Create a new sales quotation for a client.</p>
-                <Button>Create Quote</Button>
+                <h3 className="font-semibold">Nueva Cotización</h3>
+                <p className="text-sm text-muted-foreground">Crear una nueva cotización de ventas para un cliente.</p>
+                <Button>Crear Cotización</Button>
             </div>
             <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border-2 border-dashed p-8 text-center">
                 <FilePlus2 className="h-10 w-10 text-muted-foreground" />
-                <h3 className="font-semibold">New Remittance</h3>
-                <p className="text-sm text-muted-foreground">Issue a remittance slip for a shipment.</p>
-                <Button>Create Remittance</Button>
+                <h3 className="font-semibold">Nuevo Remito</h3>
+                <p className="text-sm text-muted-foreground">Emitir un remito para un envío.</p>
+                <Button>Crear Remito</Button>
             </div>
             <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border-2 border-dashed p-8 text-center">
                 <FilePlus2 className="h-10 w-10 text-muted-foreground" />
-                <h3 className="font-semibold">New Invoice</h3>
-                <p className="text-sm text-muted-foreground">Generate a final invoice for a completed order.</p>
-                <Button>Create Invoice</Button>
+                <h3 className="font-semibold">Nueva Factura</h3>
+                <p className="text-sm text-muted-foreground">Generar una factura final para un pedido completado.</p>
+                <Button>Crear Factura</Button>
             </div>
         </CardContent>
       </Card>

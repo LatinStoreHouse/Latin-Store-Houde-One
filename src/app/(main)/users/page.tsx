@@ -27,9 +27,9 @@ import {
 
 const users = [
   { id: 1, name: 'John Doe', email: 'john.doe@example.com', role: 'Admin', avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png' },
-  { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Sales Advisor', avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png' },
-  { id: 3, name: 'Peter Jones', email: 'peter.jones@example.com', role: 'Sales Advisor', avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png' },
-  { id: 4, name: 'Mary Johnson', email: 'mary.j@example.com', role: 'Warehouse Manager', avatar: 'https://placehold.co/40x40/E2E229/000000.png' },
+  { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Asesor de Ventas', avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png' },
+  { id: 3, name: 'Peter Jones', email: 'peter.jones@example.com', role: 'Asesor de Ventas', avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png' },
+  { id: 4, name: 'Mary Johnson', email: 'mary.j@example.com', role: 'Gerente de Almacén', avatar: 'https://placehold.co/40x40/E2E229/000000.png' },
 ];
 
 export default function UsersPage() {
@@ -37,23 +37,23 @@ export default function UsersPage() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>User Management</CardTitle>
+          <CardTitle>Gestión de Usuarios</CardTitle>
           <CardDescription>
-            Manage user accounts, roles, and permissions.
+            Administre las cuentas de usuario, los roles y los permisos.
           </CardDescription>
         </div>
         <Button>
           <UserPlus className="mr-2 h-4 w-4" />
-          Add User
+          Agregar Usuario
         </Button>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Usuario</TableHead>
+              <TableHead>Rol</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -84,11 +84,11 @@ export default function UsersPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem>Edit User</DropdownMenuItem>
-                      <DropdownMenuItem>Change Role</DropdownMenuItem>
+                      <DropdownMenuItem>Editar Usuario</DropdownMenuItem>
+                      <DropdownMenuItem>Cambiar Rol</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-red-600">
-                        Delete User
+                        Eliminar Usuario
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

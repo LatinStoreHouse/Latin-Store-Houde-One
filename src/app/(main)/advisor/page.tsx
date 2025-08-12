@@ -12,9 +12,9 @@ export default function AdvisorPage() {
               <Lightbulb className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <CardTitle>AI-Powered Advisor Suggestions</CardTitle>
+              <CardTitle>Sugerencias de Asesor con IA</CardTitle>
               <CardDescription>
-                Paste a customer inquiry to get an intelligent recommendation for the best sales advisor.
+                Pegue la consulta de un cliente para obtener una recomendación inteligente del mejor asesor de ventas.
               </CardDescription>
             </div>
           </div>
