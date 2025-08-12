@@ -187,7 +187,7 @@ export default function ReservationsPage() {
   const productOptions = useMemo(() => {
     switch(reservationSource) {
         case 'Contenedor':
-            return productsInTransit.map(p => ({ ...p, label: `${p.label} (Contenedor)`}));
+            return productsInTransit.map(p => ({ ...p, label: `${p.label}`}));
         case 'Bodega':
             return inventoryProducts.map(p => ({ value: p.name, label: p.name, available: p.data.bodega - p.data.separadasBodega, sourceId: 'Bodega' }));
         case 'Zona Franca':
@@ -222,6 +222,11 @@ export default function ReservationsPage() {
         toast({ variant: 'destructive', title: 'Error', description: 'Producto no encontrado.'});
         return;
     }
+    
+    if(quantity > productInfo.available) {
+        toast({ variant: 'destructive', title: 'Error de Stock', description: `La cantidad solicitada (${quantity}) excede la disponible (${productInfo.available}).`});
+        return;
+    }
 
     const newReservation: Reservation = {
         id: `RES-00${reservations.length + 1}`,
@@ -248,7 +253,15 @@ export default function ReservationsPage() {
     if (!productName) return null;
     const product = productOptions.find(p => p.value === productName);
     if (!product) return null;
-    return `Disponible: ${product.available} en ${product.sourceId}`;
+    
+    let sourceText = product.sourceId;
+    if (reservationSource === 'Contenedor') {
+        sourceText = `Contenedor ${product.sourceId}`;
+    } else {
+        sourceText = reservationSource;
+    }
+
+    return `Disponible: ${product.available} en ${sourceText}`;
   };
   
   const getStatusBadgeVariant = (status: Reservation['status']) => {
@@ -257,6 +270,13 @@ export default function ReservationsPage() {
         case 'En espera de validación': return 'secondary';
         case 'Rechazada': return 'destructive';
     }
+  }
+  
+  const renderOrigin = (reservation: Reservation) => {
+    if (reservation.source === 'Contenedor') {
+      return `Contenedor (${reservation.sourceId})`;
+    }
+    return reservation.source;
   }
 
   return (
@@ -362,7 +382,7 @@ export default function ReservationsPage() {
                       <TableCell>{reservation.customer}</TableCell>
                       <TableCell>{reservation.product}</TableCell>
                       <TableCell>{reservation.quantity}</TableCell>
-                      <TableCell>{reservation.source === 'Contenedor' ? reservation.sourceId : reservation.source}</TableCell>
+                      <TableCell>{renderOrigin(reservation)}</TableCell>
                       <TableCell>{reservation.advisor}</TableCell>
                       <TableCell>
                         <Badge variant={getStatusBadgeVariant(reservation.status)}>
@@ -410,7 +430,7 @@ export default function ReservationsPage() {
                   <TableCell>{reservation.customer}</TableCell>
                   <TableCell>{reservation.product}</TableCell>
                   <TableCell>{reservation.quantity}</TableCell>
-                  <TableCell>{reservation.source === 'Contenedor' ? reservation.sourceId : reservation.source}</TableCell>
+                  <TableCell>{renderOrigin(reservation)}</TableCell>
                   <TableCell>{reservation.advisor}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(reservation.status)}>
