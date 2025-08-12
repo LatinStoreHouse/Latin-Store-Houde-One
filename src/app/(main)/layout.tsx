@@ -14,7 +14,16 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
+  SidebarGroup,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@/components/ui/collapsible';
 import {
   BotMessageSquare,
   FileText,
@@ -25,6 +34,7 @@ import {
   LogOut,
   ClipboardCheck,
   Calculator,
+  ChevronDown,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -34,7 +44,14 @@ const navItems = [
   { href: '/inventory', label: 'Inventario', icon: Warehouse },
   { href: '/orders', label: 'Pedidos y Validación', icon: ClipboardCheck },
   { href: '/customers', label: 'Clientes', icon: Users },
-  { href: '/calculator', label: 'Calculadora', icon: Calculator },
+  {
+    label: 'Calculadoras',
+    icon: Calculator,
+    subItems: [
+      { href: '/stoneflex-clay-calculator', label: 'Stoneflex & Clay' },
+      { href: '/starwood-calculator', label: 'Starwood' },
+    ],
+  },
   { href: '/users', label: 'Usuarios', icon: UserCog },
   { href: '/reports', label: 'Reportes', icon: FileText },
   { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare },
@@ -62,20 +79,47 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {navItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === item.href}
-                  tooltip={item.label}
-                >
-                  <Link href={item.href}>
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {navItems.map((item) =>
+              item.subItems ? (
+                <SidebarGroup key={item.label} className="p-0">
+                  <Collapsible>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton className="w-full justify-between">
+                        <div className="flex items-center gap-2">
+                          <item.icon />
+                          <span>{item.label}</span>
+                        </div>
+                        <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.subItems.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.href}>
+                             <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
+                               <Link href={subItem.href}>{subItem.label}</Link>
+                             </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </SidebarGroup>
+              ) : (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href}
+                    tooltip={item.label}
+                  >
+                    <Link href={item.href!}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            )}
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="p-4">
@@ -98,7 +142,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <header className="flex h-14 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur-sm">
           <SidebarTrigger />
           <h1 className="text-lg font-semibold md:text-xl">
-            {navItems.find((item) => item.href === pathname)?.label || 'Tablero'}
+            {navItems.flatMap(item => item.subItems || item).find((navItem) => navItem.href === pathname)?.label || 'Tablero'}
           </h1>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
