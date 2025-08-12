@@ -84,7 +84,7 @@ const inventoryData = {
 const linePricing: { [key: string]: number } = {
   'Pizarra': 177162,
   'Cuarcitas': 177162,
-  'Concreto': 188991,
+  'Concreto': 177162,
   'Mármol': 239247,
   'Translucida': 252689,
   'Madera': 222710,
