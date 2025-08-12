@@ -23,28 +23,29 @@ interface ValidatedReservation {
   status: 'Validada' | 'Rechazada';
   validatedBy: string;
   validationDate: string;
+  factura: string;
 }
 
 interface PendingReservation {
   id: string;
   customer: string;
-
   product: string;
   quantity: number;
   containerId: string;
   advisor: string;
   quoteNumber: string;
   status: 'En espera de validación';
+  factura: string;
 }
 
 const initialPendingReservations: PendingReservation[] = [
-    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'En espera de validación' },
-    { id: 'RES-002', customer: 'Diseños SAS', product: 'BLACK 1.22 X 0.61', quantity: 100, containerId: 'CMAU7654321', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'En espera de validación' },
+    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'En espera de validación', factura: '' },
+    { id: 'RES-002', customer: 'Diseños SAS', product: 'BLACK 1.22 X 0.61', quantity: 100, containerId: 'CMAU7654321', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'En espera de validación', factura: '' },
 ];
 
 const initialHistory: ValidatedReservation[] = [
-    { id: 'RES-003', customer: 'Hogar Futuro', product: 'TRAVERTINO', quantity: 20, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-003', status: 'Validada', validatedBy: 'Carlos Ruiz', validationDate: '2024-07-28' },
-    { id: 'RES-004', customer: 'Arquitectura Andina', product: 'BLACK 1.22 X 0.61', quantity: 75, containerId: 'CMAU7654321', advisor: 'John Doe', quoteNumber: 'COT-2024-004', status: 'Rechazada', validatedBy: 'Usuario Admin', validationDate: '2024-07-27' },
+    { id: 'RES-003', customer: 'Hogar Futuro', product: 'TRAVERTINO', quantity: 20, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-003', status: 'Validada', validatedBy: 'Carlos Ruiz', validationDate: '2024-07-28', factura: 'FAC-001' },
+    { id: 'RES-004', customer: 'Arquitectura Andina', product: 'BLACK 1.22 X 0.61', quantity: 75, containerId: 'CMAU7654321', advisor: 'John Doe', quoteNumber: 'COT-2024-004', status: 'Rechazada', validatedBy: 'Usuario Admin', validationDate: '2024-07-27', factura: 'FAC-002' },
 ]
 
 const currentUser = {
@@ -60,8 +61,19 @@ export default function ValidationPage() {
     const { toast } = useToast();
 
     const canValidate = currentUser.role === 'Administrador' || currentUser.role === 'Contador';
+    
+    const handleInvoiceChange = (id: string, value: string) => {
+        setPendingReservations(
+            pendingReservations.map(r => r.id === id ? { ...r, factura: value } : r)
+        );
+    };
 
     const handleValidation = (reservation: PendingReservation, newStatus: 'Validada' | 'Rechazada') => {
+        if (!reservation.factura) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Se requiere un número de factura para validar.' });
+            return;
+        }
+
         setPendingReservations(pendingReservations.filter(r => r.id !== reservation.id));
         
         const newHistoryEntry: ValidatedReservation = {
@@ -81,7 +93,8 @@ export default function ValidationPage() {
                 const term = searchTerm.toLowerCase();
                 return item.customer.toLowerCase().includes(term) ||
                        item.product.toLowerCase().includes(term) ||
-                       item.quoteNumber.toLowerCase().includes(term);
+                       item.quoteNumber.toLowerCase().includes(term) ||
+                       item.factura.toLowerCase().includes(term);
             })
             .filter(item => {
                 if (activeTab === 'todas') return true;
@@ -127,6 +140,7 @@ export default function ValidationPage() {
                             <TableHead>Cantidad</TableHead>
                             <TableHead>Contenedor</TableHead>
                             <TableHead>Asesor</TableHead>
+                            <TableHead>Factura #</TableHead>
                             <TableHead className="text-right">Acciones</TableHead>
                         </TableRow>
                         </TableHeader>
@@ -139,13 +153,21 @@ export default function ValidationPage() {
                             <TableCell>{reservation.quantity}</TableCell>
                             <TableCell>{reservation.containerId}</TableCell>
                             <TableCell>{reservation.advisor}</TableCell>
+                            <TableCell>
+                                <Input 
+                                    value={reservation.factura}
+                                    onChange={(e) => handleInvoiceChange(reservation.id, e.target.value)}
+                                    placeholder="Ingrese factura..."
+                                    disabled={!canValidate}
+                                />
+                            </TableCell>
                             <TableCell className="text-right">
                                 {canValidate && (
                                     <div className="flex gap-2 justify-end">
-                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleValidation(reservation, 'Validada')}>
+                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleValidation(reservation, 'Validada')} disabled={!reservation.factura}>
                                             <Check className="h-4 w-4 text-green-600" />
                                         </Button>
-                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleValidation(reservation, 'Rechazada')}>
+                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleValidation(reservation, 'Rechazada')} disabled={!reservation.factura}>
                                             <X className="h-4 w-4 text-red-600" />
                                         </Button>
                                     </div>
@@ -155,7 +177,7 @@ export default function ValidationPage() {
                         ))}
                         {pendingReservations.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                                <TableCell colSpan={8} className="text-center text-muted-foreground">
                                     No hay reservas pendientes de validación.
                                 </TableCell>
                             </TableRow>
@@ -177,7 +199,7 @@ export default function ValidationPage() {
                     <div className="relative flex-1 w-full sm:w-auto">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Buscar por cliente, producto o cotización..."
+                            placeholder="Buscar por cliente, producto, cotización o factura..."
                             className="pl-10"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -195,6 +217,7 @@ export default function ValidationPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead># Cotización</TableHead>
+                        <TableHead>Factura #</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Producto</TableHead>
                         <TableHead>Estado</TableHead>
@@ -206,6 +229,7 @@ export default function ValidationPage() {
                       {filteredHistory.map((reservation) => (
                         <TableRow key={reservation.id}>
                           <TableCell>{reservation.quoteNumber}</TableCell>
+                          <TableCell>{reservation.factura}</TableCell>
                           <TableCell>{reservation.customer}</TableCell>
                           <TableCell>{reservation.product}</TableCell>
                           <TableCell>
@@ -217,7 +241,7 @@ export default function ValidationPage() {
                       ))}
                       {filteredHistory.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            <TableCell colSpan={7} className="text-center text-muted-foreground">
                                 No se encontraron registros en el historial.
                             </TableCell>
                         </TableRow>
