@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, Check, X } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -43,8 +43,6 @@ const initialReservations: Reservation[] = [
     { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'En espera de validación' },
 ];
 
-const currentUserRole: Role = 'Administrador';
-
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
   const [isNewReservationDialogOpen, setIsNewReservationDialogOpen] = useState(false);
@@ -54,8 +52,6 @@ export default function ReservationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [quoteNumber, setQuoteNumber] = useState('');
   const { toast } = useToast();
-
-  const canValidate = currentUserRole === 'Administrador' || currentUserRole === 'Contador';
 
   const handleCreateReservation = () => {
     if (!customerName || !productName || quantity <= 0 || !quoteNumber) {
@@ -89,12 +85,6 @@ export default function ReservationsPage() {
     toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
   };
   
-  const handleValidation = (reservationId: string, newStatus: 'Validada' | 'Rechazada') => {
-    setReservations(reservations.map(r => r.id === reservationId ? { ...r, status: newStatus } : r));
-    toast({ title: 'Éxito', description: `Reserva ${newStatus.toLowerCase()}.` });
-  };
-
-
   const filteredReservations = reservations.filter(r => 
     r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -188,7 +178,6 @@ export default function ReservationsPage() {
                 <TableHead>Contenedor</TableHead>
                 <TableHead>Asesor</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -205,23 +194,11 @@ export default function ReservationsPage() {
                         {reservation.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    {canValidate && reservation.status === 'En espera de validación' && (
-                        <div className="flex gap-2 justify-end">
-                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleValidation(reservation.id, 'Validada')}>
-                                <Check className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleValidation(reservation.id, 'Rechazada')}>
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    )}
-                  </TableCell>
                 </TableRow>
               ))}
               {filteredReservations.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
                         No se encontraron reservas.
                     </TableCell>
                 </TableRow>
