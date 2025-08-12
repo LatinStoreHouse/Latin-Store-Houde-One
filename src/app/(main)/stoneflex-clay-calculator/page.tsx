@@ -190,6 +190,7 @@ export default function StoneflexClayCalculatorPage() {
   const [includeSealant, setIncludeSealant] = useState(true);
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
   const [calculationMode, setCalculationMode] = useState<'sqm' | 'sheets'>('sqm');
+  const [transportationCost, setTransportationCost] = useState(0);
 
   const referenceOptions = useMemo(() => {
     return allReferences.map(ref => ({ value: ref, label: ref }));
@@ -294,9 +295,9 @@ export default function StoneflexClayCalculatorPage() {
     });
 
     const discountedProductCost = totalProductCost - totalDiscountAmount;
-    const subtotal = discountedProductCost + totalSealantCost + totalAdhesiveCost;
-    const ivaAmount = subtotal * IVA_RATE;
-    const totalCost = subtotal + ivaAmount;
+    const subtotalBeforeIva = discountedProductCost + totalSealantCost + totalAdhesiveCost;
+    const ivaAmount = subtotalBeforeIva * IVA_RATE;
+    const totalCost = subtotalBeforeIva + ivaAmount + transportationCost;
     
     const creationDate = new Date();
     const expiryDate = new Date(creationDate);
@@ -311,7 +312,7 @@ export default function StoneflexClayCalculatorPage() {
       totalSealantUnits,
       totalAdhesiveUnits,
       isWarrantyVoid,
-      subtotal,
+      subtotal: subtotalBeforeIva,
       ivaAmount,
       totalCost,
       creationDate: creationDate.toLocaleDateString('es-CO'),
@@ -482,6 +483,17 @@ export default function StoneflexClayCalculatorPage() {
                   <span className="text-muted-foreground">IVA (19%)</span>
                   <span>{formatCurrency(quote.ivaAmount)}</span>
                 </div>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="transport-cost" className="text-muted-foreground">Costo Transporte</Label>
+                  <Input
+                    id="transport-cost"
+                    type="number"
+                    value={transportationCost}
+                    onChange={(e) => setTransportationCost(Number(e.target.value))}
+                    className="w-32 h-8 text-right"
+                    placeholder="0"
+                  />
+                </div>
               </div>
 
               <Separator />
@@ -493,7 +505,7 @@ export default function StoneflexClayCalculatorPage() {
               </div>
               <div className="text-xs text-muted-foreground pt-2 space-y-1 text-center">
                   <p>
-                    Esta es una cotización preliminar y no incluye costos de envío o instalación.
+                    Esta es una cotización preliminar y no incluye costos de instalación.
                   </p>
                   {quote.isWarrantyVoid && (
                     <p className="font-semibold text-destructive">
