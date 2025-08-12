@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calculator } from 'lucide-react';
@@ -348,10 +349,20 @@ export default function CalculatorPage() {
          {quote && (
           <Card className="bg-primary/5 mt-4">
             <CardHeader>
-              <CardTitle>Resumen de la Cotización</CardTitle>
-              <CardDescription>
-                Cotización válida hasta el {quote.expiryDate}.
-              </CardDescription>
+              <div className="flex justify-between items-start">
+                  <div>
+                      <CardTitle>Resumen de la Cotización</CardTitle>
+                      <CardDescription>
+                          Cotización válida hasta el {quote.expiryDate}.
+                      </CardDescription>
+                  </div>
+                  <div className="text-right">
+                      <div className="relative h-10 w-32 mb-2">
+                          <Image src="/logo.png" alt="Latin Store House Logo" fill style={{ objectFit: 'contain' }} />
+                      </div>
+                      <p className="text-sm font-semibold">Asesor: Usuario Admin</p>
+                  </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
