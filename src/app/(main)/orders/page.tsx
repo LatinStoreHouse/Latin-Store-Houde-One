@@ -1,5 +1,7 @@
 'use client';
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -7,6 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, FileDown, Search } from 'lucide-react';
 import { Role } from '@/lib/roles';
+
+// Extend the jsPDF type to include the autoTable method
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 // Mocked data for dispatch requests
 const initialDispatchData = [
@@ -138,6 +147,42 @@ export default function DispatchPage() {
     return matchesSearch && matchesMonth;
   });
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+    });
+
+    doc.autoTable({
+      head: [
+        [
+          'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
+          'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
+          'Guía', 'Convención', 'Validado', 'Factura #'
+        ],
+      ],
+      body: filteredData.map(item => [
+        item.vendedor,
+        item.fechaSolicitud,
+        item.cotizacion,
+        item.cliente,
+        item.ciudad,
+        item.direccion,
+        item.remision,
+        item.observacion,
+        item.rutero,
+        item.fechaDespacho,
+        item.guia,
+        item.convencion,
+        item.validado ? 'Aprobado' : 'Pendiente',
+        item.factura,
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+    
+    doc.save('Reporte de Despachos.pdf');
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -155,9 +200,9 @@ export default function DispatchPage() {
                         Nuevo Despacho
                     </Button>
                 )}
-                <Button variant="outline">
+                <Button variant="outline" onClick={handleExportPDF}>
                     <FileDown className="mr-2 h-4 w-4" />
-                    Exportar
+                    Exportar a PDF
                 </Button>
             </div>
         </div>
