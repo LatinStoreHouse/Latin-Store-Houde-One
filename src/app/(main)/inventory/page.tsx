@@ -12,10 +12,14 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, CheckCircle2 } from 'lucide-react';
+import { FileDown, CheckCircle2, Save } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Role } from '@/lib/roles';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
-const inventoryData = {
+
+const initialInventoryData = {
   StoneFlex: {
     'Clay': {
       'CUT STONE 120 X 60': { bodega: 15, zonaFranca: 352, separadasBodega: 0, separadasZonaFranca: 0, muestras: false },
@@ -126,7 +130,10 @@ const inventoryData = {
   Aluwall: {},
 };
 
-const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
+// Mocked user role. In a real app, this would come from an auth context.
+const currentUserRole: Role = 'Administrador';
+
+const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, onDataChange: Function }) => {
   const getAvailabilityStatus = (disponible: number) => {
     if (disponible > 100) return 'En Stock';
     if (disponible > 0) return 'Poco Stock';
@@ -145,6 +152,11 @@ const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
         return 'outline';
     }
   };
+  
+  const handleInputChange = (productName: string, field: string, value: string | number | boolean, isNameChange = false) => {
+    const isNumber = typeof initialInventoryData[brand as keyof typeof initialInventoryData][subCategory][productName][field] === 'number';
+    onDataChange(brand, subCategory, productName, field, isNumber ? Number(value) : value, isNameChange);
+  };
 
   if (Object.keys(products).length === 0) {
     return <p className="p-4 text-center text-muted-foreground">No hay productos en esta categoría.</p>;
@@ -155,8 +167,10 @@ const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
       <TableHeader>
         <TableRow>
           <TableHead>Nombre del Producto</TableHead>
-          <TableHead className="text-right">Disp. Bodega</TableHead>
-          <TableHead className="text-right">Disp. Zona Franca</TableHead>
+          <TableHead className="text-right">Bodega</TableHead>
+          <TableHead className="text-right">Separadas Bodega</TableHead>
+          <TableHead className="text-right">Zona Franca</TableHead>
+          <TableHead className="text-right">Separadas ZF</TableHead>
           <TableHead className="text-center">Muestras</TableHead>
           <TableHead>Estado</TableHead>
         </TableRow>
@@ -171,16 +185,36 @@ const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
 
           return (
             <TableRow key={name}>
-              <TableCell className="font-medium">{name}</TableCell>
-              <TableCell className="text-right">{disponibleBodega}</TableCell>
-              <TableCell className="text-right">{disponibleZonaFranca}</TableCell>
+              <TableCell className="font-medium">
+                {canEdit ? (
+                    <Input 
+                        defaultValue={name} 
+                        onBlur={(e) => handleInputChange(name, 'name', e.target.value, true)}
+                        className="h-8"
+                    />
+                ) : (
+                    name
+                )}
+              </TableCell>
+              <TableCell className="text-right">
+                {canEdit ? <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-8" /> : item.bodega}
+              </TableCell>
+              <TableCell className="text-right">
+                {canEdit ? <Input type="number" defaultValue={item.separadasBodega} onBlur={(e) => handleInputChange(name, 'separadasBodega', e.target.value)} className="w-20 ml-auto text-right h-8" /> : item.separadasBodega}
+              </TableCell>
+              <TableCell className="text-right">
+                {canEdit ? <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-8" /> : item.zonaFranca}
+              </TableCell>
+              <TableCell className="text-right">
+                {canEdit ? <Input type="number" defaultValue={item.separadasZonaFranca} onBlur={(e) => handleInputChange(name, 'separadasZonaFranca', e.target.value)} className="w-20 ml-auto text-right h-8" /> : item.separadasZonaFranca}
+              </TableCell>
               <TableCell className="text-center">
                 {item.muestras && <CheckCircle2 className="mx-auto h-5 w-5 text-green-500" />}
               </TableCell>
               <TableCell>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 items-start">
                   {disponibleBodega > 0 && <Badge variant={getStatusVariant(statusBodega)}>Bodega: {statusBodega}</Badge>}
-                  {disponibleZonaFranca > 0 && <Badge variant={getStatusVariant(statusZonaFranca)}>Zona Franca: {statusZonaFranca}</Badge>}
+                  {disponibleZonaFranca > 0 && <Badge variant={getStatusVariant(statusZonaFranca)}>ZF: {statusZonaFranca}</Badge>}
                   {disponibleBodega <= 0 && disponibleZonaFranca <= 0 && <Badge variant="destructive">Agotado</Badge>}
                 </div>
               </TableCell>
@@ -194,10 +228,46 @@ const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
 
 
 export default function InventoryPage() {
+  const [inventoryData, setInventoryData] = useState(initialInventoryData);
+  const { toast } = useToast();
+
   const brands = Object.keys(inventoryData);
+  const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
+
+  const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
+    setInventoryData(prevData => {
+        const newData = JSON.parse(JSON.stringify(prevData));
+        const products = newData[brand][subCategory];
+
+        if (isNameChange) {
+            if (value !== productName && products[value]) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: `El producto "${value}" ya existe en esta categoría.`,
+                });
+                return prevData;
+            }
+            const productData = products[productName];
+            delete products[productName];
+            products[value] = productData;
+        } else {
+            products[productName][field] = value;
+        }
+
+        return newData;
+    });
+  };
+
+  const handleSaveChanges = () => {
+    console.log("Saving data:", inventoryData);
+    toast({
+        title: 'Inventario Guardado',
+        description: 'Los cambios en el inventario han sido guardados exitosamente.'
+    });
+  }
 
   const formatBrandName = (brand: string) => {
-    // Return brand name as is, without converting to uppercase.
     return brand;
   };
 
@@ -205,10 +275,18 @@ export default function InventoryPage() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Inventario de Productos</CardTitle>
-        <Button variant="outline" size="sm">
-          <FileDown className="mr-2 h-4 w-4" />
-          Exportar Datos
-        </Button>
+        <div className="flex gap-2">
+            {canEdit && (
+                <Button onClick={handleSaveChanges} size="sm">
+                    <Save className="mr-2 h-4 w-4" />
+                    Guardar Cambios
+                </Button>
+            )}
+            <Button variant="outline" size="sm">
+              <FileDown className="mr-2 h-4 w-4" />
+              Exportar Datos
+            </Button>
+        </div>
       </CardHeader>
       <CardContent>
          <Tabs defaultValue={brands[0]} className="w-full">
@@ -227,7 +305,13 @@ export default function InventoryPage() {
                         </TabsList>
                         {Object.entries(inventoryData[brand as keyof typeof inventoryData]).map(([subCategory, products]) => (
                              <TabsContent value={subCategory} key={subCategory}>
-                                <ProductTable products={products} />
+                                <ProductTable 
+                                    products={products} 
+                                    brand={brand}
+                                    subCategory={subCategory}
+                                    canEdit={canEdit}
+                                    onDataChange={handleDataChange}
+                                />
                             </TabsContent>
                         ))}
                     </Tabs>
@@ -238,5 +322,3 @@ export default function InventoryPage() {
     </Card>
   );
 }
-
-    
