@@ -131,16 +131,15 @@ const inventoryData = {
 };
 
 const stoneflexPricing = {
-  'Pizarra, Cuarcita, Concreto': 177162,
+  'Pizarra': 177162,
+  'Cuarcitas': 177162,
+  'Concreto': 188991,
   'Mármol': 239247,
-  'Traslucida': 252689,
+  'Translucida': 252689,
   'Madera': 222710,
-  'Metálicas': 267819,
-  '3D Autoadhesiva': 207072,
-  'Clay: Travertino': 176000,
-  'Clay: Concreto Rústico': 188991,
-  'Clay: Cutstone': 171389,
-  'Clay: Tapia Negra': 180000,
+  'Metales': 267819,
+  '3D autoadhesiva': 207072,
+  'Clay': 176000
 };
 
 
@@ -283,7 +282,7 @@ export default function InventoryPage() {
   const brands = Object.keys(inventoryData);
 
   const formatBrandName = (brand: string) => {
-    return brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
+    return brand;
   };
 
   return (
@@ -329,5 +328,3 @@ export default function InventoryPage() {
     </Card>
   );
 }
-
-    
