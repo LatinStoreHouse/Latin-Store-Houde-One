@@ -53,7 +53,7 @@ const navItems = [
     label: 'Inventario',
     icon: Warehouse,
     subItems: [
-      { href: '/inventory', label: 'Stock Actual', permission: 'inventory:view' },
+      { href: '/inventory', label: 'Inventario', permission: 'inventory:view' },
       { href: '/transit', label: 'Contenedores en Tránsito', permission: 'inventory:transit' },
       { href: '/reservations', label: 'Reservas', permission: 'reservations:view' },
     ],
@@ -79,7 +79,7 @@ const navItems = [
 
 const getIconForSubItem = (label: string) => {
     switch (label) {
-        case 'Stock Actual': return Warehouse;
+        case 'Inventario': return Warehouse;
         case 'Contenedores en Tránsito': return Container;
         case 'Reservas': return BookUser;
         default: return Warehouse;
@@ -147,7 +147,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                                <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
                                  <Link href={subItem.href}>
                                     <SubIcon />
-                                    <span className="truncate">{subItem.label}</span>
+                                    <span className="">{subItem.label}</span>
                                  </Link>
                                </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
