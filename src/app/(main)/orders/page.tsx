@@ -272,49 +272,49 @@ export default function DispatchPage() {
             <TableHeader>
               <TableRow>
                 {/* Asesor */}
-                <TableHead>Vendedor</TableHead>
-                <TableHead>Fecha Sol.</TableHead>
-                <TableHead>Cotización</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Ciudad</TableHead>
-                <TableHead>Dirección</TableHead>
-                <TableHead>Remisión</TableHead>
+                <TableHead className="p-2">Vendedor</TableHead>
+                <TableHead className="p-2">Fecha Sol.</TableHead>
+                <TableHead className="p-2">Cotización</TableHead>
+                <TableHead className="p-2">Cliente</TableHead>
+                <TableHead className="p-2">Ciudad</TableHead>
+                <TableHead className="p-2">Dirección</TableHead>
+                <TableHead className="p-2">Remisión</TableHead>
                 {/* Logística */}
-                <TableHead>Observación</TableHead>
-                <TableHead>Rutero</TableHead>
-                <TableHead>Fecha Desp.</TableHead>
-                <TableHead>Guía</TableHead>
-                <TableHead>Convención</TableHead>
+                <TableHead className="p-2">Observación</TableHead>
+                <TableHead className="p-2">Rutero</TableHead>
+                <TableHead className="p-2">Fecha Desp.</TableHead>
+                <TableHead className="p-2">Guía</TableHead>
+                <TableHead className="p-2">Convención</TableHead>
                 {/* Contador */}
-                <TableHead>Validado</TableHead>
-                <TableHead>Factura #</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead className="p-2">Validado</TableHead>
+                <TableHead className="p-2">Factura #</TableHead>
+                <TableHead className="text-right p-2">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredData.map((item) => (
                 <TableRow key={item.id} className={cn(getConventionClasses(item.convencion))}>
                   {/* Asesor Fields */}
-                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.vendedor} onChange={e => handleInputChange(item.id, 'vendedor', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[150px] bg-background/50" type="date" value={item.fechaSolicitud} onChange={e => handleInputChange(item.id, 'fechaSolicitud', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.cotizacion} onChange={e => handleInputChange(item.id, 'cotizacion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.cliente} onChange={e => handleInputChange(item.id, 'cliente', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.ciudad} onChange={e => handleInputChange(item.id, 'ciudad', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[200px] bg-background/50" value={item.direccion} onChange={e => handleInputChange(item.id, 'direccion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" value={item.vendedor} onChange={e => handleInputChange(item.id, 'vendedor', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" type="date" value={item.fechaSolicitud} onChange={e => handleInputChange(item.id, 'fechaSolicitud', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" value={item.cotizacion} onChange={e => handleInputChange(item.id, 'cotizacion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" value={item.cliente} onChange={e => handleInputChange(item.id, 'cliente', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" value={item.ciudad} onChange={e => handleInputChange(item.id, 'ciudad', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell className="p-2"><Input className="min-w-[200px] bg-background/50 h-8" value={item.direccion} onChange={e => handleInputChange(item.id, 'direccion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor} /></TableCell>
                   
                   {/* Logística Fields */}
-                  <TableCell><Input className="min-w-[200px] bg-background/50" value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.rutero} onChange={e => handleInputChange(item.id, 'rutero', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input className="min-w-[150px] bg-background/50" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell className="min-w-[200px]">
+                  <TableCell className="p-2"><Input className="min-w-[200px] bg-background/50 h-8" value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" value={item.rutero} onChange={e => handleInputChange(item.id, 'rutero', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="min-w-[200px] p-2">
                      <Select
                         value={item.convencion}
                         onValueChange={(value) => handleInputChange(item.id, 'convencion', value)}
                         disabled={!canEditLogistica}
                     >
-                        <SelectTrigger className="bg-background/50 border-0 focus:ring-0">
+                        <SelectTrigger className="bg-background/50 border-0 focus:ring-0 h-8">
                            <SelectValue placeholder="Seleccionar estado" />
                         </SelectTrigger>
                         <SelectContent>
@@ -331,13 +331,13 @@ export default function DispatchPage() {
                   </TableCell>
 
                   {/* Contador Fields */}
-                  <TableCell className="text-center">
+                  <TableCell className="text-center p-2">
                     <Select
                       value={item.validado ? 'Aprobado' : 'Pendiente'}
                       onValueChange={(value) => handleInputChange(item.id, 'validado', value === 'Aprobado')}
                       disabled={!canEditContador}
                     >
-                      <SelectTrigger className="w-32 bg-background/50">
+                      <SelectTrigger className="w-32 bg-background/50 h-8">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -346,8 +346,8 @@ export default function DispatchPage() {
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
+                  <TableCell className="text-right p-2">
                     {(currentUser.role === 'Asesor de Ventas' && currentUser.name === item.vendedor) && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
