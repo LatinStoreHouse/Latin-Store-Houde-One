@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
@@ -8,9 +7,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, FileDown, Search } from 'lucide-react';
+import { PlusCircle, FileDown, Search, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Role } from '@/lib/roles';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -108,16 +118,19 @@ const months = [
 ];
 
 // In a real app, this would come from an auth context.
-const currentUserRole: Role = 'Administrador';
+const currentUser = {
+  name: 'John Doe',
+  role: 'Asesor de Ventas' as Role,
+};
 
 export default function DispatchPage() {
   const [dispatchData, setDispatchData] = useState(initialDispatchData);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('all');
 
-  const canEditAsesor = currentUserRole === 'Administrador' || currentUserRole === 'Asesor de Ventas';
-  const canEditLogistica = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
-  const canEditContador = currentUserRole === 'Administrador' || currentUserRole === 'Contador';
+  const canEditAsesor = currentUser.role === 'Administrador' || currentUser.role === 'Asesor de Ventas';
+  const canEditLogistica = currentUser.role === 'Administrador' || currentUser.role === 'Logística';
+  const canEditContador = currentUser.role === 'Administrador' || currentUser.role === 'Contador';
 
   const handleInputChange = (id: number, field: string, value: string | boolean) => {
     setDispatchData(prevData =>
@@ -131,7 +144,7 @@ export default function DispatchPage() {
     const newId = dispatchData.length > 0 ? Math.max(...dispatchData.map(d => d.id)) + 1 : 1;
     const newDispatch = {
         id: newId,
-        vendedor: '',
+        vendedor: currentUser.name, // Default to current user
         fechaSolicitud: new Date().toISOString().split('T')[0],
         cotizacion: '',
         cliente: '',
@@ -147,6 +160,10 @@ export default function DispatchPage() {
         factura: '',
     };
     setDispatchData(prev => [newDispatch, ...prev]);
+  }
+
+  const handleDeleteDispatch = (id: number) => {
+    setDispatchData(prevData => prevData.filter(item => item.id !== id));
   }
 
   const filteredData = dispatchData.filter(item => {
@@ -271,6 +288,7 @@ export default function DispatchPage() {
                 {/* Contador */}
                 <TableHead>Validado</TableHead>
                 <TableHead>Factura #</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -329,6 +347,31 @@ export default function DispatchPage() {
                     </Select>
                   </TableCell>
                   <TableCell><Input className="min-w-[150px] bg-background/50" value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
+                  <TableCell className="text-right">
+                    {(currentUser.role === 'Asesor de Ventas' && currentUser.name === item.vendedor) && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                           <Button variant="ghost" size="icon">
+                             <Trash2 className="h-4 w-4 text-destructive" />
+                           </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
+                              Eliminar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
