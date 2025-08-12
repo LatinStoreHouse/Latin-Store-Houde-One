@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, FileDown, Search, MoreHorizontal, Trash2 } from 'lucide-react';
+import { PlusCircle, FileDown, Search, MoreHorizontal, Trash2, Copy } from 'lucide-react';
 import { Role } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import {
@@ -165,6 +165,25 @@ export default function DispatchPage() {
   const handleDeleteDispatch = (id: number) => {
     setDispatchData(prevData => prevData.filter(item => item.id !== id));
   }
+
+  const handleDuplicateDispatch = (id: number) => {
+    const originalDispatch = dispatchData.find(item => item.id === id);
+    if (!originalDispatch) return;
+
+    const newId = dispatchData.length > 0 ? Math.max(...dispatchData.map(d => d.id)) + 1 : 1;
+    const newDispatch = {
+        ...originalDispatch,
+        id: newId,
+        fechaSolicitud: new Date().toISOString().split('T')[0],
+        rutero: '',
+        fechaDespacho: '',
+        guia: '',
+        convencion: 'none' as 'none',
+        validado: false,
+        factura: '',
+    };
+    setDispatchData(prev => [newDispatch, ...prev]);
+  };
 
   const filteredData = dispatchData.filter(item => {
     const searchTermLower = searchTerm.toLowerCase();
@@ -349,27 +368,32 @@ export default function DispatchPage() {
                   <TableCell className="p-2"><Input className="min-w-[150px] bg-background/50 h-8" value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
                   <TableCell className="text-right p-2">
                     {(currentUser.role === 'Asesor de Ventas' && currentUser.name === item.vendedor) && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                           <Button variant="ghost" size="icon">
-                             <Trash2 className="h-4 w-4 text-destructive" />
-                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
-                              Eliminar
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <div className="flex items-center justify-end">
+                        <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                             <Button variant="ghost" size="icon">
+                               <Trash2 className="h-4 w-4 text-destructive" />
+                             </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
+                                Eliminar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>
