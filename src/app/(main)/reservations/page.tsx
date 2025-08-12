@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ import {
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Role } from '@/lib/roles';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
 interface Reservation {
@@ -30,6 +30,7 @@ interface Reservation {
   advisor: string;
   quoteNumber: string;
   status: 'En espera de validación' | 'Validada' | 'Rechazada';
+  source: 'Contenedor' | 'Bodega';
 }
 
 // Mock data, in real app this would come from the transit page/state
@@ -39,8 +40,15 @@ const productsInTransit = [
     { value: 'BLACK 1.22 X 0.61', label: 'BLACK 1.22 X 0.61', available: 500, containerId: 'CMAU7654321' },
 ];
 
+// Mock data from inventory
+const productsInStock = [
+    { value: 'CONCRETO ENCOFRADO', label: 'CONCRETO ENCOFRADO', available: 77 },
+    { value: 'TAPIA NEGRA', label: 'TAPIA NEGRA', available: 23 },
+    { value: 'ADHESIVO TRASLUCIDO', label: 'ADHESIVO TRASLUCIDO', available: 87 },
+];
+
 const initialReservations: Reservation[] = [
-    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'En espera de validación' },
+    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'En espera de validación', source: 'Contenedor' },
 ];
 
 export default function ReservationsPage() {
@@ -51,7 +59,15 @@ export default function ReservationsPage() {
   const [quantity, setQuantity] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [quoteNumber, setQuoteNumber] = useState('');
+  const [reservationSource, setReservationSource] = useState<'Contenedor' | 'Bodega'>('Contenedor');
   const { toast } = useToast();
+
+  const productOptions = useMemo(() => {
+    if (reservationSource === 'Contenedor') {
+        return productsInTransit;
+    }
+    return productsInStock.map(p => ({ ...p, containerId: 'Bodega' }));
+  }, [reservationSource]);
 
   const handleCreateReservation = () => {
     if (!customerName || !productName || quantity <= 0 || !quoteNumber) {
@@ -59,9 +75,9 @@ export default function ReservationsPage() {
         return;
     }
 
-    const productInTransit = productsInTransit.find(p => p.value === productName);
-    if (!productInTransit) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Producto no encontrado en tránsito.'});
+    const productInfo = productOptions.find(p => p.value === productName);
+    if (!productInfo) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Producto no encontrado.'});
         return;
     }
 
@@ -70,10 +86,11 @@ export default function ReservationsPage() {
         customer: customerName,
         product: productName,
         quantity,
-        containerId: productInTransit.containerId,
+        containerId: productInfo.containerId,
         advisor: 'Usuario Admin', // Mock current user
         quoteNumber: quoteNumber,
         status: 'En espera de validación',
+        source: reservationSource,
     };
 
     setReservations([...reservations, newReservation]);
@@ -93,9 +110,13 @@ export default function ReservationsPage() {
   
   const getSelectedProductInfo = () => {
     if (!productName) return null;
-    const product = productsInTransit.find(p => p.value === productName);
+    const product = productOptions.find(p => p.value === productName);
     if (!product) return null;
-    return `Disponible: ${product.available} en Contenedor ${product.containerId}`;
+
+    if (reservationSource === 'Contenedor') {
+        return `Disponible: ${product.available} en Contenedor ${product.containerId}`;
+    }
+    return `Disponible: ${product.available} en Bodega`;
   };
   
   const getStatusBadgeVariant = (status: Reservation['status']) => {
@@ -111,8 +132,8 @@ export default function ReservationsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Reservas de Contenedores</CardTitle>
-            <CardDescription>Cree y gestione las reservas de productos en tránsito.</CardDescription>
+            <CardTitle>Reservas de Productos</CardTitle>
+            <CardDescription>Cree y gestione las reservas de productos en tránsito o en bodega.</CardDescription>
           </div>
           <Dialog open={isNewReservationDialogOpen} onOpenChange={setIsNewReservationDialogOpen}>
             <DialogTrigger asChild>
@@ -124,6 +145,19 @@ export default function ReservationsPage() {
             <DialogContent>
                 <DialogHeader><DialogTitle>Crear Nueva Reserva</DialogTitle></DialogHeader>
                 <div className="space-y-4 py-4">
+                     <div className="space-y-2">
+                        <Label>Origen del Producto</Label>
+                        <RadioGroup value={reservationSource} onValueChange={(value) => setReservationSource(value as 'Contenedor' | 'Bodega')} className="flex gap-4">
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Contenedor" id="source-container" />
+                            <Label htmlFor="source-container">Contenedor en Tránsito</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Bodega" id="source-warehouse" />
+                            <Label htmlFor="source-warehouse">Inventario de Bodega</Label>
+                          </div>
+                        </RadioGroup>
+                    </div>
                     <div className="space-y-2">
                         <Label># Cotización</Label>
                         <Input value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" />
@@ -135,7 +169,7 @@ export default function ReservationsPage() {
                     <div className="space-y-2">
                         <Label>Producto</Label>
                         <Combobox
-                            options={productsInTransit}
+                            options={productOptions}
                             value={productName}
                             onValueChange={setProductName}
                             placeholder="Seleccione un producto"
@@ -175,7 +209,7 @@ export default function ReservationsPage() {
                 <TableHead>Cliente</TableHead>
                 <TableHead>Producto</TableHead>
                 <TableHead>Cantidad</TableHead>
-                <TableHead>Contenedor</TableHead>
+                <TableHead>Origen</TableHead>
                 <TableHead>Asesor</TableHead>
                 <TableHead>Estado</TableHead>
               </TableRow>
@@ -187,7 +221,7 @@ export default function ReservationsPage() {
                   <TableCell>{reservation.customer}</TableCell>
                   <TableCell>{reservation.product}</TableCell>
                   <TableCell>{reservation.quantity}</TableCell>
-                  <TableCell>{reservation.containerId}</TableCell>
+                  <TableCell>{reservation.source === 'Contenedor' ? reservation.containerId : 'Bodega'}</TableCell>
                   <TableCell>{reservation.advisor}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(reservation.status)}>
