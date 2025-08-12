@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Combobox } from '@/components/ui/combobox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -71,7 +72,6 @@ const initialDispatchData = [
     fechaDespacho: '',
     guia: '',
     convencion: 'Prealistamiento de pedido',
-    validado: false,
     factura: '',
   },
   {
@@ -88,7 +88,6 @@ const initialDispatchData = [
     fechaDespacho: '2024-07-30',
     guia: 'TCC-98765',
     convencion: 'Despachado',
-    validado: true,
     factura: 'FAC-201',
   },
   {
@@ -105,7 +104,6 @@ const initialDispatchData = [
     fechaDespacho: '2024-06-18',
     guia: 'ENV-12345',
     convencion: 'Entrega parcial',
-    validado: true,
     factura: 'FAC-202',
   },
 ];
@@ -138,13 +136,20 @@ const colombianCities = [
 // In a real app, this would come from an auth context.
 const currentUser = {
   name: 'John Doe',
-  role: 'Asesor de Ventas' as Role,
+  role: 'Administrador' as Role,
 };
 
 export default function DispatchPage() {
   const [dispatchData, setDispatchData] = useState(initialDispatchData);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('all');
+  const [observationOptions, setObservationOptions] = useState([
+    { value: 'none', label: 'Sin observación' },
+    { value: 'Entrega Urgente', label: 'Entrega Urgente' },
+    { value: 'Cliente ausente', label: 'Cliente ausente' },
+    { value: 'Dirección incorrecta', label: 'Dirección incorrecta' },
+  ]);
+  const [newObservation, setNewObservation] = useState('');
 
   const canEditAsesor = currentUser.role === 'Administrador' || currentUser.role === 'Asesor de Ventas';
   const canEditLogistica = currentUser.role === 'Administrador' || currentUser.role === 'Logística';
@@ -169,12 +174,11 @@ export default function DispatchPage() {
         ciudad: '',
         direccion: '',
         remision: '',
-        observacion: '',
+        observacion: 'none',
         rutero: 'none',
         fechaDespacho: '',
         guia: '',
         convencion: 'none' as 'none',
-        validado: false,
         factura: '',
     };
     setDispatchData(prev => [newDispatch, ...prev]);
@@ -197,10 +201,17 @@ export default function DispatchPage() {
         fechaDespacho: '',
         guia: '',
         convencion: 'none' as 'none',
-        validado: false,
         factura: '',
     };
     setDispatchData(prev => [newDispatch, ...prev]);
+  };
+
+  const handleAddNewObservation = () => {
+    if (newObservation && !observationOptions.find(opt => opt.value === newObservation)) {
+        const newOption = { value: newObservation, label: newObservation };
+        setObservationOptions(prev => [...prev, newOption]);
+        setNewObservation('');
+    }
   };
 
   const filteredData = dispatchData.filter(item => {
@@ -230,7 +241,7 @@ export default function DispatchPage() {
         [
           'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
           'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
-          'Guía', 'Convención', 'Validado', 'Factura #'
+          'Guía', 'Convención', 'Factura #'
         ],
       ],
       body: filteredData.map(item => [
@@ -246,7 +257,6 @@ export default function DispatchPage() {
         item.fechaDespacho,
         item.guia,
         item.convencion,
-        item.validado ? 'Aprobado' : 'Pendiente',
         item.factura,
       ]),
       styles: { fontSize: 8 },
@@ -260,7 +270,7 @@ export default function DispatchPage() {
     const tableHeaders = [
         'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
         'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
-        'Guía', 'Convención', 'Validado', 'Factura #'
+        'Guía', 'Convención', 'Factura #'
     ];
     let html = '<table><thead><tr>';
     tableHeaders.forEach(header => html += `<th>${header}</th>`);
@@ -280,7 +290,6 @@ export default function DispatchPage() {
         html += `<td>${item.fechaDespacho}</td>`;
         html += `<td>${item.guia}</td>`;
         html += `<td>${item.convencion}</td>`;
-        html += `<td>${item.validado ? 'Aprobado' : 'Pendiente'}</td>`;
         html += `<td>${item.factura}</td>`;
         html += '</tr>';
     });
@@ -368,13 +377,38 @@ export default function DispatchPage() {
                 <TableHead className="p-0">Dirección</TableHead>
                 <TableHead className="p-0">Remisión</TableHead>
                 {/* Logística */}
-                <TableHead className="p-0">Observación</TableHead>
+                <TableHead className="p-0">
+                    <div className="flex items-center">
+                        Observación
+                        {canEditLogistica && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
+                                        <PlusCircle className="h-4 w-4" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Añadir Nueva Observación</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            value={newObservation}
+                                            onChange={(e) => setNewObservation(e.target.value)}
+                                            placeholder="Escriba una nueva observación"
+                                        />
+                                        <Button onClick={handleAddNewObservation}>Añadir</Button>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                    </div>
+                </TableHead>
                 <TableHead className="p-0">Rutero</TableHead>
                 <TableHead className="p-0">Fecha Desp.</TableHead>
                 <TableHead className="p-0">Guía</TableHead>
                 <TableHead className="p-0">Convención</TableHead>
                 {/* Contador */}
-                <TableHead className="p-0">Validado</TableHead>
                 <TableHead className="p-0">Factura #</TableHead>
                 <TableHead className="text-right p-0">Acciones</TableHead>
               </TableRow>
@@ -404,7 +438,24 @@ export default function DispatchPage() {
                   <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor} /></TableCell>
                   
                   {/* Logística Fields */}
-                  <TableCell className="p-0"><Input className="min-w-[200px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="min-w-[200px] p-0">
+                    <Select
+                        value={item.observacion}
+                        onValueChange={(value) => handleInputChange(item.id, 'observacion', value)}
+                        disabled={!canEditLogistica}
+                    >
+                        <SelectTrigger className="bg-background/50 border-0 rounded-none focus:ring-1 focus:ring-offset-0 h-full">
+                           <SelectValue placeholder="Seleccionar observación" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {observationOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                            </SelectItem>
+                           ))}
+                        </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell className="min-w-[200px] p-0">
                      <Select
                         value={item.rutero}
@@ -448,21 +499,6 @@ export default function DispatchPage() {
                   </TableCell>
 
                   {/* Contador Fields */}
-                  <TableCell className="text-center p-0">
-                    <Select
-                      value={item.validado ? 'Aprobado' : 'Pendiente'}
-                      onValueChange={(value) => handleInputChange(item.id, 'validado', value === 'Aprobado')}
-                      disabled={!canEditContador}
-                    >
-                      <SelectTrigger className="w-32 bg-background/50 h-full border-0 rounded-none focus:ring-1 focus:ring-offset-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Aprobado">Aprobado</SelectItem>
-                        <SelectItem value="Pendiente">Pendiente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
                   <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
                   <TableCell className="text-right p-0">
                     {(currentUser.role === 'Asesor de Ventas' && currentUser.name === item.vendedor) && (

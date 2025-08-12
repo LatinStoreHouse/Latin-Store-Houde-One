@@ -37,28 +37,34 @@ import {
   ChevronDown,
   Tags,
   ShieldCheck,
+  CheckSquare,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Role, roles } from '@/lib/roles';
+
+const currentUserRole: Role = 'Administrador';
 
 const navItems = [
-  { href: '/', label: 'Tablero', icon: LayoutDashboard },
-  { href: '/inventory', label: 'Inventario', icon: Warehouse },
-  { href: '/orders', label: 'Despachos y Facturación', icon: Truck },
-  { href: '/customers', label: 'Clientes', icon: Users },
+  { href: '/', label: 'Tablero', icon: LayoutDashboard, roles: ['Administrador', 'Asesor de Ventas', 'Contador', 'Logística'] },
+  { href: '/inventory', label: 'Inventario', icon: Warehouse, roles: ['Administrador', 'Asesor de Ventas', 'Logística'] },
+  { href: '/orders', label: 'Despachos y Facturación', icon: Truck, roles: ['Administrador', 'Asesor de Ventas', 'Contador', 'Logística'] },
+  { href: '/validation', label: 'Validación', icon: CheckSquare, roles: ['Administrador', 'Contador'] },
+  { href: '/customers', label: 'Clientes', icon: Users, roles: ['Administrador', 'Asesor de Ventas'] },
   {
     label: 'Calculadoras',
     icon: Calculator,
+    roles: ['Administrador', 'Asesor de Ventas'],
     subItems: [
       { href: '/stoneflex-clay-calculator', label: 'Stoneflex' },
       { href: '/starwood-calculator', label: 'Starwood' },
     ],
   },
-  { href: '/pricing', label: 'Precios', icon: Tags },
-  { href: '/users', label: 'Usuarios', icon: UserCog },
-  { href: '/roles', label: 'Roles y Permisos', icon: ShieldCheck },
-  { href: '/reports', label: 'Reportes', icon: FileText },
-  { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare },
+  { href: '/pricing', label: 'Precios', icon: Tags, roles: ['Administrador', 'Asesor de Ventas', 'Contador'] },
+  { href: '/users', label: 'Usuarios', icon: UserCog, roles: ['Administrador'] },
+  { href: '/roles', label: 'Roles y Permisos', icon: ShieldCheck, roles: ['Administrador'] },
+  { href: '/reports', label: 'Reportes', icon: FileText, roles: ['Administrador', 'Contador'] },
+  { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare, roles: ['Administrador', 'Asesor de Ventas'] },
 ];
 
 const Logo = () => (
@@ -69,6 +75,24 @@ const Logo = () => (
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const userRoles = roles.find(r => r.name === currentUserRole)?.permissions;
+
+  const hasPermission = (item: any) => {
+    if (item.href === '/roles' && userRoles?.includes('roles:manage')) return true;
+    if (item.href === '/users' && userRoles?.includes('users:manage')) return true;
+    if (item.href === '/pricing' && (userRoles?.includes('pricing:view') || userRoles?.includes('pricing:edit'))) return true;
+    if (item.href === '/customers' && (userRoles?.includes('customers:view') || userRoles?.includes('customers:create') || userRoles?.includes('customers:edit'))) return true;
+    if (item.href === '/orders' && (userRoles?.includes('orders:view') || userRoles?.includes('orders:create'))) return true;
+    if (item.href === '/inventory' && userRoles?.includes('inventory:view')) return true;
+    if (item.href === '/' && userRoles?.includes('dashboard:view')) return true;
+    if (item.href === '/reports' && userRoles?.includes('reports:view')) return true;
+    if (item.href === '/advisor' && userRoles?.includes('advisor:use')) return true;
+    if (item.href === '/validation' && userRoles?.includes('validation:view')) return true;
+    if (item.label === 'Calculadoras' && userRoles?.includes('calculators:use')) return true;
+    return false;
+  }
+
+  const visibleNavItems = navItems.filter(hasPermission);
 
   return (
     <SidebarProvider>
@@ -83,7 +107,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {navItems.map((item) =>
+            {visibleNavItems.map((item) =>
               item.subItems ? (
                 <SidebarGroup key={item.label} className="p-0">
                   <Collapsible>
