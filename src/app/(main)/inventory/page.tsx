@@ -166,13 +166,13 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange }: {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Nombre del Producto</TableHead>
-          <TableHead className="text-right">Bodega</TableHead>
-          <TableHead className="text-right">Separadas Bodega</TableHead>
-          <TableHead className="text-right">Zona Franca</TableHead>
-          <TableHead className="text-right">Separadas ZF</TableHead>
-          <TableHead className="text-right">Muestras</TableHead>
-          <TableHead>Estado</TableHead>
+          <TableHead className="p-2">Nombre del Producto</TableHead>
+          <TableHead className="text-right p-2">Bodega</TableHead>
+          <TableHead className="text-right p-2">Separadas Bodega</TableHead>
+          <TableHead className="text-right p-2">Zona Franca</TableHead>
+          <TableHead className="text-right p-2">Separadas ZF</TableHead>
+          <TableHead className="text-right p-2">Muestras</TableHead>
+          <TableHead className="p-2">Estado</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -185,33 +185,33 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange }: {
 
           return (
             <TableRow key={name}>
-              <TableCell className="font-medium">
+              <TableCell className="font-medium p-0">
                 {canEdit ? (
                     <Input 
                         defaultValue={name} 
                         onBlur={(e) => handleInputChange(name, 'name', e.target.value, true)}
-                        className="h-8"
+                        className="h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0"
                     />
                 ) : (
                     name
                 )}
               </TableCell>
-              <TableCell className="text-right">
-                {canEdit ? <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-8" /> : item.bodega}
+              <TableCell className="text-right p-0">
+                {canEdit ? <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" /> : item.bodega}
               </TableCell>
-              <TableCell className="text-right">
-                {canEdit ? <Input type="number" defaultValue={item.separadasBodega} onBlur={(e) => handleInputChange(name, 'separadasBodega', e.target.value)} className="w-20 ml-auto text-right h-8" /> : item.separadasBodega}
+              <TableCell className="text-right p-0">
+                {canEdit ? <Input type="number" defaultValue={item.separadasBodega} onBlur={(e) => handleInputChange(name, 'separadasBodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" /> : item.separadasBodega}
               </TableCell>
-              <TableCell className="text-right">
-                {canEdit ? <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-8" /> : item.zonaFranca}
+              <TableCell className="text-right p-0">
+                {canEdit ? <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" /> : item.zonaFranca}
               </TableCell>
-              <TableCell className="text-right">
-                {canEdit ? <Input type="number" defaultValue={item.separadasZonaFranca} onBlur={(e) => handleInputChange(name, 'separadasZonaFranca', e.target.value)} className="w-20 ml-auto text-right h-8" /> : item.separadasZonaFranca}
+              <TableCell className="text-right p-0">
+                {canEdit ? <Input type="number" defaultValue={item.separadasZonaFranca} onBlur={(e) => handleInputChange(name, 'separadasZonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" /> : item.separadasZonaFranca}
               </TableCell>
-              <TableCell className="text-right">
-                 {canEdit ? <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 ml-auto text-right h-8" /> : item.muestras}
+              <TableCell className="text-right p-0">
+                 {canEdit ? <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" /> : item.muestras}
               </TableCell>
-              <TableCell>
+              <TableCell className="p-2">
                 <div className="flex flex-col gap-1 items-start">
                   {disponibleBodega > 0 && <Badge variant={getStatusVariant(statusBodega)}>Bodega: {statusBodega}</Badge>}
                   {disponibleZonaFranca > 0 && <Badge variant={getStatusVariant(statusZonaFranca)}>ZF: {statusZonaFranca}</Badge>}
