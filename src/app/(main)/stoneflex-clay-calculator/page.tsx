@@ -133,6 +133,26 @@ const referenceLines: { [key: string]: { line: keyof typeof linePricing, brand: 
   '3D ADHESIVO - 0,90 M2 - BLACK': { line: '3D autoadhesiva', brand: 'STONEFLEX' },
   '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC': { line: '3D autoadhesiva', brand: 'STONEFLEX' },
   '3D ADHESIVO - 0,90 M2 - TAN': { line: '3D autoadhesiva', brand: 'STONEFLEX' },
+   // XL
+  'BLACK 2.44 X 1.22': { line: 'Pizarra', brand: 'STONEFLEX' },
+  'TAN 2.44 X 1.22': { line: 'Pizarra', brand: 'STONEFLEX' },
+  'kUND MULTY 2.44 X 1.22': { line: 'Pizarra', brand: 'STONEFLEX' },
+  'INDIAN AUTUMN 2.44 X 1.22': { line: 'Pizarra', brand: 'STONEFLEX' },
+  'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22': { line: 'Translucida', brand: 'STONEFLEX' },
+  'COPPER 2.44 X 1.22': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'BURNING FOREST 2.44 X 1.22': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'JEERA GREEN 2.44 X 1.22': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'SILVER SHINE 2.44 X 1.22': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'SILVER SHINE GOLD 2.44 X 1.22': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'STEEL GREY 2.44 X 1.22': { line: 'Cuarcitas', brand: 'STONEFLEX' },
+  'CONCRETO BLANCO 2.44 X 1.22': { line: 'Concreto', brand: 'STONEFLEX' },
+  'CONCRETO GRIS 2.44 X 1.22': { line: 'Concreto', brand: 'STONEFLEX' },
+  'CONCRETO MEDIO 2.44 X 1.22': { line: 'Concreto', brand: 'STONEFLEX' },
+  'CONCRETO WITH HOLES 2.44 X 1.22': { line: 'Concreto', brand: 'STONEFLEX' },
+  'CARRARA 2.44 X 1.22': { line: 'Mármol', brand: 'STONEFLEX' },
+  'CRYSTAL WHITE 2.44 X 1.22': { line: 'Mármol', brand: 'STONEFLEX' },
+  'HIMALAYA GOLD 2.44 X 1.22': { line: 'Mármol', brand: 'STONEFLEX' },
+  'CORTEN STEEL 2.44 X 1.22': { line: 'Metales', brand: 'STONEFLEX' },
 };
 
 const allReferences = Object.entries(inventoryData)
@@ -164,7 +184,7 @@ export default function StoneflexClayCalculatorPage() {
   }, []);
 
   const getSqmPerSheet = (ref: string) => {
-    if (ref.includes('1.22 X 0.61') || ref.includes('120 X 60')) {
+    if (ref.includes('1.22 X 0.61') || ref.includes('120 X 60') || ref.includes('1.22X0.61')) {
       return 0.7442;
     } else if (ref.includes('2.44 X 1.22')) {
       return 2.9768;
@@ -172,6 +192,8 @@ export default function StoneflexClayCalculatorPage() {
       return 0.366;
     } else if (ref.includes('0,90 M2')) {
       return 0.9;
+    } else if (ref.includes('2.44 X 0.61')) {
+        return 1.4884;
     }
     return 1; // Default
   }
@@ -211,11 +233,20 @@ export default function StoneflexClayCalculatorPage() {
 
     let calculatedAdhesiveUnits = 0;
     if (includeAdhesive) {
-        const adhesiveLines = ['Pizarra', 'Cuarcitas', 'Concreto', 'Clay'];
-        if (adhesiveLines.includes(line)) {
+        if (reference.includes('1.22 X 0.61') || reference.includes('1.22X0.61')) {
+            calculatedAdhesiveUnits = Math.ceil(calculatedSheets / 2);
+        } else if (line === 'Metales' && reference.includes('2.44 X 0.61')) {
+            calculatedAdhesiveUnits = calculatedSheets;
+        } else if (reference.includes('2.44 X 1.22')) {
             calculatedAdhesiveUnits = calculatedSheets * 2;
         } else {
-            calculatedAdhesiveUnits = Math.ceil(calculatedSqm / 1); 
+            // Default rule for other cases, you might want to refine this
+            const adhesiveLines = ['Pizarra', 'Cuarcitas', 'Concreto', 'Clay'];
+            if (adhesiveLines.includes(line)) {
+                calculatedAdhesiveUnits = Math.ceil(calculatedSheets / 2);
+            } else {
+                calculatedAdhesiveUnits = Math.ceil(calculatedSqm / 1); 
+            }
         }
     }
 
