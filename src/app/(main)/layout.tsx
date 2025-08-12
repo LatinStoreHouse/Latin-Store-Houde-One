@@ -36,6 +36,7 @@ import {
   Calculator,
   ChevronDown,
   Tags,
+  ShieldCheck,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -49,12 +50,13 @@ const navItems = [
     label: 'Calculadoras',
     icon: Calculator,
     subItems: [
-      { href: '/stoneflex-clay-calculator', label: 'Stoneflex & Clay' },
+      { href: '/stoneflex-clay-calculator', label: 'Stoneflex' },
       { href: '/starwood-calculator', label: 'Starwood' },
     ],
   },
   { href: '/pricing', label: 'Precios', icon: Tags },
   { href: '/users', label: 'Usuarios', icon: UserCog },
+  { href: '/roles', label: 'Roles y Permisos', icon: ShieldCheck },
   { href: '/reports', label: 'Reportes', icon: FileText },
   { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare },
 ];
