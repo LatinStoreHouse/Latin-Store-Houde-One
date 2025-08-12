@@ -28,7 +28,11 @@ export type Permission =
   // Reports
   'reports:view' |
   // AI Advisor
-  'advisor:use';
+  'advisor:use' |
+  // Reservations
+  'reservations:view' |
+  'reservations:create' |
+  'reservations:validate';
 
 export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística';
 
@@ -71,7 +75,10 @@ export const roles: RoleConfig[] = [
             'roles:view',
             'roles:manage',
             'reports:view',
-            'advisor:use'
+            'advisor:use',
+            'reservations:view',
+            'reservations:create',
+            'reservations:validate'
         ]
     },
     {
@@ -80,6 +87,7 @@ export const roles: RoleConfig[] = [
         permissions: [
             'dashboard:view',
             'inventory:view',
+            'inventory:transit',
             'orders:view',
             'orders:create',
             'customers:view',
@@ -87,7 +95,9 @@ export const roles: RoleConfig[] = [
             'customers:edit',
             'calculators:use',
             'pricing:view',
-            'advisor:use'
+            'advisor:use',
+            'reservations:view',
+            'reservations:create'
         ]
     },
     {
@@ -95,11 +105,14 @@ export const roles: RoleConfig[] = [
         name: 'Contador',
         permissions: [
             'dashboard:view',
+            'inventory:transit',
             'orders:view',
             'orders:validate',
             'validation:view',
             'pricing:view',
-            'reports:view'
+            'reports:view',
+            'reservations:view',
+            'reservations:validate'
         ]
     },
     {
@@ -110,6 +123,7 @@ export const roles: RoleConfig[] = [
             'inventory:view',
             'inventory:transit',
             'orders:view',
+            'reservations:view'
         ]
     }
 ];
