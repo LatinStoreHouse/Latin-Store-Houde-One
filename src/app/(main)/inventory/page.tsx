@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -166,13 +165,13 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange }: {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="p-2">Nombre del Producto</TableHead>
-          <TableHead className="text-right p-2">Bodega</TableHead>
-          <TableHead className="text-right p-2">Separadas Bodega</TableHead>
-          <TableHead className="text-right p-2">Zona Franca</TableHead>
-          <TableHead className="text-right p-2">Separadas ZF</TableHead>
-          <TableHead className="text-right p-2">Muestras</TableHead>
-          <TableHead className="p-2">Estado</TableHead>
+          <TableHead className="p-0">Nombre del Producto</TableHead>
+          <TableHead className="text-right p-0">Bodega</TableHead>
+          <TableHead className="text-right p-0">Separadas Bodega</TableHead>
+          <TableHead className="text-right p-0">Zona Franca</TableHead>
+          <TableHead className="text-right p-0">Separadas ZF</TableHead>
+          <TableHead className="text-right p-0">Muestras</TableHead>
+          <TableHead className="p-0">Estado</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -274,7 +273,7 @@ export default function InventoryPage() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Inventario de Productos</CardTitle>
+        <CardTitle>Inventario de Productos - Stock Actual</CardTitle>
         <div className="flex gap-2">
             {canEdit && (
                 <Button onClick={handleSaveChanges} size="sm">

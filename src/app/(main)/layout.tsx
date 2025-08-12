@@ -38,6 +38,8 @@ import {
   Tags,
   ShieldCheck,
   CheckSquare,
+  Container,
+  BookUser
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -47,7 +49,16 @@ const currentUserRole: Role = 'Administrador';
 
 const navItems = [
   { href: '/', label: 'Tablero', icon: LayoutDashboard, roles: ['Administrador', 'Asesor de Ventas', 'Contador', 'Logística'] },
-  { href: '/inventory', label: 'Inventario', icon: Warehouse, roles: ['Administrador', 'Asesor de Ventas', 'Logística'] },
+  {
+    label: 'Inventario',
+    icon: Warehouse,
+    roles: ['Administrador', 'Asesor de Ventas', 'Logística'],
+    subItems: [
+      { href: '/inventory', label: 'Stock Actual' },
+      { href: '/transit', label: 'Contenedores en Tránsito' },
+      { href: '/reservations', label: 'Reservas de Contenedor' },
+    ],
+  },
   { href: '/orders', label: 'Despachos y Facturación', icon: Truck, roles: ['Administrador', 'Asesor de Ventas', 'Contador', 'Logística'] },
   { href: '/validation', label: 'Validación', icon: CheckSquare, roles: ['Administrador', 'Contador'] },
   { href: '/customers', label: 'Clientes', icon: Users, roles: ['Administrador', 'Asesor de Ventas'] },
@@ -67,6 +78,15 @@ const navItems = [
   { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare, roles: ['Administrador', 'Asesor de Ventas'] },
 ];
 
+const getIconForSubItem = (label: string) => {
+    switch (label) {
+        case 'Stock Actual': return Warehouse;
+        case 'Contenedores en Tránsito': return Container;
+        case 'Reservas de Contenedor': return BookUser;
+        default: return Warehouse;
+    }
+}
+
 const Logo = () => (
   <div className="relative h-10 w-32">
     <Image src="/logo.png" alt="Latin Store House Logo" fill style={{ objectFit: 'contain' }} />
@@ -84,6 +104,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     if (item.href === '/customers' && (userRoles?.includes('customers:view') || userRoles?.includes('customers:create') || userRoles?.includes('customers:edit'))) return true;
     if (item.href === '/orders' && (userRoles?.includes('orders:view') || userRoles?.includes('orders:create'))) return true;
     if (item.href === '/inventory' && userRoles?.includes('inventory:view')) return true;
+    if (item.href === '/transit' && userRoles?.includes('inventory:transit')) return true;
+    if (item.href === '/reservations' && userRoles?.includes('inventory:view')) return true;
+    if (item.label === 'Inventario' && userRoles?.includes('inventory:view')) return true;
     if (item.href === '/' && userRoles?.includes('dashboard:view')) return true;
     if (item.href === '/reports' && userRoles?.includes('reports:view')) return true;
     if (item.href === '/advisor' && userRoles?.includes('advisor:use')) return true;
@@ -122,13 +145,19 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {item.subItems.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.href}>
-                             <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
-                               <Link href={subItem.href}>{subItem.label}</Link>
-                             </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
+                        {item.subItems.filter(hasPermission).map((subItem) => {
+                           const SubIcon = getIconForSubItem(subItem.label);
+                           return (
+                            <SidebarMenuSubItem key={subItem.href}>
+                               <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
+                                 <Link href={subItem.href}>
+                                    <SubIcon />
+                                    {subItem.label}
+                                 </Link>
+                               </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                           )
+                        })}
                       </SidebarMenuSub>
                     </CollapsibleContent>
                   </Collapsible>
