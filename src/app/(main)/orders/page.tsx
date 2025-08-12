@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, FileDown } from 'lucide-react';
+import { PlusCircle, FileDown, Search } from 'lucide-react';
 import { Role } from '@/lib/roles';
 
 // Mocked data for dispatch requests
@@ -45,6 +44,39 @@ const initialDispatchData = [
     validado: true,
     factura: 'FAC-201',
   },
+  {
+    id: 3,
+    vendedor: 'John Doe',
+    fechaSolicitud: '2024-06-15',
+    cotizacion: 'COT-003',
+    cliente: 'Arquitectos Unidos',
+    ciudad: 'Medellín',
+    direccion: 'Carrera 10 # 20-30',
+    remision: 'REM-003',
+    observacion: '',
+    rutero: 'R-MED-05',
+    fechaDespacho: '2024-06-18',
+    guia: 'ENV-12345',
+    convencion: '',
+    validado: true,
+    factura: 'FAC-202',
+  },
+];
+
+const months = [
+    { value: 'all', label: 'Todos los Meses' },
+    { value: '01', label: 'Enero' },
+    { value: '02', label: 'Febrero' },
+    { value: '03', label: 'Marzo' },
+    { value: '04', label: 'Abril' },
+    { value: '05', label: 'Mayo' },
+    { value: '06', label: 'Junio' },
+    { value: '07', label: 'Julio' },
+    { value: '08', label: 'Agosto' },
+    { value: '09', label: 'Septiembre' },
+    { value: '10', label: 'Octubre' },
+    { value: '11', label: 'Noviembre' },
+    { value: '12', label: 'Diciembre' },
 ];
 
 // In a real app, this would come from an auth context.
@@ -52,6 +84,8 @@ const currentUserRole: Role = 'Administrador';
 
 export default function DispatchPage() {
   const [dispatchData, setDispatchData] = useState(initialDispatchData);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('all');
 
   const canEditAsesor = currentUserRole === 'Administrador' || currentUserRole === 'Asesor de Ventas';
   const canEditLogistica = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
@@ -87,31 +121,73 @@ export default function DispatchPage() {
     setDispatchData(prev => [newDispatch, ...prev]);
   }
 
+  const filteredData = dispatchData.filter(item => {
+    const searchTermLower = searchTerm.toLowerCase();
+    const matchesSearch = 
+        item.cliente.toLowerCase().includes(searchTermLower) ||
+        item.vendedor.toLowerCase().includes(searchTermLower) ||
+        item.cotizacion.toLowerCase().includes(searchTermLower) ||
+        item.remision.toLowerCase().includes(searchTermLower) ||
+        item.ciudad.toLowerCase().includes(searchTermLower) ||
+        item.factura.toLowerCase().includes(searchTermLower);
+        
+    const matchesMonth = 
+        selectedMonth === 'all' || 
+        item.fechaSolicitud.substring(5, 7) === selectedMonth;
+
+    return matchesSearch && matchesMonth;
+  });
+
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-            <CardTitle>Despachos y Facturación</CardTitle>
-            <CardDescription>
-                Gestione las solicitudes de despacho, la logística y la facturación.
-            </CardDescription>
-        </div>
-        <div className="flex gap-2">
-            {canEditAsesor && (
-                <Button onClick={addNewDispatch}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nuevo Despacho
+      <CardHeader>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <CardTitle>Despachos y Facturación</CardTitle>
+                <CardDescription>
+                    Gestione las solicitudes de despacho, la logística y la facturación.
+                </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+                {canEditAsesor && (
+                    <Button onClick={addNewDispatch}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nuevo Despacho
+                    </Button>
+                )}
+                <Button variant="outline">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Exportar
                 </Button>
-            )}
-            <Button variant="outline">
-                <FileDown className="mr-2 h-4 w-4" />
-                Exportar
-            </Button>
+            </div>
         </div>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 flex flex-col sm:flex-row items-center gap-4">
+            <div className="relative flex-1 w-full sm:w-auto">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                placeholder="Buscar por cliente, vendedor, cotización..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Filtrar por mes" />
+                </SelectTrigger>
+                <SelectContent>
+                    {months.map(month => (
+                        <SelectItem key={month.value} value={month.value}>
+                            {month.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
         <div className="overflow-x-auto">
-          <Table className="min-w-full">
+          <Table className="min-w-full whitespace-nowrap">
             <TableHeader>
               <TableRow>
                 {/* Asesor */}
@@ -134,23 +210,23 @@ export default function DispatchPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dispatchData.map((item) => (
+              {filteredData.map((item) => (
                 <TableRow key={item.id}>
                   {/* Asesor Fields */}
-                  <TableCell><Input value={item.vendedor} onChange={e => handleInputChange(item.id, 'vendedor', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input type="date" value={item.fechaSolicitud} onChange={e => handleInputChange(item.id, 'fechaSolicitud', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input value={item.cotizacion} onChange={e => handleInputChange(item.id, 'cotizacion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input value={item.cliente} onChange={e => handleInputChange(item.id, 'cliente', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input value={item.ciudad} onChange={e => handleInputChange(item.id, 'ciudad', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input value={item.direccion} onChange={e => handleInputChange(item.id, 'direccion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" value={item.vendedor} onChange={e => handleInputChange(item.id, 'vendedor', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" type="date" value={item.fechaSolicitud} onChange={e => handleInputChange(item.id, 'fechaSolicitud', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" value={item.cotizacion} onChange={e => handleInputChange(item.id, 'cotizacion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" value={item.cliente} onChange={e => handleInputChange(item.id, 'cliente', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" value={item.ciudad} onChange={e => handleInputChange(item.id, 'ciudad', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[200px]" value={item.direccion} onChange={e => handleInputChange(item.id, 'direccion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor} /></TableCell>
                   
                   {/* Logística Fields */}
-                  <TableCell><Input value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input value={item.rutero} onChange={e => handleInputChange(item.id, 'rutero', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input value={item.convencion} onChange={e => handleInputChange(item.id, 'convencion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input className="min-w-[200px]" value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" value={item.rutero} onChange={e => handleInputChange(item.id, 'rutero', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" value={item.convencion} onChange={e => handleInputChange(item.id, 'convencion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
 
                   {/* Contador Fields */}
                   <TableCell className="text-center">
@@ -168,7 +244,7 @@ export default function DispatchPage() {
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell><Input value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
+                  <TableCell><Input className="min-w-[150px]" value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
                 </TableRow>
               ))}
             </TableBody>
