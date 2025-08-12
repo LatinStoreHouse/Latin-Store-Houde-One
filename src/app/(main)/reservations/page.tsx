@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Check, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,9 @@ import {
 } from '@/components/ui/dialog';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Role } from '@/lib/roles';
+
 
 interface Reservation {
   id: string;
@@ -25,6 +28,8 @@ interface Reservation {
   quantity: number;
   containerId: string;
   advisor: string;
+  quoteNumber: string;
+  status: 'En espera de validación' | 'Validada' | 'Rechazada';
 }
 
 // Mock data, in real app this would come from the transit page/state
@@ -35,8 +40,10 @@ const productsInTransit = [
 ];
 
 const initialReservations: Reservation[] = [
-    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, containerId: 'MSCU1234567', advisor: 'Jane Smith' },
+    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'En espera de validación' },
 ];
+
+const currentUserRole: Role = 'Administrador';
 
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
@@ -45,10 +52,13 @@ export default function ReservationsPage() {
   const [productName, setProductName] = useState('');
   const [quantity, setQuantity] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [quoteNumber, setQuoteNumber] = useState('');
   const { toast } = useToast();
 
+  const canValidate = currentUserRole === 'Administrador' || currentUserRole === 'Contador';
+
   const handleCreateReservation = () => {
-    if (!customerName || !productName || quantity <= 0) {
+    if (!customerName || !productName || quantity <= 0 || !quoteNumber) {
         toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos.'});
         return;
     }
@@ -66,20 +76,45 @@ export default function ReservationsPage() {
         quantity,
         containerId: productInTransit.containerId,
         advisor: 'Usuario Admin', // Mock current user
+        quoteNumber: quoteNumber,
+        status: 'En espera de validación',
     };
 
     setReservations([...reservations, newReservation]);
     setCustomerName('');
     setProductName('');
     setQuantity(0);
+    setQuoteNumber('');
     setIsNewReservationDialogOpen(false);
-    toast({ title: 'Éxito', description: 'Reserva creada correctamente.' });
+    toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
   };
+  
+  const handleValidation = (reservationId: string, newStatus: 'Validada' | 'Rechazada') => {
+    setReservations(reservations.map(r => r.id === reservationId ? { ...r, status: newStatus } : r));
+    toast({ title: 'Éxito', description: `Reserva ${newStatus.toLowerCase()}.` });
+  };
+
 
   const filteredReservations = reservations.filter(r => 
     r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.product.toLowerCase().includes(searchTerm.toLowerCase())
+    r.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const getSelectedProductInfo = () => {
+    if (!productName) return null;
+    const product = productsInTransit.find(p => p.value === productName);
+    if (!product) return null;
+    return `Disponible: ${product.available} en Contenedor ${product.containerId}`;
+  };
+  
+  const getStatusBadgeVariant = (status: Reservation['status']) => {
+    switch (status) {
+        case 'Validada': return 'default';
+        case 'En espera de validación': return 'secondary';
+        case 'Rechazada': return 'destructive';
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -100,6 +135,10 @@ export default function ReservationsPage() {
                 <DialogHeader><DialogTitle>Crear Nueva Reserva</DialogTitle></DialogHeader>
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
+                        <Label># Cotización</Label>
+                        <Input value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" />
+                    </div>
+                    <div className="space-y-2">
                         <Label>Nombre del Cliente</Label>
                         <Input value={customerName} onChange={e => setCustomerName(e.target.value)} />
                     </div>
@@ -113,6 +152,7 @@ export default function ReservationsPage() {
                             searchPlaceholder="Buscar producto..."
                             emptyPlaceholder="No se encontraron productos"
                         />
+                        <p className="text-sm text-muted-foreground">{getSelectedProductInfo()}</p>
                     </div>
                      <div className="space-y-2">
                         <Label>Cantidad</Label>
@@ -131,7 +171,7 @@ export default function ReservationsPage() {
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
-                        placeholder="Buscar por cliente o producto..."
+                        placeholder="Buscar por cliente, producto o cotización..."
                         className="pl-10"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
@@ -141,28 +181,47 @@ export default function ReservationsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID Reserva</TableHead>
+                <TableHead># Cotización</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Producto</TableHead>
                 <TableHead>Cantidad</TableHead>
                 <TableHead>Contenedor</TableHead>
                 <TableHead>Asesor</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredReservations.map((reservation) => (
                 <TableRow key={reservation.id}>
-                  <TableCell>{reservation.id}</TableCell>
+                  <TableCell>{reservation.quoteNumber}</TableCell>
                   <TableCell>{reservation.customer}</TableCell>
                   <TableCell>{reservation.product}</TableCell>
                   <TableCell>{reservation.quantity}</TableCell>
                   <TableCell>{reservation.containerId}</TableCell>
                   <TableCell>{reservation.advisor}</TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusBadgeVariant(reservation.status)}>
+                        {reservation.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {canValidate && reservation.status === 'En espera de validación' && (
+                        <div className="flex gap-2 justify-end">
+                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleValidation(reservation.id, 'Validada')}>
+                                <Check className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleValidation(reservation.id, 'Rechazada')}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
               {filteredReservations.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground">
                         No se encontraron reservas.
                     </TableCell>
                 </TableRow>
