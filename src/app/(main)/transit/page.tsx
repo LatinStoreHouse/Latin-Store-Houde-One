@@ -37,6 +37,22 @@ declare module 'jspdf' {
   }
 }
 
+interface Reservation {
+    id: string;
+    customer: string;
+    product: string;
+    quantity: number;
+    containerId: string;
+    advisor: string;
+    quoteNumber: string;
+    status: 'En espera de validación' | 'Validada' | 'Rechazada';
+}
+
+const initialReservations: Reservation[] = [
+    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'Validada' },
+    { id: 'RES-002', customer: 'Diseños SAS', product: 'BLACK 1.22 X 0.61', quantity: 100, containerId: 'CMAU7654321', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'En espera de validación' },
+];
+
 
 interface Product {
   name: string;
@@ -257,6 +273,12 @@ a.href = url;
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+  
+  const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
+    return initialReservations
+        .filter(r => r.containerId === containerId && r.product === productName && r.status === 'Validada')
+        .reduce((sum, r) => sum + r.quantity, 0);
+  };
 
   return (
     <div className="space-y-6">
@@ -357,6 +379,7 @@ a.href = url;
                             <TableRow>
                                 <TableHead>Producto</TableHead>
                                 <TableHead className="text-right">Cantidad</TableHead>
+                                <TableHead className="text-right">Unidades Separadas (Validadas)</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -364,11 +387,12 @@ a.href = url;
                                 <TableRow key={index}>
                                     <TableCell>{product.name}</TableCell>
                                     <TableCell className="text-right">{product.quantity}</TableCell>
+                                    <TableCell className="text-right">{getValidatedReservedQuantity(container.id, product.name)}</TableCell>
                                 </TableRow>
                             ))}
                              {container.products.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={2} className="text-center text-muted-foreground">
+                                    <TableCell colSpan={3} className="text-center text-muted-foreground">
                                         No hay productos en este contenedor.
                                     </TableCell>
                                 </TableRow>
