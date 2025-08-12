@@ -55,7 +55,7 @@ const navItems = [
     subItems: [
       { href: '/inventory', label: 'Stock Actual', permission: 'inventory:view' },
       { href: '/transit', label: 'Contenedores en Tránsito', permission: 'inventory:transit' },
-      { href: '/reservations', label: 'Reservas de Contenedor', permission: 'reservations:view' },
+      { href: '/reservations', label: 'Reservas', permission: 'reservations:view' },
     ],
   },
   { href: '/orders', label: 'Despachos y Facturación', icon: Truck, permission: 'orders:view' },
@@ -81,7 +81,7 @@ const getIconForSubItem = (label: string) => {
     switch (label) {
         case 'Stock Actual': return Warehouse;
         case 'Contenedores en Tránsito': return Container;
-        case 'Reservas de Contenedor': return BookUser;
+        case 'Reservas': return BookUser;
         default: return Warehouse;
     }
 }
