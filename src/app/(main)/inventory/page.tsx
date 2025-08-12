@@ -1,6 +1,6 @@
 
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -12,8 +12,10 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, CheckCircle2 } from 'lucide-react';
+import { FileDown, CheckCircle2, Calculator } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const inventoryData = {
   CLAY: {
@@ -128,6 +130,19 @@ const inventoryData = {
   Aluwall: {},
 };
 
+const stoneflexPricing = {
+  'Pizarra, Cuarcita, Concreto': 177162,
+  'Mármol': 239247,
+  'Traslucida': 252689,
+  'Madera': 222710,
+  'Metálicas': 267819,
+  '3D Autoadhesiva': 207072,
+  'Clay: Travertino': 176000,
+  'Clay: Concreto Rústico': 188991,
+  'Clay: Cutstone': 171389,
+  'Clay: Tapia Negra': 180000,
+};
+
 
 const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
   const getAvailabilityStatus = (disponible: number) => {
@@ -195,14 +210,80 @@ const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
   );
 };
 
+const CalculatorTab = () => {
+  const [category, setCategory] = useState('');
+  const [sqMeters, setSqMeters] = useState(1);
+  const [totalCost, setTotalCost] = useState(0);
+
+  const handleCalculate = () => {
+    const pricePerSqm = stoneflexPricing[category as keyof typeof stoneflexPricing] || 0;
+    setTotalCost(pricePerSqm * sqMeters);
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+           <label className="text-sm font-medium">Categoría de Producto</label>
+           <Select onValueChange={setCategory} value={category}>
+             <SelectTrigger>
+               <SelectValue placeholder="Seleccione una categoría" />
+             </SelectTrigger>
+             <SelectContent>
+               {Object.keys(stoneflexPricing).map((cat) => (
+                 <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+               ))}
+             </SelectContent>
+           </Select>
+         </div>
+        <div>
+          <label htmlFor="sqm-input" className="text-sm font-medium">Metros Cuadrados (M²)</label>
+          <Input 
+            id="sqm-input"
+            type="number" 
+            value={sqMeters} 
+            onChange={(e) => setSqMeters(Number(e.target.value))}
+            min="1"
+            className="w-full" 
+          />
+        </div>
+        <div className="flex items-end">
+          <Button onClick={handleCalculate} className="w-full">
+            <Calculator className="mr-2 h-4 w-4" />
+            Calcular Costo
+          </Button>
+        </div>
+      </div>
+       {totalCost > 0 && (
+        <Card className="bg-primary/5">
+          <CardHeader>
+            <CardTitle>Costo Total Estimado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{formatCurrency(totalCost)}</p>
+            <p className="text-sm text-muted-foreground">
+              Para {sqMeters} M² de {category}. No incluye valor de sellante ni adhesivo.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
 export default function InventoryPage() {
   const brands = Object.keys(inventoryData);
 
   const formatBrandName = (brand: string) => {
-    if (brand === 'CLAY' || brand === 'STONEFLEX' ) {
-      return brand.charAt(0) + brand.slice(1).toLowerCase();
-    }
-    return brand;
+    return brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase();
   };
 
   return (
@@ -218,22 +299,28 @@ export default function InventoryPage() {
          <Tabs defaultValue={brands[0]} className="w-full">
             <TabsList>
                 {brands.map((brand) => (
-                    <TabsTrigger value={brand} key={brand} className="capitalize">{brand.toLowerCase()}</TabsTrigger>
+                    <TabsTrigger value={brand} key={brand}>{formatBrandName(brand)}</TabsTrigger>
                 ))}
             </TabsList>
             {brands.map((brand) => (
                 <TabsContent value={brand} key={brand}>
-                    <Tabs defaultValue={Object.keys(inventoryData[brand as keyof typeof inventoryData])[0]} className="w-full">
+                    <Tabs defaultValue={Object.keys(inventoryData[brand as keyof typeof inventoryData])[0] || 'default'} className="w-full">
                         <TabsList>
                             {Object.keys(inventoryData[brand as keyof typeof inventoryData]).map((subCategory) => (
                                 <TabsTrigger value={subCategory} key={subCategory}>{subCategory}</TabsTrigger>
                             ))}
+                            {brand === 'STONEFLEX' && <TabsTrigger value="calculator">Calculadora</TabsTrigger>}
                         </TabsList>
                         {Object.entries(inventoryData[brand as keyof typeof inventoryData]).map(([subCategory, products]) => (
                              <TabsContent value={subCategory} key={subCategory}>
                                 <ProductTable products={products} />
                             </TabsContent>
                         ))}
+                        {brand === 'STONEFLEX' && 
+                          <TabsContent value="calculator">
+                              <CalculatorTab />
+                          </TabsContent>
+                        }
                     </Tabs>
                 </TabsContent>
             ))}
@@ -242,3 +329,5 @@ export default function InventoryPage() {
     </Card>
   );
 }
+
+    
