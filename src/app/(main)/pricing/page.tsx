@@ -77,15 +77,13 @@ const initialProductPrices: { [key: string]: number } = {
 };
 
 const productStructure: { [key: string]: { [line: string]: string[] } } = {
-  'CLAY': {
+  'StoneFlex': {
     'Clay': [
       'CUT STONE 120 X 60',
       'TRAVERTINO',
       'CONCRETO ENCOFRADO',
       'TAPIA NEGRA',
     ],
-  },
-  'STONEFLEX': {
     'Pizarra': [
       'BLACK 1.22 X 0.61',
       'KUND MULTY 1.22 X 0.61',
@@ -269,13 +267,13 @@ export default function PricingPage() {
           </TabsList>
           {brands.map((brand) => (
             <TabsContent value={brand} key={brand}>
-                <Tabs defaultValue={Object.keys(productStructure[brand])[0]} className="w-full">
+                <Tabs defaultValue={Object.keys(productStructure[brand as keyof typeof productStructure])[0]} className="w-full">
                     <TabsList>
-                        {Object.keys(productStructure[brand]).map((line) => (
+                        {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
                           <TabsTrigger value={line} key={line}>{line}</TabsTrigger>
                         ))}
                     </TabsList>
-                    {Object.keys(productStructure[brand]).map((line) => (
+                    {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
                         <TabsContent value={line} key={line}>
                           {line !== 'Insumos' && (
                             <div className="mb-6 rounded-md border p-4">
@@ -327,7 +325,7 @@ export default function PricingPage() {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {productStructure[brand][line].map((product) => (
+                              {productStructure[brand as keyof typeof productStructure][line].map((product) => (
                                 <TableRow key={product}>
                                   <TableCell>
                                     <Label htmlFor={`price-${product}`} className="font-medium">{product}</Label>
@@ -361,3 +359,5 @@ export default function PricingPage() {
     </Card>
   );
 }
+
+    

@@ -16,15 +16,13 @@ const WhatsAppIcon = () => (
 );
 
 const inventoryData = {
-  CLAY: {
-    'Productos': {
+  StoneFlex: {
+    'Clay': {
       'CUT STONE 120 X 60': { bodega: 15, zonaFranca: 352, separadasBodega: 0, separadasZonaFranca: 0, muestras: false },
       'TRAVERTINO': { bodega: 14, zonaFranca: 304, separadasBodega: 0, separadasZonaFranca: 0, muestras: false },
       'CONCRETO ENCOFRADO': { bodega: 1, zonaFranca: 77, separadasBodega: 0, separadasZonaFranca: 0, muestras: false },
       'TAPIA NEGRA': { bodega: 2, zonaFranca: 23, separadasBodega: 0, separadasZonaFranca: 0, muestras: false },
-    }
-  },
-  STONEFLEX: {
+    },
     'Estándar': {
       'BLACK 1.22 X 0.61': { bodega: 217, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: true },
       'KUND MULTY 1.22 X 0.61': { bodega: 310, zonaFranca: 180, separadasBodega: 0, separadasZonaFranca: 0, muestras: true },
@@ -138,57 +136,57 @@ const productPrices: { [key: string]: number } = {
 };
 
 const referenceDetails: { [key: string]: { brand: string, line: string } } = {
-  'CUT STONE 120 X 60': { brand: 'CLAY', line: 'Clay' },
-  'TRAVERTINO': { brand: 'CLAY', line: 'Clay' },
-  'CONCRETO ENCOFRADO': { brand: 'CLAY', line: 'Clay' },
-  'TAPIA NEGRA': { brand: 'CLAY', line: 'Clay' },
-  'BLACK 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Pizarra' },
-  'KUND MULTY 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Pizarra' },
-  'TAN 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Pizarra' },
-  'INDIAN AUTUMN 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Pizarra' },
-  'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Translucida' },
-  'BURNING FOREST 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'COPPER 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'JEERA GREEN 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'SILVER SHINE 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'SILVER SHINE GOLD 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'STEEL GRAY 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'CARRARA 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Mármol' },
-  'CRYSTAL WHITE 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Mármol' },
-  'HIMALAYA GOLD 1.22X0.61 MTS': { brand: 'STONEFLEX', line: 'Mármol' },
-  'MINT WHITE 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Mármol' },
-  'CONCRETO BLANCO 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Concreto' },
-  'CONCRETO GRIS 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Concreto' },
-  'CONCRETE WITH HOLES 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Concreto' },
-  'CONCRETO GRIS MEDIUM 1.22 X 0.61': { brand: 'STONEFLEX', line: 'Concreto' },
-  'CORTEN STELL - 2.44 X 0.61': { brand: 'STONEFLEX', line: 'Metales' },
-  'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61': { brand: 'STONEFLEX', line: 'Metales' },
-  'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61': { brand: 'STONEFLEX', line: 'Metales' },
-  'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61': { brand: 'STONEFLEX', line: 'Metales' },
-  'MADERA NOGAL 0.15 X 2.44 MTS': { brand: 'STONEFLEX', line: 'Madera' },
-  'MADERA TEKA 0.15 X 2.44 MTS': { brand: 'STONEFLEX', line: 'Madera' },
-  '3D ADHESIVO - 0,90 M2 - BLACK': { brand: 'STONEFLEX', line: '3D autoadhesiva' },
-  '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC': { brand: 'STONEFLEX', line: '3D autoadhesiva' },
-  '3D ADHESIVO - 0,90 M2 - TAN': { brand: 'STONEFLEX', line: '3D autoadhesiva' },
-  'BLACK 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Pizarra' },
-  'TAN 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Pizarra' },
-  'kUND MULTY 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Pizarra' },
-  'INDIAN AUTUMN 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Pizarra' },
-  'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Translucida' },
-  'COPPER 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'BURNING FOREST 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'JEERA GREEN 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'SILVER SHINE 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'SILVER SHINE GOLD 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'STEEL GREY 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Cuarcitas' },
-  'CONCRETO BLANCO 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Concreto' },
-  'CONCRETO GRIS 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Concreto' },
-  'CONCRETO MEDIO 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Concreto' },
-  'CONCRETO WITH HOLES 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Concreto' },
-  'CARRARA 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Mármol' },
-  'CRYSTAL WHITE 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Mármol' },
-  'HIMALAYA GOLD 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Mármol' },
-  'CORTEN STEEL 2.44 X 1.22': { brand: 'STONEFLEX', line: 'Metales' },
+  'CUT STONE 120 X 60': { brand: 'StoneFlex', line: 'Clay' },
+  'TRAVERTINO': { brand: 'StoneFlex', line: 'Clay' },
+  'CONCRETO ENCOFRADO': { brand: 'StoneFlex', line: 'Clay' },
+  'TAPIA NEGRA': { brand: 'StoneFlex', line: 'Clay' },
+  'BLACK 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
+  'KUND MULTY 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
+  'TAN 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
+  'INDIAN AUTUMN 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
+  'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61': { brand: 'StoneFlex', line: 'Translucida' },
+  'BURNING FOREST 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'COPPER 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'JEERA GREEN 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'SILVER SHINE 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'SILVER SHINE GOLD 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'STEEL GRAY 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'CARRARA 1.22 X 0.61': { brand: 'StoneFlex', line: 'Mármol' },
+  'CRYSTAL WHITE 1.22 X 0.61': { brand: 'StoneFlex', line: 'Mármol' },
+  'HIMALAYA GOLD 1.22X0.61 MTS': { brand: 'StoneFlex', line: 'Mármol' },
+  'MINT WHITE 1.22 X 0.61': { brand: 'StoneFlex', line: 'Mármol' },
+  'CONCRETO BLANCO 1.22 X 0.61': { brand: 'StoneFlex', line: 'Concreto' },
+  'CONCRETO GRIS 1.22 X 0.61': { brand: 'StoneFlex', line: 'Concreto' },
+  'CONCRETE WITH HOLES 1.22 X 0.61': { brand: 'StoneFlex', line: 'Concreto' },
+  'CONCRETO GRIS MEDIUM 1.22 X 0.61': { brand: 'StoneFlex', line: 'Concreto' },
+  'CORTEN STELL - 2.44 X 0.61': { brand: 'StoneFlex', line: 'Metales' },
+  'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61': { brand: 'StoneFlex', line: 'Metales' },
+  'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61': { brand: 'StoneFlex', line: 'Metales' },
+  'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61': { brand: 'StoneFlex', line: 'Metales' },
+  'MADERA NOGAL 0.15 X 2.44 MTS': { brand: 'StoneFlex', line: 'Madera' },
+  'MADERA TEKA 0.15 X 2.44 MTS': { brand: 'StoneFlex', line: 'Madera' },
+  '3D ADHESIVO - 0,90 M2 - BLACK': { brand: 'StoneFlex', line: '3D autoadhesiva' },
+  '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC': { brand: 'StoneFlex', line: '3D autoadhesiva' },
+  '3D ADHESIVO - 0,90 M2 - TAN': { brand: 'StoneFlex', line: '3D autoadhesiva' },
+  'BLACK 2.44 X 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
+  'TAN 2.44 X 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
+  'kUND MULTY 2.44 X 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
+  'INDIAN AUTUMN 2.44 X 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
+  'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22': { brand: 'StoneFlex', line: 'Translucida' },
+  'COPPER 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'BURNING FOREST 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'JEERA GREEN 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'SILVER SHINE 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'SILVER SHINE GOLD 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'STEEL GREY 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'CONCRETO BLANCO 2.44 X 1.22': { brand: 'StoneFlex', line: 'Concreto' },
+  'CONCRETO GRIS 2.44 X 1.22': { brand: 'StoneFlex', line: 'Concreto' },
+  'CONCRETO MEDIO 2.44 X 1.22': { brand: 'StoneFlex', line: 'Concreto' },
+  'CONCRETO WITH HOLES 2.44 X 1.22': { brand: 'StoneFlex', line: 'Concreto' },
+  'CARRARA 2.44 X 1.22': { brand: 'StoneFlex', line: 'Mármol' },
+  'CRYSTAL WHITE 2.44 X 1.22': { brand: 'StoneFlex', line: 'Mármol' },
+  'HIMALAYA GOLD 2.44 X 1.22': { brand: 'StoneFlex', line: 'Mármol' },
+  'CORTEN STEEL 2.44 X 1.22': { brand: 'StoneFlex', line: 'Metales' },
 };
 
 
@@ -323,8 +321,8 @@ export default function StoneflexClayCalculatorPage() {
       let itemSealantCost = 0;
       let calculatedSealantUnits = 0;
       if (item.includeSealant) {
-        let sealantYield = 15; // Default for Stoneflex
-        if (brand === 'CLAY') {
+        let sealantYield = 15; // Default for StoneFlex
+        if (brand === 'StoneFlex' && line === 'Clay') {
           sealantYield = 11;
         }
         calculatedSealantUnits = Math.ceil(calculatedSqm / sealantYield);
@@ -653,3 +651,5 @@ export default function StoneflexClayCalculatorPage() {
     </Card>
   )
 }
+
+    
