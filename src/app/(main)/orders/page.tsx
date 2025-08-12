@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Button } from '@/components/ui/button';
@@ -96,7 +96,7 @@ const initialDispatchData = [
   {
     id: 3,
     vendedor: 'John Doe',
-    fechaSolicitud: '2024-06-15',
+    fechaSolicitud: '2023-06-15',
     cotizacion: 'COT-003',
     cliente: 'Arquitectos Unidos',
     ciudad: 'Medellín',
@@ -147,6 +147,7 @@ export default function DispatchPage() {
   const [dispatchData, setDispatchData] = useState(initialDispatchData);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('all');
   const [observationOptions, setObservationOptions] = useState([
     { value: 'none', label: 'Sin observación' },
     { value: 'Entrega Urgente', label: 'Entrega Urgente' },
@@ -219,6 +220,12 @@ export default function DispatchPage() {
         setNewObservation('');
     }
   };
+  
+  const years = useMemo(() => {
+    const allYears = new Set(dispatchData.map(item => item.fechaSolicitud.substring(0, 4)));
+    const yearOptions = Array.from(allYears).sort().reverse().map(year => ({ value: year, label: year }));
+    return [{ value: 'all', label: 'Todos los Años' }, ...yearOptions];
+  }, [dispatchData]);
 
   const filteredData = dispatchData.filter(item => {
     const searchTermLower = searchTerm.toLowerCase();
@@ -234,7 +241,11 @@ export default function DispatchPage() {
         selectedMonth === 'all' || 
         item.fechaSolicitud.substring(5, 7) === selectedMonth;
 
-    return matchesSearch && matchesMonth;
+    const matchesYear =
+        selectedYear === 'all' ||
+        item.fechaSolicitud.substring(0, 4) === selectedYear;
+
+    return matchesSearch && matchesMonth && matchesYear;
   });
 
   const handleExportPDF = () => {
@@ -367,6 +378,18 @@ export default function DispatchPage() {
                     {months.map(month => (
                         <SelectItem key={month.value} value={month.value}>
                             {month.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Filtrar por año" />
+                </SelectTrigger>
+                <SelectContent>
+                    {years.map(year => (
+                        <SelectItem key={year.value} value={year.value}>
+                            {year.label}
                         </SelectItem>
                     ))}
                 </SelectContent>
