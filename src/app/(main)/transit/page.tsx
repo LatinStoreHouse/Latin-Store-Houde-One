@@ -378,21 +378,27 @@ a.href = url;
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Producto</TableHead>
-                                <TableHead className="text-right">Cantidad</TableHead>
+                                <TableHead className="text-right">Cantidad Total</TableHead>
                                 <TableHead className="text-right">Unidades Separadas (Validadas)</TableHead>
+                                <TableHead className="text-right">Total Disponible</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {container.products.map((product, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>{product.name}</TableCell>
-                                    <TableCell className="text-right">{product.quantity}</TableCell>
-                                    <TableCell className="text-right">{getValidatedReservedQuantity(container.id, product.name)}</TableCell>
-                                </TableRow>
-                            ))}
+                            {container.products.map((product, index) => {
+                                const reservedQuantity = getValidatedReservedQuantity(container.id, product.name);
+                                const availableQuantity = product.quantity - reservedQuantity;
+                                return (
+                                    <TableRow key={index}>
+                                        <TableCell>{product.name}</TableCell>
+                                        <TableCell className="text-right">{product.quantity}</TableCell>
+                                        <TableCell className="text-right">{reservedQuantity}</TableCell>
+                                        <TableCell className="text-right font-medium">{availableQuantity}</TableCell>
+                                    </TableRow>
+                                )
+                            })}
                              {container.products.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                    <TableCell colSpan={4} className="text-center text-muted-foreground">
                                         No hay productos en este contenedor.
                                     </TableCell>
                                 </TableRow>
