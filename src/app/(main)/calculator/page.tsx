@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Calculator } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Combobox } from '@/components/ui/combobox';
 
 const inventoryData = {
   CLAY: {
@@ -199,6 +199,10 @@ export default function CalculatorPage() {
   const [calculationMode, setCalculationMode] = useState<'sqm' | 'sheets'>('sqm');
   const [quote, setQuote] = useState<any>(null);
 
+  const referenceOptions = useMemo(() => {
+    return allReferences.map(ref => ({ value: ref, label: ref }));
+  }, []);
+
   const getSqmPerSheet = (ref: string) => {
     if (ref.includes('1.22 X 0.61') || ref.includes('120 X 60')) {
       return 0.7442;
@@ -301,16 +305,14 @@ export default function CalculatorPage() {
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
                <Label>Referencia de Producto</Label>
-               <Select onValueChange={setReference} value={reference}>
-                 <SelectTrigger>
-                   <SelectValue placeholder="Seleccione una referencia" />
-                 </SelectTrigger>
-                 <SelectContent>
-                   {allReferences.map((ref) => (
-                     <SelectItem key={ref} value={ref}>{ref}</SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
+               <Combobox
+                 options={referenceOptions}
+                 value={reference}
+                 onValueChange={setReference}
+                 placeholder="Seleccione una referencia"
+                 searchPlaceholder="Buscar referencia..."
+                 emptyPlaceholder="No se encontraron referencias."
+               />
              </div>
              <div className="space-y-2">
                 <Label>Calcular por</Label>
