@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const inventoryData = {
   CLAY: {
@@ -191,10 +192,25 @@ const IVA_RATE = 0.19; // 19%
 export default function CalculatorPage() {
   const [reference, setReference] = useState('');
   const [sqMeters, setSqMeters] = useState(1);
+  const [sheets, setSheets] = useState(1);
   const [discount, setDiscount] = useState(0);
   const [includeSealant, setIncludeSealant] = useState(true);
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
+  const [calculationMode, setCalculationMode] = useState<'sqm' | 'sheets'>('sqm');
   const [quote, setQuote] = useState<any>(null);
+
+  const getSqmPerSheet = (ref: string) => {
+    if (ref.includes('1.22 X 0.61') || ref.includes('120 X 60')) {
+      return 0.7442;
+    } else if (ref.includes('2.44 X 1.22')) {
+      return 2.9768;
+    } else if (ref.includes('0.15 X 2.44')) {
+      return 0.366;
+    } else if (ref.includes('0,90 M2')) {
+      return 0.9;
+    }
+    return 1; // Default
+  }
 
   const handleCalculate = () => {
     const refDetails = referenceLines[reference];
@@ -202,31 +218,22 @@ export default function CalculatorPage() {
     
     const { line, brand } = refDetails;
     const pricePerSqm = linePricing[line];
-    
-    let calculatedSheets = 0;
-    if (reference.includes('1.22 X 0.61') || reference.includes('120 X 60')) {
-      calculatedSheets = Math.ceil(sqMeters / 0.7442);
-    } else if (reference.includes('2.44 X 1.22')) {
-      calculatedSheets = Math.ceil(sqMeters / 2.9768);
-    } else if (reference.includes('0.15 X 2.44')) {
-      calculatedSheets = Math.ceil(sqMeters / 0.366);
-    } else if (reference.includes('0,90 M2')) {
-      calculatedSheets = Math.ceil(sqMeters / 0.9);
-    }
+    const sqmPerSheet = getSqmPerSheet(reference);
 
+    let calculatedSheets = 0;
+    let calculatedSqm = 0;
+    
+    if (calculationMode === 'sqm') {
+      calculatedSqm = sqMeters;
+      calculatedSheets = Math.ceil(sqMeters / sqmPerSheet);
+    } else {
+      calculatedSheets = sheets;
+      calculatedSqm = sheets * sqmPerSheet;
+    }
+    
     let calculatedSealantUnits = 0;
     if (includeSealant) {
-        if (brand === 'CLAY') {
-            calculatedSealantUnits = Math.ceil(sqMeters / 12) || 1;
-        } else if (brand === 'STONEFLEX') {
-            if (line === 'Metales') {
-                calculatedSealantUnits = calculatedSheets;
-            } else if (reference.includes('1.22 X 0.61')) {
-                calculatedSealantUnits = Math.ceil(calculatedSheets / 2);
-            } else {
-                calculatedSealantUnits = Math.ceil(sqMeters / 15) || 1;
-            }
-        }
+        calculatedSealantUnits = Math.ceil(calculatedSheets / 2) || 0;
     }
 
 
@@ -236,12 +243,11 @@ export default function CalculatorPage() {
         if (adhesiveLines.includes(line)) {
             calculatedAdhesiveUnits = calculatedSheets * 2;
         } else {
-            calculatedAdhesiveUnits = Math.ceil(sqMeters / 1); 
+            calculatedAdhesiveUnits = Math.ceil(calculatedSqm / 1); 
         }
     }
 
-
-    const productCost = pricePerSqm * sqMeters;
+    const productCost = pricePerSqm * calculatedSqm;
     const discountAmount = productCost * (discount / 100);
     const discountedProductCost = productCost - discountAmount;
     
@@ -258,7 +264,7 @@ export default function CalculatorPage() {
 
     setQuote({
       reference,
-      sqMeters,
+      sqMeters: calculatedSqm,
       sheets: calculatedSheets,
       sealantUnits: calculatedSealantUnits,
       adhesiveUnits: calculatedAdhesiveUnits,
@@ -292,44 +298,74 @@ export default function CalculatorPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-          <div className="space-y-2">
-             <Label>Referencia de Producto</Label>
-             <Select onValueChange={setReference} value={reference}>
-               <SelectTrigger>
-                 <SelectValue placeholder="Seleccione una referencia" />
-               </SelectTrigger>
-               <SelectContent>
-                 {allReferences.map((ref) => (
-                   <SelectItem key={ref} value={ref}>{ref}</SelectItem>
-                 ))}
-               </SelectContent>
-             </Select>
-           </div>
-          <div className="space-y-2">
-            <Label htmlFor="sqm-input">Metros Cuadrados (M²)</Label>
-            <Input 
-              id="sqm-input"
-              type="number" 
-              value={sqMeters} 
-              onChange={(e) => setSqMeters(Number(e.target.value))}
-              min="1"
-              className="w-full" 
-            />
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+               <Label>Referencia de Producto</Label>
+               <Select onValueChange={setReference} value={reference}>
+                 <SelectTrigger>
+                   <SelectValue placeholder="Seleccione una referencia" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {allReferences.map((ref) => (
+                     <SelectItem key={ref} value={ref}>{ref}</SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             </div>
+             <div className="space-y-2">
+                <Label>Calcular por</Label>
+                <RadioGroup defaultValue="sqm" value={calculationMode} onValueChange={(value) => setCalculationMode(value as 'sqm' | 'sheets')} className="flex gap-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="sqm" id="sqm" />
+                    <Label htmlFor="sqm">M²</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="sheets" id="sheets" />
+                    <Label htmlFor="sheets">Láminas</Label>
+                  </div>
+                </RadioGroup>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="discount-input">Descuento (%)</Label>
-            <Input
-              id="discount-input"
-              type="number"
-              value={discount}
-              onChange={(e) => setDiscount(Math.max(0, Math.min(100, Number(e.target.value))))}
-              min="0"
-              max="100"
-              className="w-full"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {calculationMode === 'sqm' ? (
+              <div className="space-y-2">
+                <Label htmlFor="sqm-input">Metros Cuadrados (M²)</Label>
+                <Input 
+                  id="sqm-input"
+                  type="number" 
+                  value={sqMeters} 
+                  onChange={(e) => setSqMeters(Number(e.target.value))}
+                  min="1"
+                  className="w-full" 
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="sheets-input">Número de Láminas</Label>
+                <Input
+                  id="sheets-input"
+                  type="number"
+                  value={sheets}
+                  onChange={(e) => setSheets(Number(e.target.value))}
+                  min="1"
+                  className="w-full"
+                />
+              </div>
+            )}
+             <div className="space-y-2">
+              <Label htmlFor="discount-input">Descuento (%)</Label>
+              <Input
+                id="discount-input"
+                type="number"
+                value={discount}
+                onChange={(e) => setDiscount(Math.max(0, Math.min(100, Number(e.target.value))))}
+                min="0"
+                max="100"
+                className="w-full"
+              />
+            </div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-4 pt-2">
               <div className="flex items-center space-x-2">
                 <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
                 <Label htmlFor="include-sealant">Incluir Sellante</Label>
@@ -338,14 +374,13 @@ export default function CalculatorPage() {
                 <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
                 <Label htmlFor="include-adhesive">Incluir Adhesivo</Label>
               </div>
-            </div>
-        </div>
-        <div className="flex justify-end">
-            <Button onClick={handleCalculate} className="mt-4" disabled={!reference}>
-              <Calculator className="mr-2 h-4 w-4" />
-              Generar Cotización
-            </Button>
           </div>
+          <div className="flex justify-end">
+              <Button onClick={handleCalculate} className="mt-4" disabled={!reference}>
+                <Calculator className="mr-2 h-4 w-4" />
+                Generar Cotización
+              </Button>
+            </div>
          {quote && (
           <Card className="bg-primary/5 mt-4">
             <CardHeader>
@@ -367,7 +402,7 @@ export default function CalculatorPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h3 className="font-semibold">{quote.reference} ({quote.sqMeters} M²)</h3>
+                    <h3 className="font-semibold">{quote.reference} ({quote.sqMeters.toFixed(2)} M²)</h3>
                     <p className="text-muted-foreground">Costo Producto: {formatCurrency(quote.productCost)}</p>
                   </div>
                   <div className="space-y-2 text-sm text-right">
