@@ -32,7 +32,7 @@ import {
   Warehouse,
   UserCog,
   LogOut,
-  ClipboardCheck,
+  Truck,
   Calculator,
   ChevronDown,
   Tags,
@@ -44,7 +44,7 @@ import { Button } from '@/components/ui/button';
 const navItems = [
   { href: '/', label: 'Tablero', icon: LayoutDashboard },
   { href: '/inventory', label: 'Inventario', icon: Warehouse },
-  { href: '/orders', label: 'Pedidos y Validación', icon: ClipboardCheck },
+  { href: '/orders', label: 'Despachos y Facturación', icon: Truck },
   { href: '/customers', label: 'Clientes', icon: Users },
   {
     label: 'Calculadoras',

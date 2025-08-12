@@ -1,85 +1,180 @@
+'use client';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { ClipboardCheck, FilePlus2, Check, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PlusCircle, FileDown } from 'lucide-react';
+import { Role } from '@/lib/roles';
 
-const pendingOrders = [
-  { id: 'ORD-128', customer: 'Tech Solutions Inc.', amount: '$4,500.00', date: '2023-11-01', requestedBy: 'John Doe' },
-  { id: 'ORD-129', customer: 'Innovate Co.', amount: '$1,230.50', date: '2023-11-01', requestedBy: 'Jane Smith' },
-  { id: 'ORD-130', customer: 'Global Exports', amount: '$12,800.00', date: '2023-10-31', requestedBy: 'Peter Jones' },
+// Mocked data for dispatch requests
+const initialDispatchData = [
+  {
+    id: 1,
+    vendedor: 'John Doe',
+    fechaSolicitud: '2024-07-28',
+    cotizacion: 'COT-001',
+    cliente: 'ConstruCali',
+    ciudad: 'Cali',
+    direccion: 'Calle Falsa 123',
+    remision: 'REM-001',
+    observacion: '',
+    rutero: '',
+    fechaDespacho: '',
+    guia: '',
+    convencion: '',
+    validado: false,
+    factura: '',
+  },
+  {
+    id: 2,
+    vendedor: 'Jane Smith',
+    fechaSolicitud: '2024-07-29',
+    cotizacion: 'COT-002',
+    cliente: 'Diseños Modernos SAS',
+    ciudad: 'Bogotá',
+    direccion: 'Av. Siempre Viva 45',
+    remision: 'REM-002',
+    observacion: 'Entrega urgente',
+    rutero: 'R-BOG-01',
+    fechaDespacho: '2024-07-30',
+    guia: 'TCC-98765',
+    convencion: 'Feria Construcción',
+    validado: true,
+    factura: 'FAC-201',
+  },
 ];
 
-export default function OrdersPage() {
+// In a real app, this would come from an auth context.
+const currentUserRole: Role = 'Administrador';
+
+export default function DispatchPage() {
+  const [dispatchData, setDispatchData] = useState(initialDispatchData);
+
+  const canEditAsesor = currentUserRole === 'Administrador' || currentUserRole === 'Asesor de Ventas';
+  const canEditLogistica = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
+  const canEditContador = currentUserRole === 'Administrador' || currentUserRole === 'Contador';
+
+  const handleInputChange = (id: number, field: string, value: string | boolean) => {
+    setDispatchData(prevData =>
+      prevData.map(item =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    );
+  };
+  
+  const addNewDispatch = () => {
+    const newId = dispatchData.length > 0 ? Math.max(...dispatchData.map(d => d.id)) + 1 : 1;
+    const newDispatch = {
+        id: newId,
+        vendedor: '',
+        fechaSolicitud: new Date().toISOString().split('T')[0],
+        cotizacion: '',
+        cliente: '',
+        ciudad: '',
+        direccion: '',
+        remision: '',
+        observacion: '',
+        rutero: '',
+        fechaDespacho: '',
+        guia: '',
+        convencion: '',
+        validado: false,
+        factura: '',
+    };
+    setDispatchData(prev => [newDispatch, ...prev]);
+  }
+
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Validaciones Pendientes</CardTitle>
-          <CardDescription>Revise y apruebe o rechace los pedidos pendientes.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle>Despachos y Facturación</CardTitle>
+            <CardDescription>
+                Gestione las solicitudes de despacho, la logística y la facturación.
+            </CardDescription>
+        </div>
+        <div className="flex gap-2">
+            {canEditAsesor && (
+                <Button onClick={addNewDispatch}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Nuevo Despacho
+                </Button>
+            )}
+            <Button variant="outline">
+                <FileDown className="mr-2 h-4 w-4" />
+                Exportar
+            </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table className="min-w-full">
             <TableHeader>
               <TableRow>
-                <TableHead>ID de Pedido</TableHead>
+                {/* Asesor */}
+                <TableHead>Vendedor</TableHead>
+                <TableHead>Fecha Sol.</TableHead>
+                <TableHead>Cotización</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Monto</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Solicitado por</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead>Ciudad</TableHead>
+                <TableHead>Dirección</TableHead>
+                <TableHead>Remisión</TableHead>
+                {/* Logística */}
+                <TableHead>Observación</TableHead>
+                <TableHead>Rutero</TableHead>
+                <TableHead>Fecha Desp.</TableHead>
+                <TableHead>Guía</TableHead>
+                <TableHead>Convención</TableHead>
+                {/* Contador */}
+                <TableHead>Validado</TableHead>
+                <TableHead>Factura #</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pendingOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.customer}</TableCell>
-                  <TableCell>{order.amount}</TableCell>
-                  <TableCell>{order.date}</TableCell>
-                  <TableCell>{order.requestedBy}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="text-green-500 hover:text-green-600">
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
-                      <X className="h-4 w-4" />
-                    </Button>
+              {dispatchData.map((item) => (
+                <TableRow key={item.id}>
+                  {/* Asesor Fields */}
+                  <TableCell><Input value={item.vendedor} onChange={e => handleInputChange(item.id, 'vendedor', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input type="date" value={item.fechaSolicitud} onChange={e => handleInputChange(item.id, 'fechaSolicitud', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input value={item.cotizacion} onChange={e => handleInputChange(item.id, 'cotizacion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input value={item.cliente} onChange={e => handleInputChange(item.id, 'cliente', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input value={item.ciudad} onChange={e => handleInputChange(item.id, 'ciudad', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input value={item.direccion} onChange={e => handleInputChange(item.id, 'direccion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  
+                  {/* Logística Fields */}
+                  <TableCell><Input value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input value={item.rutero} onChange={e => handleInputChange(item.id, 'rutero', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input value={item.convencion} onChange={e => handleInputChange(item.id, 'convencion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+
+                  {/* Contador Fields */}
+                  <TableCell className="text-center">
+                    <Select
+                      value={item.validado ? 'Aprobado' : 'Pendiente'}
+                      onValueChange={(value) => handleInputChange(item.id, 'validado', value === 'Aprobado')}
+                      disabled={!canEditContador}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Aprobado">Aprobado</SelectItem>
+                        <SelectItem value="Pendiente">Pendiente</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
+                  <TableCell><Input value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Centro de Documentos</CardTitle>
-          <CardDescription>Genere nuevas cotizaciones, remitos o facturas para los clientes.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-            <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border-2 border-dashed p-8 text-center">
-                <FilePlus2 className="h-10 w-10 text-muted-foreground" />
-                <h3 className="font-semibold">Nueva Cotización</h3>
-                <p className="text-sm text-muted-foreground">Crear una nueva cotización de ventas para un cliente.</p>
-                <Button>Crear Cotización</Button>
-            </div>
-            <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border-2 border-dashed p-8 text-center">
-                <FilePlus2 className="h-10 w-10 text-muted-foreground" />
-                <h3 className="font-semibold">Nuevo Remito</h3>
-                <p className="text-sm text-muted-foreground">Emitir un remito para un envío.</p>
-                <Button>Crear Remito</Button>
-            </div>
-            <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border-2 border-dashed p-8 text-center">
-                <FilePlus2 className="h-10 w-10 text-muted-foreground" />
-                <h3 className="font-semibold">Nueva Factura</h3>
-                <p className="text-sm text-muted-foreground">Generar una factura final para un pedido completado.</p>
-                <Button>Crear Factura</Button>
-            </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
