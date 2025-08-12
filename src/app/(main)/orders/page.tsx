@@ -30,7 +30,7 @@ declare module 'jspdf' {
 }
 
 const conventionOptions = [
-    { value: '', label: 'Sin estado', bgColor: '', textColor: '' },
+    { value: 'none', label: 'Sin estado', bgColor: '', textColor: '' },
     { value: 'Prealistamiento de pedido', label: 'Prealistamiento de pedido', bgColor: 'bg-purple-200/50', textColor: 'text-purple-800' },
     { value: 'Listo en Bodega', label: 'Listo en Bodega', bgColor: 'bg-blue-200/50', textColor: 'text-blue-800' },
     { value: 'Despachado', label: 'Despachado', bgColor: 'bg-green-200/50', textColor: 'text-green-800' },
@@ -155,7 +155,7 @@ export default function DispatchPage() {
         rutero: '',
         fechaDespacho: '',
         guia: '',
-        convencion: '',
+        convencion: 'none',
         validado: false,
         factura: '',
     };
@@ -321,7 +321,7 @@ export default function DispatchPage() {
                            {conventionOptions.map(option => (
                             <SelectItem key={option.value} value={option.value}>
                                 <div className="flex items-center gap-2">
-                                    {option.value && <div className={cn("w-2 h-2 rounded-full", option.bgColor.replace('/50',''))}></div>}
+                                    {option.value && option.value !== 'none' && <div className={cn("w-2 h-2 rounded-full", option.bgColor.replace('/50',''))}></div>}
                                     {option.label}
                                 </div>
                             </SelectItem>
