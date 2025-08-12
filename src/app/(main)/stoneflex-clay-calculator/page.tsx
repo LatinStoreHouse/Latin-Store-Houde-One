@@ -445,7 +445,7 @@ export default function StoneflexClayCalculatorPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Calculadora de Cotizaciones - Stoneflex &amp; Clay</CardTitle>
+        <CardTitle>Calculadora de Cotizaciones - StoneFlex</CardTitle>
         <CardDescription>
           Añada productos y estime el costo total de la cotización.
         </CardDescription>
@@ -651,5 +651,3 @@ export default function StoneflexClayCalculatorPage() {
     </Card>
   )
 }
-
-    
