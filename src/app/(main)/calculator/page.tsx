@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Calculator } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 const inventoryData = {
   CLAY: {
@@ -179,8 +181,9 @@ const referenceLines: { [key: string]: { line: keyof typeof linePricing, brand: 
 };
 
 const allReferences = Object.values(inventoryData)
-  .flatMap(brand => Object.values(brand))
-  .flatMap(category => Object.keys(category));
+  .flatMap(brand => Object.entries(brand))
+  .filter(([category]) => category !== 'Insumos')
+  .flatMap(([, products]) => Object.keys(products));
 
 const IVA_RATE = 0.19; // 19%
 
@@ -188,6 +191,8 @@ export default function CalculatorPage() {
   const [reference, setReference] = useState('');
   const [sqMeters, setSqMeters] = useState(1);
   const [discount, setDiscount] = useState(0);
+  const [includeSealant, setIncludeSealant] = useState(true);
+  const [includeAdhesive, setIncludeAdhesive] = useState(true);
   const [quote, setQuote] = useState<any>(null);
 
   const handleCalculate = () => {
@@ -209,25 +214,31 @@ export default function CalculatorPage() {
     }
 
     let calculatedSealantUnits = 0;
-    if (brand === 'CLAY') {
-      calculatedSealantUnits = Math.ceil(sqMeters / 12) || 1;
-    } else if (brand === 'STONEFLEX') {
-      if (line === 'Metales') {
-        calculatedSealantUnits = calculatedSheets;
-      } else if (reference.includes('1.22 X 0.61')) {
-        calculatedSealantUnits = Math.ceil(calculatedSheets / 2);
-      } else {
-        calculatedSealantUnits = Math.ceil(sqMeters / 15) || 1;
-      }
+    if (includeSealant) {
+        if (brand === 'CLAY') {
+            calculatedSealantUnits = Math.ceil(sqMeters / 12) || 1;
+        } else if (brand === 'STONEFLEX') {
+            if (line === 'Metales') {
+                calculatedSealantUnits = calculatedSheets;
+            } else if (reference.includes('1.22 X 0.61')) {
+                calculatedSealantUnits = Math.ceil(calculatedSheets / 2);
+            } else {
+                calculatedSealantUnits = Math.ceil(sqMeters / 15) || 1;
+            }
+        }
     }
 
+
     let calculatedAdhesiveUnits = 0;
-    const adhesiveLines = ['Pizarra', 'Cuarcitas', 'Concreto', 'Clay'];
-    if (adhesiveLines.includes(line)) {
-        calculatedAdhesiveUnits = calculatedSheets * 2;
-    } else {
-        calculatedAdhesiveUnits = Math.ceil(sqMeters / 1); 
+    if (includeAdhesive) {
+        const adhesiveLines = ['Pizarra', 'Cuarcitas', 'Concreto', 'Clay'];
+        if (adhesiveLines.includes(line)) {
+            calculatedAdhesiveUnits = calculatedSheets * 2;
+        } else {
+            calculatedAdhesiveUnits = Math.ceil(sqMeters / 1); 
+        }
     }
+
 
     const productCost = pricePerSqm * sqMeters;
     const discountAmount = productCost * (discount / 100);
@@ -280,9 +291,9 @@ export default function CalculatorPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-             <label className="text-sm font-medium">Referencia de Producto</label>
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="space-y-2">
+             <Label>Referencia de Producto</Label>
              <Select onValueChange={setReference} value={reference}>
                <SelectTrigger>
                  <SelectValue placeholder="Seleccione una referencia" />
@@ -294,8 +305,8 @@ export default function CalculatorPage() {
                </SelectContent>
              </Select>
            </div>
-          <div>
-            <label htmlFor="sqm-input" className="text-sm font-medium">Metros Cuadrados (M²)</label>
+          <div className="space-y-2">
+            <Label htmlFor="sqm-input">Metros Cuadrados (M²)</Label>
             <Input 
               id="sqm-input"
               type="number" 
@@ -305,8 +316,8 @@ export default function CalculatorPage() {
               className="w-full" 
             />
           </div>
-          <div>
-            <label htmlFor="discount-input" className="text-sm font-medium">Descuento (%)</label>
+          <div className="space-y-2">
+            <Label htmlFor="discount-input">Descuento (%)</Label>
             <Input
               id="discount-input"
               type="number"
@@ -317,15 +328,25 @@ export default function CalculatorPage() {
               className="w-full"
             />
           </div>
-          <div className="flex items-end">
-            <Button onClick={handleCalculate} className="w-full" disabled={!reference}>
+          <div className="flex gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
+                <Label htmlFor="include-sealant">Incluir Sellante</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
+                <Label htmlFor="include-adhesive">Incluir Adhesivo</Label>
+              </div>
+            </div>
+        </div>
+        <div className="flex justify-end">
+            <Button onClick={handleCalculate} className="mt-4" disabled={!reference}>
               <Calculator className="mr-2 h-4 w-4" />
               Generar Cotización
             </Button>
           </div>
-        </div>
          {quote && (
-          <Card className="bg-primary/5">
+          <Card className="bg-primary/5 mt-4">
             <CardHeader>
               <CardTitle>Resumen de la Cotización</CardTitle>
               <CardDescription>
