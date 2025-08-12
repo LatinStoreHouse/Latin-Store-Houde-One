@@ -130,7 +130,7 @@ const inventoryData = {
   Aluwall: {},
 };
 
-const stoneflexPricing = {
+const linePricing = {
   'Pizarra': 177162,
   'Cuarcitas': 177162,
   'Concreto': 188991,
@@ -142,6 +142,51 @@ const stoneflexPricing = {
   'Clay': 176000
 };
 
+const referenceLines: { [key: string]: keyof typeof linePricing } = {
+  // Clay
+  'CUT STONE 120 X 60': 'Clay',
+  'TRAVERTINO': 'Clay',
+  'CONCRETO ENCOFRADO': 'Clay',
+  'TAPIA NEGRA': 'Clay',
+  // Pizarra
+  'BLACK 1.22 X 0.61': 'Pizarra',
+  'KUND MULTY 1.22 X 0.61': 'Pizarra',
+  'TAN 1.22 X 0.61': 'Pizarra',
+  'INDIAN AUTUMN 1.22 X 0.61': 'Pizarra',
+  // Translucida
+  'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61': 'Translucida',
+  // Cuarcitas
+  'BURNING FOREST 1.22 X 0.61': 'Cuarcitas',
+  'COPPER 1.22 X 0.61': 'Cuarcitas',
+  'JEERA GREEN 1.22 X 0.61': 'Cuarcitas',
+  'SILVER SHINE 1.22 X 0.61': 'Cuarcitas',
+  'SILVER SHINE GOLD 1.22 X 0.61': 'Cuarcitas',
+  'STEEL GRAY 1.22 X 0.61': 'Cuarcitas',
+  // Mármol
+  'CARRARA 1.22 X 0.61': 'Mármol',
+  'CRYSTAL WHITE 1.22 X 0.61': 'Mármol',
+  'HIMALAYA GOLD 1.22X0.61 MTS': 'Mármol',
+  'MINT WHITE 1.22 X 0.61': 'Mármol',
+  // Concreto
+  'CONCRETO BLANCO 1.22 X 0.61': 'Concreto',
+  'CONCRETO GRIS 1.22 X 0.61': 'Concreto',
+  'CONCRETE WITH HOLES 1.22 X 0.61': 'Concreto',
+  'CONCRETO GRIS MEDIUM 1.22 X 0.61': 'Concreto',
+  // Metales
+  'CORTEN STELL - 2.44 X 0.61': 'Metales',
+  'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61': 'Metales',
+  'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61': 'Metales',
+  'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61': 'Metales',
+  // Madera
+  'MADERA NOGAL 0.15 X 2.44 MTS': 'Madera',
+  'MADERA TEKA 0.15 X 2.44 MTS': 'Madera',
+  // 3D autoadhesiva
+  '3D ADHESIVO - 0,90 M2 - BLACK': '3D autoadhesiva',
+  '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC': '3D autoadhesiva',
+  '3D ADHESIVO - 0,90 M2 - TAN': '3D autoadhesiva',
+};
+
+const stoneflexReferences = Object.keys(referenceLines);
 
 const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
   const getAvailabilityStatus = (disponible: number) => {
@@ -150,7 +195,7 @@ const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
     return 'Agotado';
   };
 
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
     switch (status) {
       case 'En Stock':
         return 'default';
@@ -210,12 +255,13 @@ const ProductTable = ({ products }: { products: { [key: string]: any } }) => {
 };
 
 const CalculatorTab = () => {
-  const [category, setCategory] = useState('');
+  const [reference, setReference] = useState('');
   const [sqMeters, setSqMeters] = useState(1);
   const [totalCost, setTotalCost] = useState(0);
 
   const handleCalculate = () => {
-    const pricePerSqm = stoneflexPricing[category as keyof typeof stoneflexPricing] || 0;
+    const line = referenceLines[reference];
+    const pricePerSqm = line ? linePricing[line] : 0;
     setTotalCost(pricePerSqm * sqMeters);
   };
 
@@ -231,14 +277,14 @@ const CalculatorTab = () => {
     <div className="p-4 space-y-4">
        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-           <label className="text-sm font-medium">Categoría de Producto</label>
-           <Select onValueChange={setCategory} value={category}>
+           <label className="text-sm font-medium">Referencia de Producto</label>
+           <Select onValueChange={setReference} value={reference}>
              <SelectTrigger>
-               <SelectValue placeholder="Seleccione una categoría" />
+               <SelectValue placeholder="Seleccione una referencia" />
              </SelectTrigger>
              <SelectContent>
-               {Object.keys(stoneflexPricing).map((cat) => (
-                 <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+               {stoneflexReferences.map((ref) => (
+                 <SelectItem key={ref} value={ref}>{ref}</SelectItem>
                ))}
              </SelectContent>
            </Select>
@@ -255,7 +301,7 @@ const CalculatorTab = () => {
           />
         </div>
         <div className="flex items-end">
-          <Button onClick={handleCalculate} className="w-full">
+          <Button onClick={handleCalculate} className="w-full" disabled={!reference}>
             <Calculator className="mr-2 h-4 w-4" />
             Calcular Costo
           </Button>
@@ -269,7 +315,7 @@ const CalculatorTab = () => {
           <CardContent>
             <p className="text-3xl font-bold">{formatCurrency(totalCost)}</p>
             <p className="text-sm text-muted-foreground">
-              Para {sqMeters} M² de {category}. No incluye valor de sellante ni adhesivo.
+              Para {sqMeters} M² de {reference}. No incluye valor de sellante ni adhesivo.
             </p>
           </CardContent>
         </Card>
@@ -282,6 +328,7 @@ export default function InventoryPage() {
   const brands = Object.keys(inventoryData);
 
   const formatBrandName = (brand: string) => {
+    // Return brand name as is, without converting to uppercase.
     return brand;
   };
 
@@ -328,3 +375,5 @@ export default function InventoryPage() {
     </Card>
   );
 }
+
+    
