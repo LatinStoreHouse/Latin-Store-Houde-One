@@ -3,12 +3,13 @@ import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calculator } from 'lucide-react';
+import { Calculator, PlusCircle, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Combobox } from '@/components/ui/combobox';
+import { Separator } from '@/components/ui/separator';
 
 const inventoryData = {
   CLAY: {
@@ -169,7 +170,19 @@ const allReferences = Object.entries(inventoryData)
 
 const IVA_RATE = 0.19; // 19%
 
+interface QuoteItem {
+  id: number;
+  reference: string;
+  sqMeters: number;
+  sheets: number;
+  discount: number;
+  includeSealant: boolean;
+  includeAdhesive: boolean;
+  calculationMode: 'sqm' | 'sheets';
+}
+
 export default function StoneflexClayCalculatorPage() {
+  const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
   const [sqMeters, setSqMeters] = useState(1);
   const [sheets, setSheets] = useState(1);
@@ -177,7 +190,6 @@ export default function StoneflexClayCalculatorPage() {
   const [includeSealant, setIncludeSealant] = useState(true);
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
   const [calculationMode, setCalculationMode] = useState<'sqm' | 'sheets'>('sqm');
-  const [quote, setQuote] = useState<any>(null);
 
   const referenceOptions = useMemo(() => {
     return allReferences.map(ref => ({ value: ref, label: ref }));
@@ -198,49 +210,67 @@ export default function StoneflexClayCalculatorPage() {
     return 1; // Default
   }
 
-  const handleCalculate = () => {
-    const refDetails = referenceLines[reference];
-    if (!refDetails) return;
-    
-    const { line, brand } = refDetails;
-    const pricePerSqm = linePricing[line];
-    const sqmPerSheet = getSqmPerSheet(reference);
+  const handleAddProduct = () => {
+    if (!reference) return;
 
-    let calculatedSheets = 0;
-    let calculatedSqm = 0;
-    
-    if (calculationMode === 'sqm') {
-      calculatedSqm = sqMeters;
-      calculatedSheets = Math.ceil(sqMeters / sqmPerSheet);
-    } else {
-      calculatedSheets = sheets;
-      calculatedSqm = sheets * sqmPerSheet;
-    }
-    
-    let calculatedSealantUnits = 0;
-    if (includeSealant && calculatedSqm > 0) {
-      if (brand === 'CLAY') {
-        calculatedSealantUnits = Math.ceil(calculatedSqm / 11);
-      } else if (brand === 'STONEFLEX') {
-        calculatedSealantUnits = Math.ceil(calculatedSqm / 15);
-      } else {
-        calculatedSealantUnits = Math.ceil(calculatedSqm / 15);
-      }
-      if (calculatedSealantUnits === 0 && calculatedSqm > 0) {
-        calculatedSealantUnits = 1;
-      }
-    }
+    const newItem: QuoteItem = {
+      id: Date.now(),
+      reference,
+      sqMeters: calculationMode === 'sqm' ? sqMeters : sheets * getSqmPerSheet(reference),
+      sheets: calculationMode === 'sheets' ? sheets : Math.ceil(sqMeters / getSqmPerSheet(reference)),
+      discount,
+      includeSealant,
+      includeAdhesive,
+      calculationMode,
+    };
 
-    let calculatedAdhesiveUnits = 0;
-    if (includeAdhesive) {
-        if (reference.includes('1.22 X 0.61') || reference.includes('1.22X0.61')) {
+    setQuoteItems([...quoteItems, newItem]);
+  };
+
+  const handleRemoveProduct = (id: number) => {
+    setQuoteItems(quoteItems.filter(item => item.id !== id));
+  };
+
+  const calculateQuote = () => {
+    let totalProductCost = 0;
+    let totalDiscountAmount = 0;
+    let totalSealantCost = 0;
+    let totalAdhesiveCost = 0;
+
+    quoteItems.forEach(item => {
+      const refDetails = referenceLines[item.reference];
+      if (!refDetails) return;
+
+      const { line, brand } = refDetails;
+      const pricePerSqm = linePricing[line];
+      const sqmPerSheet = getSqmPerSheet(item.reference);
+
+      let calculatedSheets = item.sheets;
+      let calculatedSqm = item.sqMeters;
+
+      const productCost = pricePerSqm * calculatedSqm;
+      const discountAmount = productCost * (item.discount / 100);
+      totalProductCost += productCost;
+      totalDiscountAmount += discountAmount;
+
+      if (item.includeSealant) {
+        let sealantYield = 15; // Default for Stoneflex
+        if (brand === 'CLAY') {
+          sealantYield = 11;
+        }
+        const calculatedSealantUnits = Math.ceil(calculatedSqm / sealantYield);
+        totalSealantCost += calculatedSealantUnits * linePricing['Sellante'];
+      }
+
+      if (item.includeAdhesive) {
+        let calculatedAdhesiveUnits = 0;
+        if (item.reference.includes('1.22 X 0.61') || item.reference.includes('1.22X0.61')) {
             calculatedAdhesiveUnits = Math.ceil(calculatedSheets / 2);
-        } else if (line === 'Metales' && reference.includes('2.44 X 0.61')) {
+        } else if (line === 'Metales' && item.reference.includes('2.44 X 0.61')) {
             calculatedAdhesiveUnits = calculatedSheets;
-        } else if (reference.includes('2.44 X 1.22')) {
+        } else if (item.reference.includes('2.44 X 1.22')) {
             calculatedAdhesiveUnits = calculatedSheets * 2;
         } else {
-            // Default rule for other cases, you might want to refine this
             const adhesiveLines = ['Pizarra', 'Cuarcitas', 'Concreto', 'Clay'];
             if (adhesiveLines.includes(line)) {
                 calculatedAdhesiveUnits = Math.ceil(calculatedSheets / 2);
@@ -248,16 +278,12 @@ export default function StoneflexClayCalculatorPage() {
                 calculatedAdhesiveUnits = Math.ceil(calculatedSqm / 1); 
             }
         }
-    }
+        totalAdhesiveCost += calculatedAdhesiveUnits * linePricing['Adhesivo'];
+      }
+    });
 
-    const productCost = pricePerSqm * calculatedSqm;
-    const discountAmount = productCost * (discount / 100);
-    const discountedProductCost = productCost - discountAmount;
-    
-    const sealantCost = calculatedSealantUnits * linePricing['Sellante'];
-    const adhesiveCost = calculatedAdhesiveUnits * linePricing['Adhesivo'];
-
-    const subtotal = discountedProductCost + sealantCost + adhesiveCost;
+    const discountedProductCost = totalProductCost - totalDiscountAmount;
+    const subtotal = discountedProductCost + totalSealantCost + totalAdhesiveCost;
     const ivaAmount = subtotal * IVA_RATE;
     const totalCost = subtotal + ivaAmount;
     
@@ -265,23 +291,18 @@ export default function StoneflexClayCalculatorPage() {
     const expiryDate = new Date(creationDate);
     expiryDate.setDate(expiryDate.getDate() + 7);
 
-    setQuote({
-      reference,
-      sqMeters: calculatedSqm,
-      sheets: calculatedSheets,
-      sealantUnits: calculatedSealantUnits,
-      adhesiveUnits: calculatedAdhesiveUnits,
-      productCost,
-      discountAmount,
-      discountedProductCost,
-      sealantCost,
-      adhesiveCost,
+    return {
+      items: quoteItems,
+      totalProductCost,
+      totalDiscountAmount,
+      totalSealantCost,
+      totalAdhesiveCost,
       subtotal,
       ivaAmount,
       totalCost,
       creationDate: creationDate.toLocaleDateString('es-CO'),
       expiryDate: expiryDate.toLocaleDateString('es-CO'),
-    });
+    };
   };
 
   const formatCurrency = (value: number) => {
@@ -291,13 +312,15 @@ export default function StoneflexClayCalculatorPage() {
       minimumFractionDigits: 0,
     }).format(value);
   };
+  
+  const quote = quoteItems.length > 0 ? calculateQuote() : null;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Calculadora de Cotizaciones - Stoneflex & Clay</CardTitle>
         <CardDescription>
-          Estime el costo de los productos por metro cuadrado, incluyendo materiales necesarios.
+          Añada productos y estime el costo total de la cotización.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -377,13 +400,13 @@ export default function StoneflexClayCalculatorPage() {
               </div>
           </div>
           <div className="flex justify-end">
-              <Button onClick={handleCalculate} className="mt-4" disabled={!reference}>
-                <Calculator className="mr-2 h-4 w-4" />
-                Generar Cotización
+              <Button onClick={handleAddProduct} className="mt-4" disabled={!reference}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Agregar Producto
               </Button>
             </div>
          {quote && (
-          <Card className="bg-primary/5 mt-4">
+          <Card className="bg-primary/5 mt-6">
             <CardHeader>
               <div className="flex justify-between items-start">
                   <div>
@@ -401,38 +424,64 @@ export default function StoneflexClayCalculatorPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="font-semibold">{quote.reference} ({quote.sqMeters.toFixed(2)} M²)</h3>
-                    <p className="text-muted-foreground">Costo Producto: {formatCurrency(quote.productCost)}</p>
+              <div className="space-y-4">
+                {quote.items.map(item => (
+                  <div key={item.id} className="flex justify-between items-center p-2 rounded-md bg-background">
+                    <div>
+                      <p className="font-semibold">{item.reference}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.calculationMode === 'sheets' ? `${item.sheets} láminas` : `${item.sqMeters.toFixed(2)} M²`}
+                        {item.discount > 0 && ` - ${item.discount}% desc.`}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => handleRemoveProduct(item.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </div>
-                  <div className="space-y-2 text-sm text-right">
-                     <p>Subtotal: {formatCurrency(quote.subtotal)}</p>
-                     <p className="text-red-500">Descuento: -{formatCurrency(quote.discountAmount)}</p>
-                     <p>IVA (19%): {formatCurrency(quote.ivaAmount)}</p>
-                  </div>
+                ))}
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-sm border-t pt-4 mt-4">
-                <div>
-                  <p className="font-semibold">Láminas</p>
-                  <p>{quote.sheets} unidades</p>
+              <Separator />
+
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal Productos</span>
+                  <span>{formatCurrency(quote.totalProductCost)}</span>
                 </div>
-                <div>
-                  <p className="font-semibold">Sellante (1/4 Gal)</p>
-                  <p>{quote.sealantUnits} unidades ({formatCurrency(quote.sealantCost)})</p>
+                <div className="flex justify-between text-red-500">
+                  <span className="text-muted-foreground">Descuento Total</span>
+                  <span>-{formatCurrency(quote.totalDiscountAmount)}</span>
                 </div>
-                <div>
-                  <p className="font-semibold">Adhesivo</p>
-                  <p>{quote.adhesiveUnits} unidades ({formatCurrency(quote.adhesiveCost)})</p>
+                {quote.totalSealantCost > 0 && (
+                   <div className="flex justify-between">
+                    <span className="text-muted-foreground">Costo Sellante</span>
+                    <span>{formatCurrency(quote.totalSealantCost)}</span>
+                  </div>
+                )}
+                {quote.totalAdhesiveCost > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Costo Adhesivo</span>
+                    <span>{formatCurrency(quote.totalAdhesiveCost)}</span>
+                  </div>
+                )}
+                 <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>{formatCurrency(quote.subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">IVA (19%)</span>
+                  <span>{formatCurrency(quote.ivaAmount)}</span>
                 </div>
               </div>
-              <div className="border-t pt-4 mt-4">
+
+              <Separator />
+              
+              <div className="flex justify-end pt-2">
                 <p className="text-lg font-bold text-right">
                   Costo Total Estimado: {formatCurrency(quote.totalCost)}
                 </p>
               </div>
-              <p className="text-xs text-muted-foreground pt-2">
+              <p className="text-xs text-muted-foreground pt-2 text-center">
                 Esta es una cotización preliminar y no incluye costos de envío o instalación.
               </p>
             </CardContent>
