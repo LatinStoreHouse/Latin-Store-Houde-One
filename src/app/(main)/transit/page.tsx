@@ -27,6 +27,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Role } from '@/lib/roles';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -72,13 +73,29 @@ export default function TransitPage() {
   const [newContainerEta, setNewContainerEta] = useState('');
   const [newContainerCarrier, setNewContainerCarrier] = useState('');
   const [isAddContainerDialogOpen, setIsAddContainerDialogOpen] = useState(false);
-
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
   const [newProductName, setNewProductName] = useState('');
   const [newProductQuantity, setNewProductQuantity] = useState(0);
+  const [selectedContainers, setSelectedContainers] = useState<string[]>([]);
   const { toast } = useToast();
   
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística' || currentUserRole === 'Contador';
+
+  const handleContainerSelection = (containerId: string) => {
+    setSelectedContainers(prev => 
+      prev.includes(containerId) 
+        ? prev.filter(id => id !== containerId)
+        : [...prev, containerId]
+    );
+  };
+  
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+        setSelectedContainers(containers.map(c => c.id));
+    } else {
+        setSelectedContainers([]);
+    }
+  };
 
 
   const handleAddContainer = () => {
@@ -135,12 +152,27 @@ export default function TransitPage() {
         default: return 'outline';
     }
   }
+
+  const getContainersToExport = () => {
+    if (selectedContainers.length > 0) {
+      toast({ title: 'Descarga Iniciada', description: `Exportando ${selectedContainers.length} contenedor(es) seleccionado(s).`});
+      return containers.filter(c => selectedContainers.includes(c.id));
+    }
+    toast({ title: 'Descarga Iniciada', description: 'Exportando todos los contenedores.'});
+    return containers;
+  }
   
   const handleExportPDF = () => {
+    const containersToExport = getContainersToExport();
+    if (containersToExport.length === 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No hay contenedores para exportar.' });
+        return;
+    }
+
     const doc = new jsPDF();
     doc.text("Reporte de Contenedores en Tránsito", 14, 16);
     
-    containers.forEach((container, index) => {
+    containersToExport.forEach((container, index) => {
         if (index > 0) doc.addPage();
         
         const bodyData = container.products.map(p => [p.name, p.quantity]);
@@ -163,9 +195,15 @@ export default function TransitPage() {
   };
 
   const handleExportHTML = () => {
+    const containersToExport = getContainersToExport();
+    if (containersToExport.length === 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No hay contenedores para exportar.' });
+        return;
+    }
+
     let html = '<table><thead><tr><th>Contenedor</th><th>Transportista</th><th>ETA</th><th>Estado</th><th>Producto</th><th>Cantidad</th></tr></thead><tbody>';
 
-    containers.forEach(container => {
+    containersToExport.forEach(container => {
         if (container.products.length > 0) {
             container.products.forEach((product, index) => {
                 html += '<tr>';
@@ -196,7 +234,7 @@ export default function TransitPage() {
     const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
+a.href = url;
     a.download = 'Reporte de Contenedores.xls';
     document.body.appendChild(a);
     a.click();
@@ -264,19 +302,35 @@ export default function TransitPage() {
           </div>
         </CardHeader>
         <CardContent>
+           <div className="mb-4 flex items-center space-x-2">
+            <Checkbox 
+                id="select-all" 
+                onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
+                checked={selectedContainers.length === containers.length && containers.length > 0}
+                aria-label="Seleccionar todos los contenedores"
+            />
+            <Label htmlFor="select-all">Seleccionar Todos</Label>
+           </div>
           <div className="space-y-8">
             {containers.map((container) => (
               <Card key={container.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle className="flex items-center gap-2">
-                            <Container className="h-6 w-6" /> {container.id}
-                        </CardTitle>
-                        <CardDescription className="mt-2 flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                           <span className="flex items-center gap-2"><Ship className="h-4 w-4" /> {container.carrier}</span>
-                           <span className="flex items-center gap-2"><CalendarIcon className="h-4 w-4" /> ETA: {container.eta}</span>
-                        </CardDescription>
+                    <div className="flex items-center gap-4">
+                       <Checkbox 
+                          id={`select-${container.id}`} 
+                          checked={selectedContainers.includes(container.id)}
+                          onCheckedChange={() => handleContainerSelection(container.id)}
+                       />
+                       <div>
+                            <CardTitle className="flex items-center gap-2">
+                                <Container className="h-6 w-6" /> {container.id}
+                            </CardTitle>
+                            <CardDescription className="mt-2 flex flex-col sm:flex-row sm:items-center sm:gap-4">
+                               <span className="flex items-center gap-2"><Ship className="h-4 w-4" /> {container.carrier}</span>
+                               <span className="flex items-center gap-2"><CalendarIcon className="h-4 w-4" /> ETA: {container.eta}</span>
+                            </CardDescription>
+                        </div>
                     </div>
                     <Badge variant={getStatusBadge(container.status)}>{container.status}</Badge>
                   </div>
