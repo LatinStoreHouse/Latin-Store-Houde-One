@@ -273,28 +273,28 @@ export default function DispatchPage() {
             </TableHeader>
             <TableBody>
               {filteredData.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item.id} className={cn(getConventionClasses(item.convencion))}>
                   {/* Asesor Fields */}
-                  <TableCell><Input className="min-w-[150px]" value={item.vendedor} onChange={e => handleInputChange(item.id, 'vendedor', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[150px]" type="date" value={item.fechaSolicitud} onChange={e => handleInputChange(item.id, 'fechaSolicitud', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[150px]" value={item.cotizacion} onChange={e => handleInputChange(item.id, 'cotizacion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[150px]" value={item.cliente} onChange={e => handleInputChange(item.id, 'cliente', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[150px]" value={item.ciudad} onChange={e => handleInputChange(item.id, 'ciudad', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[200px]" value={item.direccion} onChange={e => handleInputChange(item.id, 'direccion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell><Input className="min-w-[150px]" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.vendedor} onChange={e => handleInputChange(item.id, 'vendedor', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px] bg-background/50" type="date" value={item.fechaSolicitud} onChange={e => handleInputChange(item.id, 'fechaSolicitud', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.cotizacion} onChange={e => handleInputChange(item.id, 'cotizacion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.cliente} onChange={e => handleInputChange(item.id, 'cliente', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.ciudad} onChange={e => handleInputChange(item.id, 'ciudad', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[200px] bg-background/50" value={item.direccion} onChange={e => handleInputChange(item.id, 'direccion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor} /></TableCell>
                   
                   {/* Logística Fields */}
-                  <TableCell><Input className="min-w-[200px]" value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input className="min-w-[150px]" value={item.rutero} onChange={e => handleInputChange(item.id, 'rutero', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input className="min-w-[150px]" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell><Input className="min-w-[150px]" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell className={cn("min-w-[200px]", getConventionClasses(item.convencion))}>
+                  <TableCell><Input className="min-w-[200px] bg-background/50" value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.rutero} onChange={e => handleInputChange(item.id, 'rutero', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input className="min-w-[150px] bg-background/50" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="min-w-[200px]">
                      <Select
                         value={item.convencion}
                         onValueChange={(value) => handleInputChange(item.id, 'convencion', value)}
                         disabled={!canEditLogistica}
                     >
-                        <SelectTrigger className="bg-transparent border-0 focus:ring-0">
+                        <SelectTrigger className="bg-background/50 border-0 focus:ring-0">
                            <SelectValue placeholder="Seleccionar estado" />
                         </SelectTrigger>
                         <SelectContent>
@@ -317,7 +317,7 @@ export default function DispatchPage() {
                       onValueChange={(value) => handleInputChange(item.id, 'validado', value === 'Aprobado')}
                       disabled={!canEditContador}
                     >
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger className="w-32 bg-background/50">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -326,7 +326,7 @@ export default function DispatchPage() {
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell><Input className="min-w-[150px]" value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
+                  <TableCell><Input className="min-w-[150px] bg-background/50" value={item.factura} onChange={e => handleInputChange(item.id, 'factura', e.target.value)} disabled={!canEditContador} /></TableCell>
                 </TableRow>
               ))}
             </TableBody>
