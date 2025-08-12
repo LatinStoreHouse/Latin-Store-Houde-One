@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Save } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const initialProductPrices: { [key: string]: number } = {
     'CUT STONE 120 X 60': 176000,
@@ -169,9 +170,12 @@ const productStructure: { [brand: string]: { [line: string]: string[] } } = {
   }
 };
 
+type SizeFilter = 'todos' | 'estandar' | 'xl';
+
 export default function PricingPage() {
   const [prices, setPrices] = useState(initialProductPrices);
   const [linePrices, setLinePrices] = useState<{ [key: string]: string }>({});
+  const [sizeFilters, setSizeFilters] = useState<{ [key: string]: SizeFilter }>({});
   const { toast } = useToast();
 
   const handlePriceChange = (product: string, value: string) => {
@@ -183,9 +187,15 @@ export default function PricingPage() {
     const formattedValue = value.replace(/[^0-9]/g, '');
     setLinePrices(prev => ({ ...prev, [line]: formattedValue }));
   };
+  
+  const handleSizeFilterChange = (line: string, value: SizeFilter) => {
+    setSizeFilters(prev => ({ ...prev, [line]: value }));
+  };
 
   const handleApplyPriceToLine = (brand: string, line: string) => {
     const newPriceValue = linePrices[line];
+    const sizeFilter = sizeFilters[line] || 'todos';
+
     if (newPriceValue === undefined || newPriceValue === '') {
       toast({
         variant: 'destructive',
@@ -198,7 +208,14 @@ export default function PricingPage() {
     const numericPrice = Number(newPriceValue);
     if (isNaN(numericPrice)) return;
 
-    const productsInLine = productStructure[brand][line];
+    let productsInLine = productStructure[brand][line];
+    
+    if (sizeFilter === 'estandar') {
+        productsInLine = productsInLine.filter(p => p.includes('1.22 X 0.61'));
+    } else if (sizeFilter === 'xl') {
+        productsInLine = productsInLine.filter(p => p.includes('2.44 X 1.22'));
+    }
+
     const updatedPrices = { ...prices };
     productsInLine.forEach(product => {
       updatedPrices[product] = numericPrice;
@@ -206,7 +223,7 @@ export default function PricingPage() {
     setPrices(updatedPrices);
     toast({
       title: 'Precios actualizados',
-      description: `Todos los productos en la línea "${line}" han sido actualizados a ${formatCurrency(numericPrice)}.`,
+      description: `Todos los productos en la línea "${line}" (${sizeFilter}) han sido actualizados a ${formatCurrency(numericPrice)}.`,
     });
   };
   
@@ -227,6 +244,13 @@ export default function PricingPage() {
   };
   
   const brands = Object.keys(productStructure);
+  
+  const lineHasMultipleSizes = (brand: string, line: string) => {
+    const products = productStructure[brand][line];
+    const hasEstandar = products.some(p => p.includes('1.22 X 0.61'));
+    const hasXL = products.some(p => p.includes('2.44 X 1.22'));
+    return hasEstandar && hasXL;
+  };
 
   return (
     <Card>
@@ -255,8 +279,8 @@ export default function PricingPage() {
                         <TabsContent value={line} key={line}>
                           {line !== 'Insumos' && (
                             <div className="mb-6 rounded-md border p-4">
-                                <div className="flex items-end gap-4">
-                                  <div className="flex-1 space-y-1.5">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                  <div className="flex-1 space-y-1.5 md:col-span-1">
                                     <Label htmlFor={`line-price-${brand}-${line}`}>Nuevo Precio para la Línea {line}</Label>
                                      <Input
                                        id={`line-price-${brand}-${line}`}
@@ -266,7 +290,32 @@ export default function PricingPage() {
                                        onChange={(e) => handleLinePriceChange(line, e.target.value)}
                                      />
                                   </div>
-                                  <Button onClick={() => handleApplyPriceToLine(brand, line)}>Aplicar a Todos</Button>
+                                  {lineHasMultipleSizes(brand, line) && (
+                                     <div className="md:col-span-1">
+                                        <Label>Aplicar a Tamaño</Label>
+                                        <RadioGroup 
+                                            defaultValue="todos" 
+                                            value={sizeFilters[line] || 'todos'}
+                                            onValueChange={(value) => handleSizeFilterChange(line, value as SizeFilter)}
+                                            className="flex gap-4 pt-2">
+                                          <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="todos" id={`size-todos-${brand}-${line}`} />
+                                            <Label htmlFor={`size-todos-${brand}-${line}`}>Todos</Label>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="estandar" id={`size-estandar-${brand}-${line}`} />
+                                            <Label htmlFor={`size-estandar-${brand}-${line}`}>Estándar</Label>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="xl" id={`size-xl-${brand}-${line}`} />
+                                            <Label htmlFor={`size-xl-${brand}-${line}`}>XL</Label>
+                                          </div>
+                                        </RadioGroup>
+                                    </div>
+                                  )}
+                                  <div className="md:col-span-1">
+                                    <Button onClick={() => handleApplyPriceToLine(brand, line)} className="w-full">Aplicar a Selección</Button>
+                                  </div>
                               </div>
                              </div>
                           )}
