@@ -21,6 +21,8 @@ import {
     Warehouse, 
     Truck, 
     PackageSearch,
+    TrendingUp,
+    TrendingDown,
     LayoutDashboard,
     Users,
     UserCog,
@@ -58,17 +60,25 @@ const overviewItems = [
   },
 ];
 
-const recentActivities = [
-    { id: 'ORD-001', item: 'Laptops de Alto Rendimiento', quantity: 50, status: 'Enviado', date: '2023-10-26' },
-    { id: 'ORD-002', item: 'Sillas de Oficina Ergonómicas', quantity: 100, status: 'Procesando', date: '2023-10-25' },
-    { id: 'ORD-003', item: 'Monitores 4K', quantity: 75, status: 'Entregado', date: '2023-10-24' },
-    { id: 'ORD-004', item: 'Teclados Mecánicos', quantity: 200, status: 'Esperando Envío', date: '2023-10-23' },
-    { id: 'ORD-005', item: 'Cámaras Web', quantity: 150, status: 'Enviado', date: '2023-10-22' },
+const topMovers = [
+    { name: 'KUND MULTY 1.22 X 0.61', moved: 152, change: 12.5 },
+    { name: 'CONCRETO GRIS 1.22 X 0.61', moved: 121, change: 8.2 },
+    { name: 'TAN 1.22 X 0.61', moved: 98, change: 5.1 },
+    { name: 'CARRARA 2.44 X 1.22', moved: 85, change: 15.3 },
+    { name: 'SILVER SHINE GOLD 1.22 X 0.61', moved: 76, change: -2.1 },
+];
+
+const bottomMovers = [
+    { name: 'MINT WHITE 1.22 X 0.61', moved: 2, change: 0 },
+    { name: 'COPPER 2.44 X 1.22', moved: 1, change: 0 },
+    { name: 'CONCRETO MEDIO 2.44 X 1.22', moved: 1, change: 0 },
+    { name: 'PANEL 3D - TAN 1.22 X 0.61', moved: 0, change: 0 },
+    { name: 'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22', moved: 0, change: 0 },
 ];
 
 const navItems = [
   { href: '/inventory', label: 'Inventario', icon: Warehouse, permission: 'inventory:view' },
-  { href: '/transit', label: 'Tránsito', icon: Truck, permission: 'inventory:transit' },
+  { href: '/transit', label: 'Contenedores', icon: Truck, permission: 'inventory:transit' },
   { href: '/reservations', label: 'Reservas', icon: BookUser, permission: 'reservations:view' },
   { href: '/orders', label: 'Despachos', icon: Truck, permission: 'orders:view' },
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
@@ -129,37 +139,62 @@ export default function DashboardPage() {
           </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Actividad Reciente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID de Pedido</TableHead>
-                <TableHead>Artículo</TableHead>
-                <TableHead>Cantidad</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Fecha</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentActivities.map((activity) => (
-                <TableRow key={activity.id}>
-                  <TableCell className="font-medium">{activity.id}</TableCell>
-                  <TableCell>{activity.item}</TableCell>
-                  <TableCell>{activity.quantity}</TableCell>
-                  <TableCell>
-                    <Badge variant={activity.status === 'Entregado' ? 'default' : activity.status === 'Enviado' ? 'secondary' : 'outline'}>{activity.status}</Badge>
-                  </TableCell>
-                  <TableCell>{activity.date}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+                <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-green-500" />
+                    Productos con Mayor Rotación
+                </CardTitle>
+                <CardDescription>Productos más vendidos en los últimos 30 días.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Producto</TableHead>
+                        <TableHead className="text-right">Unidades Movidas</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {topMovers.map((product) => (
+                        <TableRow key={product.name}>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell className="text-right">{product.moved}</TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <TrendingDown className="h-5 w-5 text-red-500" />
+                    Productos con Menor Rotación
+                </CardTitle>
+                <CardDescription>Productos con menos ventas en los últimos 30 días.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Producto</TableHead>
+                        <TableHead className="text-right">Unidades Movidas</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {bottomMovers.map((product) => (
+                        <TableRow key={product.name}>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell className="text-right">{product.moved}</TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
+                </CardContent>
+            </Card>
+        </div>
     </div>
   );
 }
