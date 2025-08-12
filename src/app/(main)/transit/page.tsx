@@ -1,11 +1,13 @@
 'use client';
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Trash2, Container, Ship, CalendarIcon } from 'lucide-react';
+import { PlusCircle, Container, Ship, CalendarIcon, FileDown, ChevronDown } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,9 +17,25 @@ import {
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { Role } from '@/lib/roles';
+
+
+// Extend the jsPDF type to include the autoTable method
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
+
 
 interface Product {
   name: string;
@@ -46,6 +64,8 @@ const initialContainers: Container[] = [
     { id: 'CMAU7654321', eta: '2024-08-10', carrier: 'CMA CGM', status: 'Atrasado', products: [{ name: 'BLACK 1.22 X 0.61', quantity: 500 }] },
 ];
 
+const currentUserRole: Role = 'Administrador';
+
 export default function TransitPage() {
   const [containers, setContainers] = useState<Container[]>(initialContainers);
   const [newContainerId, setNewContainerId] = useState('');
@@ -57,6 +77,9 @@ export default function TransitPage() {
   const [newProductName, setNewProductName] = useState('');
   const [newProductQuantity, setNewProductQuantity] = useState(0);
   const { toast } = useToast();
+  
+  const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística' || currentUserRole === 'Contador';
+
 
   const handleAddContainer = () => {
     if (!newContainerId || !newContainerEta || !newContainerCarrier) {
@@ -112,6 +135,74 @@ export default function TransitPage() {
         default: return 'outline';
     }
   }
+  
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Reporte de Contenedores en Tránsito", 14, 16);
+    
+    containers.forEach((container, index) => {
+        if (index > 0) doc.addPage();
+        
+        const bodyData = container.products.map(p => [p.name, p.quantity]);
+        
+        doc.autoTable({
+            startY: 25,
+            head: [['Producto', 'Cantidad']],
+            body: bodyData,
+            tableWidth: 'auto',
+            didDrawPage: (data) => {
+                doc.setFontSize(12);
+                doc.text(`Contenedor: ${container.id}`, 14, 10);
+                doc.text(`Transportista: ${container.carrier}`, 14, 15);
+                doc.text(`ETA: ${container.eta} | Estado: ${container.status}`, 14, 20);
+            }
+        });
+    });
+
+    doc.save('Reporte de Contenedores.pdf');
+  };
+
+  const handleExportHTML = () => {
+    let html = '<table><thead><tr><th>Contenedor</th><th>Transportista</th><th>ETA</th><th>Estado</th><th>Producto</th><th>Cantidad</th></tr></thead><tbody>';
+
+    containers.forEach(container => {
+        if (container.products.length > 0) {
+            container.products.forEach((product, index) => {
+                html += '<tr>';
+                if (index === 0) {
+                    html += `<td rowspan="${container.products.length}">${container.id}</td>`;
+                    html += `<td rowspan="${container.products.length}">${container.carrier}</td>`;
+                    html += `<td rowspan="${container.products.length}">${container.eta}</td>`;
+                    html += `<td rowspan="${container.products.length}">${container.status}</td>`;
+                }
+                html += `<td>${product.name}</td>`;
+                html += `<td>${product.quantity}</td>`;
+                html += '</tr>';
+            });
+        } else {
+            html += '<tr>';
+            html += `<td>${container.id}</td>`;
+            html += `<td>${container.carrier}</td>`;
+            html += `<td>${container.eta}</td>`;
+            html += `<td>${container.status}</td>`;
+            html += `<td>-</td>`;
+            html += `<td>-</td>`;
+            html += '</tr>';
+        }
+    });
+
+    html += '</tbody></table>';
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Reporte de Contenedores.xls';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6">
@@ -121,39 +212,56 @@ export default function TransitPage() {
             <CardTitle>Contenedores en Tránsito</CardTitle>
             <CardDescription>Gestione los contenedores y los productos que están en camino.</CardDescription>
           </div>
-          <Dialog open={isAddContainerDialogOpen} onOpenChange={setIsAddContainerDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Agregar Contenedor
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Agregar Nuevo Contenedor</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="container-id">ID del Contenedor</Label>
-                  <Input id="container-id" value={newContainerId} onChange={(e) => setNewContainerId(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="container-eta">Fecha Estimada de Llegada (ETA)</Label>
-                  <Input id="container-eta" type="date" value={newContainerEta} onChange={(e) => setNewContainerEta(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="container-carrier">Transportista</Label>
-                  <Input id="container-carrier" value={newContainerCarrier} onChange={(e) => setNewContainerCarrier(e.target.value)} />
-                </div>
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                    <Button variant="ghost">Cancelar</Button>
-                </DialogClose>
-                <Button onClick={handleAddContainer}>Agregar</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <div className="flex items-center gap-2">
+            {canEdit && (
+                <Dialog open={isAddContainerDialogOpen} onOpenChange={setIsAddContainerDialogOpen}>
+                    <DialogTrigger asChild>
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Agregar Contenedor
+                    </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Agregar Nuevo Contenedor</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                        <Label htmlFor="container-id">ID del Contenedor</Label>
+                        <Input id="container-id" value={newContainerId} onChange={(e) => setNewContainerId(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="container-eta">Fecha Estimada de Llegada (ETA)</Label>
+                        <Input id="container-eta" type="date" value={newContainerEta} onChange={(e) => setNewContainerEta(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="container-carrier">Transportista</Label>
+                        <Input id="container-carrier" value={newContainerCarrier} onChange={(e) => setNewContainerCarrier(e.target.value)} />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="ghost">Cancelar</Button>
+                        </DialogClose>
+                        <Button onClick={handleAddContainer}>Agregar</Button>
+                    </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
+             <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                            <FileDown className="mr-2 h-4 w-4" />
+                            Descargar
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={handleExportPDF}>Descargar como PDF</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportHTML}>Descargar para Excel (HTML)</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-8">
@@ -198,37 +306,39 @@ export default function TransitPage() {
                         </TableBody>
                     </Table>
                 </CardContent>
-                 <CardFooter className="flex justify-end p-4">
-                    <Dialog>
-                        <DialogTrigger asChild>
-                           <Button variant="outline" size="sm" onClick={() => setSelectedContainerId(container.id)}>Agregar Producto</Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader><DialogTitle>Agregar Producto a {container.id}</DialogTitle></DialogHeader>
-                             <div className="space-y-4 py-4">
-                                <div className="space-y-2">
-                                    <Label>Producto</Label>
-                                    <Combobox
-                                        options={productOptions}
-                                        value={newProductName}
-                                        onValueChange={setNewProductName}
-                                        placeholder="Seleccione un producto"
-                                        searchPlaceholder="Buscar producto..."
-                                        emptyPlaceholder="No se encontraron productos"
-                                    />
+                {canEdit && (
+                    <CardFooter className="flex justify-end p-4">
+                        <Dialog>
+                            <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" onClick={() => setSelectedContainerId(container.id)}>Agregar Producto</Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader><DialogTitle>Agregar Producto a {container.id}</DialogTitle></DialogHeader>
+                                <div className="space-y-4 py-4">
+                                    <div className="space-y-2">
+                                        <Label>Producto</Label>
+                                        <Combobox
+                                            options={productOptions}
+                                            value={newProductName}
+                                            onValueChange={setNewProductName}
+                                            placeholder="Seleccione un producto"
+                                            searchPlaceholder="Buscar producto..."
+                                            emptyPlaceholder="No se encontraron productos"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Cantidad</Label>
+                                        <Input type="number" value={newProductQuantity} onChange={e => setNewProductQuantity(Number(e.target.value))} />
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Cantidad</Label>
-                                    <Input type="number" value={newProductQuantity} onChange={e => setNewProductQuantity(Number(e.target.value))} />
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <DialogClose asChild><Button variant="ghost">Cancelar</Button></DialogClose>
-                                <Button onClick={handleAddProductToContainer}>Agregar Producto</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                 </CardFooter>
+                                <DialogFooter>
+                                    <DialogClose asChild><Button variant="ghost">Cancelar</Button></DialogClose>
+                                    <Button onClick={handleAddProductToContainer}>Agregar Producto</Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    </CardFooter>
+                )}
               </Card>
             ))}
           </div>
