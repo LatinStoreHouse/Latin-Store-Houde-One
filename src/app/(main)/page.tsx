@@ -35,7 +35,8 @@ import {
     Container,
     BookUser,
     FileText,
-    BotMessageSquare
+    BotMessageSquare,
+    Ship
 } from 'lucide-react';
 import { Role, roles } from '@/lib/roles';
 
@@ -78,7 +79,7 @@ const bottomMovers = [
 
 const navItems = [
   { href: '/inventory', label: 'Inventario', icon: Warehouse, permission: 'inventory:view' },
-  { href: '/transit', label: 'Contenedores', icon: Truck, permission: 'inventory:transit' },
+  { href: '/transit', label: 'Contenedores', icon: Ship, permission: 'inventory:transit' },
   { href: '/reservations', label: 'Reservas', icon: BookUser, permission: 'reservations:view' },
   { href: '/orders', label: 'Despachos', icon: Truck, permission: 'orders:view' },
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
