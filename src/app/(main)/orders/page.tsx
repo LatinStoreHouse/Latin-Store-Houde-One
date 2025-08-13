@@ -165,7 +165,7 @@ export default function DispatchPage() {
   const canEditLogistica = currentUser.role === 'Administrador' || currentUser.role === 'Logística';
   const canCreateDispatch = currentUser.role === 'Administrador' || currentUser.role === 'Asesor de Ventas';
   
-  const handleInputChange = (id: number, field: string, value: string | boolean) => {
+  const handleInputChange = (id: number, field: keyof DispatchData, value: string | boolean) => {
     setDispatchData(prevData =>
       prevData.map(item =>
         item.id === id ? { ...item, [field]: value } : item
@@ -178,17 +178,20 @@ export default function DispatchPage() {
         setDispatchData(prev => prev.map(d => d.id === data.id ? {...d, ...data} : d));
     } else { // Creating new
         const newId = dispatchData.length > 0 ? Math.max(...dispatchData.map(d => d.id)) + 1 : 1;
-        const newDispatch = {
+        const newDispatch: DispatchData = {
             id: newId,
             vendedor: currentUser.name,
             fechaSolicitud: new Date().toISOString().split('T')[0],
-            ...data,
+            cotizacion: data.cotizacion,
+            cliente: data.cliente,
+            ciudad: data.ciudad,
+            direccion: data.direccion,
             remision: '',
-            observacion: 'none',
+            observacion: data.observacion || '',
             rutero: 'none',
             fechaDespacho: '',
             guia: '',
-            convencion: 'none' as 'none',
+            convencion: 'Prealistamiento de pedido',
         };
         setDispatchData(prev => [newDispatch, ...prev]);
     }
@@ -222,7 +225,7 @@ export default function DispatchPage() {
         rutero: 'none',
         fechaDespacho: '',
         guia: '',
-        convencion: 'none' as 'none',
+        convencion: 'Prealistamiento de pedido',
     };
     setDispatchData(prev => [newDispatch, ...prev]);
   };
@@ -323,7 +326,7 @@ export default function DispatchPage() {
         'Guía', 'Convención', 'Factura #', 'Estado Validación'
     ];
     let html = '<table><thead><tr>';
-    tableHeaders.forEach(header => html += `<th>${header}</th>`);
+    tableHeaders.forEach(header => {html += `<th>${header}</th>`});
     html += '</tr></thead><tbody>';
 
     filteredData.forEach(item => {
@@ -442,31 +445,7 @@ export default function DispatchPage() {
                 {/* Logística */}
                 <TableHead className="p-2">Remisión</TableHead>
                 <TableHead className="p-2">
-                    <div className="flex items-center">
-                        Observación
-                        {canEditLogistica && (
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
-                                        <PlusCircle className="h-4 w-4" />
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Añadir Nueva Observación</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            value={newObservation}
-                                            onChange={(e) => setNewObservation(e.target.value)}
-                                            placeholder="Escriba una nueva observación"
-                                        />
-                                        <Button onClick={handleAddNewObservation}>Añadir</Button>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                        )}
-                    </div>
+                    Observación
                 </TableHead>
                 <TableHead className="p-2">Rutero</TableHead>
                 <TableHead className="p-2">Fecha Desp.</TableHead>
@@ -496,22 +475,7 @@ export default function DispatchPage() {
                   {/* Logística Fields */}
                   <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditLogistica} /></TableCell>
                   <TableCell className="p-0 min-w-[200px]">
-                    <Select
-                        value={item.observacion}
-                        onValueChange={(value) => handleInputChange(item.id, 'observacion', value)}
-                        disabled={!canEditLogistica}
-                    >
-                        <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
-                           <SelectValue placeholder="Seleccionar observación" />
-                        </SelectTrigger>
-                        <SelectContent>
-                           {observationOptions.map(option => (
-                            <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                            </SelectItem>
-                           ))}
-                        </SelectContent>
-                    </Select>
+                    <Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} />
                   </TableCell>
                   <TableCell className="p-0 min-w-[200px]">
                      <Select

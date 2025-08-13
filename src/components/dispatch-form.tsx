@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useEffect } from 'react';
 import { Combobox } from './ui/combobox';
+import { Textarea } from './ui/textarea';
 
 const colombianCities = [
   "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta", 
@@ -31,6 +32,7 @@ const dispatchFormSchema = z.object({
   cliente: z.string().min(1, 'El cliente es requerido.'),
   ciudad: z.string().min(1, 'La ciudad es requerida.'),
   direccion: z.string().min(1, 'La dirección es requerida.'),
+  observacion: z.string().optional(),
 });
 
 export type DispatchFormValues = z.infer<typeof dispatchFormSchema>;
@@ -49,6 +51,7 @@ export function DispatchForm({ initialData, onSave, onCancel }: DispatchFormProp
       cliente: '',
       ciudad: '',
       direccion: '',
+      observacion: '',
     },
   });
   
@@ -118,6 +121,22 @@ export function DispatchForm({ initialData, onSave, onCancel }: DispatchFormProp
               <FormLabel>Dirección de Entrega</FormLabel>
               <FormControl>
                 <Input placeholder="Ej: Calle 123 # 45 - 67" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="observacion"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Anotaciones y Datos de Envío (Opcional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                    placeholder="Ej: Entregar en portería, contactar antes de llegar..." 
+                    {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
