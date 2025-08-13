@@ -87,7 +87,7 @@ const getIconForSubItem = (label: string) => {
 }
 
 const Logo = () => (
-  <div className="relative h-10 w-32">
+  <div className="relative h-10 w-32" style={{ filter: 'invert(1) brightness(1.5)' }}>
     <Image src="/logo.png" alt="Latin Store House Logo" fill style={{ objectFit: 'contain' }} />
   </div>
 );
