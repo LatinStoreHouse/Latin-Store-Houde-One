@@ -14,11 +14,22 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useEffect } from 'react';
+import { Combobox } from './ui/combobox';
+
+const colombianCities = [
+  "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta", 
+  "Soacha", "Soledad", "Bucaramanga", "Ibagué", "Santa Marta", "Villavicencio", 
+  "Pereira", "Manizales", "Pasto", "Neiva", "Armenia", "Popayán", "Sincelejo", 
+  "Montería", "Valledupar", "Tunja", "Riohacha", "Florencia", "Yopal", 
+  "Quibdó", "Arauca", "San Andrés", "Mocoa", "Leticia", "Inírida", 
+  "San José del Guaviare", "Puerto Carreño", "Mitú"
+].map(city => ({ value: city, label: city }));
 
 const dispatchFormSchema = z.object({
   id: z.number().optional(),
   cotizacion: z.string().min(1, 'La cotización es requerida.'),
   cliente: z.string().min(1, 'El cliente es requerido.'),
+  ciudad: z.string().min(1, 'La ciudad es requerida.'),
   direccion: z.string().min(1, 'La dirección es requerida.'),
 });
 
@@ -36,6 +47,7 @@ export function DispatchForm({ initialData, onSave, onCancel }: DispatchFormProp
     defaultValues: initialData || {
       cotizacion: '',
       cliente: '',
+      ciudad: '',
       direccion: '',
     },
   });
@@ -75,6 +87,25 @@ export function DispatchForm({ initialData, onSave, onCancel }: DispatchFormProp
               <FormControl>
                 <Input placeholder="Ej: Constructora ABC" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="ciudad"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Ciudad</FormLabel>
+              <Combobox
+                options={colombianCities}
+                value={field.value}
+                onValueChange={field.onChange}
+                placeholder="Seleccione una ciudad"
+                searchPlaceholder="Buscar ciudad..."
+                emptyPlaceholder="No se encontró."
+                allowFreeText
+              />
               <FormMessage />
             </FormItem>
           )}

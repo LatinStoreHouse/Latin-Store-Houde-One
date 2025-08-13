@@ -183,7 +183,6 @@ export default function DispatchPage() {
             vendedor: currentUser.name,
             fechaSolicitud: new Date().toISOString().split('T')[0],
             ...data,
-            ciudad: '',
             remision: '',
             observacion: 'none',
             rutero: 'none',
@@ -491,19 +490,7 @@ export default function DispatchPage() {
                   <TableCell className="p-2 align-middle">{item.fechaSolicitud}</TableCell>
                   <TableCell className="p-2 align-middle">{item.cotizacion}</TableCell>
                   <TableCell className="p-2 align-middle">{item.cliente}</TableCell>
-                  <TableCell className="p-0">
-                    <Combobox
-                        options={colombianCities}
-                        value={item.ciudad}
-                        onValueChange={(value) => handleInputChange(item.id, 'ciudad', value)}
-                        placeholder="Ciudad"
-                        searchPlaceholder="Buscar ciudad..."
-                        emptyPlaceholder="No se encontró."
-                        disabled={!canEditLogistica}
-                        className="h-full bg-transparent border-0 rounded-none focus:ring-0"
-                        allowFreeText
-                    />
-                  </TableCell>
+                  <TableCell className="p-2 align-middle">{item.ciudad}</TableCell>
                   <TableCell className="p-2 align-middle">{item.direccion}</TableCell>
                   
                   {/* Logística Fields */}
