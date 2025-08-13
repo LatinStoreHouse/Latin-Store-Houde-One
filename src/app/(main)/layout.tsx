@@ -48,7 +48,7 @@ import { Role, roles } from '@/lib/roles';
 const currentUserRole: Role = 'Administrador';
 
 const navItems = [
-  { href: '/', label: 'Tablero', icon: LayoutDashboard },
+  { href: '/', label: 'Inicio', icon: LayoutDashboard },
   {
     label: 'Inventario',
     icon: Warehouse,
@@ -87,7 +87,7 @@ const getIconForSubItem = (label: string) => {
 }
 
 const Logo = () => (
-    <div className="relative h-24 w-full">
+    <div className="relative h-48 w-full">
         <Image 
             src="https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp"
             alt="Latin Store House Logo"
@@ -123,7 +123,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <Sidebar>
         <SidebarHeader className="p-4">
           <div className="flex w-full items-center justify-center">
-            <div className="h-24 w-40">
+            <div className="h-48 w-full">
               <Logo />
             </div>
           </div>
@@ -199,7 +199,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <header className="flex h-14 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur-sm">
           <SidebarTrigger />
           <h1 className="text-lg font-semibold md:text-xl">
-            {navItems.flatMap(item => item.subItems || item).find((navItem) => navItem.href === pathname)?.label || 'Tablero'}
+            {navItems.flatMap(item => item.subItems || item).find((navItem) => navItem.href === pathname)?.label || 'Inicio'}
           </h1>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
