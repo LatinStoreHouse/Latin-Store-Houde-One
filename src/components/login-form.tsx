@@ -26,7 +26,7 @@ export function LoginForm() {
         });
     }
 
-    router.replace('/');
+    router.replace('/dashboard');
   };
 
   return (

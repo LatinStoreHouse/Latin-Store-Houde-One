@@ -71,7 +71,7 @@ const initialUser = {
 };
 
 const navItems = [
-  { href: '/', label: 'Inicio', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
   {
     label: 'Inventario',
     icon: Warehouse,
