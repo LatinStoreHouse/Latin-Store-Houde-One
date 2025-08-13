@@ -23,16 +23,11 @@ import {
     PackageSearch,
     TrendingUp,
     TrendingDown,
-    LayoutDashboard,
     Users,
     UserCog,
-    LogOut,
-    Calculator,
-    ChevronDown,
     Tags,
     ShieldCheck,
     CheckSquare,
-    Container,
     BookUser,
     FileText,
     BotMessageSquare,
@@ -109,9 +104,94 @@ export default function DashboardPage() {
         return userPermissions.includes(item.permission);
     };
 
+    const accessibleNavItems = navItems.filter(hasPermission);
+
   return (
-     <div className="flex h-screen items-center justify-center">
-      <p>Redirigiendo...</p>
+    <div className="space-y-6">
+      <div className="grid gap-6 md:grid-cols-3">
+        {overviewItems.map((item) => (
+          <Card key={item.title}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+              <item.icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{item.value}</div>
+              <p className="text-xs text-muted-foreground">{item.description}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Accesos Rápidos</CardTitle>
+          <CardDescription>Navega a las secciones más importantes de la aplicación.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {accessibleNavItems.map(item => (
+                <QuickAccessItem key={item.label} href={item.href} icon={item.icon} label={item.label} />
+            ))}
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         <Card>
+            <CardHeader>
+                <CardTitle>Productos con Mayor Movimiento</CardTitle>
+                <CardDescription>Los productos más vendidos este mes.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Producto</TableHead>
+                            <TableHead className="text-right">Unidades Movidas</TableHead>
+                            <TableHead className="text-right">Cambio</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {topMovers.map(item => (
+                            <TableRow key={item.name}>
+                                <TableCell>{item.name}</TableCell>
+                                <TableCell className="text-right">{item.moved}</TableCell>
+                                <TableCell className="text-right">
+                                    <Badge variant={item.change > 0 ? 'default' : 'destructive'} className="flex w-fit items-center gap-1 ml-auto">
+                                        {item.change > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                        {item.change}%
+                                    </Badge>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+         </Card>
+         <Card>
+            <CardHeader>
+                <CardTitle>Productos con Menor Movimiento</CardTitle>
+                <CardDescription>Los productos menos vendidos este mes.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Producto</TableHead>
+                            <TableHead className="text-right">Unidades Movidas</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {bottomMovers.map(item => (
+                            <TableRow key={item.name}>
+                                <TableCell>{item.name}</TableCell>
+                                <TableCell className="text-right">{item.moved}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+         </Card>
+      </div>
     </div>
   );
 }
