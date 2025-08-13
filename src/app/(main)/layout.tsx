@@ -87,17 +87,15 @@ const getIconForSubItem = (label: string) => {
 }
 
 const Logo = () => (
-    <svg
-      width="100%"
-      height="100%"
-      viewBox="0 0 128 40"
-      preserveAspectRatio="xMidYMid meet"
-      className="fill-current text-white"
-    >
-      <path
-        d="M24.3,27.152L2,27.152L2,2.848L24.3,2.848L24.3,8.96L8.8,8.96L8.8,14.048L23.22,14.048L23.22,20.128L8.8,20.128L8.8,27.152L8.8,27.152L8.8,31.04L24.3,31.04L24.3,37.152L2,37.152L2,2.848L2,2.848L2,0.96L24.3,0.96L24.3,2.848L24.3,27.152Z"
-      />
-    </svg>
+    <div className="relative h-10 w-full">
+        <Image 
+            src="/logo.png" 
+            alt="Latin Store House Logo"
+            fill
+            style={{ objectFit: 'contain' }}
+            priority
+        />
+    </div>
 );
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -125,10 +123,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <Sidebar>
         <SidebarHeader className="p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg">
+            <div className="h-10 w-32">
               <Logo />
             </div>
-            <span className="text-lg font-semibold text-sidebar-foreground">Latin Store House</span>
           </div>
         </SidebarHeader>
         <SidebarContent>
