@@ -25,6 +25,14 @@ import {
   CollapsibleContent,
 } from '@/components/ui/collapsible';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
   BotMessageSquare,
   FileText,
   LayoutDashboard,
@@ -39,13 +47,20 @@ import {
   ShieldCheck,
   CheckSquare,
   Container,
-  BookUser
+  BookUser,
+  BadgeCheck,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Role, roles } from '@/lib/roles';
 
-const currentUserRole: Role = 'Administrador';
+const currentUser = {
+  name: 'Usuario Admin',
+  email: 'admin@latinhouse.com',
+  role: 'Administrador' as Role,
+  avatar: 'https://placehold.co/40x40.png'
+};
 
 const navItems = [
   { href: '/', label: 'Inicio', icon: LayoutDashboard },
@@ -100,7 +115,7 @@ const Logo = () => (
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
+  const userPermissions = roles.find(r => r.name === currentUser.role)?.permissions || [];
 
   const hasPermission = (item: any) => {
     if (!item.permission) return true; // Items without a specific permission are public
@@ -117,6 +132,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }
 
   const visibleNavItems = getVisibleNavItems();
+  
+  const currentUserRoleDetails = roles.find(r => r.name === currentUser.role);
 
   return (
     <SidebarProvider>
@@ -180,19 +197,55 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter className="p-4">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="profile picture" />
-              <AvatarFallback>AD</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold">Usuario Admin</span>
-              <span className="text-xs text-muted-foreground">admin@latinhouse.com</span>
-            </div>
-            <Button variant="ghost" size="icon" className="ml-auto">
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
+           <Dialog>
+            <DialogTrigger asChild>
+                <div className="flex w-full cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent/50">
+                    <Avatar className="h-10 w-10">
+                    <AvatarImage src={currentUser.avatar} alt={currentUser.name} data-ai-hint="profile picture" />
+                    <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{currentUser.name}</span>
+                    <span className="text-xs text-muted-foreground">{currentUser.email}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" className="ml-auto">
+                    <LogOut className="h-5 w-5" />
+                    </Button>
+                </div>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Perfil de Usuario</DialogTitle>
+                    <DialogDescription>
+                        Esta es tu información de perfil y tus permisos actuales.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="flex items-center gap-4">
+                         <Avatar className="h-16 w-16">
+                            <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
+                            <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h2 className="text-lg font-semibold">{currentUser.name}</h2>
+                            <p className="text-sm text-muted-foreground">{currentUser.email}</p>
+                            <Badge className="mt-2">{currentUser.role}</Badge>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="mb-2 font-medium">Permisos Asignados</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {currentUserRoleDetails?.permissions.map(permission => (
+                                <Badge key={permission} variant="secondary" className="font-normal">
+                                    <BadgeCheck className="mr-1.5 h-3 w-3 text-green-500" />
+                                    {permission}
+                                </Badge>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </DialogContent>
+           </Dialog>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
