@@ -455,7 +455,7 @@ export default function DispatchPage() {
                 <TableHead className="p-0">Convención</TableHead>
                 {/* Contador (Read-only from validation) */}
                 <TableHead className="p-0">Factura #</TableHead>
-                <TableHead className="p-0">Estado Validación</TableHead>
+                <TableHead className="p-0 text-center">Estado Validación</TableHead>
                 <TableHead className="text-right p-0">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -549,10 +549,10 @@ export default function DispatchPage() {
                   </TableCell>
 
                   {/* Contador Fields (Read-Only from validation) */}
-                   <TableCell className="p-2 align-middle text-sm">
+                   <TableCell className="p-2 align-middle text-sm text-center">
                     {validation.factura || 'N/A'}
                   </TableCell>
-                  <TableCell className="p-2 align-middle">
+                  <TableCell className="p-2 align-middle text-center">
                     <Badge variant={getStatusBadgeVariant(validation.status)}>
                       {validation.status}
                     </Badge>
