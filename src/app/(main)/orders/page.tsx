@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy } from 'lucide-react';
+import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy, Edit } from 'lucide-react';
 import { Role } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import {
@@ -113,6 +113,9 @@ const initialDispatchData = [
   },
 ];
 
+type DispatchData = typeof initialDispatchData[0];
+
+
 const months = [
     { value: 'all', label: 'Todos los Meses' },
     { value: '01', label: 'Enero' },
@@ -150,6 +153,7 @@ export default function DispatchPage() {
   const [selectedMonth, setSelectedMonth] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingDispatch, setEditingDispatch] = useState<DispatchData | null>(null);
   const [observationOptions, setObservationOptions] = useState([
     { value: 'none', label: 'Sin observación' },
     { value: 'Entrega Urgente', label: 'Entrega Urgente' },
@@ -169,24 +173,39 @@ export default function DispatchPage() {
     );
   };
   
-  const addNewDispatch = (data: DispatchFormValues) => {
-    const newId = dispatchData.length > 0 ? Math.max(...dispatchData.map(d => d.id)) + 1 : 1;
-    const newDispatch = {
-      id: newId,
-      vendedor: currentUser.name,
-      fechaSolicitud: new Date().toISOString().split('T')[0],
-      ...data,
-      ciudad: '', // City will be handled by logistics in the main table
-      remision: '',
-      observacion: 'none',
-      rutero: 'none',
-      fechaDespacho: '',
-      guia: '',
-      convencion: 'none' as 'none',
-    };
-    setDispatchData(prev => [newDispatch, ...prev]);
+  const handleSaveDispatch = (data: DispatchFormValues & { id?: number }) => {
+    if (data.id) { // Editing existing
+        setDispatchData(prev => prev.map(d => d.id === data.id ? {...d, ...data} : d));
+    } else { // Creating new
+        const newId = dispatchData.length > 0 ? Math.max(...dispatchData.map(d => d.id)) + 1 : 1;
+        const newDispatch = {
+            id: newId,
+            vendedor: currentUser.name,
+            fechaSolicitud: new Date().toISOString().split('T')[0],
+            ...data,
+            ciudad: '',
+            remision: '',
+            observacion: 'none',
+            rutero: 'none',
+            fechaDespacho: '',
+            guia: '',
+            convencion: 'none' as 'none',
+        };
+        setDispatchData(prev => [newDispatch, ...prev]);
+    }
     setIsFormOpen(false);
+    setEditingDispatch(null);
   };
+  
+  const handleOpenEditDialog = (item: DispatchData) => {
+    setEditingDispatch(item);
+    setIsFormOpen(true);
+  }
+
+  const handleOpenCreateDialog = () => {
+    setEditingDispatch(null);
+    setIsFormOpen(true);
+  }
 
   const handleDeleteDispatch = (id: number) => {
     setDispatchData(prevData => prevData.filter(item => item.id !== id));
@@ -353,26 +372,10 @@ export default function DispatchPage() {
             </div>
             <div className="flex items-center gap-2">
                 {canCreateDispatch && (
-                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                        <DialogTrigger asChild>
-                            <Button>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Nuevo Despacho
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                                <DialogTitle>Crear Solicitud de Despacho</DialogTitle>
-                                <DialogDescription>
-                                    Complete el formulario para enviar una nueva solicitud de despacho a validación.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <DispatchForm 
-                                onSave={addNewDispatch} 
-                                onCancel={() => setIsFormOpen(false)}
-                            />
-                        </DialogContent>
-                    </Dialog>
+                  <Button onClick={handleOpenCreateDialog}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Nuevo Despacho
+                  </Button>
                 )}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -578,6 +581,9 @@ export default function DispatchPage() {
                     <div className="flex items-center justify-end h-full">
                       {(currentUser.name === item.vendedor && !isReadOnly) && (
                         <>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none">
+                            <Edit className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -612,6 +618,27 @@ export default function DispatchPage() {
           </Table>
         </div>
       </CardContent>
+       <Dialog open={isFormOpen} onOpenChange={(open) => {
+        setIsFormOpen(open);
+        if (!open) setEditingDispatch(null);
+      }}>
+        <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>{editingDispatch ? 'Editar Solicitud de Despacho' : 'Crear Solicitud de Despacho'}</DialogTitle>
+                <DialogDescription>
+                  {editingDispatch ? 'Actualice los detalles de la solicitud.' : 'Complete el formulario para enviar una nueva solicitud de despacho a validación.'}
+                </DialogDescription>
+            </DialogHeader>
+            <DispatchForm 
+                initialData={editingDispatch ?? undefined}
+                onSave={handleSaveDispatch} 
+                onCancel={() => {
+                  setIsFormOpen(false);
+                  setEditingDispatch(null);
+                }}
+            />
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

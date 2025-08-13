@@ -13,8 +13,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useEffect } from 'react';
 
 const dispatchFormSchema = z.object({
+  id: z.number().optional(),
   cotizacion: z.string().min(1, 'La cotización es requerida.'),
   cliente: z.string().min(1, 'El cliente es requerido.'),
   direccion: z.string().min(1, 'La dirección es requerida.'),
@@ -23,19 +25,26 @@ const dispatchFormSchema = z.object({
 export type DispatchFormValues = z.infer<typeof dispatchFormSchema>;
 
 interface DispatchFormProps {
+  initialData?: DispatchFormValues;
   onSave: (data: DispatchFormValues) => void;
   onCancel: () => void;
 }
 
-export function DispatchForm({ onSave, onCancel }: DispatchFormProps) {
+export function DispatchForm({ initialData, onSave, onCancel }: DispatchFormProps) {
   const form = useForm<DispatchFormValues>({
     resolver: zodResolver(dispatchFormSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       cotizacion: '',
       cliente: '',
       direccion: '',
     },
   });
+  
+  useEffect(() => {
+    if (initialData) {
+        form.reset(initialData);
+    }
+  }, [initialData, form]);
 
   function onSubmit(data: DispatchFormValues) {
     onSave(data);
@@ -87,7 +96,7 @@ export function DispatchForm({ onSave, onCancel }: DispatchFormProps) {
           <Button type="button" variant="ghost" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">Crear Despacho</Button>
+          <Button type="submit">{initialData ? 'Guardar Cambios' : 'Crear Despacho'}</Button>
         </div>
       </form>
     </Form>
