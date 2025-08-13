@@ -1,5 +1,7 @@
 'use client';
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -16,6 +18,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Role } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+// Extend the jsPDF type to include the autoTable method
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 
 const initialInventoryData = {
@@ -228,11 +243,25 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange }: {
 
 export default function InventoryPage() {
   const [inventoryData, setInventoryData] = useState(initialInventoryData);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [exportOptions, setExportOptions] = useState({
+    format: 'pdf',
+    columns: {
+      bodega: true,
+      separadasBodega: true,
+      zonaFranca: true,
+      separadasZonaFranca: true,
+      muestras: true,
+    },
+    brands: {} as Record<string, boolean>,
+    categories: {} as Record<string, boolean>,
+    products: {} as Record<string, boolean>,
+  });
   const { toast } = useToast();
 
   const brands = Object.keys(inventoryData);
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
-
+  
   const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
     setInventoryData(prevData => {
         const newData = JSON.parse(JSON.stringify(prevData));
@@ -270,6 +299,116 @@ export default function InventoryPage() {
     return brand;
   };
 
+  const getFilteredDataForExport = () => {
+    let filteredData: { brand: string; category: string; name: string; values: any }[] = [];
+    const selectedBrands = Object.keys(exportOptions.brands).filter(b => exportOptions.brands[b]);
+    const selectedCategories = Object.keys(exportOptions.categories).filter(c => exportOptions.categories[c]);
+    const selectedProducts = Object.keys(exportOptions.products).filter(p => exportOptions.products[p]);
+
+    Object.entries(inventoryData).forEach(([brand, categories]) => {
+      if (selectedBrands.length > 0 && !selectedBrands.includes(brand)) return;
+      
+      Object.entries(categories).forEach(([category, products]) => {
+        if (selectedCategories.length > 0 && !selectedCategories.includes(category)) return;
+
+        Object.entries(products).forEach(([productName, values]) => {
+          if (selectedProducts.length > 0 && !selectedProducts.includes(productName)) return;
+          
+          filteredData.push({
+            brand,
+            category,
+            name: productName,
+            values
+          });
+        });
+      });
+    });
+    return filteredData;
+  }
+
+  const handleExport = () => {
+    if (exportOptions.format === 'pdf') {
+        handleExportPDF();
+    } else {
+        handleExportXLS();
+    }
+    setIsExportDialogOpen(false);
+  }
+
+  const handleExportPDF = () => {
+    const dataToExport = getFilteredDataForExport();
+    if(dataToExport.length === 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No hay datos que coincidan con los filtros seleccionados.' });
+        return;
+    }
+
+    const doc = new jsPDF();
+    const head: any[] = [['Marca', 'Categoría', 'Producto']];
+    const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
+    head[0].push(...columns);
+    
+    const body = dataToExport.map(item => {
+        const row = [item.brand, item.category, item.name];
+        columns.forEach(col => {
+            row.push(item.values[col]);
+        });
+        return row;
+    });
+
+    doc.autoTable({ head, body });
+    doc.save('inventario.pdf');
+    toast({ title: 'Éxito', description: 'Inventario exportado a PDF.' });
+  }
+  
+  const handleExportXLS = () => {
+    const dataToExport = getFilteredDataForExport();
+    if(dataToExport.length === 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No hay datos que coincidan con los filtros seleccionados.' });
+        return;
+    }
+
+    const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
+    const headers = ['Marca', 'Categoría', 'Producto', ...columns];
+
+    let html = '<table><thead><tr>';
+    headers.forEach(header => html += `<th>${header}</th>`);
+    html += '</tr></thead><tbody>';
+
+    dataToExport.forEach(item => {
+        html += '<tr>';
+        html += `<td>${item.brand}</td>`;
+        html += `<td>${item.category}</td>`;
+        html += `<td>${item.name}</td>`;
+        columns.forEach(col => {
+            html += `<td>${item.values[col]}</td>`;
+        });
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'inventario.xls';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: 'Éxito', description: 'Inventario exportado a Excel.' });
+  }
+
+  const handleExportOptionChange = (type: 'columns' | 'brands' | 'categories' | 'products', key: string, value: boolean) => {
+    setExportOptions(prev => ({
+        ...prev,
+        [type]: {
+            ...prev[type],
+            [key]: value
+        }
+    }));
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -281,10 +420,95 @@ export default function InventoryPage() {
                     Guardar Cambios
                 </Button>
             )}
-            <Button variant="outline" size="sm">
-              <FileDown className="mr-2 h-4 w-4" />
-              Exportar Datos
-            </Button>
+            <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <FileDown className="mr-2 h-4 w-4" />
+                      Exportar Datos
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Configurar Exportación de Inventario</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+                        <div className="space-y-4">
+                           <div className="space-y-2">
+                             <Label>Formato de Archivo</Label>
+                              <RadioGroup value={exportOptions.format} onValueChange={(value) => setExportOptions(prev => ({...prev, format: value}))} className="flex gap-4">
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="pdf" id="format-pdf" />
+                                  <Label htmlFor="format-pdf">PDF</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="xls" id="format-xls" />
+                                  <Label htmlFor="format-xls">Excel (XLS)</Label>
+                                </div>
+                              </RadioGroup>
+                           </div>
+                           <div className="space-y-2">
+                             <Label>Columnas a Incluir</Label>
+                             <div className="grid grid-cols-2 gap-2">
+                               {Object.keys(exportOptions.columns).map(col => (
+                                <div key={col} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`col-${col}`}
+                                    checked={exportOptions.columns[col as keyof typeof exportOptions.columns]}
+                                    onCheckedChange={(checked) => handleExportOptionChange('columns', col, Boolean(checked))}
+                                  />
+                                  <Label htmlFor={`col-${col}`} className="font-normal text-sm capitalize">{col.replace(/([A-Z])/g, ' $1')}</Label>
+                                </div>
+                               ))}
+                             </div>
+                           </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Filtros de Datos (Opcional)</Label>
+                            <p className="text-xs text-muted-foreground">Seleccione para filtrar. Si no se selecciona nada, se exportará todo.</p>
+                             <Accordion type="multiple" className="w-full">
+                              <AccordionItem value="brands">
+                                <AccordionTrigger>Marcas</AccordionTrigger>
+                                <AccordionContent>
+                                    <ScrollArea className="h-40">
+                                      {Object.keys(inventoryData).map(brand => (
+                                        <div key={brand} className="flex items-center space-x-2 p-1">
+                                            <Checkbox
+                                                id={`brand-${brand}`}
+                                                checked={exportOptions.brands[brand] || false}
+                                                onCheckedChange={(checked) => handleExportOptionChange('brands', brand, Boolean(checked))}
+                                            />
+                                            <Label htmlFor={`brand-${brand}`} className="font-normal text-sm">{brand}</Label>
+                                        </div>
+                                      ))}
+                                    </ScrollArea>
+                                </AccordionContent>
+                              </AccordionItem>
+                              <AccordionItem value="products">
+                                <AccordionTrigger>Productos Específicos</AccordionTrigger>
+                                <AccordionContent>
+                                    <ScrollArea className="h-64">
+                                       {Object.values(inventoryData).flatMap(categories => Object.values(categories).flatMap(products => Object.keys(products))).map(productName => (
+                                         <div key={productName} className="flex items-center space-x-2 p-1">
+                                            <Checkbox
+                                                id={`product-${productName}`}
+                                                checked={exportOptions.products[productName] || false}
+                                                onCheckedChange={(checked) => handleExportOptionChange('products', productName, Boolean(checked))}
+                                            />
+                                            <Label htmlFor={`product-${productName}`} className="font-normal text-sm">{productName}</Label>
+                                         </div>
+                                       ))}
+                                    </ScrollArea>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsExportDialogOpen(false)}>Cancelar</Button>
+                        <Button onClick={handleExport}>Exportar</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
       </CardHeader>
       <CardContent>
