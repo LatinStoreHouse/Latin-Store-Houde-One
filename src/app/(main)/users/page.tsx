@@ -39,7 +39,7 @@ import { User, Role, roles } from '@/lib/roles';
 
 
 const initialUsers: User[] = [
-  { id: '1', name: 'John Doe', email: 'john.doe@example.com', role: 'Administrador', avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true },
+  { id: '1', name: 'Admin Latin', email: 'admin@latinhouse.com', role: 'Administrador', avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true },
   { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Asesor de Ventas', avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png', active: true },
   { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', role: 'Asesor de Ventas', avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false },
   { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', role: 'Logística', avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true },

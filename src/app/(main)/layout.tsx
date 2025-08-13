@@ -64,7 +64,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 
 const initialUser = {
-  name: 'Usuario Admin',
+  name: 'Admin Latin',
   email: 'admin@latinhouse.com',
   role: 'Administrador' as Role,
   avatar: 'https://placehold.co/40x40.png'
