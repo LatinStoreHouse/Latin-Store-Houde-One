@@ -32,6 +32,12 @@ export function LoginForm() {
       <Button type="submit" className="w-full">
         Iniciar Sesión
       </Button>
+       <div className="mt-4 text-center text-sm">
+        ¿No tienes una cuenta?{' '}
+        <Link href="#" className="font-semibold text-primary hover:underline">
+          Regístrate
+        </Link>
+      </div>
     </form>
   );
 }
