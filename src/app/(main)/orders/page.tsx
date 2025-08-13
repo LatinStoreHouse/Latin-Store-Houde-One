@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -294,47 +295,37 @@ export default function DispatchPage() {
     doc.save('Reporte de Despachos.pdf');
   };
 
-  const handleExportHTML = () => {
+  const handleExportXLSX = () => {
     const tableHeaders = [
         'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
         'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
         'Guía', 'Convención', 'Factura #', 'Estado Validación'
     ];
-    let html = '<table><thead><tr>';
-    tableHeaders.forEach(header => {html += `<th>${header}</th>`});
-    html += '</tr></thead><tbody>';
-
-    filteredData.forEach(item => {
+    
+    const dataToExport = filteredData.map(item => {
         const { status, factura } = getValidationStatus(item.cotizacion);
-        html += '<tr>';
-        html += `<td>${item.vendedor}</td>`;
-        html += `<td>${item.fechaSolicitud}</td>`;
-        html += `<td>${item.cotizacion}</td>`;
-        html += `<td>${item.cliente}</td>`;
-        html += `<td>${item.ciudad}</td>`;
-        html += `<td>${item.direccion}</td>`;
-        html += `<td>${item.remision}</td>`;
-        html += `<td>${item.observacion}</td>`;
-        html += `<td>${item.rutero}</td>`;
-        html += `<td>${item.fechaDespacho}</td>`;
-        html += `<td>${item.guia}</td>`;
-        html += `<td>${item.convencion}</td>`;
-        html += `<td>${factura}</td>`;
-        html += `<td>${status}</td>`;
-        html += '</tr>';
+        return {
+            'Vendedor': item.vendedor,
+            'Fecha Sol.': item.fechaSolicitud,
+            'Cotización': item.cotizacion,
+            'Cliente': item.cliente,
+            'Ciudad': item.ciudad,
+            'Dirección': item.direccion,
+            'Remisión': item.remision,
+            'Observación': item.observacion,
+            'Rutero': item.rutero,
+            'Fecha Desp.': item.fechaDespacho,
+            'Guía': item.guia,
+            'Convención': item.convencion,
+            'Factura #': factura,
+            'Estado Validación': status,
+        }
     });
 
-    html += '</tbody></table>';
-
-    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Reporte de Despachos.xls';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const ws = XLSX.utils.json_to_sheet(dataToExport, { header: tableHeaders });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Despachos");
+    XLSX.writeFile(wb, "Reporte de Despachos.xlsx");
   };
 
   return (
@@ -364,7 +355,7 @@ export default function DispatchPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                         <DropdownMenuItem onClick={handleExportPDF}>Descargar como PDF</DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleExportHTML}>Descargar para Excel (HTML)</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportXLSX}>Descargar como XLSX</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
