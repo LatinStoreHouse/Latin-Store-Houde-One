@@ -85,7 +85,7 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command shouldFilter={!allowFreeText}>
+        <Command>
           <CommandInput
             placeholder={searchPlaceholder}
             onValueChange={handleInputChange}
