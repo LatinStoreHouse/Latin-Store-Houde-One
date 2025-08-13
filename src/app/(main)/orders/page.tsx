@@ -24,7 +24,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Combobox } from '@/components/ui/combobox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -32,6 +32,12 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
   }
 }
+
+// Mocks - In a real app, this would come from a global state/context/API
+const validationHistory = [
+    { id: 'DIS-2', quoteNumber: 'COT-002', status: 'Validada', factura: 'FAC-201' },
+    { id: 'DIS-3', quoteNumber: 'COT-003', status: 'Validada', factura: 'FAC-202' },
+];
 
 const ruteroOptions = [
     { value: 'none', label: 'Seleccionar rutero' },
@@ -73,8 +79,6 @@ const initialDispatchData = [
     fechaDespacho: '',
     guia: '',
     convencion: 'Prealistamiento de pedido',
-    factura: '',
-    validado: false,
   },
   {
     id: 2,
@@ -90,8 +94,6 @@ const initialDispatchData = [
     fechaDespacho: '2024-07-30',
     guia: 'TCC-98765',
     convencion: 'Despachado',
-    factura: 'FAC-201',
-    validado: true,
   },
   {
     id: 3,
@@ -107,8 +109,6 @@ const initialDispatchData = [
     fechaDespacho: '2024-06-18',
     guia: 'ENV-12345',
     convencion: 'Entrega parcial',
-    factura: 'FAC-202',
-    validado: true,
   },
 ];
 
@@ -183,8 +183,6 @@ export default function DispatchPage() {
         fechaDespacho: '',
         guia: '',
         convencion: 'none' as 'none',
-        factura: '',
-        validado: false,
     };
     setDispatchData(prev => [newDispatch, ...prev]);
   }
@@ -206,8 +204,6 @@ export default function DispatchPage() {
         fechaDespacho: '',
         guia: '',
         convencion: 'none' as 'none',
-        factura: '',
-        validado: false,
     };
     setDispatchData(prev => [newDispatch, ...prev]);
   };
@@ -233,8 +229,7 @@ export default function DispatchPage() {
         item.vendedor.toLowerCase().includes(searchTermLower) ||
         item.cotizacion.toLowerCase().includes(searchTermLower) ||
         item.remision.toLowerCase().includes(searchTermLower) ||
-        item.ciudad.toLowerCase().includes(searchTermLower) ||
-        item.factura.toLowerCase().includes(searchTermLower);
+        item.ciudad.toLowerCase().includes(searchTermLower);
         
     const matchesMonth = 
         selectedMonth === 'all' || 
@@ -246,6 +241,23 @@ export default function DispatchPage() {
 
     return matchesSearch && matchesMonth && matchesYear;
   });
+  
+  const getValidationStatus = (cotizacion: string) => {
+    const validatedItem = validationHistory.find(v => v.quoteNumber === cotizacion);
+    if (validatedItem) {
+        return { status: validatedItem.status, factura: validatedItem.factura };
+    }
+    return { status: 'Pendiente', factura: '' };
+  };
+  
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+        case 'Validada': return 'default';
+        case 'Rechazada': return 'destructive';
+        default: return 'secondary';
+    }
+  }
+
 
   const handleExportPDF = () => {
     const doc = new jsPDF({
@@ -257,25 +269,27 @@ export default function DispatchPage() {
         [
           'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
           'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
-          'Guía', 'Convención', 'Factura #', 'Validado'
+          'Guía', 'Convención', 'Factura #', 'Estado Validación'
         ],
       ],
-      body: filteredData.map(item => [
-        item.vendedor,
-        item.fechaSolicitud,
-        item.cotizacion,
-        item.cliente,
-        item.ciudad,
-        item.direccion,
-        item.remision,
-        item.observacion,
-        item.rutero,
-        item.fechaDespacho,
-        item.guia,
-        item.convencion,
-        item.factura,
-        item.validado ? 'Sí' : 'No',
-      ]),
+      body: filteredData.map(item => {
+        const { status, factura } = getValidationStatus(item.cotizacion);
+        return [
+          item.vendedor,
+          item.fechaSolicitud,
+          item.cotizacion,
+          item.cliente,
+          item.ciudad,
+          item.direccion,
+          item.remision,
+          item.observacion,
+          item.rutero,
+          item.fechaDespacho,
+          item.guia,
+          item.convencion,
+          factura,
+          status,
+      ]}),
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185] },
     });
@@ -287,13 +301,14 @@ export default function DispatchPage() {
     const tableHeaders = [
         'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
         'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
-        'Guía', 'Convención', 'Factura #', 'Validado'
+        'Guía', 'Convención', 'Factura #', 'Estado Validación'
     ];
     let html = '<table><thead><tr>';
     tableHeaders.forEach(header => html += `<th>${header}</th>`);
     html += '</tr></thead><tbody>';
 
     filteredData.forEach(item => {
+        const { status, factura } = getValidationStatus(item.cotizacion);
         html += '<tr>';
         html += `<td>${item.vendedor}</td>`;
         html += `<td>${item.fechaSolicitud}</td>`;
@@ -307,8 +322,8 @@ export default function DispatchPage() {
         html += `<td>${item.fechaDespacho}</td>`;
         html += `<td>${item.guia}</td>`;
         html += `<td>${item.convencion}</td>`;
-        html += `<td>${item.factura}</td>`;
-        html += `<td>${item.validado ? 'Sí' : 'No'}</td>`;
+        html += `<td>${factura}</td>`;
+        html += `<td>${status}</td>`;
         html += '</tr>';
     });
 
@@ -438,20 +453,24 @@ export default function DispatchPage() {
                 <TableHead className="p-0">Fecha Desp.</TableHead>
                 <TableHead className="p-0">Guía</TableHead>
                 <TableHead className="p-0">Convención</TableHead>
-                {/* Contador (Read-only) */}
+                {/* Contador (Read-only from validation) */}
                 <TableHead className="p-0">Factura #</TableHead>
-                <TableHead className="p-0">Validado</TableHead>
+                <TableHead className="p-0">Estado Validación</TableHead>
                 <TableHead className="text-right p-0">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.map((item) => (
+              {filteredData.map((item) => {
+                const validation = getValidationStatus(item.cotizacion);
+                const isReadOnly = validation.status !== 'Pendiente';
+
+                return (
                 <TableRow key={item.id} className={cn("h-full", getConventionClasses(item.convencion))}>
                   {/* Asesor Fields */}
-                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.vendedor} onChange={e => handleInputChange(item.id, 'vendedor', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" type="date" value={item.fechaSolicitud} onChange={e => handleInputChange(item.id, 'fechaSolicitud', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.cotizacion} onChange={e => handleInputChange(item.id, 'cotizacion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.cliente} onChange={e => handleInputChange(item.id, 'cliente', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.vendedor} onChange={e => handleInputChange(item.id, 'vendedor', e.target.value)} disabled={!canEditAsesor || isReadOnly} /></TableCell>
+                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" type="date" value={item.fechaSolicitud} onChange={e => handleInputChange(item.id, 'fechaSolicitud', e.target.value)} disabled={!canEditAsesor || isReadOnly} /></TableCell>
+                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.cotizacion} onChange={e => handleInputChange(item.id, 'cotizacion', e.target.value)} disabled={!canEditAsesor || isReadOnly} /></TableCell>
+                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.cliente} onChange={e => handleInputChange(item.id, 'cliente', e.target.value)} disabled={!canEditAsesor || isReadOnly} /></TableCell>
                   <TableCell className="p-0 min-w-[200px]">
                     <Combobox
                       options={colombianCities}
@@ -461,12 +480,12 @@ export default function DispatchPage() {
                       searchPlaceholder="Buscar ciudad..."
                       emptyPlaceholder="No se encontró la ciudad."
                       className="bg-background/50 border-0 rounded-none focus:ring-1 focus:ring-offset-0 h-full"
-                      disabled={!canEditAsesor}
+                      disabled={!canEditAsesor || isReadOnly}
                       allowFreeText
                     />
                   </TableCell>
-                  <TableCell className="p-0"><Input className="min-w-[200px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.direccion} onChange={e => handleInputChange(item.id, 'direccion', e.target.value)} disabled={!canEditAsesor} /></TableCell>
-                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor} /></TableCell>
+                  <TableCell className="p-0"><Input className="min-w-[200px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.direccion} onChange={e => handleInputChange(item.id, 'direccion', e.target.value)} disabled={!canEditAsesor || isReadOnly} /></TableCell>
+                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditAsesor || isReadOnly} /></TableCell>
                   
                   {/* Logística Fields */}
                   <TableCell className="min-w-[200px] p-0">
@@ -529,48 +548,49 @@ export default function DispatchPage() {
                     </Select>
                   </TableCell>
 
-                  {/* Contador Fields (Read-Only) */}
-                  <TableCell className="p-0"><Input className="min-w-[150px] bg-background/50 h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" value={item.factura} disabled /></TableCell>
-                  <TableCell className="p-0 h-full">
-                    <div className="flex items-center justify-center h-full bg-background/50">
-                        <Checkbox
-                            checked={item.validado}
-                            disabled
-                        />
-                    </div>
+                  {/* Contador Fields (Read-Only from validation) */}
+                   <TableCell className="p-2 align-middle text-sm">
+                    {validation.factura || 'N/A'}
+                  </TableCell>
+                  <TableCell className="p-2 align-middle">
+                    <Badge variant={getStatusBadgeVariant(validation.status)}>
+                      {validation.status}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right p-0">
-                    {(currentUser.role === 'Asesor de Ventas' && currentUser.name === item.vendedor) && (
-                      <div className="flex items-center justify-end h-full">
-                        <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                             <Button variant="ghost" size="icon" className="h-full rounded-none">
-                               <Trash2 className="h-4 w-4 text-destructive" />
-                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
-                                Eliminar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    )}
+                    <div className="flex items-center justify-end h-full">
+                      {(canEditAsesor && currentUser.name === item.vendedor && !isReadOnly) && (
+                        <>
+                          <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                               <Button variant="ghost" size="icon" className="h-full rounded-none">
+                                 <Trash2 className="h-4 w-4 text-destructive" />
+                               </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )})}
             </TableBody>
           </Table>
         </div>
