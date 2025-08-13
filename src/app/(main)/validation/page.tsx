@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckSquare, Check, X, Search } from 'lucide-react';
+import { CheckSquare, Check, X, Search, Calendar as CalendarIcon, Download, ChevronDown } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +13,20 @@ import { useToast } from '@/hooks/use-toast';
 import { Role } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
+
+// Extend the jsPDF type to include the autoTable method
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 interface Reservation {
   id: string;
@@ -68,6 +84,7 @@ export default function ValidationPage() {
     const [pendingDispatches, setPendingDispatches] = useState(initialPendingDispatches);
     const [validationHistory, setValidationHistory] = useState<ValidatedItem[]>(initialHistory);
     const [searchTerm, setSearchTerm] = useState('');
+    const [date, setDate] = useState<DateRange | undefined>(undefined);
     const [activeTab, setActiveTab] = useState('todas');
     const { toast } = useToast();
 
@@ -141,13 +158,30 @@ export default function ValidationPage() {
                        item.quoteNumber.toLowerCase().includes(term) ||
                        item.factura.toLowerCase().includes(term);
             })
+             .filter(item => {
+                const itemDate = new Date(item.validationDate);
+                const fromDate = date?.from ? new Date(date.from) : null;
+                const toDate = date?.to ? new Date(date.to) : null;
+
+                if(fromDate) fromDate.setHours(0,0,0,0);
+                if(toDate) toDate.setHours(23,59,59,999);
+
+                const matchesDate = 
+                    !date || 
+                    (!fromDate && !toDate) ||
+                    (fromDate && !toDate && itemDate >= fromDate) ||
+                    (!fromDate && toDate && itemDate <= toDate) ||
+                    (fromDate && toDate && itemDate >= fromDate && itemDate <= toDate);
+                
+                return matchesDate;
+            })
             .filter(item => {
                 if (activeTab === 'todas') return true;
                 const typeMatch = activeTab === 'reservas' ? 'Reserva' : 'Despacho';
                 if (activeTab === 'reservas' || activeTab === 'despachos') return item.type === typeMatch;
                 return item.status.toLowerCase() === activeTab;
             });
-    }, [validationHistory, searchTerm, activeTab]);
+    }, [validationHistory, searchTerm, date, activeTab]);
 
     const getStatusBadgeVariant = (status: ValidatedItem['status']) => {
         switch (status) {
@@ -155,6 +189,47 @@ export default function ValidationPage() {
             case 'Rechazada': return 'destructive';
         }
     }
+    
+     const handleExportPDF = () => {
+        const doc = new jsPDF();
+        doc.text("Historial de Validaciones", 14, 16);
+
+        doc.autoTable({
+          head: [
+            ['Tipo', '# Cotización', 'Factura #', 'Cliente', 'Estado', 'Validado Por', 'Fecha Validación']
+          ],
+          body: filteredHistory.map(item => [
+            item.type,
+            item.quoteNumber,
+            item.factura,
+            item.customer,
+            item.status,
+            item.validatedBy,
+            item.validationDate,
+          ]),
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [41, 128, 185] },
+        });
+        
+        doc.save('Historial de Validaciones.pdf');
+    };
+
+    const handleExportXLSX = () => {
+        const dataToExport = filteredHistory.map(item => ({
+            'Tipo': item.type,
+            '# Cotización': item.quoteNumber,
+            'Factura #': item.factura,
+            'Cliente': item.customer,
+            'Estado': item.status,
+            'Validado Por': item.validatedBy,
+            'Fecha Validación': item.validationDate,
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(dataToExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Validaciones");
+        XLSX.writeFile(wb, "Historial de Validaciones.xlsx");
+    };
 
 
   return (
@@ -287,8 +362,25 @@ export default function ValidationPage() {
         
         <Card>
             <CardHeader>
-                <CardTitle>Historial de Validaciones</CardTitle>
-                <CardDescription>Busque y filtre a través de todas las validaciones completadas.</CardDescription>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <CardTitle>Historial de Validaciones</CardTitle>
+                        <CardDescription>Busque y filtre a través de todas las validaciones completadas.</CardDescription>
+                    </div>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">
+                                <Download className="mr-2 h-4 w-4" />
+                                Descargar Historial
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={handleExportPDF}>Descargar como PDF</DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleExportXLSX}>Descargar como XLSX</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </CardHeader>
             <CardContent>
                  <div className="mb-4 flex flex-col sm:flex-row items-center gap-4">
@@ -301,8 +393,44 @@ export default function ValidationPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <Button
+                            id="date"
+                            variant={"outline"}
+                            className={cn(
+                            "w-full sm:w-[300px] justify-start text-left font-normal",
+                            !date && "text-muted-foreground"
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date?.from ? (
+                            date.to ? (
+                                <>
+                                {format(date.from, "LLL dd, y")} -{" "}
+                                {format(date.to, "LLL dd, y")}
+                                </>
+                            ) : (
+                                format(date.from, "LLL dd, y")
+                            )
+                            ) : (
+                            <span>Seleccione un rango de fechas</span>
+                            )}
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={date?.from}
+                            selected={date}
+                            onSelect={setDate}
+                            numberOfMonths={2}
+                        />
+                        </PopoverContent>
+                    </Popover>
                     <Tabs defaultValue="todas" onValueChange={setActiveTab} className="w-full sm:w-auto">
-                        <TabsList>
+                        <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
                             <TabsTrigger value="todas">Todas</TabsTrigger>
                             <TabsTrigger value="reservas">Reservas</TabsTrigger>
                             <TabsTrigger value="despachos">Despachos</TabsTrigger>
