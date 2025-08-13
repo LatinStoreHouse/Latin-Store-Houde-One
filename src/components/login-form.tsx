@@ -1,17 +1,32 @@
+
 'use client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 export function LoginForm() {
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd redirect to the main page.
-    // For now, we'll just log to the console.
+    // In a real app, you'd handle authentication here.
+    // We'll simulate a successful login and redirect.
     console.log('Login submitted');
-    window.location.href = '/';
+    
+    // Check if there's a pending approval message
+    const pendingApproval = new URLSearchParams(window.location.search).get('pending_approval');
+    if (pendingApproval) {
+        toast({
+            title: 'Registro Enviado',
+            description: 'Gracias por registrarte. Tu cuenta está pendiente de aprobación por un administrador.',
+        });
+    }
+
+    router.replace('/');
   };
 
   return (
@@ -34,7 +49,7 @@ export function LoginForm() {
       </Button>
        <div className="mt-4 text-center text-sm">
         ¿No tienes una cuenta?{' '}
-        <Link href="#" className="font-semibold text-primary hover:underline">
+        <Link href="/register" className="font-semibold text-primary hover:underline">
           Regístrate
         </Link>
       </div>
