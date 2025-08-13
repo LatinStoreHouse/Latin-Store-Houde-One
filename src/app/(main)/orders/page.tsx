@@ -176,6 +176,7 @@ export default function DispatchPage() {
       vendedor: currentUser.name,
       fechaSolicitud: new Date().toISOString().split('T')[0],
       ...data,
+      ciudad: '', // City will be handled by logistics in the main table
       remision: '',
       observacion: 'none',
       rutero: 'none',
@@ -332,7 +333,7 @@ export default function DispatchPage() {
     const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-a.href = url;
+    a.href = url;
     a.download = 'Reporte de Despachos.xls';
     document.body.appendChild(a);
     a.click();
@@ -341,267 +342,276 @@ a.href = url;
   };
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                  <CardTitle>Despachos y Facturación</CardTitle>
-                  <CardDescription>
-                      Gestione las solicitudes de despacho, la logística y la facturación.
-                  </CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                  {canCreateDispatch && (
-                      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                          <DialogTrigger asChild>
-                              <Button>
-                                  <PlusCircle className="mr-2 h-4 w-4" />
-                                  Nuevo Despacho
-                              </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[425px]">
-                              <DialogHeader>
-                                  <DialogTitle>Crear Solicitud de Despacho</DialogTitle>
-                                  <DialogDescription>
-                                      Complete el formulario para enviar una nueva solicitud de despacho a validación.
-                                  </DialogDescription>
-                              </DialogHeader>
-                              <DispatchForm 
-                                  onSave={addNewDispatch} 
-                                  onCancel={() => setIsFormOpen(false)}
-                                  cities={colombianCities}
-                              />
-                          </DialogContent>
-                      </Dialog>
-                  )}
-                  <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                          <Button variant="outline">
-                              <FileDown className="mr-2 h-4 w-4" />
-                              Descargar
-                              <ChevronDown className="ml-2 h-4 w-4" />
-                          </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                          <DropdownMenuItem onClick={handleExportPDF}>Descargar como PDF</DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleExportHTML}>Descargar para Excel (HTML)</DropdownMenuItem>
-                      </DropdownMenuContent>
-                  </DropdownMenu>
-              </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex flex-col sm:flex-row items-center gap-4">
-              <div className="relative flex-1 w-full sm:w-auto">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                  placeholder="Buscar por cliente, vendedor, cotización..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-              </div>
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue placeholder="Filtrar por mes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {months.map(month => (
-                          <SelectItem key={month.value} value={month.value}>
-                              {month.label}
-                          </SelectItem>
-                      ))}
-                  </SelectContent>
-              </Select>
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                  <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue placeholder="Filtrar por año" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {years.map(year => (
-                          <SelectItem key={year.value} value={year.value}>
-                              {year.label}
-                          </SelectItem>
-                      ))}
-                  </SelectContent>
-              </Select>
-          </div>
-          <div className="overflow-x-auto">
-            <Table className="min-w-full whitespace-nowrap">
-              <TableHeader>
-                <TableRow>
-                  {/* Asesor */}
-                  <TableHead className="p-2">Vendedor</TableHead>
-                  <TableHead className="p-2">Fecha Sol.</TableHead>
-                  <TableHead className="p-2">Cotización</TableHead>
-                  <TableHead className="p-2">Cliente</TableHead>
-                  <TableHead className="p-2">Ciudad</TableHead>
-                  <TableHead className="p-2">Dirección</TableHead>
-                  {/* Logística */}
-                  <TableHead className="p-2">Remisión</TableHead>
-                  <TableHead className="p-2">
-                      <div className="flex items-center">
-                          Observación
-                          {canEditLogistica && (
-                              <Dialog>
-                                  <DialogTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
-                                          <PlusCircle className="h-4 w-4" />
-                                      </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                      <DialogHeader>
-                                          <DialogTitle>Añadir Nueva Observación</DialogTitle>
-                                      </DialogHeader>
-                                      <div className="flex items-center gap-2">
-                                          <Input
-                                              value={newObservation}
-                                              onChange={(e) => setNewObservation(e.target.value)}
-                                              placeholder="Escriba una nueva observación"
-                                          />
-                                          <Button onClick={handleAddNewObservation}>Añadir</Button>
-                                      </div>
-                                  </DialogContent>
-                              </Dialog>
-                          )}
-                      </div>
-                  </TableHead>
-                  <TableHead className="p-2">Rutero</TableHead>
-                  <TableHead className="p-2">Fecha Desp.</TableHead>
-                  <TableHead className="p-2">Guía</TableHead>
-                  <TableHead className="p-2">Convención</TableHead>
-                  {/* Contador (Read-only from validation) */}
-                  <TableHead className="p-2">Factura #</TableHead>
-                  <TableHead className="p-2 text-center">Estado Validación</TableHead>
-                  <TableHead className="text-right p-2">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredData.map((item) => {
-                  const validation = getValidationStatus(item.cotizacion);
-                  const isReadOnly = validation.status !== 'Pendiente';
-
-                  return (
-                  <TableRow key={item.id} className={cn("h-auto", getConventionClasses(item.convencion))}>
-                    {/* Asesor Fields */}
-                    <TableCell className="p-2 align-middle">{item.vendedor}</TableCell>
-                    <TableCell className="p-2 align-middle">{item.fechaSolicitud}</TableCell>
-                    <TableCell className="p-2 align-middle">{item.cotizacion}</TableCell>
-                    <TableCell className="p-2 align-middle">{item.cliente}</TableCell>
-                    <TableCell className="p-2 align-middle">{item.ciudad}</TableCell>
-                    <TableCell className="p-2 align-middle">{item.direccion}</TableCell>
-                    
-                    {/* Logística Fields */}
-                    <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                    <TableCell className="p-0 min-w-[200px]">
-                      <Select
-                          value={item.observacion}
-                          onValueChange={(value) => handleInputChange(item.id, 'observacion', value)}
-                          disabled={!canEditLogistica}
-                      >
-                          <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
-                             <SelectValue placeholder="Seleccionar observación" />
-                          </SelectTrigger>
-                          <SelectContent>
-                             {observationOptions.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                              </SelectItem>
-                             ))}
-                          </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="p-0 min-w-[200px]">
-                       <Select
-                          value={item.rutero}
-                          onValueChange={(value) => handleInputChange(item.id, 'rutero', value)}
-                          disabled={!canEditLogistica}
-                      >
-                          <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
-                             <SelectValue placeholder="Seleccionar rutero" />
-                          </SelectTrigger>
-                          <SelectContent>
-                             {ruteroOptions.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                              </SelectItem>
-                             ))}
-                          </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                    <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                    <TableCell className="p-0 min-w-[200px]">
-                       <Select
-                          value={item.convencion}
-                          onValueChange={(value) => handleInputChange(item.id, 'convencion', value)}
-                          disabled={!canEditLogistica}
-                      >
-                          <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
-                             <SelectValue placeholder="Seleccionar estado" />
-                          </SelectTrigger>
-                          <SelectContent>
-                             {conventionOptions.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                  <div className="flex items-center gap-2">
-                                      {option.value && option.value !== 'none' && <div className={cn("w-2 h-2 rounded-full", option.bgColor?.replace('/50',''))}></div>}
-                                      {option.label}
-                                  </div>
-                              </SelectItem>
-                             ))}
-                          </SelectContent>
-                      </Select>
-                    </TableCell>
-
-                    {/* Contador Fields (Read-Only from validation) */}
-                     <TableCell className="p-2 align-middle text-sm text-center">
-                      {validation.factura || 'N/A'}
-                    </TableCell>
-                    <TableCell className="p-2 align-middle text-center">
-                      <Badge variant={getStatusBadgeVariant(validation.status)}>
-                        {validation.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right p-0">
-                      <div className="flex items-center justify-end h-full">
-                        {(currentUser.name === item.vendedor && !isReadOnly) && (
-                          <>
-                            <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
-                              <Copy className="h-4 w-4" />
+    <Card>
+      <CardHeader>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <CardTitle>Despachos y Facturación</CardTitle>
+                <CardDescription>
+                    Gestione las solicitudes de despacho, la logística y la facturación.
+                </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+                {canCreateDispatch && (
+                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Nuevo Despacho
                             </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                 <Button variant="ghost" size="icon" className="h-full rounded-none">
-                                   <Trash2 className="h-4 w-4 text-destructive" />
-                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
-                                    Eliminar
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Crear Solicitud de Despacho</DialogTitle>
+                                <DialogDescription>
+                                    Complete el formulario para enviar una nueva solicitud de despacho a validación.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DispatchForm 
+                                onSave={addNewDispatch} 
+                                onCancel={() => setIsFormOpen(false)}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                )}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                            <FileDown className="mr-2 h-4 w-4" />
+                            Descargar
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={handleExportPDF}>Descargar como PDF</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportHTML}>Descargar para Excel (HTML)</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4 flex flex-col sm:flex-row items-center gap-4">
+            <div className="relative flex-1 w-full sm:w-auto">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                placeholder="Buscar por cliente, vendedor, cotización..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Filtrar por mes" />
+                </SelectTrigger>
+                <SelectContent>
+                    {months.map(month => (
+                        <SelectItem key={month.value} value={month.value}>
+                            {month.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="Filtrar por año" />
+                </SelectTrigger>
+                <SelectContent>
+                    {years.map(year => (
+                        <SelectItem key={year.value} value={year.value}>
+                            {year.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+        <div className="overflow-x-auto">
+          <Table className="min-w-full whitespace-nowrap">
+            <TableHeader>
+              <TableRow>
+                {/* Asesor */}
+                <TableHead className="p-2">Vendedor</TableHead>
+                <TableHead className="p-2">Fecha Sol.</TableHead>
+                <TableHead className="p-2">Cotización</TableHead>
+                <TableHead className="p-2">Cliente</TableHead>
+                <TableHead className="p-2">Ciudad</TableHead>
+                <TableHead className="p-2">Dirección</TableHead>
+                {/* Logística */}
+                <TableHead className="p-2">Remisión</TableHead>
+                <TableHead className="p-2">
+                    <div className="flex items-center">
+                        Observación
+                        {canEditLogistica && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
+                                        <PlusCircle className="h-4 w-4" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Añadir Nueva Observación</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            value={newObservation}
+                                            onChange={(e) => setNewObservation(e.target.value)}
+                                            placeholder="Escriba una nueva observación"
+                                        />
+                                        <Button onClick={handleAddNewObservation}>Añadir</Button>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                         )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )})}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </>
+                    </div>
+                </TableHead>
+                <TableHead className="p-2">Rutero</TableHead>
+                <TableHead className="p-2">Fecha Desp.</TableHead>
+                <TableHead className="p-2">Guía</TableHead>
+                <TableHead className="p-2">Convención</TableHead>
+                {/* Contador (Read-only from validation) */}
+                <TableHead className="p-2">Factura #</TableHead>
+                <TableHead className="p-2 text-center">Estado Validación</TableHead>
+                <TableHead className="text-right p-2">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredData.map((item) => {
+                const validation = getValidationStatus(item.cotizacion);
+                const isReadOnly = validation.status !== 'Pendiente';
+
+                return (
+                <TableRow key={item.id} className={cn("h-auto", getConventionClasses(item.convencion))}>
+                  {/* Asesor Fields */}
+                  <TableCell className="p-2 align-middle">{item.vendedor}</TableCell>
+                  <TableCell className="p-2 align-middle">{item.fechaSolicitud}</TableCell>
+                  <TableCell className="p-2 align-middle">{item.cotizacion}</TableCell>
+                  <TableCell className="p-2 align-middle">{item.cliente}</TableCell>
+                  <TableCell className="p-0">
+                    <Combobox
+                        options={colombianCities}
+                        value={item.ciudad}
+                        onValueChange={(value) => handleInputChange(item.id, 'ciudad', value)}
+                        placeholder="Ciudad"
+                        searchPlaceholder="Buscar ciudad..."
+                        emptyPlaceholder="No se encontró."
+                        disabled={!canEditLogistica}
+                        className="h-full bg-transparent border-0 rounded-none focus:ring-0"
+                        allowFreeText
+                    />
+                  </TableCell>
+                  <TableCell className="p-2 align-middle">{item.direccion}</TableCell>
+                  
+                  {/* Logística Fields */}
+                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="p-0 min-w-[200px]">
+                    <Select
+                        value={item.observacion}
+                        onValueChange={(value) => handleInputChange(item.id, 'observacion', value)}
+                        disabled={!canEditLogistica}
+                    >
+                        <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
+                           <SelectValue placeholder="Seleccionar observación" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {observationOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                            </SelectItem>
+                           ))}
+                        </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="p-0 min-w-[200px]">
+                     <Select
+                        value={item.rutero}
+                        onValueChange={(value) => handleInputChange(item.id, 'rutero', value)}
+                        disabled={!canEditLogistica}
+                    >
+                        <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
+                           <SelectValue placeholder="Seleccionar rutero" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {ruteroOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                            </SelectItem>
+                           ))}
+                        </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="p-0 min-w-[200px]">
+                     <Select
+                        value={item.convencion}
+                        onValueChange={(value) => handleInputChange(item.id, 'convencion', value)}
+                        disabled={!canEditLogistica}
+                    >
+                        <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
+                           <SelectValue placeholder="Seleccionar estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {conventionOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                                <div className="flex items-center gap-2">
+                                    {option.value && option.value !== 'none' && <div className={cn("w-2 h-2 rounded-full", option.bgColor?.replace('/50',''))}></div>}
+                                    {option.label}
+                                </div>
+                            </SelectItem>
+                           ))}
+                        </SelectContent>
+                    </Select>
+                  </TableCell>
+
+                  {/* Contador Fields (Read-Only from validation) */}
+                   <TableCell className="p-2 align-middle text-sm text-center">
+                    {validation.factura || 'N/A'}
+                  </TableCell>
+                  <TableCell className="p-2 align-middle text-center">
+                    <Badge variant={getStatusBadgeVariant(validation.status)}>
+                      {validation.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right p-0">
+                    <div className="flex items-center justify-end h-full">
+                      {(currentUser.name === item.vendedor && !isReadOnly) && (
+                        <>
+                          <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                               <Button variant="ghost" size="icon" className="h-full rounded-none">
+                                 <Trash2 className="h-4 w-4 text-destructive" />
+                               </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )})}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

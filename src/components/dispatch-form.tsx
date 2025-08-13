@@ -13,12 +13,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
 
 const dispatchFormSchema = z.object({
   cotizacion: z.string().min(1, 'La cotización es requerida.'),
   cliente: z.string().min(1, 'El cliente es requerido.'),
-  ciudad: z.string().min(1, 'La ciudad es requerida.'),
   direccion: z.string().min(1, 'La dirección es requerida.'),
 });
 
@@ -27,16 +25,14 @@ export type DispatchFormValues = z.infer<typeof dispatchFormSchema>;
 interface DispatchFormProps {
   onSave: (data: DispatchFormValues) => void;
   onCancel: () => void;
-  cities: ComboboxOption[];
 }
 
-export function DispatchForm({ onSave, onCancel, cities }: DispatchFormProps) {
+export function DispatchForm({ onSave, onCancel }: DispatchFormProps) {
   const form = useForm<DispatchFormValues>({
     resolver: zodResolver(dispatchFormSchema),
     defaultValues: {
       cotizacion: '',
       cliente: '',
-      ciudad: '',
       direccion: '',
     },
   });
@@ -73,25 +69,6 @@ export function DispatchForm({ onSave, onCancel, cities }: DispatchFormProps) {
               <FormMessage />
             </FormItem>
           )}
-        />
-        <FormField
-            control={form.control}
-            name="ciudad"
-            render={({ field }) => (
-                <FormItem className="flex flex-col">
-                    <FormLabel>Ciudad</FormLabel>
-                    <Combobox
-                        options={cities}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Seleccione una ciudad"
-                        searchPlaceholder="Buscar ciudad..."
-                        emptyPlaceholder="No se encontró la ciudad."
-                        allowFreeText
-                    />
-                    <FormMessage />
-                </FormItem>
-            )}
         />
         <FormField
           control={form.control}
