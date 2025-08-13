@@ -22,7 +22,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Combobox } from '@/components/ui/combobox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { DispatchForm, type DispatchFormValues } from '@/components/dispatch-form';
@@ -132,15 +131,6 @@ const months = [
     { value: '12', label: 'Diciembre' },
 ];
 
-const colombianCities = [
-  "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta", 
-  "Soacha", "Soledad", "Bucaramanga", "Ibagué", "Santa Marta", "Villavicencio", 
-  "Pereira", "Manizales", "Pasto", "Neiva", "Armenia", "Popayán", "Sincelejo", 
-  "Montería", "Valledupar", "Tunja", "Riohacha", "Florencia", "Yopal", 
-  "Quibdó", "Arauca", "San Andrés", "Mocoa", "Leticia", "Inírida", 
-  "San José del Guaviare", "Puerto Carreño", "Mitú"
-].map(city => ({ value: city, label: city }));
-
 // In a real app, this would come from an auth context.
 const currentUser = {
   name: 'John Doe',
@@ -154,14 +144,7 @@ export default function DispatchPage() {
   const [selectedYear, setSelectedYear] = useState('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDispatch, setEditingDispatch] = useState<DispatchData | null>(null);
-  const [observationOptions, setObservationOptions] = useState([
-    { value: 'none', label: 'Sin observación' },
-    { value: 'Entrega Urgente', label: 'Entrega Urgente' },
-    { value: 'Cliente ausente', label: 'Cliente ausente' },
-    { value: 'Dirección incorrecta', label: 'Dirección incorrecta' },
-  ]);
-  const [newObservation, setNewObservation] = useState('');
-
+  
   const canEditLogistica = currentUser.role === 'Administrador' || currentUser.role === 'Logística';
   const canCreateDispatch = currentUser.role === 'Administrador' || currentUser.role === 'Asesor de Ventas';
   
@@ -230,14 +213,6 @@ export default function DispatchPage() {
     setDispatchData(prev => [newDispatch, ...prev]);
   };
 
-  const handleAddNewObservation = () => {
-    if (newObservation && !observationOptions.find(opt => opt.value === newObservation)) {
-        const newOption = { value: newObservation, label: newObservation };
-        setObservationOptions(prev => [...prev, newOption]);
-        setNewObservation('');
-    }
-  };
-  
   const years = useMemo(() => {
     const allYears = new Set(dispatchData.map(item => item.fechaSolicitud.substring(0, 4)));
     const yearOptions = Array.from(allYears).sort().reverse().map(year => ({ value: year, label: year }));
@@ -442,11 +417,9 @@ export default function DispatchPage() {
                 <TableHead className="p-2">Cliente</TableHead>
                 <TableHead className="p-2">Ciudad</TableHead>
                 <TableHead className="p-2">Dirección</TableHead>
+                <TableHead className="p-2">Observación</TableHead>
                 {/* Logística */}
                 <TableHead className="p-2">Remisión</TableHead>
-                <TableHead className="p-2">
-                    Observación
-                </TableHead>
                 <TableHead className="p-2">Rutero</TableHead>
                 <TableHead className="p-2">Fecha Desp.</TableHead>
                 <TableHead className="p-2">Guía</TableHead>
@@ -471,12 +444,10 @@ export default function DispatchPage() {
                   <TableCell className="p-2 align-middle">{item.cliente}</TableCell>
                   <TableCell className="p-2 align-middle">{item.ciudad}</TableCell>
                   <TableCell className="p-2 align-middle">{item.direccion}</TableCell>
+                  <TableCell className="p-2 align-middle text-sm text-muted-foreground whitespace-pre-wrap min-w-[200px]">{item.observacion}</TableCell>
                   
                   {/* Logística Fields */}
                   <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell className="p-0 min-w-[200px]">
-                    <Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.observacion} onChange={e => handleInputChange(item.id, 'observacion', e.target.value)} disabled={!canEditLogistica} />
-                  </TableCell>
                   <TableCell className="p-0 min-w-[200px]">
                      <Select
                         value={item.rutero}
@@ -592,4 +563,5 @@ export default function DispatchPage() {
       </Dialog>
     </Card>
   );
-}
+
+    
