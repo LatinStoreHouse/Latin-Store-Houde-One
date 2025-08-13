@@ -87,7 +87,7 @@ const getIconForSubItem = (label: string) => {
 }
 
 const Logo = () => (
-    <div className="relative h-10 w-full">
+    <div className="relative h-12 w-full">
         <Image 
             src="https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp"
             alt="Latin Store House Logo"
@@ -122,8 +122,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-32">
+          <div className="flex w-full items-center justify-center">
+            <div className="h-12 w-40">
               <Logo />
             </div>
           </div>
