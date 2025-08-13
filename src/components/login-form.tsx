@@ -33,7 +33,7 @@ export function LoginForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">Correo Electrónico</Label>
-        <Input id="email" type="email" placeholder="nombre@ejemplo.com" required />
+        <Input id="email" type="email" placeholder="nombre@ejemplo.com" />
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -42,7 +42,7 @@ export function LoginForm() {
                 ¿Olvidaste tu contraseña?
             </Link>
         </div>
-        <Input id="password" type="password" required />
+        <Input id="password" type="password" />
       </div>
       <Button type="submit" className="w-full">
         Iniciar Sesión
