@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy, Edit } from 'lucide-react';
+import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy, Edit, Calendar as CalendarIcon } from 'lucide-react';
 import { Role } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import {
@@ -26,6 +26,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { DispatchForm, type DispatchFormValues } from '@/components/dispatch-form';
+import { DateRange } from 'react-day-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -116,22 +120,6 @@ const initialDispatchData = [
 type DispatchData = typeof initialDispatchData[0];
 
 
-const months = [
-    { value: 'all', label: 'Todos los Meses' },
-    { value: '01', label: 'Enero' },
-    { value: '02', label: 'Febrero' },
-    { value: '03', label: 'Marzo' },
-    { value: '04', label: 'Abril' },
-    { value: '05', label: 'Mayo' },
-    { value: '06', label: 'Junio' },
-    { value: '07', label: 'Julio' },
-    { value: '08', label: 'Agosto' },
-    { value: '09', label: 'Septiembre' },
-    { value: '10', label: 'Octubre' },
-    { value: '11', label: 'Noviembre' },
-    { value: '12', label: 'Diciembre' },
-];
-
 // In a real app, this would come from an auth context.
 const currentUser = {
   name: 'John Doe',
@@ -141,8 +129,7 @@ const currentUser = {
 export default function DispatchPage() {
   const [dispatchData, setDispatchData] = useState(initialDispatchData);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('all');
-  const [selectedYear, setSelectedYear] = useState('all');
+  const [date, setDate] = useState<DateRange | undefined>(undefined);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDispatch, setEditingDispatch] = useState<DispatchData | null>(null);
   
@@ -214,12 +201,6 @@ export default function DispatchPage() {
     setDispatchData(prev => [newDispatch, ...prev]);
   };
 
-  const years = useMemo(() => {
-    const allYears = new Set(dispatchData.map(item => item.fechaSolicitud.substring(0, 4)));
-    const yearOptions = Array.from(allYears).sort().reverse().map(year => ({ value: year, label: year }));
-    return [{ value: 'all', label: 'Todos los Años' }, ...yearOptions];
-  }, [dispatchData]);
-
   const filteredData = dispatchData.filter(item => {
     const searchTermLower = searchTerm.toLowerCase();
     const matchesSearch = 
@@ -229,15 +210,21 @@ export default function DispatchPage() {
         item.remision.toLowerCase().includes(searchTermLower) ||
         item.ciudad.toLowerCase().includes(searchTermLower);
         
-    const matchesMonth = 
-        selectedMonth === 'all' || 
-        item.fechaSolicitud.substring(5, 7) === selectedMonth;
+    const itemDate = new Date(item.fechaSolicitud);
+    const fromDate = date?.from ? new Date(date.from) : null;
+    const toDate = date?.to ? new Date(date.to) : null;
 
-    const matchesYear =
-        selectedYear === 'all' ||
-        item.fechaSolicitud.substring(0, 4) === selectedYear;
+    if(fromDate) fromDate.setHours(0,0,0,0);
+    if(toDate) toDate.setHours(23,59,59,999);
 
-    return matchesSearch && matchesMonth && matchesYear;
+    const matchesDate = 
+        !date || 
+        (!fromDate && !toDate) ||
+        (fromDate && !toDate && itemDate >= fromDate) ||
+        (!fromDate && toDate && itemDate <= toDate) ||
+        (fromDate && toDate && itemDate >= fromDate && itemDate <= toDate);
+
+    return matchesSearch && matchesDate;
   });
   
   const getValidationStatus = (cotizacion: string) => {
@@ -372,30 +359,42 @@ export default function DispatchPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-full sm:w-48">
-                    <SelectValue placeholder="Filtrar por mes" />
-                </SelectTrigger>
-                <SelectContent>
-                    {months.map(month => (
-                        <SelectItem key={month.value} value={month.value}>
-                            {month.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-full sm:w-48">
-                    <SelectValue placeholder="Filtrar por año" />
-                </SelectTrigger>
-                <SelectContent>
-                    {years.map(year => (
-                        <SelectItem key={year.value} value={year.value}>
-                            {year.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+            <Popover>
+                <PopoverTrigger asChild>
+                <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                    "w-[300px] justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                    )}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                    date.to ? (
+                        <>
+                        {format(date.from, "LLL dd, y")} -{" "}
+                        {format(date.to, "LLL dd, y")}
+                        </>
+                    ) : (
+                        format(date.from, "LLL dd, y")
+                    )
+                    ) : (
+                    <span>Seleccione un rango de fechas</span>
+                    )}
+                </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                />
+                </PopoverContent>
+            </Popover>
         </div>
         <div className="overflow-x-auto">
           <Table className="min-w-full whitespace-nowrap">
