@@ -501,7 +501,7 @@ export default function DispatchPage() {
                   </TableCell>
                   <TableCell className="text-right p-0">
                     <div className="flex items-center justify-end h-full">
-                      {(currentUser.name === item.vendedor && !isReadOnly) && (
+                      {(currentUser.role === 'Administrador' || (currentUser.name === item.vendedor && !isReadOnly)) && (
                         <>
                           <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none">
                             <Edit className="h-4 w-4" />
@@ -563,5 +563,4 @@ export default function DispatchPage() {
       </Dialog>
     </Card>
   );
-
-    
+}
