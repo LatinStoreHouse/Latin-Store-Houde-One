@@ -20,7 +20,6 @@ const dispatchFormSchema = z.object({
   cliente: z.string().min(1, 'El cliente es requerido.'),
   ciudad: z.string().min(1, 'La ciudad es requerida.'),
   direccion: z.string().min(1, 'La dirección es requerida.'),
-  remision: z.string().optional(),
 });
 
 export type DispatchFormValues = z.infer<typeof dispatchFormSchema>;
@@ -39,7 +38,6 @@ export function DispatchForm({ onSave, onCancel, cities }: DispatchFormProps) {
       cliente: '',
       ciudad: '',
       direccion: '',
-      remision: '',
     },
   });
 
@@ -103,19 +101,6 @@ export function DispatchForm({ onSave, onCancel, cities }: DispatchFormProps) {
               <FormLabel>Dirección de Entrega</FormLabel>
               <FormControl>
                 <Input placeholder="Ej: Calle 123 # 45 - 67" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="remision"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Remisión (Opcional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Ej: REM-001" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

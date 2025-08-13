@@ -176,6 +176,7 @@ export default function DispatchPage() {
       vendedor: currentUser.name,
       fechaSolicitud: new Date().toISOString().split('T')[0],
       ...data,
+      remision: '',
       observacion: 'none',
       rutero: 'none',
       fechaDespacho: '',
@@ -331,7 +332,7 @@ export default function DispatchPage() {
     const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
+a.href = url;
     a.download = 'Reporte de Despachos.xls';
     document.body.appendChild(a);
     a.click();
@@ -437,8 +438,8 @@ export default function DispatchPage() {
                   <TableHead className="p-2">Cliente</TableHead>
                   <TableHead className="p-2">Ciudad</TableHead>
                   <TableHead className="p-2">Dirección</TableHead>
-                  <TableHead className="p-2">Remisión</TableHead>
                   {/* Logística */}
+                  <TableHead className="p-2">Remisión</TableHead>
                   <TableHead className="p-2">
                       <div className="flex items-center">
                           Observación
@@ -490,9 +491,9 @@ export default function DispatchPage() {
                     <TableCell className="p-2 align-middle">{item.cliente}</TableCell>
                     <TableCell className="p-2 align-middle">{item.ciudad}</TableCell>
                     <TableCell className="p-2 align-middle">{item.direccion}</TableCell>
-                    <TableCell className="p-2 align-middle">{item.remision}</TableCell>
                     
                     {/* Logística Fields */}
+                    <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditLogistica} /></TableCell>
                     <TableCell className="p-0 min-w-[200px]">
                       <Select
                           value={item.observacion}
