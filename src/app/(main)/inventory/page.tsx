@@ -156,10 +156,10 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange }: {
     return 'Agotado';
   };
 
-  const getStatusVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
+  const getStatusVariant = (status: string): 'success' | 'secondary' | 'destructive' | 'outline' => {
     switch (status) {
       case 'En Stock':
-        return 'default';
+        return 'success';
       case 'Poco Stock':
         return 'secondary';
       case 'Agotado':
@@ -182,13 +182,13 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange }: {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="p-0">Nombre del Producto</TableHead>
-          <TableHead className="text-right p-0">Bodega</TableHead>
-          <TableHead className="text-right p-0">Separadas Bodega</TableHead>
-          <TableHead className="text-right p-0">Zona Franca</TableHead>
-          <TableHead className="text-right p-0">Separadas ZF</TableHead>
-          <TableHead className="text-right p-0">Muestras</TableHead>
-          <TableHead className="p-0">Estado</TableHead>
+          <TableHead className="p-2">Nombre del Producto</TableHead>
+          <TableHead className="text-right p-2">Bodega</TableHead>
+          <TableHead className="text-right p-2">Separadas Bodega</TableHead>
+          <TableHead className="text-right p-2">Zona Franca</TableHead>
+          <TableHead className="text-right p-2">Separadas ZF</TableHead>
+          <TableHead className="text-right p-2">Muestras</TableHead>
+          <TableHead className="p-2">Estado</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -201,7 +201,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange }: {
 
           return (
             <TableRow key={name}>
-              <TableCell className="font-medium p-0">
+              <TableCell className="font-medium p-2">
                 {canEdit ? (
                     <Input 
                         defaultValue={name} 
@@ -584,31 +584,35 @@ export default function InventoryPage() {
       </CardHeader>
       <CardContent>
          <Tabs defaultValue={brands[0]} className="w-full">
-            <TabsList>
+            <TabsList className="grid w-full grid-cols-7">
                 {brands.map((brand) => (
                     <TabsTrigger value={brand} key={brand}>{formatBrandName(brand)}</TabsTrigger>
                 ))}
             </TabsList>
             {brands.map((brand) => (
                 <TabsContent value={brand} key={brand}>
-                    <Tabs defaultValue={Object.keys(inventoryData[brand as keyof typeof inventoryData])[0] || 'default'} className="w-full">
-                        <TabsList>
-                            {Object.keys(inventoryData[brand as keyof typeof inventoryData]).map((subCategory) => (
-                                <TabsTrigger value={subCategory} key={subCategory}>{subCategory}</TabsTrigger>
+                    <Card>
+                      <CardContent className="p-0">
+                        <Tabs defaultValue={Object.keys(inventoryData[brand as keyof typeof inventoryData])[0] || 'default'} className="w-full" orientation="vertical">
+                            <TabsList>
+                                {Object.keys(inventoryData[brand as keyof typeof inventoryData]).map((subCategory) => (
+                                    <TabsTrigger value={subCategory} key={subCategory}>{subCategory}</TabsTrigger>
+                                ))}
+                            </TabsList>
+                            {Object.entries(inventoryData[brand as keyof typeof inventoryData]).map(([subCategory, products]) => (
+                                 <TabsContent value={subCategory} key={subCategory}>
+                                    <ProductTable 
+                                        products={products} 
+                                        brand={brand}
+                                        subCategory={subCategory}
+                                        canEdit={canEdit}
+                                        onDataChange={handleDataChange}
+                                    />
+                                </TabsContent>
                             ))}
-                        </TabsList>
-                        {Object.entries(inventoryData[brand as keyof typeof inventoryData]).map(([subCategory, products]) => (
-                             <TabsContent value={subCategory} key={subCategory}>
-                                <ProductTable 
-                                    products={products} 
-                                    brand={brand}
-                                    subCategory={subCategory}
-                                    canEdit={canEdit}
-                                    onDataChange={handleDataChange}
-                                />
-                            </TabsContent>
-                        ))}
-                    </Tabs>
+                        </Tabs>
+                      </CardContent>
+                    </Card>
                 </TabsContent>
             ))}
         </Tabs>

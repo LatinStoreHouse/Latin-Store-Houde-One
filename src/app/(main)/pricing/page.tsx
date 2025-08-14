@@ -260,92 +260,96 @@ export default function PricingPage() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={brands[0]} className="w-full">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-7">
             {brands.map((brand) => (
               <TabsTrigger value={brand} key={brand}>{brand}</TabsTrigger>
             ))}
           </TabsList>
           {brands.map((brand) => (
             <TabsContent value={brand} key={brand}>
-                <Tabs defaultValue={Object.keys(productStructure[brand as keyof typeof productStructure])[0]} className="w-full">
-                    <TabsList>
-                        {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
-                          <TabsTrigger value={line} key={line}>{line}</TabsTrigger>
-                        ))}
-                    </TabsList>
-                    {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
-                        <TabsContent value={line} key={line}>
-                          {line !== 'Insumos' && (
-                            <div className="mb-6 rounded-md border p-4">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                                  <div className="flex-1 space-y-1.5 md:col-span-1">
-                                    <Label htmlFor={`line-price-${brand}-${line}`}>Nuevo Precio para la Línea {line}</Label>
-                                     <Input
-                                       id={`line-price-${brand}-${line}`}
-                                       type="text"
-                                       placeholder="Ingrese un nuevo precio..."
-                                       value={new Intl.NumberFormat('es-CO').format(Number(linePrices[line] || 0))}
-                                       onChange={(e) => handleLinePriceChange(line, e.target.value)}
-                                     />
-                                  </div>
-                                  {lineHasMultipleSizes(brand, line) && (
-                                     <div className="md:col-span-1">
-                                        <Label>Aplicar a Tamaño</Label>
-                                        <RadioGroup 
-                                            defaultValue="todos" 
-                                            value={sizeFilters[line] || 'todos'}
-                                            onValueChange={(value) => handleSizeFilterChange(line, value as SizeFilter)}
-                                            className="flex gap-4 pt-2">
-                                          <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="todos" id={`size-todos-${brand}-${line}`} />
-                                            <Label htmlFor={`size-todos-${brand}-${line}`}>Todos</Label>
-                                          </div>
-                                          <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="estandar" id={`size-estandar-${brand}-${line}`} />
-                                            <Label htmlFor={`size-estandar-${brand}-${line}`}>Estándar</Label>
-                                          </div>
-                                          <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="xl" id={`size-xl-${brand}-${line}`} />
-                                            <Label htmlFor={`size-xl-${brand}-${line}`}>XL</Label>
-                                          </div>
-                                        </RadioGroup>
+              <Card>
+                <CardContent className="p-0">
+                  <Tabs defaultValue={Object.keys(productStructure[brand as keyof typeof productStructure])[0]} className="w-full" orientation="vertical">
+                      <TabsList>
+                          {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
+                            <TabsTrigger value={line} key={line}>{line}</TabsTrigger>
+                          ))}
+                      </TabsList>
+                      {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
+                          <TabsContent value={line} key={line}>
+                            {line !== 'Insumos' && (
+                              <div className="mb-6 rounded-md border p-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                    <div className="flex-1 space-y-1.5 md:col-span-1">
+                                      <Label htmlFor={`line-price-${brand}-${line}`}>Nuevo Precio para la Línea {line}</Label>
+                                       <Input
+                                         id={`line-price-${brand}-${line}`}
+                                         type="text"
+                                         placeholder="Ingrese un nuevo precio..."
+                                         value={new Intl.NumberFormat('es-CO').format(Number(linePrices[line] || 0))}
+                                         onChange={(e) => handleLinePriceChange(line, e.target.value)}
+                                       />
                                     </div>
-                                  )}
-                                  <div className="md:col-span-1">
-                                    <Button onClick={() => handleApplyPriceToLine(brand, line)} className="w-full">Aplicar a Selección</Button>
-                                  </div>
-                              </div>
-                             </div>
-                          )}
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Producto</TableHead>
-                                <TableHead className="text-right">Precio (COP)</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {productStructure[brand as keyof typeof productStructure][line].map((product) => (
-                                <TableRow key={product}>
-                                  <TableCell>
-                                    <Label htmlFor={`price-${product}`} className="font-medium">{product}</Label>
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    <Input
-                                      id={`price-${product}`}
-                                      type="text"
-                                      value={new Intl.NumberFormat('es-CO').format(prices[product] || 0)}
-                                      onChange={(e) => handlePriceChange(product, e.target.value)}
-                                      className="w-48 ml-auto text-right"
-                                    />
-                                  </TableCell>
+                                    {lineHasMultipleSizes(brand, line) && (
+                                       <div className="md:col-span-1">
+                                          <Label>Aplicar a Tamaño</Label>
+                                          <RadioGroup 
+                                              defaultValue="todos" 
+                                              value={sizeFilters[line] || 'todos'}
+                                              onValueChange={(value) => handleSizeFilterChange(line, value as SizeFilter)}
+                                              className="flex gap-4 pt-2">
+                                            <div className="flex items-center space-x-2">
+                                              <RadioGroupItem value="todos" id={`size-todos-${brand}-${line}`} />
+                                              <Label htmlFor={`size-todos-${brand}-${line}`}>Todos</Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                              <RadioGroupItem value="estandar" id={`size-estandar-${brand}-${line}`} />
+                                              <Label htmlFor={`size-estandar-${brand}-${line}`}>Estándar</Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                              <RadioGroupItem value="xl" id={`size-xl-${brand}-${line}`} />
+                                              <Label htmlFor={`size-xl-${brand}-${line}`}>XL</Label>
+                                            </div>
+                                          </RadioGroup>
+                                      </div>
+                                    )}
+                                    <div className="md:col-span-1">
+                                      <Button onClick={() => handleApplyPriceToLine(brand, line)} className="w-full">Aplicar a Selección</Button>
+                                    </div>
+                                </div>
+                               </div>
+                            )}
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Producto</TableHead>
+                                  <TableHead className="text-right">Precio (COP)</TableHead>
                                 </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </TabsContent>
-                    ))}
-                </Tabs>
+                              </TableHeader>
+                              <TableBody>
+                                {productStructure[brand as keyof typeof productStructure][line].map((product) => (
+                                  <TableRow key={product}>
+                                    <TableCell>
+                                      <Label htmlFor={`price-${product}`} className="font-medium">{product}</Label>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <Input
+                                        id={`price-${product}`}
+                                        type="text"
+                                        value={new Intl.NumberFormat('es-CO').format(prices[product] || 0)}
+                                        onChange={(e) => handlePriceChange(product, e.target.value)}
+                                        className="w-48 ml-auto text-right"
+                                      />
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TabsContent>
+                      ))}
+                  </Tabs>
+                </CardContent>
+              </Card>
             </TabsContent>
           ))}
         </Tabs>
