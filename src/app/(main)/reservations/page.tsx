@@ -19,6 +19,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 interface Reservation {
@@ -165,8 +166,8 @@ const getAllInventoryProducts = () => {
 }
 
 const initialReservations: Reservation[] = [
-    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, sourceId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'En espera de validación', source: 'Contenedor' },
-    { id: 'RES-002', customer: 'Diseños Modernos', product: 'CONCRETO GRIS 1.22 X 0.61', quantity: 10, sourceId: 'Bodega', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'En espera de validación', source: 'Bodega' },
+    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, sourceId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'Validada', source: 'Contenedor' },
+    { id: 'RES-002', customer: 'Diseños Modernos', product: 'CONCRETO GRIS 1.22 X 0.61', quantity: 10, sourceId: 'Bodega', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'Validada', source: 'Bodega' },
     { id: 'RES-003', customer: 'Arquitectura Andina', product: 'KUND MULTY 1.22 X 0.61', quantity: 25, sourceId: 'Zona Franca', advisor: 'Jane Smith', quoteNumber: 'COT-2024-003', status: 'Validada', source: 'Zona Franca' },
     { id: 'RES-004', customer: 'Hogar Futuro', product: 'TAN 1.22 X 0.61', quantity: 30, sourceId: 'Bodega', advisor: 'John Doe', quoteNumber: 'COT-2024-004', status: 'Rechazada', source: 'Bodega' },
 ];
@@ -278,10 +279,50 @@ export default function ReservationsPage() {
     }
     return reservation.source;
   }
+  
+  const ReservationsTable = ({ data }: { data: Reservation[] }) => (
+     <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead># Cotización</TableHead>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Producto</TableHead>
+            <TableHead>Cantidad</TableHead>
+            <TableHead>Origen</TableHead>
+            <TableHead>Asesor</TableHead>
+            <TableHead>Estado</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((reservation) => (
+            <TableRow key={reservation.id}>
+              <TableCell>{reservation.quoteNumber}</TableCell>
+              <TableCell>{reservation.customer}</TableCell>
+              <TableCell>{reservation.product}</TableCell>
+              <TableCell>{reservation.quantity}</TableCell>
+              <TableCell>{renderOrigin(reservation)}</TableCell>
+              <TableCell>{reservation.advisor}</TableCell>
+              <TableCell>
+                <Badge variant={getStatusBadgeVariant(reservation.status)}>
+                    {reservation.status}
+                </Badge>
+              </TableCell>
+            </TableRow>
+          ))}
+          {data.length === 0 && (
+            <TableRow>
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    No se encontraron reservas.
+                </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+  );
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div>
+      <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Reservas de Productos</CardTitle>
@@ -358,98 +399,29 @@ export default function ReservationsPage() {
                     />
                 </div>
             </div>
-          <Card>
-            <CardHeader>
-                <CardTitle>Reservas Pendientes de Validación</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead># Cotización</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Producto</TableHead>
-                    <TableHead>Cantidad</TableHead>
-                    <TableHead>Origen</TableHead>
-                    <TableHead>Asesor</TableHead>
-                    <TableHead>Estado</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingReservations.map((reservation) => (
-                    <TableRow key={reservation.id}>
-                      <TableCell>{reservation.quoteNumber}</TableCell>
-                      <TableCell>{reservation.customer}</TableCell>
-                      <TableCell>{reservation.product}</TableCell>
-                      <TableCell>{reservation.quantity}</TableCell>
-                      <TableCell>{renderOrigin(reservation)}</TableCell>
-                      <TableCell>{reservation.advisor}</TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusBadgeVariant(reservation.status)}>
-                            {reservation.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {pendingReservations.length === 0 && (
-                    <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground">
-                            No se encontraron reservas pendientes.
-                        </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
         </CardContent>
       </Card>
       
-      <Card>
-        <CardHeader>
-            <CardTitle>Historial de Reservas</CardTitle>
-            <CardDescription>Reservas que ya han sido validadas o rechazadas.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead># Cotización</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Producto</TableHead>
-                <TableHead>Cantidad</TableHead>
-                <TableHead>Origen</TableHead>
-                <TableHead>Asesor</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {historyReservations.map((reservation) => (
-                <TableRow key={reservation.id}>
-                  <TableCell>{reservation.quoteNumber}</TableCell>
-                  <TableCell>{reservation.customer}</TableCell>
-                  <TableCell>{reservation.product}</TableCell>
-                  <TableCell>{reservation.quantity}</TableCell>
-                  <TableCell>{renderOrigin(reservation)}</TableCell>
-                  <TableCell>{reservation.advisor}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(reservation.status)}>
-                        {reservation.status}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {historyReservations.length === 0 && (
-                <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
-                        No hay registros en el historial.
-                    </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="pendientes" className="w-full">
+        <TabsList>
+            <TabsTrigger value="pendientes">Pendientes de Validación ({pendingReservations.length})</TabsTrigger>
+            <TabsTrigger value="historial">Historial ({historyReservations.length})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="pendientes" className="pt-4">
+           <Card>
+            <CardContent className="p-0">
+              <ReservationsTable data={pendingReservations} />
+            </CardContent>
+           </Card>
+        </TabsContent>
+        <TabsContent value="historial" className="pt-4">
+          <Card>
+            <CardContent className="p-0">
+              <ReservationsTable data={historyReservations} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

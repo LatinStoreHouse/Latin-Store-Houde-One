@@ -430,7 +430,7 @@ export default function ValidationPage() {
                         </PopoverContent>
                     </Popover>
                     <Tabs defaultValue="todas" onValueChange={setActiveTab} className="w-full sm:w-auto">
-                        <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
+                        <TabsList className="grid w-full grid-cols-5 sm:w-auto sm:inline-flex">
                             <TabsTrigger value="todas">Todas</TabsTrigger>
                             <TabsTrigger value="reservas">Reservas</TabsTrigger>
                             <TabsTrigger value="despachos">Despachos</TabsTrigger>
