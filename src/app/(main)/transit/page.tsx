@@ -467,7 +467,7 @@ a.href = url;
             {isExportMode ? (
               <>
                 <Button variant="outline" onClick={() => handleExportPDF('active')}>
-                  <FileUp className="mr-2 h-4 w-4" /> Exportar a PDF
+                  <FileUp className="mr-2 h-4 w-4" /> PDF
                 </Button>
                 <Button variant="outline" onClick={() => handleExportHTML('active')}>
                   <FileType className="mr-2 h-4 w-4" /> Exel
