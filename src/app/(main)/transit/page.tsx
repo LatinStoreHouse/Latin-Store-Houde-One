@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Container, Ship, CalendarIcon, FileDown, ChevronDown, Edit } from 'lucide-react';
+import { PlusCircle, Container, Ship, CalendarIcon, FileDown, ChevronDown, Edit, CheckCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -280,6 +280,21 @@ a.href = url;
         .reduce((sum, r) => sum + r.quantity, 0);
   };
 
+  const handleReceiveContainer = (containerId: string) => {
+     // This is a placeholder. In a real app, this would trigger a state update
+     // in a global store (like Redux/Zustand) or call an API endpoint.
+     // For this prototype, we'll just update the container status locally.
+     setContainers(prevContainers => 
+         prevContainers.map(c => 
+             c.id === containerId ? { ...c, status: 'Llegado' } : c
+         )
+     );
+      toast({
+          title: `Contenedor ${containerId} Recibido`,
+          description: "El inventario ha sido movido a Zona Franca. Puede verificarlo en la página de Inventario.",
+      });
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -412,6 +427,15 @@ a.href = url;
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                         </Button>
+                         <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleReceiveContainer(container.id)}
+                            disabled={container.status === 'Llegado'}
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Marcar como Recibido
+                          </Button>
                         <Dialog>
                             <DialogTrigger asChild>
                             <Button variant="outline" size="sm" onClick={() => setSelectedContainerId(container.id)}>Agregar Producto</Button>

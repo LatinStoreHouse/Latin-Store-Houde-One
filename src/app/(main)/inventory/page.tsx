@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, Save } from 'lucide-react';
+import { FileDown, Save, Truck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Role } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { TransferInventoryForm } from '@/components/transfer-inventory-form';
+
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -244,6 +246,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange }: {
 export default function InventoryPage() {
   const [inventoryData, setInventoryData] = useState(initialInventoryData);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [exportOptions, setExportOptions] = useState({
     format: 'pdf',
     columns: {
@@ -409,16 +412,84 @@ export default function InventoryPage() {
     }));
   }
 
+   const handleTransfer = ({ product, quantity }: { product: string; quantity: number }) => {
+     let productData: any;
+     let brandName: string = '';
+     let subCategoryName: string = '';
+
+     // Find the product in the inventory data
+     for (const brand in inventoryData) {
+       for (const subCategory in inventoryData[brand as keyof typeof inventoryData]) {
+         if (inventoryData[brand as keyof typeof inventoryData][subCategory][product]) {
+           productData = inventoryData[brand as keyof typeof inventoryData][subCategory][product];
+           brandName = brand;
+           subCategoryName = subCategory;
+           break;
+         }
+       }
+       if (productData) break;
+     }
+
+     if (!productData) {
+       toast({ variant: 'destructive', title: 'Error', description: 'Producto no encontrado.' });
+       return;
+     }
+    
+     const availableInZF = productData.zonaFranca - productData.separadasZonaFranca;
+     if (quantity > availableInZF) {
+        toast({ variant: 'destructive', title: 'Error', description: `Cantidad a trasladar (${quantity}) excede la disponible en Zona Franca (${availableInZF}).` });
+        return;
+     }
+    
+     const reservedRatio = productData.separadasZonaFranca / productData.zonaFranca;
+     const separadasToTransfer = productData.zonaFranca > 0 ? Math.round(quantity * reservedRatio) : 0;
+
+     if (separadasToTransfer > productData.separadasZonaFranca) {
+        toast({ variant: 'destructive', title: 'Error', description: `El cálculo de separadas a mover excede las disponibles.` });
+        return;
+     }
+    
+     setInventoryData(prev => {
+        const newData = JSON.parse(JSON.stringify(prev));
+        const p = newData[brandName][subCategoryName][product];
+        p.zonaFranca -= quantity;
+        p.bodega += quantity;
+        p.separadasZonaFranca -= separadasToTransfer;
+        p.separadasBodega += separadasToTransfer;
+        return newData;
+     });
+
+     toast({ title: 'Traslado Exitoso', description: `${quantity} unidades de ${product} movidas de Zona Franca a Bodega.` });
+     setIsTransferDialogOpen(false);
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Inventario de Productos - Stock Actual</CardTitle>
         <div className="flex gap-2">
             {canEdit && (
+                <>
                 <Button onClick={handleSaveChanges} size="sm">
                     <Save className="mr-2 h-4 w-4" />
                     Guardar Cambios
                 </Button>
+                <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                            <Truck className="mr-2 h-4 w-4" />
+                            Trasladar de ZF a Bodega
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Trasladar Inventario</DialogTitle>
+                        </DialogHeader>
+                        <TransferInventoryForm inventoryData={inventoryData} onTransfer={handleTransfer} />
+                    </DialogContent>
+                </Dialog>
+                </>
+
             )}
             <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
                 <DialogTrigger asChild>
