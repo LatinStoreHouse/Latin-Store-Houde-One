@@ -29,6 +29,8 @@ import { Badge } from '@/components/ui/badge';
 import { Role } from '@/lib/roles';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion } from '@/components/ui/accordion';
+import { ContainerHistoryItem } from '@/components/container-history-item';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -55,12 +57,12 @@ const initialReservations: Reservation[] = [
 ];
 
 
-interface Product {
+export interface Product {
   name: string;
   quantity: number;
 }
 
-interface Container {
+export interface Container {
   id: string;
   eta: string;
   carrier: string;
@@ -393,16 +395,16 @@ a.href = url;
       });
   };
 
-  const renderContainerList = (list: Container[], listType: 'active' | 'history') => (
+  const renderActiveList = (list: Container[]) => (
       <div className="space-y-8">
         <div className="mb-4 flex items-center space-x-2">
             <Checkbox 
-                id={`select-all-${listType}`}
+                id="select-all-active"
                 onCheckedChange={(checked) => handleSelectAll(Boolean(checked), list)}
                 checked={list.length > 0 && list.every(c => selectedContainers.includes(c.id))}
                 aria-label="Seleccionar todos los contenedores en esta pestaña"
             />
-            <Label htmlFor={`select-all-${listType}`}>Seleccionar Todos en esta Pestaña</Label>
+            <Label htmlFor="select-all-active">Seleccionar Todos en esta Pestaña</Label>
         </div>
         {list.map((container) => (
           <ContainerCard
@@ -417,11 +419,20 @@ a.href = url;
           />
         ))}
         {list.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">
-                {listType === 'active' ? 'No hay contenedores en tránsito.' : 'No hay contenedores en el historial.'}
-            </p>
+            <p className="text-center text-muted-foreground py-8">No hay contenedores en tránsito.</p>
         )}
       </div>
+  );
+
+  const renderHistoryList = (list: Container[]) => (
+       <Accordion type="single" collapsible className="w-full space-y-4">
+        {list.map((container) => (
+            <ContainerHistoryItem key={container.id} container={container} />
+        ))}
+        {list.length === 0 && (
+            <p className="text-center text-muted-foreground py-8">No hay contenedores en el historial.</p>
+        )}
+      </Accordion>
   );
 
   return (
@@ -491,10 +502,10 @@ a.href = url;
             <TabsTrigger value="historial">Historial ({historyContainers.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="en-transito" className="pt-4">
-           {renderContainerList(activeContainers, 'active')}
+           {renderActiveList(activeContainers)}
         </TabsContent>
         <TabsContent value="historial" className="pt-4">
-           {renderContainerList(historyContainers, 'history')}
+           {renderHistoryList(historyContainers)}
         </TabsContent>
       </Tabs>
       
