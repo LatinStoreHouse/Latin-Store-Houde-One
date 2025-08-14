@@ -185,7 +185,7 @@ export default function ValidationPage() {
 
     const getStatusBadgeVariant = (status: ValidatedItem['status']) => {
         switch (status) {
-            case 'Validada': return 'default';
+            case 'Validada': return 'success';
             case 'Rechazada': return 'destructive';
         }
     }

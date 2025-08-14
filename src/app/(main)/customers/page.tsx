@@ -96,7 +96,7 @@ export default function CustomersPage() {
                 <TableCell className="p-2">{customer.assignedTo}</TableCell>
                 <TableCell className="p-2">
                   <Badge
-                    variant={customer.status === 'Convertido' ? 'default' : 'secondary'}
+                    variant={customer.status === 'Convertido' ? 'success' : 'secondary'}
                   >
                     {customer.status}
                   </Badge>

@@ -266,7 +266,7 @@ export default function ReservationsPage() {
   
   const getStatusBadgeVariant = (status: Reservation['status']) => {
     switch (status) {
-        case 'Validada': return 'default';
+        case 'Validada': return 'success';
         case 'En espera de validación': return 'secondary';
         case 'Rechazada': return 'destructive';
     }

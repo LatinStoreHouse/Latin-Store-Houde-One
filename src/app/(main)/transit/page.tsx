@@ -105,7 +105,7 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, on
         switch (status) {
             case 'En tránsito': return 'secondary';
             case 'Atrasado': return 'destructive';
-            case 'Llegado': return 'default';
+            case 'Llegado': return 'success';
             default: return 'outline';
         }
     }

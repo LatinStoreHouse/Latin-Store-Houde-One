@@ -237,7 +237,7 @@ export default function DispatchPage() {
   
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-        case 'Validada': return 'default';
+        case 'Validada': return 'success';
         case 'Rechazada': return 'destructive';
         default: return 'secondary';
     }
