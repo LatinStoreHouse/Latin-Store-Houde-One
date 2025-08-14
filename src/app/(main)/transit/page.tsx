@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Role } from '@/lib/roles';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -83,6 +84,111 @@ const initialContainers: Container[] = [
 
 const currentUserRole: Role = 'Administrador';
 
+const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, onSelect, isSelected }: {
+    container: Container;
+    canEdit: boolean;
+    onEdit: (container: Container) => void;
+    onReceive: (containerId: string) => void;
+    onAddProduct: (containerId: string) => void;
+    onSelect: (containerId: string) => void;
+    isSelected: boolean;
+}) => {
+    const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
+        return initialReservations
+            .filter(r => r.containerId === containerId && r.product === productName && r.status === 'Validada')
+            .reduce((sum, r) => sum + r.quantity, 0);
+    };
+
+    const getStatusBadge = (status: Container['status']) => {
+        switch (status) {
+            case 'En tránsito': return 'secondary';
+            case 'Atrasado': return 'destructive';
+            case 'Llegado': return 'default';
+            default: return 'outline';
+        }
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-4">
+                        <Checkbox
+                            id={`select-${container.id}`}
+                            checked={isSelected}
+                            onCheckedChange={() => onSelect(container.id)}
+                        />
+                        <div>
+                            <CardTitle className="flex items-center gap-2">
+                                <Container className="h-6 w-6" /> {container.id}
+                            </CardTitle>
+                            <CardDescription className="mt-2 flex flex-col sm:flex-row sm:items-center sm:gap-4">
+                                <span className="flex items-center gap-2"><Ship className="h-4 w-4" /> {container.carrier}</span>
+                                <span className="flex items-center gap-2"><CalendarIcon className="h-4 w-4" /> ETA: {container.eta}</span>
+                            </CardDescription>
+                        </div>
+                    </div>
+                    <Badge variant={getStatusBadge(container.status)}>{container.status}</Badge>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Producto</TableHead>
+                            <TableHead className="text-right">Cantidad Total</TableHead>
+                            <TableHead className="text-right">Unidades Separadas (Validadas)</TableHead>
+                            <TableHead className="text-right">Total Disponible</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {container.products.map((product, index) => {
+                            const reservedQuantity = getValidatedReservedQuantity(container.id, product.name);
+                            const availableQuantity = product.quantity - reservedQuantity;
+                            return (
+                                <TableRow key={index}>
+                                    <TableCell>{product.name}</TableCell>
+                                    <TableCell className="text-right">{product.quantity}</TableCell>
+                                    <TableCell className="text-right">{reservedQuantity}</TableCell>
+                                    <TableCell className="text-right font-medium">{availableQuantity}</TableCell>
+                                </TableRow>
+                            )
+                        })}
+                        {container.products.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                    No hay productos en este contenedor.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+            {canEdit && (
+                <CardFooter className="flex justify-end p-4 gap-2">
+                    <Button variant="outline" size="sm" onClick={() => onEdit(container)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar
+                    </Button>
+                    {container.status !== 'Llegado' && (
+                       <>
+                         <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => onReceive(container.id)}
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Marcar como Recibido
+                          </Button>
+                        <Button variant="outline" size="sm" onClick={() => onAddProduct(container.id)}>Agregar Producto</Button>
+                       </>
+                    )}
+                </CardFooter>
+            )}
+        </Card>
+    );
+};
+
 export default function TransitPage() {
   const [containers, setContainers] = useState<Container[]>(initialContainers);
   const [newContainerId, setNewContainerId] = useState('');
@@ -90,6 +196,7 @@ export default function TransitPage() {
   const [newContainerCarrier, setNewContainerCarrier] = useState('');
   const [isAddContainerDialogOpen, setIsAddContainerDialogOpen] = useState(false);
   const [isEditContainerDialogOpen, setIsEditContainerDialogOpen] = useState(false);
+  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const [editingContainer, setEditingContainer] = useState<Container | null>(null);
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
   const [newProductName, setNewProductName] = useState('');
@@ -99,6 +206,12 @@ export default function TransitPage() {
   
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística' || currentUserRole === 'Contador';
 
+  const { activeContainers, historyContainers } = useMemo(() => {
+    const active = containers.filter(c => c.status !== 'Llegado');
+    const history = containers.filter(c => c.status === 'Llegado');
+    return { activeContainers: active, historyContainers: history };
+  }, [containers]);
+
   const handleContainerSelection = (containerId: string) => {
     setSelectedContainers(prev => 
       prev.includes(containerId) 
@@ -107,11 +220,11 @@ export default function TransitPage() {
     );
   };
   
-  const handleSelectAll = (checked: boolean) => {
+  const handleSelectAll = (checked: boolean, list: Container[]) => {
     if (checked) {
-        setSelectedContainers(containers.map(c => c.id));
+        setSelectedContainers(prev => [...new Set([...prev, ...list.map(c => c.id)])]);
     } else {
-        setSelectedContainers([]);
+        setSelectedContainers(prev => prev.filter(id => !list.map(c => c.id).includes(id)));
     }
   };
 
@@ -150,6 +263,11 @@ export default function TransitPage() {
   };
 
 
+  const handleOpenAddProductDialog = (containerId: string) => {
+    setSelectedContainerId(containerId);
+    setIsAddProductDialogOpen(true);
+  }
+
   const handleAddProductToContainer = () => {
     if (!selectedContainerId || !newProductName || newProductQuantity <= 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione un producto y una cantidad válida.' });
@@ -157,15 +275,12 @@ export default function TransitPage() {
     }
     setContainers(containers.map(c => {
       if (c.id === selectedContainerId) {
-        // Check if product already exists
         const existingProductIndex = c.products.findIndex(p => p.name === newProductName);
         if (existingProductIndex !== -1) {
-          // Update quantity
           const updatedProducts = [...c.products];
           updatedProducts[existingProductIndex].quantity += newProductQuantity;
           return { ...c, products: updatedProducts };
         } else {
-          // Add new product
           return { ...c, products: [...c.products, { name: newProductName, quantity: newProductQuantity }] };
         }
       }
@@ -173,17 +288,9 @@ export default function TransitPage() {
     }));
     setNewProductName('');
     setNewProductQuantity(0);
+    setIsAddProductDialogOpen(false);
     toast({ title: 'Éxito', description: 'Producto agregado al contenedor.' });
   };
-
-  const getStatusBadge = (status: Container['status']) => {
-    switch (status) {
-        case 'En tránsito': return 'secondary';
-        case 'Atrasado': return 'destructive';
-        case 'Llegado': return 'default';
-        default: return 'outline';
-    }
-  }
 
   const getContainersToExport = () => {
     if (selectedContainers.length > 0) {
@@ -274,16 +381,7 @@ a.href = url;
     URL.revokeObjectURL(url);
   };
   
-  const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
-    return initialReservations
-        .filter(r => r.containerId === containerId && r.product === productName && r.status === 'Validada')
-        .reduce((sum, r) => sum + r.quantity, 0);
-  };
-
   const handleReceiveContainer = (containerId: string) => {
-     // This is a placeholder. In a real app, this would trigger a state update
-     // in a global store (like Redux/Zustand) or call an API endpoint.
-     // For this prototype, we'll just update the container status locally.
      setContainers(prevContainers => 
          prevContainers.map(c => 
              c.id === containerId ? { ...c, status: 'Llegado' } : c
@@ -291,17 +389,48 @@ a.href = url;
      );
       toast({
           title: `Contenedor ${containerId} Recibido`,
-          description: "El inventario ha sido movido a Zona Franca. Puede verificarlo en la página de Inventario.",
+          description: "El contenedor ha sido movido al historial.",
       });
   };
 
+  const renderContainerList = (list: Container[], listType: 'active' | 'history') => (
+      <div className="space-y-8">
+        <div className="mb-4 flex items-center space-x-2">
+            <Checkbox 
+                id={`select-all-${listType}`}
+                onCheckedChange={(checked) => handleSelectAll(Boolean(checked), list)}
+                checked={list.length > 0 && list.every(c => selectedContainers.includes(c.id))}
+                aria-label="Seleccionar todos los contenedores en esta pestaña"
+            />
+            <Label htmlFor={`select-all-${listType}`}>Seleccionar Todos en esta Pestaña</Label>
+        </div>
+        {list.map((container) => (
+          <ContainerCard
+            key={container.id}
+            container={container}
+            canEdit={canEdit}
+            onEdit={handleOpenEditDialog}
+            onReceive={handleReceiveContainer}
+            onAddProduct={handleOpenAddProductDialog}
+            onSelect={handleContainerSelection}
+            isSelected={selectedContainers.includes(container.id)}
+          />
+        ))}
+        {list.length === 0 && (
+            <p className="text-center text-muted-foreground py-8">
+                {listType === 'active' ? 'No hay contenedores en tránsito.' : 'No hay contenedores en el historial.'}
+            </p>
+        )}
+      </div>
+  );
+
   return (
-    <div className="space-y-6">
-      <Card>
+    <div>
+      <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Contenedores en Tránsito</CardTitle>
-            <CardDescription>Gestione los contenedores y los productos que están en camino.</CardDescription>
+            <CardTitle>Gestión de Contenedores</CardTitle>
+            <CardDescription>Agregue, edite y gestione los contenedores y sus productos.</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             {canEdit && (
@@ -354,124 +483,21 @@ a.href = url;
                 </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent>
-           <div className="mb-4 flex items-center space-x-2">
-            <Checkbox 
-                id="select-all" 
-                onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
-                checked={selectedContainers.length === containers.length && containers.length > 0}
-                aria-label="Seleccionar todos los contenedores"
-            />
-            <Label htmlFor="select-all">Seleccionar Todos</Label>
-           </div>
-          <div className="space-y-8">
-            {containers.map((container) => (
-              <Card key={container.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-4">
-                       <Checkbox 
-                          id={`select-${container.id}`} 
-                          checked={selectedContainers.includes(container.id)}
-                          onCheckedChange={() => handleContainerSelection(container.id)}
-                       />
-                       <div>
-                            <CardTitle className="flex items-center gap-2">
-                                <Container className="h-6 w-6" /> {container.id}
-                            </CardTitle>
-                            <CardDescription className="mt-2 flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                               <span className="flex items-center gap-2"><Ship className="h-4 w-4" /> {container.carrier}</span>
-                               <span className="flex items-center gap-2"><CalendarIcon className="h-4 w-4" /> ETA: {container.eta}</span>
-                            </CardDescription>
-                        </div>
-                    </div>
-                    <Badge variant={getStatusBadge(container.status)}>{container.status}</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Producto</TableHead>
-                                <TableHead className="text-right">Cantidad Total</TableHead>
-                                <TableHead className="text-right">Unidades Separadas (Validadas)</TableHead>
-                                <TableHead className="text-right">Total Disponible</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {container.products.map((product, index) => {
-                                const reservedQuantity = getValidatedReservedQuantity(container.id, product.name);
-                                const availableQuantity = product.quantity - reservedQuantity;
-                                return (
-                                    <TableRow key={index}>
-                                        <TableCell>{product.name}</TableCell>
-                                        <TableCell className="text-right">{product.quantity}</TableCell>
-                                        <TableCell className="text-right">{reservedQuantity}</TableCell>
-                                        <TableCell className="text-right font-medium">{availableQuantity}</TableCell>
-                                    </TableRow>
-                                )
-                            })}
-                             {container.products.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={4} className="text-center text-muted-foreground">
-                                        No hay productos en este contenedor.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-                {canEdit && (
-                    <CardFooter className="flex justify-end p-4 gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleOpenEditDialog(container)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                        </Button>
-                         <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleReceiveContainer(container.id)}
-                            disabled={container.status === 'Llegado'}
-                          >
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Marcar como Recibido
-                          </Button>
-                        <Dialog>
-                            <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" onClick={() => setSelectedContainerId(container.id)}>Agregar Producto</Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader><DialogTitle>Agregar Producto a {container.id}</DialogTitle></DialogHeader>
-                                <div className="space-y-4 py-4">
-                                    <div className="space-y-2">
-                                        <Label>Producto</Label>
-                                        <Combobox
-                                            options={productOptions}
-                                            value={newProductName}
-                                            onValueChange={setNewProductName}
-                                            placeholder="Seleccione un producto"
-                                            searchPlaceholder="Buscar producto..."
-                                            emptyPlaceholder="No se encontraron productos"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Cantidad</Label>
-                                        <Input type="number" value={newProductQuantity} onChange={e => setNewProductQuantity(Number(e.target.value))} />
-                                    </div>
-                                </div>
-                                <DialogFooter>
-                                    <DialogClose asChild><Button variant="ghost">Cancelar</Button></DialogClose>
-                                    <Button onClick={handleAddProductToContainer}>Agregar Producto</Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
-                    </CardFooter>
-                )}
-              </Card>
-            ))}
-          </div>
-        </CardContent>
       </Card>
+      
+      <Tabs defaultValue="en-transito" className="w-full">
+        <TabsList>
+            <TabsTrigger value="en-transito">En Tránsito ({activeContainers.length})</TabsTrigger>
+            <TabsTrigger value="historial">Historial ({historyContainers.length})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="en-transito" className="pt-4">
+           {renderContainerList(activeContainers, 'active')}
+        </TabsContent>
+        <TabsContent value="historial" className="pt-4">
+           {renderContainerList(historyContainers, 'history')}
+        </TabsContent>
+      </Tabs>
+      
       {editingContainer && (
         <Dialog open={isEditContainerDialogOpen} onOpenChange={setIsEditContainerDialogOpen}>
             <DialogContent>
@@ -499,6 +525,33 @@ a.href = url;
             </DialogContent>
         </Dialog>
       )}
+
+      <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
+            <DialogContent>
+                <DialogHeader><DialogTitle>Agregar Producto a {selectedContainerId}</DialogTitle></DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label>Producto</Label>
+                        <Combobox
+                            options={productOptions}
+                            value={newProductName}
+                            onValueChange={setNewProductName}
+                            placeholder="Seleccione un producto"
+                            searchPlaceholder="Buscar producto..."
+                            emptyPlaceholder="No se encontraron productos"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Cantidad</Label>
+                        <Input type="number" value={newProductQuantity} onChange={e => setNewProductQuantity(Number(e.target.value))} />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="ghost" onClick={() => setIsAddProductDialogOpen(false)}>Cancelar</Button></DialogClose>
+                    <Button onClick={handleAddProductToContainer}>Agregar Producto</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
