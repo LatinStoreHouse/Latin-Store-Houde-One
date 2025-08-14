@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Container, Ship, CalendarIcon, FileDown, ChevronDown, Edit, CheckCircle } from 'lucide-react';
+import { PlusCircle, Container, Ship, CalendarIcon, FileDown, Edit, CheckCircle, FileUp, FileType, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,12 +17,6 @@ import {
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -83,11 +77,12 @@ const productOptions = [
 const initialContainers: Container[] = [
     { id: 'MSCU1234567', eta: '2024-08-15', carrier: 'Maersk', status: 'En tránsito', products: [{ name: 'CUT STONE 120 X 60', quantity: 200 }, { name: 'TRAVERTINO', quantity: 150 }], creationDate: '2024-07-01' },
     { id: 'CMAU7654321', eta: '2024-08-10', carrier: 'CMA CGM', status: 'Atrasado', products: [{ name: 'BLACK 1.22 X 0.61', quantity: 500 }], creationDate: '2024-07-05' },
+    { id: 'ARRIVED001', eta: '2024-07-20', carrier: 'MSC', status: 'Llegado', products: [{ name: 'KUND MULTY 1.22 X 0.61', quantity: 300 }], creationDate: '2024-07-02' },
 ];
 
 const currentUserRole: Role = 'Administrador';
 
-const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, onSelect, isSelected }: {
+const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, onSelect, isSelected, isExportMode }: {
     container: Container;
     canEdit: boolean;
     onEdit: (container: Container) => void;
@@ -95,6 +90,7 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, on
     onAddProduct: (containerId: string) => void;
     onSelect: (containerId: string) => void;
     isSelected: boolean;
+    isExportMode: boolean;
 }) => {
     const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
         return initialReservations
@@ -116,11 +112,14 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, on
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div className="flex items-center gap-4">
-                        <Checkbox
-                            id={`select-${container.id}`}
-                            checked={isSelected}
-                            onCheckedChange={() => onSelect(container.id)}
-                        />
+                        {isExportMode && (
+                          <Checkbox
+                              id={`select-${container.id}`}
+                              checked={isSelected}
+                              onCheckedChange={() => onSelect(container.id)}
+                              className="h-5 w-5"
+                          />
+                        )}
                         <div>
                             <CardTitle className="flex items-center gap-2">
                                 <Container className="h-6 w-6" /> {container.id}
@@ -205,6 +204,7 @@ export default function TransitPage() {
   const [newProductName, setNewProductName] = useState('');
   const [newProductQuantity, setNewProductQuantity] = useState(0);
   const [selectedContainers, setSelectedContainers] = useState<string[]>([]);
+  const [isExportMode, setIsExportMode] = useState(false);
   const { toast } = useToast();
   
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística' || currentUserRole === 'Contador';
@@ -227,7 +227,8 @@ export default function TransitPage() {
     if (checked) {
         setSelectedContainers(prev => [...new Set([...prev, ...list.map(c => c.id)])]);
     } else {
-        setSelectedContainers(prev => prev.filter(id => !list.map(c => c.id).includes(id)));
+        const listIds = list.map(c => c.id);
+        setSelectedContainers(prev => prev.filter(id => !listIds.includes(id)));
     }
   };
 
@@ -245,7 +246,7 @@ export default function TransitPage() {
       status: 'En tránsito',
       creationDate: new Date().toISOString().split('T')[0],
     };
-    setContainers([...containers, newContainer]);
+    setContainers([newContainer, ...containers]);
     setNewContainerId('');
     setNewContainerEta('');
     setNewContainerCarrier('');
@@ -296,24 +297,27 @@ export default function TransitPage() {
     toast({ title: 'Éxito', description: 'Producto agregado al contenedor.' });
   };
 
-  const getContainersToExport = () => {
+  const getContainersToExport = (targetContainers: Container[]) => {
     if (selectedContainers.length > 0) {
-      toast({ title: 'Descarga Iniciada', description: `Exportando ${selectedContainers.length} contenedor(es) seleccionado(s).`});
-      return containers.filter(c => selectedContainers.includes(c.id));
+      const intersection = targetContainers.filter(c => selectedContainers.includes(c.id));
+      if (intersection.length > 0) {
+        toast({ title: 'Descarga Iniciada', description: `Exportando ${intersection.length} contenedor(es) seleccionado(s).`});
+        return intersection;
+      }
     }
-    toast({ title: 'Descarga Iniciada', description: 'Exportando todos los contenedores.'});
-    return containers;
+    toast({ title: 'Descarga Iniciada', description: 'Exportando todos los contenedores en la vista actual.'});
+    return targetContainers;
   }
   
-  const handleExportPDF = () => {
-    const containersToExport = getContainersToExport();
+  const handleExportPDF = (target: 'active' | 'history') => {
+    const containersToExport = getContainersToExport(target === 'active' ? activeContainers : historyContainers);
     if (containersToExport.length === 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'No hay contenedores para exportar.' });
         return;
     }
 
     const doc = new jsPDF();
-    doc.text("Reporte de Contenedores en Tránsito", 14, 16);
+    doc.text(`Reporte de Contenedores - ${target === 'active' ? 'En Tránsito' : 'Historial'}`, 14, 16);
     
     containersToExport.forEach((container, index) => {
         if (index > 0) doc.addPage();
@@ -321,7 +325,7 @@ export default function TransitPage() {
         const bodyData = container.products.map(p => [p.name, p.quantity]);
         
         doc.autoTable({
-            startY: 25,
+            startY: 32,
             head: [['Producto', 'Cantidad']],
             body: bodyData,
             tableWidth: 'auto',
@@ -330,21 +334,22 @@ export default function TransitPage() {
                 doc.text(`Contenedor: ${container.id}`, 14, 10);
                 doc.text(`Transportista: ${container.carrier}`, 14, 15);
                 doc.text(`ETA: ${container.eta} | Estado: ${container.status}`, 14, 20);
+                doc.text(`Fecha Creación: ${container.creationDate}`, 14, 25);
             }
         });
     });
 
-    doc.save('Reporte de Contenedores.pdf');
+    doc.save(`Reporte de Contenedores - ${target}.pdf`);
   };
 
-  const handleExportHTML = () => {
-    const containersToExport = getContainersToExport();
+  const handleExportHTML = (target: 'active' | 'history') => {
+    const containersToExport = getContainersToExport(target === 'active' ? activeContainers : historyContainers);
     if (containersToExport.length === 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'No hay contenedores para exportar.' });
         return;
     }
 
-    let html = '<table><thead><tr><th>Contenedor</th><th>Transportista</th><th>ETA</th><th>Estado</th><th>Producto</th><th>Cantidad</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>Contenedor</th><th>Transportista</th><th>ETA</th><th>Estado</th><th>Fecha Creación</th><th>Producto</th><th>Cantidad</th></tr></thead><tbody>';
 
     containersToExport.forEach(container => {
         if (container.products.length > 0) {
@@ -355,6 +360,7 @@ export default function TransitPage() {
                     html += `<td rowspan="${container.products.length}">${container.carrier}</td>`;
                     html += `<td rowspan="${container.products.length}">${container.eta}</td>`;
                     html += `<td rowspan="${container.products.length}">${container.status}</td>`;
+                    html += `<td rowspan="${container.products.length}">${container.creationDate}</td>`;
                 }
                 html += `<td>${product.name}</td>`;
                 html += `<td>${product.quantity}</td>`;
@@ -366,6 +372,7 @@ export default function TransitPage() {
             html += `<td>${container.carrier}</td>`;
             html += `<td>${container.eta}</td>`;
             html += `<td>${container.status}</td>`;
+            html += `<td>${container.creationDate}</td>`;
             html += `<td>-</td>`;
             html += `<td>-</td>`;
             html += '</tr>';
@@ -378,7 +385,7 @@ export default function TransitPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
 a.href = url;
-    a.download = 'Reporte de Contenedores.xls';
+    a.download = `Reporte de Contenedores - ${target}.xls`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -398,31 +405,36 @@ a.href = url;
   };
 
   const renderActiveList = (list: Container[]) => (
-      <div className="space-y-8">
-        <div className="mb-4 flex items-center space-x-2">
-            <Checkbox 
-                id="select-all-active"
-                onCheckedChange={(checked) => handleSelectAll(Boolean(checked), list)}
-                checked={list.length > 0 && list.every(c => selectedContainers.includes(c.id))}
-                aria-label="Seleccionar todos los contenedores en esta pestaña"
-            />
-            <Label htmlFor="select-all-active">Seleccionar Todos en esta Pestaña</Label>
-        </div>
-        {list.map((container) => (
-          <ContainerCard
-            key={container.id}
-            container={container}
-            canEdit={canEdit}
-            onEdit={handleOpenEditDialog}
-            onReceive={handleReceiveContainer}
-            onAddProduct={handleOpenAddProductDialog}
-            onSelect={handleContainerSelection}
-            isSelected={selectedContainers.includes(container.id)}
-          />
-        ))}
-        {list.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">No hay contenedores en tránsito.</p>
+      <div className="space-y-4">
+        {isExportMode && (
+          <div className="mb-4 flex items-center space-x-2 p-4 border rounded-md bg-secondary/50">
+              <Checkbox 
+                  id="select-all-active"
+                  onCheckedChange={(checked) => handleSelectAll(Boolean(checked), list)}
+                  checked={list.length > 0 && list.every(c => selectedContainers.includes(c.id))}
+                  aria-label="Seleccionar todos los contenedores en esta pestaña"
+              />
+              <Label htmlFor="select-all-active" className="flex-1">Seleccionar Todos ({selectedContainers.filter(id => list.some(c => c.id === id)).length} seleccionados)</Label>
+          </div>
         )}
+        <div className="space-y-8">
+            {list.map((container) => (
+              <ContainerCard
+                key={container.id}
+                container={container}
+                canEdit={canEdit}
+                onEdit={handleOpenEditDialog}
+                onReceive={handleReceiveContainer}
+                onAddProduct={handleOpenAddProductDialog}
+                onSelect={handleContainerSelection}
+                isSelected={selectedContainers.includes(container.id)}
+                isExportMode={isExportMode}
+              />
+            ))}
+            {list.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">No hay contenedores en tránsito.</p>
+            )}
+        </div>
       </div>
   );
 
@@ -447,61 +459,37 @@ a.href = url;
           </div>
           <div className="flex items-center gap-2">
             {canEdit && (
-                <Dialog open={isAddContainerDialogOpen} onOpenChange={setIsAddContainerDialogOpen}>
-                    <DialogTrigger asChild>
-                    <Button>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Agregar Contenedor
-                    </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Agregar Nuevo Contenedor</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                        <Label htmlFor="container-id">ID del Contenedor</Label>
-                        <Input id="container-id" value={newContainerId} onChange={(e) => setNewContainerId(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                        <Label htmlFor="container-eta">Fecha Estimada de Llegada (ETA)</Label>
-                        <Input id="container-eta" type="date" value={newContainerEta} onChange={(e) => setNewContainerEta(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                        <Label htmlFor="container-carrier">Transportista</Label>
-                        <Input id="container-carrier" value={newContainerCarrier} onChange={(e) => setNewContainerCarrier(e.target.value)} />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button variant="ghost">Cancelar</Button>
-                        </DialogClose>
-                        <Button onClick={handleAddContainer}>Agregar</Button>
-                    </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <Button onClick={() => setIsAddContainerDialogOpen(true)} disabled={isExportMode}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Agregar Contenedor
+                </Button>
             )}
-             <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
-                            <FileDown className="mr-2 h-4 w-4" />
-                            Descargar
-                            <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem onClick={handleExportPDF}>Descargar como PDF</DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleExportHTML}>Descargar para Excel (HTML)</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+            {isExportMode ? (
+              <>
+                <Button variant="outline" onClick={() => handleExportPDF('active')}>
+                  <FileUp className="mr-2 h-4 w-4" /> Exportar a PDF
+                </Button>
+                <Button variant="outline" onClick={() => handleExportHTML('active')}>
+                  <FileType className="mr-2 h-4 w-4" /> Exportar a Excel
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => { setIsExportMode(false); setSelectedContainers([]); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" onClick={() => setIsExportMode(true)}>
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Descargar
+              </Button>
+            )}
           </div>
         </CardHeader>
       </Card>
       
       <Tabs defaultValue="en-transito" className="w-full">
         <TabsList>
-            <TabsTrigger value="en-transito">En Tránsito ({activeContainers.length})</TabsTrigger>
-            <TabsTrigger value="historial">Historial ({historyContainers.length})</TabsTrigger>
+            <TabsTrigger value="en-transito" disabled={isExportMode}>En Tránsito ({activeContainers.length})</TabsTrigger>
+            <TabsTrigger value="historial" disabled={isExportMode}>Historial ({historyContainers.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="en-transito" className="pt-4">
            {renderActiveList(activeContainers)}
@@ -511,6 +499,36 @@ a.href = url;
         </TabsContent>
       </Tabs>
       
+      {/* Add Container Dialog */}
+      <Dialog open={isAddContainerDialogOpen} onOpenChange={setIsAddContainerDialogOpen}>
+          <DialogContent>
+          <DialogHeader>
+              <DialogTitle>Agregar Nuevo Contenedor</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+              <div className="space-y-2">
+              <Label htmlFor="container-id">ID del Contenedor</Label>
+              <Input id="container-id" value={newContainerId} onChange={(e) => setNewContainerId(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+              <Label htmlFor="container-eta">Fecha Estimada de Llegada (ETA)</Label>
+              <Input id="container-eta" type="date" value={newContainerEta} onChange={(e) => setNewContainerEta(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+              <Label htmlFor="container-carrier">Transportista</Label>
+              <Input id="container-carrier" value={newContainerCarrier} onChange={(e) => setNewContainerCarrier(e.target.value)} />
+              </div>
+          </div>
+          <DialogFooter>
+              <DialogClose asChild>
+                  <Button variant="ghost">Cancelar</Button>
+              </DialogClose>
+              <Button onClick={handleAddContainer}>Agregar</Button>
+          </DialogFooter>
+          </DialogContent>
+      </Dialog>
+      
+      {/* Edit Container Dialog */}
       {editingContainer && (
         <Dialog open={isEditContainerDialogOpen} onOpenChange={setIsEditContainerDialogOpen}>
             <DialogContent>
@@ -539,6 +557,7 @@ a.href = url;
         </Dialog>
       )}
 
+      {/* Add Product Dialog */}
       <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
             <DialogContent>
                 <DialogHeader><DialogTitle>Agregar Producto a {selectedContainerId}</DialogTitle></DialogHeader>
