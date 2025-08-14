@@ -470,7 +470,7 @@ a.href = url;
                   <FileUp className="mr-2 h-4 w-4" /> Exportar a PDF
                 </Button>
                 <Button variant="outline" onClick={() => handleExportHTML('active')}>
-                  <FileType className="mr-2 h-4 w-4" /> Exportar a Excel
+                  <FileType className="mr-2 h-4 w-4" /> Exel
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => { setIsExportMode(false); setSelectedContainers([]); }}>
                   <X className="h-4 w-4" />
