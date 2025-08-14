@@ -18,14 +18,20 @@ export function ContainerHistoryItem({ container }: ContainerHistoryItemProps) {
   return (
     <AccordionItem value={container.id}>
       <AccordionTrigger className="rounded-md border px-4 hover:no-underline">
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full items-center justify-between text-sm">
             <div className="flex items-center gap-4">
                 <ContainerIcon className="h-6 w-6 text-muted-foreground" />
                 <span className="font-semibold">{container.id}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CalendarIcon className="h-4 w-4" />
-                <span>Llegada: {container.eta}</span>
+            <div className="flex items-center gap-4 text-muted-foreground">
+                <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4" />
+                    <span>Agregado: {container.creationDate}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4" />
+                    <span>Llegada: {container.eta}</span>
+                </div>
             </div>
         </div>
       </AccordionTrigger>

@@ -68,6 +68,7 @@ export interface Container {
   carrier: string;
   products: Product[];
   status: 'En tránsito' | 'Atrasado' | 'Llegado';
+  creationDate: string;
 }
 
 const productOptions = [
@@ -80,8 +81,8 @@ const productOptions = [
 ];
 
 const initialContainers: Container[] = [
-    { id: 'MSCU1234567', eta: '2024-08-15', carrier: 'Maersk', status: 'En tránsito', products: [{ name: 'CUT STONE 120 X 60', quantity: 200 }, { name: 'TRAVERTINO', quantity: 150 }] },
-    { id: 'CMAU7654321', eta: '2024-08-10', carrier: 'CMA CGM', status: 'Atrasado', products: [{ name: 'BLACK 1.22 X 0.61', quantity: 500 }] },
+    { id: 'MSCU1234567', eta: '2024-08-15', carrier: 'Maersk', status: 'En tránsito', products: [{ name: 'CUT STONE 120 X 60', quantity: 200 }, { name: 'TRAVERTINO', quantity: 150 }], creationDate: '2024-07-01' },
+    { id: 'CMAU7654321', eta: '2024-08-10', carrier: 'CMA CGM', status: 'Atrasado', products: [{ name: 'BLACK 1.22 X 0.61', quantity: 500 }], creationDate: '2024-07-05' },
 ];
 
 const currentUserRole: Role = 'Administrador';
@@ -175,7 +176,7 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, on
                     {container.status !== 'Llegado' && (
                        <>
                          <Button
-                            variant="default"
+                            variant="success"
                             size="sm"
                             onClick={() => onReceive(container.id)}
                           >
@@ -242,6 +243,7 @@ export default function TransitPage() {
       carrier: newContainerCarrier,
       products: [],
       status: 'En tránsito',
+      creationDate: new Date().toISOString().split('T')[0],
     };
     setContainers([...containers, newContainer]);
     setNewContainerId('');
