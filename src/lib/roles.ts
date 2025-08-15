@@ -1,4 +1,4 @@
-'use server';
+
 export type Permission = 
   // Dashboard
   'dashboard:view' |
