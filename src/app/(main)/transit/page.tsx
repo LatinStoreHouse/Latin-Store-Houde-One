@@ -23,10 +23,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +32,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion } from '@/components/ui/accordion';
 import { ContainerHistoryItem } from '@/components/container-history-item';
+import { cn } from '@/lib/utils';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -93,12 +90,14 @@ const initialContainers: Container[] = [
 
 const currentUserRole: Role = 'Administrador';
 
-const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: {
+const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, onSelect, isSelected }: {
     container: Container;
     canEdit: boolean;
     onEdit: (container: Container) => void;
     onReceive: (containerId: string) => void;
     onAddProduct: (containerId: string) => void;
+    onSelect: (containerId: string, selected: boolean) => void;
+    isSelected: boolean;
 }) => {
     const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
         return initialReservations
@@ -116,10 +115,16 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: 
     }
 
     return (
-        <Card>
+        <Card className={cn(isSelected && "border-primary ring-2 ring-primary")}>
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div className="flex items-center gap-4">
+                       <Checkbox 
+                           id={`select-${container.id}`} 
+                           checked={isSelected} 
+                           onCheckedChange={(checked) => onSelect(container.id, !!checked)}
+                           aria-label={`Seleccionar contenedor ${container.id}`}
+                        />
                         <div>
                             <CardTitle className="flex items-center gap-2">
                                 <Container className="h-6 w-6" /> {container.id}
@@ -201,6 +206,7 @@ export default function TransitPage() {
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const [editingContainer, setEditingContainer] = useState<Container | null>(null);
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
+  const [selectedContainers, setSelectedContainers] = useState<string[]>([]);
   const [newProductName, setNewProductName] = useState('');
   const [newProductQuantity, setNewProductQuantity] = useState(0);
   const [activeTab, setActiveTab] = useState('en-transito');
@@ -279,13 +285,24 @@ export default function TransitPage() {
     toast({ title: 'Éxito', description: 'Producto agregado al contenedor.' });
   };
 
+   const handleSelectionChange = (containerId: string, isSelected: boolean) => {
+    setSelectedContainers(prev => 
+      isSelected ? [...prev, containerId] : prev.filter(id => id !== containerId)
+    );
+  };
+
   const handleExport = (format: 'pdf' | 'xls') => {
     const isHistory = activeTab === 'historial';
-    const containersToExport = isHistory ? historyContainers : activeContainers;
+    const allContainersInView = isHistory ? historyContainers : activeContainers;
+
+    const containersToExport = selectedContainers.length > 0
+        ? allContainersInView.filter(c => selectedContainers.includes(c.id))
+        : allContainersInView;
+
     const targetName = isHistory ? 'Historial' : 'Activos';
 
     if (containersToExport.length === 0) {
-        toast({ variant: 'destructive', title: 'Error', description: `No hay contenedores en ${targetName.toLowerCase()} para exportar.` });
+        toast({ variant: 'destructive', title: 'Error', description: `No hay contenedores para exportar.` });
         return;
     }
     
@@ -298,29 +315,34 @@ export default function TransitPage() {
 
   const handleExportPDF = (containersToExport: Container[], targetName: string) => {
     const doc = new jsPDF();
-    doc.text(`Reporte de Contenedores - ${targetName}`, 14, 16);
+    const reportTitle = selectedContainers.length > 0 ? `Reporte de Contenedores Seleccionados - ${targetName}` : `Reporte de Contenedores - ${targetName}`;
+    doc.text(reportTitle, 14, 16);
     
+    let yPos = 25;
+
     containersToExport.forEach((container, index) => {
-        if (index > 0) doc.addPage();
-        
         const bodyData = container.products.map(p => [p.name, p.quantity]);
         
+        if (yPos > 250) { // Check for page break
+            doc.addPage();
+            yPos = 15;
+        }
+
+        doc.setFontSize(12);
+        doc.text(`Contenedor: ${container.id} | Transportista: ${container.carrier} | ETA: ${container.eta}`, 14, yPos);
+        yPos += 5;
+
         doc.autoTable({
-            startY: 32,
+            startY: yPos,
             head: [['Producto', 'Cantidad']],
             body: bodyData,
             tableWidth: 'auto',
-            didDrawPage: (data) => {
-                doc.setFontSize(12);
-                doc.text(`Contenedor: ${container.id}`, 14, 10);
-                doc.text(`Transportista: ${container.carrier}`, 14, 15);
-                doc.text(`ETA: ${container.eta} | Estado: ${container.status}`, 14, 20);
-                doc.text(`Fecha Creación: ${container.creationDate}`, 14, 25);
-            }
         });
+        
+        yPos = (doc as any).autoTable.previous.finalY + 10;
     });
 
-    doc.save(`Reporte de Contenedores - ${targetName}.pdf`);
+    doc.save(`Reporte_Contenedores_${targetName}.pdf`);
     toast({ title: 'Éxito', description: 'Reporte PDF generado.' });
   };
 
@@ -361,7 +383,7 @@ export default function TransitPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Reporte de Contenedores - ${targetName}.xls`;
+    a.download = `Reporte_Contenedores_${targetName}.xls`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -391,6 +413,8 @@ export default function TransitPage() {
               onEdit={handleOpenEditDialog}
               onReceive={handleReceiveContainer}
               onAddProduct={handleOpenAddProductDialog}
+              isSelected={selectedContainers.includes(container.id)}
+              onSelect={handleSelectionChange}
             />
           ))}
           {list.length === 0 && (
@@ -423,6 +447,12 @@ export default function TransitPage() {
                 <Button onClick={() => setIsAddContainerDialogOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Agregar Contenedor
+                </Button>
+            )}
+             {selectedContainers.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => setSelectedContainers([])}>
+                    <X className="mr-2 h-4 w-4" />
+                    Limpiar Selección ({selectedContainers.length})
                 </Button>
             )}
              <DropdownMenu>
