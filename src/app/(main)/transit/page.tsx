@@ -203,6 +203,7 @@ export default function TransitPage() {
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
   const [newProductName, setNewProductName] = useState('');
   const [newProductQuantity, setNewProductQuantity] = useState(0);
+  const [activeTab, setActiveTab] = useState('en-transito');
   const { toast } = useToast();
   
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística' || currentUserRole === 'Contador';
@@ -278,15 +279,26 @@ export default function TransitPage() {
     toast({ title: 'Éxito', description: 'Producto agregado al contenedor.' });
   };
 
-  const handleExportPDF = (target: 'active' | 'history') => {
-    const containersToExport = target === 'active' ? activeContainers : historyContainers;
+  const handleExport = (format: 'pdf' | 'xls') => {
+    const isHistory = activeTab === 'historial';
+    const containersToExport = isHistory ? historyContainers : activeContainers;
+    const targetName = isHistory ? 'Historial' : 'Activos';
+
     if (containersToExport.length === 0) {
-        toast({ variant: 'destructive', title: 'Error', description: 'No hay contenedores para exportar.' });
+        toast({ variant: 'destructive', title: 'Error', description: `No hay contenedores en ${targetName.toLowerCase()} para exportar.` });
         return;
     }
+    
+    if (format === 'pdf') {
+        handleExportPDF(containersToExport, targetName);
+    } else {
+        handleExportXLS(containersToExport, targetName);
+    }
+  };
 
+  const handleExportPDF = (containersToExport: Container[], targetName: string) => {
     const doc = new jsPDF();
-    doc.text(`Reporte de Contenedores - ${target === 'active' ? 'En Tránsito' : 'Historial'}`, 14, 16);
+    doc.text(`Reporte de Contenedores - ${targetName}`, 14, 16);
     
     containersToExport.forEach((container, index) => {
         if (index > 0) doc.addPage();
@@ -308,17 +320,11 @@ export default function TransitPage() {
         });
     });
 
-    doc.save(`Reporte de Contenedores - ${target}.pdf`);
+    doc.save(`Reporte de Contenedores - ${targetName}.pdf`);
     toast({ title: 'Éxito', description: 'Reporte PDF generado.' });
   };
 
-  const handleExportHTML = (target: 'active' | 'history') => {
-    const containersToExport = target === 'active' ? activeContainers : historyContainers;
-    if (containersToExport.length === 0) {
-        toast({ variant: 'destructive', title: 'Error', description: 'No hay contenedores para exportar.' });
-        return;
-    }
-
+  const handleExportXLS = (containersToExport: Container[], targetName: string) => {
     let html = '<table><thead><tr><th>Contenedor</th><th>Transportista</th><th>ETA</th><th>Estado</th><th>Fecha Creación</th><th>Producto</th><th>Cantidad</th></tr></thead><tbody>';
 
     containersToExport.forEach(container => {
@@ -355,7 +361,7 @@ export default function TransitPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Reporte de Contenedores - ${target}.xls`;
+    a.download = `Reporte de Contenedores - ${targetName}.xls`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -427,46 +433,22 @@ export default function TransitPage() {
                         <ChevronDown className="ml-2 h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuPortal>
-                    <DropdownMenuContent>
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>Contenedores Activos</DropdownMenuSubTrigger>
-                            <DropdownMenuPortal>
-                                <DropdownMenuSubContent>
-                                    <DropdownMenuItem onClick={() => handleExportPDF('active')}>
-                                        <FileType className="mr-2 h-4 w-4" />
-                                        PDF
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleExportHTML('active')}>
-                                        <FileUp className="mr-2 h-4 w-4" />
-                                        Excel (XLS)
-                                    </DropdownMenuItem>
-                                </DropdownMenuSubContent>
-                            </DropdownMenuPortal>
-                        </DropdownMenuSub>
-                         <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>Historial de Contenedores</DropdownMenuSubTrigger>
-                             <DropdownMenuPortal>
-                                <DropdownMenuSubContent>
-                                    <DropdownMenuItem onClick={() => handleExportPDF('history')}>
-                                        <FileType className="mr-2 h-4 w-4" />
-                                        PDF
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleExportHTML('history')}>
-                                        <FileUp className="mr-2 h-4 w-4" />
-                                        Excel (XLS)
-                                    </DropdownMenuItem>
-                                </DropdownMenuSubContent>
-                            </DropdownMenuPortal>
-                        </DropdownMenuSub>
-                    </DropdownMenuContent>
-                </DropdownMenuPortal>
+                <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                        <FileType className="mr-2 h-4 w-4" />
+                        Descargar como PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('xls')}>
+                        <FileUp className="mr-2 h-4 w-4" />
+                        Descargar como Excel (XLS)
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </CardHeader>
       </Card>
       
-      <Tabs defaultValue="en-transito" className="w-full">
+      <Tabs defaultValue="en-transito" onValueChange={setActiveTab} className="w-full">
         <TabsList>
             <TabsTrigger value="en-transito">En Tránsito ({activeContainers.length})</TabsTrigger>
             <TabsTrigger value="historial">Historial ({historyContainers.length})</TabsTrigger>
