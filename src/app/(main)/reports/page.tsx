@@ -2,12 +2,91 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, TrendingUp, Users, Package, TrendingDown } from 'lucide-react';
-import { useState } from 'react';
+import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { MonthPicker } from '@/components/month-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { inventoryMovementData } from '@/lib/inventory-movement';
+import { getSalesForecast } from '@/app/actions';
+import { ForecastSalesOutput } from '@/ai/flows/forecast-sales';
+
+
+const ForecastCard = () => {
+    const [forecast, setForecast] = useState<ForecastSalesOutput | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchForecast = async () => {
+            try {
+                setLoading(true);
+                const result = await getSalesForecast();
+                if (result.error) {
+                    setError(result.error);
+                } else {
+                    setForecast(result.result ?? null);
+                }
+            } catch (e) {
+                setError('No se pudo cargar el pronóstico.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchForecast();
+    }, []);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <BotMessageSquare />
+                    Pronóstico de Ventas con IA para el Próximo Mes
+                </CardTitle>
+                <CardDescription>
+                    Predicción de unidades a mover basada en tendencias históricas.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {loading && (
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground h-40">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Generando pronóstico...</span>
+                    </div>
+                )}
+                {error && <p className="text-destructive text-center">{error}</p>}
+                {!loading && !error && forecast && (
+                    <div className="space-y-4">
+                        <div>
+                             <h3 className="font-semibold mb-2">Predicción de Unidades</h3>
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Producto</TableHead>
+                                        <TableHead className="text-right">Unidades Predichas</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {forecast.forecast.map(item => (
+                                        <TableRow key={item.productName}>
+                                            <TableCell>{item.productName}</TableCell>
+                                            <TableCell className="text-right font-bold">{item.predictedUnits}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold">Análisis de la IA</h3>
+                            <p className="text-sm text-muted-foreground">{forecast.summary}</p>
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
 
 export default function ReportsPage() {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -66,6 +145,8 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
       
+      <ForecastCard />
+
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          <Card>
             <CardHeader>
@@ -94,6 +175,13 @@ export default function ReportsPage() {
                                 </TableCell>
                             </TableRow>
                         ))}
+                         {monthlyData.topMovers.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                    No hay datos para este mes.
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </CardContent>
@@ -118,6 +206,13 @@ export default function ReportsPage() {
                                 <TableCell className="text-right">{item.moved}</TableCell>
                             </TableRow>
                         ))}
+                        {monthlyData.bottomMovers.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={2} className="text-center text-muted-foreground">
+                                    No hay datos para este mes.
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </CardContent>

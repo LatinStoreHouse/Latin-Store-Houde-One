@@ -1,6 +1,8 @@
 'use server';
 
 import { suggestAdvisor, SuggestAdvisorInput, SuggestAdvisorOutput } from '@/ai/flows/suggest-advisor';
+import { forecastSales, ForecastSalesOutput } from '@/ai/flows/forecast-sales';
+import { inventoryMovementData } from '@/lib/inventory-movement';
 import { z } from 'zod';
 
 const AdvisorSchema = z.object({
@@ -39,6 +41,31 @@ export async function getAdvisorSuggestion(
     return {
       error: e.message || 'Ocurrió un error inesperado.',
       message: 'No se pudo obtener la sugerencia.',
+    };
+  }
+}
+
+
+type SalesForecastState = {
+  result?: ForecastSalesOutput;
+  error?: string;
+}
+
+export async function getSalesForecast(): Promise<SalesForecastState> {
+  try {
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const targetMonth = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
+
+    const result = await forecastSales({
+        historicalData: inventoryMovementData,
+        targetMonth: targetMonth,
+    });
+    return { result };
+  } catch (e: any) {
+    console.error(e);
+    return {
+      error: e.message || 'Ocurrió un error al generar el pronóstico.',
     };
   }
 }
