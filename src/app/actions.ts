@@ -69,3 +69,21 @@ export async function getSalesForecast(): Promise<SalesForecastState> {
     };
   }
 }
+
+type ExchangeRateState = {
+  rate?: number;
+  error?: string;
+}
+
+export async function getExchangeRate(): Promise<ExchangeRateState> {
+  try {
+    // In a real application, you would fetch this from a reliable API.
+    // For this prototype, we simulate a delay and return a mock rate.
+    await new Promise(resolve => setTimeout(resolve, 500)); 
+    const mockRate = 3950 + Math.random() * 100; // e.g., 3950 - 4050
+    return { rate: mockRate };
+  } catch (e) {
+    console.error(e);
+    return { error: 'No se pudo obtener la tasa de cambio.' };
+  }
+}
