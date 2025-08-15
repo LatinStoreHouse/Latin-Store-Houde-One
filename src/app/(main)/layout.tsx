@@ -60,16 +60,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Role, roles } from '@/lib/roles';
+import { Role, roles, User } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 
-const initialUser = {
+const initialUser: User = {
+  id: '1',
   name: 'Admin Latin',
   email: 'admin@latinhouse.com',
-  role: 'Administrador' as Role,
-  avatar: 'https://placehold.co/40x40.png'
+  roles: ['Administrador'],
+  avatar: 'https://placehold.co/40x40.png',
+  active: true,
 };
 
 const navItems = [
@@ -129,7 +131,18 @@ const Logo = () => (
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState(initialUser);
-  const userPermissions = roles.find(r => r.name === currentUser.role)?.permissions || [];
+  
+  const userPermissions = React.useMemo(() => {
+    const permissions = new Set<string>();
+    currentUser.roles.forEach(userRole => {
+      const roleConfig = roles.find(r => r.name === userRole);
+      if (roleConfig) {
+        roleConfig.permissions.forEach(p => permissions.add(p));
+      }
+    });
+    return Array.from(permissions);
+  }, [currentUser.roles]);
+
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editedName, setEditedName] = useState(currentUser.name);
   const [editedAvatar, setEditedAvatar] = useState(currentUser.avatar);
@@ -154,8 +167,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   const visibleNavItems = getVisibleNavItems();
   
-  const currentUserRoleDetails = roles.find(r => r.name === currentUser.role);
-
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -308,7 +319,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                                 <h2 className="text-xl font-semibold">{currentUser.name}</h2>
                             )}
                             <p className="text-sm text-muted-foreground">{currentUser.email}</p>
-                            <Badge className="mt-2">{currentUser.role}</Badge>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                                {currentUser.roles.map(role => (
+                                    <Badge key={role}>{role}</Badge>
+                                ))}
+                            </div>
                         </div>
                     </div>
                     {avatarError && (

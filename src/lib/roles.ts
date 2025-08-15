@@ -1,3 +1,4 @@
+'use server';
 export type Permission = 
   // Dashboard
   'dashboard:view' |
@@ -48,7 +49,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: Role;
+  roles: Role[];
   avatar: string;
   active: boolean;
 }

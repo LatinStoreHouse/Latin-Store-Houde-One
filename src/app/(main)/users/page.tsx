@@ -39,11 +39,11 @@ import { User, Role, roles } from '@/lib/roles';
 
 
 const initialUsers: User[] = [
-  { id: '1', name: 'Admin Latin', email: 'admin@latinhouse.com', role: 'Administrador', avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true },
-  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Asesor de Ventas', avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png', active: true },
-  { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', role: 'Asesor de Ventas', avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false },
-  { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', role: 'Logística', avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true },
-  { id: '5', name: 'Carlos Ruiz', email: 'carlos.r@example.com', role: 'Contador', avatar: 'https://placehold.co/40x40/f44336/ffffff.png', active: true },
+  { id: '1', name: 'Admin Latin', email: 'admin@latinhouse.com', roles: ['Administrador'], avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true },
+  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png', active: true },
+  { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false },
+  { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', roles: ['Logística'], avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true },
+  { id: '5', name: 'Carlos Ruiz', email: 'carlos.r@example.com', roles: ['Contador'], avatar: 'https://placehold.co/40x40/f44336/ffffff.png', active: true },
 ];
 
 export default function UsersPage() {
@@ -111,7 +111,7 @@ export default function UsersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Usuario</TableHead>
-                <TableHead>Rol</TableHead>
+                <TableHead>Roles</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
@@ -132,9 +132,13 @@ export default function UsersPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role)}>
-                      {user.role}
-                    </Badge>
+                    <div className="flex flex-wrap gap-1">
+                      {user.roles.map(role => (
+                          <Badge key={role} variant={getRoleBadgeVariant(role)}>
+                            {role}
+                          </Badge>
+                      ))}
+                    </div>
                   </TableCell>
                   <TableCell>
                      <Badge variant={user.active ? 'default' : 'secondary'}>

@@ -3,15 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { User, Role, roles } from '@/lib/roles';
+import { Checkbox } from './ui/checkbox';
 
 interface UserFormProps {
   user?: User;
@@ -22,22 +16,32 @@ interface UserFormProps {
 export function UserForm({ user, onSave, onCancel }: UserFormProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<Role>('Asesor de Ventas');
+  const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
   const [active, setActive] = useState(true);
+
+  const isEditingAdmin = user?.roles.includes('Administrador') ?? false;
 
   useEffect(() => {
     if (user) {
       setName(user.name);
       setEmail(user.email);
-      setRole(user.role);
+      setSelectedRoles(user.roles);
       setActive(user.active);
     } else {
       setName('');
       setEmail('');
-      setRole('Asesor de Ventas');
+      setSelectedRoles(['Asesor de Ventas']);
       setActive(true);
     }
   }, [user]);
+
+  const handleRoleChange = (roleName: Role, checked: boolean) => {
+    if (isEditingAdmin) return;
+    
+    setSelectedRoles(prev => 
+      checked ? [...prev, roleName] : prev.filter(r => r !== roleName)
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +49,7 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
       id: user?.id || '',
       name,
       email,
-      role,
+      roles: selectedRoles,
       active,
       avatar: user?.avatar || `https://placehold.co/40x40.png`,
     });
@@ -73,19 +77,23 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="role">Rol</Label>
-        <Select value={role} onValueChange={(value) => setRole(value as Role)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Seleccione un rol" />
-          </SelectTrigger>
-          <SelectContent>
+        <Label>Roles</Label>
+        <div className="space-y-2 rounded-md border p-4">
             {roles.map((r) => (
-              <SelectItem key={r.id} value={r.name}>
-                {r.name}
-              </SelectItem>
+              <div key={r.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`role-${r.id}`}
+                    checked={selectedRoles.includes(r.name)}
+                    onCheckedChange={(checked) => handleRoleChange(r.name, Boolean(checked))}
+                    disabled={r.name === 'Administrador' && isEditingAdmin}
+                  />
+                  <Label htmlFor={`role-${r.id}`} className="font-normal">
+                      {r.name}
+                  </Label>
+              </div>
             ))}
-          </SelectContent>
-        </Select>
+        </div>
+        {isEditingAdmin && <p className="text-xs text-muted-foreground">El rol de Administrador no se puede modificar.</p>}
       </div>
       <div className="flex items-center space-x-2">
         <Switch
