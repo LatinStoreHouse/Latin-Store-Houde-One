@@ -584,13 +584,15 @@ export default function InventoryPage() {
       </CardHeader>
       <CardContent>
          <Tabs defaultValue={brands[0]} className="w-full">
-            <TabsList>
-                {brands.map((brand) => (
-                    <TabsTrigger value={brand} key={brand}>{formatBrandName(brand)}</TabsTrigger>
-                ))}
-            </TabsList>
+            <div className="flex justify-center">
+                <TabsList>
+                    {brands.map((brand) => (
+                        <TabsTrigger value={brand} key={brand}>{formatBrandName(brand)}</TabsTrigger>
+                    ))}
+                </TabsList>
+            </div>
             {brands.map((brand) => (
-                <TabsContent value={brand} key={brand}>
+                <TabsContent value={brand} key={brand} className="mt-4">
                     <Card>
                       <CardContent className="p-0">
                         <Tabs defaultValue={Object.keys(inventoryData[brand as keyof typeof inventoryData])[0] || 'default'} className="w-full" orientation="vertical">
