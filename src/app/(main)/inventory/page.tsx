@@ -595,12 +595,14 @@ export default function InventoryPage() {
                 <TabsContent value={brand} key={brand} className="mt-4">
                     <Card>
                       <CardContent className="p-0">
-                        <Tabs defaultValue={Object.keys(inventoryData[brand as keyof typeof inventoryData])[0] || 'default'} className="w-full" orientation="vertical">
-                            <TabsList>
-                                {Object.keys(inventoryData[brand as keyof typeof inventoryData]).map((subCategory) => (
-                                    <TabsTrigger value={subCategory} key={subCategory}>{subCategory}</TabsTrigger>
-                                ))}
-                            </TabsList>
+                        <Tabs defaultValue={Object.keys(inventoryData[brand as keyof typeof inventoryData])[0] || 'default'} className="w-full">
+                            <div className="flex justify-center mt-4">
+                                <TabsList>
+                                    {Object.keys(inventoryData[brand as keyof typeof inventoryData]).map((subCategory) => (
+                                        <TabsTrigger value={subCategory} key={subCategory}>{subCategory}</TabsTrigger>
+                                    ))}
+                                </TabsList>
+                            </div>
                             {Object.entries(inventoryData[brand as keyof typeof inventoryData]).map(([subCategory, products]) => (
                                  <TabsContent value={subCategory} key={subCategory}>
                                     <ProductTable 
