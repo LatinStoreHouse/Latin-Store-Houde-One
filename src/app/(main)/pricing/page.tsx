@@ -9,72 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Save } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { initialProductPrices } from '@/lib/prices';
 
-const initialProductPrices: { [key: string]: number } = {
-    'CUT STONE 120 X 60': 176000,
-    'TRAVERTINO': 176000,
-    'CONCRETO ENCOFRADO': 176000,
-    'TAPIA NEGRA': 176000,
-    'BLACK 1.22 X 0.61': 177162,
-    'KUND MULTY 1.22 X 0.61': 177162,
-    'TAN 1.22 X 0.61': 177162,
-    'INDIAN AUTUMN 1.22 X 0.61': 177162,
-    'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61': 252689,
-    'BURNING FOREST 1.22 X 0.61': 177162,
-    'COPPER 1.22 X 0.61': 177162,
-    'JEERA GREEN 1.22 X 0.61': 177162,
-    'SILVER SHINE 1.22 X 0.61': 177162,
-    'SILVER SHINE GOLD 1.22 X 0.61': 177162,
-    'STEEL GRAY 1.22 X 0.61': 177162,
-    'CARRARA 1.22 X 0.61': 239247,
-    'CRYSTAL WHITE 1.22 X 0.61': 239247,
-    'HIMALAYA GOLD 1.22X0.61 MTS': 239247,
-    'MINT WHITE 1.22 X 0.61': 239247,
-    'CONCRETO BLANCO 1.22 X 0.61': 177162,
-    'CONCRETO GRIS 1.22 X 0.61': 177162,
-    'CONCRETE WITH HOLES 1.22 X 0.61': 177162,
-    'CONCRETO GRIS MEDIUM 1.22 X 0.61': 177162,
-    'CORTEN STELL - 2.44 X 0.61': 267819,
-    'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61': 267819,
-    'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61': 267819,
-    'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61': 267819,
-    'MADERA NOGAL 0.15 X 2.44 MTS': 222710,
-    'MADERA TEKA 0.15 X 2.44 MTS': 222710,
-    '3D ADHESIVO - 0,90 M2 - BLACK': 207072,
-    '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC': 207072,
-    '3D ADHESIVO - 0,90 M2 - TAN': 207072,
-    'BLACK 2.44 X 1.22': 177162,
-    'TAN 2.44 X 1.22': 177162,
-    'kUND MULTY 2.44 X 1.22': 177162,
-    'INDIAN AUTUMN 2.44 X 1.22': 177162,
-    'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22': 252689,
-    'COPPER 2.44 X 1.22': 177162,
-    'BURNING FOREST 2.44 X 1.22': 177162,
-    'JEERA GREEN 2.44 X 1.22': 177162,
-    'SILVER SHINE 2.44 X 1.22': 177162,
-    'SILVER SHINE GOLD 2.44 X 1.22': 177162,
-    'STEEL GREY 2.44 X 1.22': 177162,
-    'CONCRETO BLANCO 2.44 X 1.22': 177162,
-    'CONCRETO GRIS 2.44 X 1.22': 177162,
-    'CONCRETO MEDIO 2.44 X 1.22': 177162,
-    'CONCRETO WITH HOLES 2.44 X 1.22': 177162,
-    'CARRARA 2.44 X 1.22': 239247,
-    'CRYSTAL WHITE 2.44 X 1.22': 239247,
-    'HIMALAYA GOLD 2.44 X 1.22': 239247,
-    'CORTEN STEEL 2.44 X 1.22': 267819,
-    'PERGOLA 9x4 - 3 MTS COFFEE': 50000,
-    'PERGOLA 9x4 - 3 MTS CHOCOLATE': 50000,
-    'PERGOLA 10x5 - 3 COFFEE': 55000,
-    'PERGOLA 10x5 - 3 MTS CHOCOLATE': 55000,
-    'DECK ESTANDAR 14.5 CM X 2.2 CM X 2.21 MTS COFFEE': 40000,
-    'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR CF - WN': 45000,
-    'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR EB - LG': 45000,
-    'LISTON 6.8x2.5 - 3 MTS CAMEL': 30000,
-    'LISTON 6.8x2.5 - 3 MTS COFFEE': 30000,
-    'LISTON 6.8x2.5 - 3 MTS CHOCOLATE': 30000,
-    'Sellante': 50000,
-    'Adhesivo': 30000,
-};
 
 const productStructure: { [key: string]: { [line: string]: string[] } } = {
   'StoneFlex': {
@@ -260,21 +196,25 @@ export default function PricingPage() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={brands[0]} className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
-            {brands.map((brand) => (
-              <TabsTrigger value={brand} key={brand}>{brand}</TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="flex justify-center">
+            <TabsList>
+                {brands.map((brand) => (
+                <TabsTrigger value={brand} key={brand}>{brand}</TabsTrigger>
+                ))}
+            </TabsList>
+          </div>
           {brands.map((brand) => (
-            <TabsContent value={brand} key={brand}>
+            <TabsContent value={brand} key={brand} className="mt-4">
               <Card>
                 <CardContent className="p-0">
                   <Tabs defaultValue={Object.keys(productStructure[brand as keyof typeof productStructure])[0]} className="w-full" orientation="vertical">
-                      <TabsList>
-                          {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
-                            <TabsTrigger value={line} key={line}>{line}</TabsTrigger>
-                          ))}
-                      </TabsList>
+                      <div className="flex justify-center mt-4">
+                        <TabsList>
+                            {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
+                                <TabsTrigger value={line} key={line}>{line}</TabsTrigger>
+                            ))}
+                        </TabsList>
+                      </div>
                       {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
                           <TabsContent value={line} key={line}>
                             {line !== 'Insumos' && (
@@ -363,5 +303,3 @@ export default function PricingPage() {
     </Card>
   );
 }
-
-    
