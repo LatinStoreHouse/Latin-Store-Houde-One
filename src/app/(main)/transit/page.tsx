@@ -2,12 +2,13 @@
 import React, { useState, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Container, Ship, CalendarIcon, FileDown, Edit, CheckCircle, FileUp, FileType, X } from 'lucide-react';
+import { PlusCircle, Container, Ship, CalendarIcon, FileDown, Edit, CheckCircle, FileUp, FileType, X, ChevronDown } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,16 @@ import {
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+} from '@/components/ui/dropdown-menu';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -82,15 +93,12 @@ const initialContainers: Container[] = [
 
 const currentUserRole: Role = 'Administrador';
 
-const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, onSelect, isSelected, isExportMode }: {
+const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: {
     container: Container;
     canEdit: boolean;
     onEdit: (container: Container) => void;
     onReceive: (containerId: string) => void;
     onAddProduct: (containerId: string) => void;
-    onSelect: (containerId: string) => void;
-    isSelected: boolean;
-    isExportMode: boolean;
 }) => {
     const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
         return initialReservations
@@ -112,14 +120,6 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, on
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div className="flex items-center gap-4">
-                        {isExportMode && (
-                          <Checkbox
-                              id={`select-${container.id}`}
-                              checked={isSelected}
-                              onCheckedChange={() => onSelect(container.id)}
-                              className="h-5 w-5"
-                          />
-                        )}
                         <div>
                             <CardTitle className="flex items-center gap-2">
                                 <Container className="h-6 w-6" /> {container.id}
@@ -203,8 +203,6 @@ export default function TransitPage() {
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
   const [newProductName, setNewProductName] = useState('');
   const [newProductQuantity, setNewProductQuantity] = useState(0);
-  const [selectedContainers, setSelectedContainers] = useState<string[]>([]);
-  const [isExportMode, setIsExportMode] = useState(false);
   const { toast } = useToast();
   
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística' || currentUserRole === 'Contador';
@@ -214,23 +212,6 @@ export default function TransitPage() {
     const history = containers.filter(c => c.status === 'Llegado');
     return { activeContainers: active, historyContainers: history };
   }, [containers]);
-
-  const handleContainerSelection = (containerId: string) => {
-    setSelectedContainers(prev => 
-      prev.includes(containerId) 
-        ? prev.filter(id => id !== containerId)
-        : [...prev, containerId]
-    );
-  };
-  
-  const handleSelectAll = (checked: boolean, list: Container[]) => {
-    if (checked) {
-        setSelectedContainers(prev => [...new Set([...prev, ...list.map(c => c.id)])]);
-    } else {
-        const listIds = list.map(c => c.id);
-        setSelectedContainers(prev => prev.filter(id => !listIds.includes(id)));
-    }
-  };
 
 
   const handleAddContainer = () => {
@@ -297,20 +278,8 @@ export default function TransitPage() {
     toast({ title: 'Éxito', description: 'Producto agregado al contenedor.' });
   };
 
-  const getContainersToExport = (targetContainers: Container[]) => {
-    if (selectedContainers.length > 0) {
-      const intersection = targetContainers.filter(c => selectedContainers.includes(c.id));
-      if (intersection.length > 0) {
-        toast({ title: 'Descarga Iniciada', description: `Exportando ${intersection.length} contenedor(es) seleccionado(s).`});
-        return intersection;
-      }
-    }
-    toast({ title: 'Descarga Iniciada', description: 'Exportando todos los contenedores en la vista actual.'});
-    return targetContainers;
-  }
-  
   const handleExportPDF = (target: 'active' | 'history') => {
-    const containersToExport = getContainersToExport(target === 'active' ? activeContainers : historyContainers);
+    const containersToExport = target === 'active' ? activeContainers : historyContainers;
     if (containersToExport.length === 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'No hay contenedores para exportar.' });
         return;
@@ -340,10 +309,11 @@ export default function TransitPage() {
     });
 
     doc.save(`Reporte de Contenedores - ${target}.pdf`);
+    toast({ title: 'Éxito', description: 'Reporte PDF generado.' });
   };
 
   const handleExportHTML = (target: 'active' | 'history') => {
-    const containersToExport = getContainersToExport(target === 'active' ? activeContainers : historyContainers);
+    const containersToExport = target === 'active' ? activeContainers : historyContainers;
     if (containersToExport.length === 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'No hay contenedores para exportar.' });
         return;
@@ -384,12 +354,13 @@ export default function TransitPage() {
     const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-a.href = url;
+    a.href = url;
     a.download = `Reporte de Contenedores - ${target}.xls`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    toast({ title: 'Éxito', description: 'Reporte Excel generado.' });
   };
   
   const handleReceiveContainer = (containerId: string) => {
@@ -405,36 +376,20 @@ a.href = url;
   };
 
   const renderActiveList = (list: Container[]) => (
-      <div className="space-y-4">
-        {isExportMode && (
-          <div className="mb-4 flex items-center space-x-2 p-4 border rounded-md bg-secondary/50">
-              <Checkbox 
-                  id="select-all-active"
-                  onCheckedChange={(checked) => handleSelectAll(Boolean(checked), list)}
-                  checked={list.length > 0 && list.every(c => selectedContainers.includes(c.id))}
-                  aria-label="Seleccionar todos los contenedores en esta pestaña"
-              />
-              <Label htmlFor="select-all-active" className="flex-1">Seleccionar Todos ({selectedContainers.filter(id => list.some(c => c.id === id)).length} seleccionados)</Label>
-          </div>
-        )}
-        <div className="space-y-8">
-            {list.map((container) => (
-              <ContainerCard
-                key={container.id}
-                container={container}
-                canEdit={canEdit}
-                onEdit={handleOpenEditDialog}
-                onReceive={handleReceiveContainer}
-                onAddProduct={handleOpenAddProductDialog}
-                onSelect={handleContainerSelection}
-                isSelected={selectedContainers.includes(container.id)}
-                isExportMode={isExportMode}
-              />
-            ))}
-            {list.length === 0 && (
-                <p className="text-center text-muted-foreground py-8">No hay contenedores en tránsito.</p>
-            )}
-        </div>
+      <div className="space-y-8">
+          {list.map((container) => (
+            <ContainerCard
+              key={container.id}
+              container={container}
+              canEdit={canEdit}
+              onEdit={handleOpenEditDialog}
+              onReceive={handleReceiveContainer}
+              onAddProduct={handleOpenAddProductDialog}
+            />
+          ))}
+          {list.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">No hay contenedores en tránsito.</p>
+          )}
       </div>
   );
 
@@ -459,37 +414,62 @@ a.href = url;
           </div>
           <div className="flex items-center gap-2">
             {canEdit && (
-                <Button onClick={() => setIsAddContainerDialogOpen(true)} disabled={isExportMode}>
+                <Button onClick={() => setIsAddContainerDialogOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Agregar Contenedor
                 </Button>
             )}
-            {isExportMode ? (
-              <>
-                <Button variant="outline" onClick={() => handleExportPDF('active')}>
-                  <FileUp className="mr-2 h-4 w-4" /> PDF
-                </Button>
-                <Button variant="outline" onClick={() => handleExportHTML('active')}>
-                  <FileType className="mr-2 h-4 w-4" /> Exel
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => { setIsExportMode(false); setSelectedContainers([]); }}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <Button variant="outline" onClick={() => setIsExportMode(true)}>
-                  <FileDown className="mr-2 h-4 w-4" />
-                  Descargar
-              </Button>
-            )}
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Descargar
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuPortal>
+                    <DropdownMenuContent>
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>Contenedores Activos</DropdownMenuSubTrigger>
+                            <DropdownMenuPortal>
+                                <DropdownMenuSubContent>
+                                    <DropdownMenuItem onClick={() => handleExportPDF('active')}>
+                                        <FileType className="mr-2 h-4 w-4" />
+                                        PDF
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleExportHTML('active')}>
+                                        <FileUp className="mr-2 h-4 w-4" />
+                                        Excel (XLS)
+                                    </DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                         <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>Historial de Contenedores</DropdownMenuSubTrigger>
+                             <DropdownMenuPortal>
+                                <DropdownMenuSubContent>
+                                    <DropdownMenuItem onClick={() => handleExportPDF('history')}>
+                                        <FileType className="mr-2 h-4 w-4" />
+                                        PDF
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleExportHTML('history')}>
+                                        <FileUp className="mr-2 h-4 w-4" />
+                                        Excel (XLS)
+                                    </DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                            </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                    </DropdownMenuContent>
+                </DropdownMenuPortal>
+            </DropdownMenu>
           </div>
         </CardHeader>
       </Card>
       
       <Tabs defaultValue="en-transito" className="w-full">
         <TabsList>
-            <TabsTrigger value="en-transito" disabled={isExportMode}>En Tránsito ({activeContainers.length})</TabsTrigger>
-            <TabsTrigger value="historial" disabled={isExportMode}>Historial ({historyContainers.length})</TabsTrigger>
+            <TabsTrigger value="en-transito">En Tránsito ({activeContainers.length})</TabsTrigger>
+            <TabsTrigger value="historial">Historial ({historyContainers.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="en-transito" className="pt-4">
            {renderActiveList(activeContainers)}
