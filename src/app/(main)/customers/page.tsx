@@ -24,9 +24,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus } from 'lucide-react';
+import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
+import { Checkbox } from '@/components/ui/checkbox';
+import { BulkMessageForm } from '@/components/bulk-message-form';
 
 export interface Customer {
   id: number;
@@ -56,7 +58,9 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomerData);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkMessageModalOpen, setIsBulkMessageModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined);
+  const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
 
   const filteredCustomers = customers.filter(
     (customer) =>
@@ -85,6 +89,24 @@ export default function CustomersPage() {
   const handleDeleteCustomer = (id: number) => {
      setCustomers(customers.filter(c => c.id !== id));
   }
+  
+  const handleSelectCustomer = (id: number, checked: boolean) => {
+    if (checked) {
+        setSelectedCustomers([...selectedCustomers, id]);
+    } else {
+        setSelectedCustomers(selectedCustomers.filter(customerId => customerId !== id));
+    }
+  };
+  
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+        setSelectedCustomers(filteredCustomers.map(c => c.id));
+    } else {
+        setSelectedCustomers([]);
+    }
+  }
+
+  const customersForBulkMessage = customers.filter(c => selectedCustomers.includes(c.id));
 
   return (
     <>
@@ -106,6 +128,20 @@ export default function CustomersPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" disabled={selectedCustomers.length === 0}>
+                    Acciones Masivas
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setIsBulkMessageModalOpen(true)}>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Enviar Mensaje/Campaña
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button onClick={() => handleOpenModal()}>
             <UserPlus className="mr-2 h-4 w-4" />
             Agregar Cliente
@@ -114,6 +150,13 @@ export default function CustomersPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="p-2 w-10">
+                <Checkbox
+                    onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
+                    checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
+                    aria-label="Seleccionar todo"
+                />
+              </TableHead>
               <TableHead className="p-2">Cliente</TableHead>
               <TableHead className="p-2">Fuente</TableHead>
               <TableHead className="p-2">Asesor Asignado</TableHead>
@@ -123,7 +166,14 @@ export default function CustomersPage() {
           </TableHeader>
           <TableBody>
             {filteredCustomers.map((customer) => (
-              <TableRow key={customer.id}>
+              <TableRow key={customer.id} data-state={selectedCustomers.includes(customer.id) ? "selected" : ""}>
+                <TableCell className="p-2">
+                    <Checkbox 
+                        onCheckedChange={(checked) => handleSelectCustomer(customer.id, Boolean(checked))}
+                        checked={selectedCustomers.includes(customer.id)}
+                        aria-label={`Seleccionar ${customer.name}`}
+                    />
+                </TableCell>
                 <TableCell className="p-2">
                   <div className="font-medium">{customer.name}</div>
                   <div className="text-sm text-muted-foreground">{customer.phone}</div>
@@ -182,6 +232,18 @@ export default function CustomersPage() {
                 onSave={handleSaveCustomer}
                 onCancel={() => setIsModalOpen(false)}
             />
+        </DialogContent>
+    </Dialog>
+    
+    <Dialog open={isBulkMessageModalOpen} onOpenChange={setIsBulkMessageModalOpen}>
+        <DialogContent>
+             <DialogHeader>
+                <DialogTitle>Enviar Mensaje Masivo</DialogTitle>
+                <DialogDescription>
+                  Redacte un mensaje para enviar a los {selectedCustomers.length} clientes seleccionados.
+                </DialogDescription>
+            </DialogHeader>
+            <BulkMessageForm customers={customersForBulkMessage} />
         </DialogContent>
     </Dialog>
     </>
