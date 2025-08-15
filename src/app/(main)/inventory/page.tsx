@@ -584,7 +584,7 @@ export default function InventoryPage() {
       </CardHeader>
       <CardContent>
          <Tabs defaultValue={brands[0]} className="w-full">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList>
                 {brands.map((brand) => (
                     <TabsTrigger value={brand} key={brand}>{formatBrandName(brand)}</TabsTrigger>
                 ))}
