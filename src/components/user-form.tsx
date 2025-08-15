@@ -36,7 +36,7 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
   }, [user]);
 
   const handleRoleChange = (roleName: Role, checked: boolean) => {
-    if (isEditingAdmin) return;
+    if (isEditingAdmin && roleName === 'Administrador') return;
     
     setSelectedRoles(prev => 
       checked ? [...prev, roleName] : prev.filter(r => r !== roleName)

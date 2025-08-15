@@ -78,6 +78,7 @@ export default function UsersPage() {
           case 'Asesor de Ventas': return 'default';
           case 'Contador': return 'outline';
           case 'Logística': return 'secondary';
+          case 'Marketing': return 'secondary';
           default: return 'secondary';
       }
   }

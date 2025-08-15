@@ -37,7 +37,7 @@ export type Permission =
   'reservations:create' |
   'reservations:validate';
 
-export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística';
+export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing';
 
 export interface RoleConfig {
     id: string;
@@ -130,6 +130,18 @@ export const roles: RoleConfig[] = [
             'inventory:transit',
             'orders:view',
             'reservations:view'
+        ]
+    },
+    {
+        id: 'marketing',
+        name: 'Marketing',
+        permissions: [
+            'dashboard:view',
+            'customers:view',
+            'customers:create',
+            'customers:edit',
+            'reports:view',
+            'advisor:use'
         ]
     }
 ];
