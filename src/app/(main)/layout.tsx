@@ -53,7 +53,9 @@ import {
     BadgeCheck,
     Edit,
     Save,
-    Camera
+    Camera,
+    Receipt,
+    Store
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -81,7 +83,14 @@ const navItems = [
       { href: '/reservations', label: 'Reservas', permission: 'reservations:view' },
     ],
   },
-  { href: '/orders', label: 'Despachos y Facturación', icon: Truck, permission: 'orders:view' },
+  {
+    label: 'Ventas',
+    icon: Store,
+    subItems: [
+        { href: '/orders', label: 'Despachos', permission: 'orders:view' },
+        { href: '/invoices', label: 'Historial de Facturas', permission: 'invoices:view' },
+    ],
+  },
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
   { href: '/customers', label: 'Clientes', icon: Users, permission: 'customers:view' },
   {
@@ -105,6 +114,8 @@ const getIconForSubItem = (label: string) => {
         case 'Inventario': return Warehouse;
         case 'Contenedores': return Container;
         case 'Reservas': return BookUser;
+        case 'Despachos': return Truck;
+        case 'Historial de Facturas': return Receipt;
         default: return Warehouse;
     }
 }
