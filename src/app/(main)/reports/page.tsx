@@ -3,30 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, TrendingUp, Users, Package, TrendingDown } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { useState } from 'react';
 import { MonthPicker } from '@/components/month-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { inventoryMovementData } from '@/lib/inventory-movement';
-
-
-const salesData = [
-  { month: 'Ene', sales: 4000 },
-  { month: 'Feb', sales: 3000 },
-  { month: 'Mar', sales: 5000 },
-  { month: 'Abr', sales: 4500 },
-  { month: 'May', sales: 6000 },
-  { month: 'Jun', sales: 5500 },
-];
-
-const chartConfig = {
-  sales: {
-    label: "Ventas",
-    color: "hsl(var(--primary))",
-  },
-}
 
 export default function ReportsPage() {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -84,28 +65,7 @@ export default function ReportsPage() {
           </Card>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Rendimiento de Ventas</CardTitle>
-          <CardDescription>Ingresos de los últimos 6 meses.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <BarChart data={salesData} accessibilityLayer>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-              />
-              <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => `$${value / 1000}K`} />
-              <Tooltip cursor={false} content={<ChartTooltipContent />} />
-              <Bar dataKey="sales" fill="var(--color-sales)" radius={8} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          <Card>
             <CardHeader>
