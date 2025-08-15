@@ -29,6 +29,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { BulkMessageForm } from '@/components/bulk-message-form';
+import { useToast } from '@/hooks/use-toast';
+
 
 export interface Customer {
   id: number;
@@ -61,6 +63,7 @@ export default function CustomersPage() {
   const [isBulkMessageModalOpen, setIsBulkMessageModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined);
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
+  const { toast } = useToast();
 
   const filteredCustomers = customers.filter(
     (customer) =>
@@ -75,19 +78,31 @@ export default function CustomersPage() {
   };
   
   const handleSaveCustomer = (customerData: Omit<Customer, 'id'>) => {
+    if (!customerData.phone && !customerData.email) {
+      toast({
+        variant: "destructive",
+        title: "Error de validación",
+        description: "Debe proporcionar al menos un teléfono o un correo electrónico.",
+      })
+      return;
+    }
+
     if (selectedCustomer) {
       // Edit
       setCustomers(customers.map(c => c.id === selectedCustomer.id ? { ...c, ...customerData } : c));
+      toast({ title: 'Cliente Actualizado', description: 'Los datos del cliente se han actualizado.' });
     } else {
       // Add
       const newCustomer = { ...customerData, id: Date.now() };
       setCustomers([...customers, newCustomer]);
+      toast({ title: 'Cliente Agregado', description: 'El nuevo cliente se ha guardado.' });
     }
     setIsModalOpen(false);
   };
   
   const handleDeleteCustomer = (id: number) => {
      setCustomers(customers.filter(c => c.id !== id));
+     toast({ title: 'Cliente Eliminado' });
   }
   
   const handleSelectCustomer = (id: number, checked: boolean) => {
@@ -136,7 +151,7 @@ export default function CustomersPage() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setIsBulkMessageModalOpen(true)}>
+                <DropdownMenuItem onClick={() => setIsBulkMessageModalOpen(true)} disabled={selectedCustomers.length === 0}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Enviar Mensaje/Campaña
                 </DropdownMenuItem>

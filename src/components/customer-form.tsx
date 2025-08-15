@@ -23,6 +23,8 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
   const [source, setSource] = useState<Customer['source']>('Instagram');
   const [assignedTo, setAssignedTo] = useState('');
   const [status, setStatus] = useState<Customer['status']>('Nuevo Lead');
+  const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (customer) {
@@ -41,10 +43,16 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       setAssignedTo('');
       setStatus('Nuevo Lead');
     }
+    setError(null);
   }, [customer]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!phone && !email) {
+      setError('Debe proporcionar un teléfono o un correo electrónico.');
+      return;
+    }
+    setError(null);
     onSave({ name, phone, email, source, assignedTo, status });
   };
 
@@ -57,13 +65,14 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
        <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
             <Label htmlFor="phone">Teléfono</Label>
-            <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+            <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </div>
         <div className="space-y-2">
             <Label htmlFor="email">Correo Electrónico</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
       </div>
+      {error && <p className="text-sm text-destructive -mt-2 text-center">{error}</p>}
        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="source">Fuente</Label>
