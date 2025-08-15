@@ -16,14 +16,9 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogClose
+  DialogClose,
+  DialogDescription,
 } from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +28,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion } from '@/components/ui/accordion';
 import { ContainerHistoryItem } from '@/components/container-history-item';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -90,14 +87,12 @@ const initialContainers: Container[] = [
 
 const currentUserRole: Role = 'Administrador';
 
-const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, onSelect, isSelected }: {
+const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: {
     container: Container;
     canEdit: boolean;
     onEdit: (container: Container) => void;
     onReceive: (containerId: string) => void;
     onAddProduct: (containerId: string) => void;
-    onSelect: (containerId: string, selected: boolean) => void;
-    isSelected: boolean;
 }) => {
     const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
         return initialReservations
@@ -115,16 +110,10 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct, on
     }
 
     return (
-        <Card className={cn(isSelected && "border-primary ring-2 ring-primary")}>
+        <Card>
             <CardHeader>
                 <div className="flex justify-between items-start">
                     <div className="flex items-center gap-4">
-                       <Checkbox 
-                           id={`select-${container.id}`} 
-                           checked={isSelected} 
-                           onCheckedChange={(checked) => onSelect(container.id, !!checked)}
-                           aria-label={`Seleccionar contenedor ${container.id}`}
-                        />
                         <div>
                             <CardTitle className="flex items-center gap-2">
                                 <Container className="h-6 w-6" /> {container.id}
@@ -204,9 +193,11 @@ export default function TransitPage() {
   const [isAddContainerDialogOpen, setIsAddContainerDialogOpen] = useState(false);
   const [isEditContainerDialogOpen, setIsEditContainerDialogOpen] = useState(false);
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [editingContainer, setEditingContainer] = useState<Container | null>(null);
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
-  const [selectedContainers, setSelectedContainers] = useState<string[]>([]);
+  const [selectedContainersForExport, setSelectedContainersForExport] = useState<Record<string, boolean>>({});
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'xls'>('pdf');
   const [newProductName, setNewProductName] = useState('');
   const [newProductQuantity, setNewProductQuantity] = useState(0);
   const [activeTab, setActiveTab] = useState('en-transito');
@@ -284,43 +275,44 @@ export default function TransitPage() {
     setIsAddProductDialogOpen(false);
     toast({ title: 'Éxito', description: 'Producto agregado al contenedor.' });
   };
+  
+  const handleExportOptionChange = (key: string, value: boolean) => {
+    setSelectedContainersForExport(prev => ({
+        ...prev,
+        [key]: value
+    }));
+  }
 
-   const handleSelectionChange = (containerId: string, isSelected: boolean) => {
-    setSelectedContainers(prev => 
-      isSelected ? [...prev, containerId] : prev.filter(id => id !== containerId)
-    );
-  };
-
-  const handleExport = (format: 'pdf' | 'xls') => {
+  const handleExport = () => {
     const isHistory = activeTab === 'historial';
     const allContainersInView = isHistory ? historyContainers : activeContainers;
+    const selectedIds = Object.keys(selectedContainersForExport).filter(id => selectedContainersForExport[id]);
 
-    const containersToExport = selectedContainers.length > 0
-        ? allContainersInView.filter(c => selectedContainers.includes(c.id))
+    const containersToExport = selectedIds.length > 0
+        ? allContainersInView.filter(c => selectedIds.includes(c.id))
         : allContainersInView;
-
-    const targetName = isHistory ? 'Historial' : 'Activos';
 
     if (containersToExport.length === 0) {
         toast({ variant: 'destructive', title: 'Error', description: `No hay contenedores para exportar.` });
         return;
     }
     
-    if (format === 'pdf') {
-        handleExportPDF(containersToExport, targetName);
+    if (exportFormat === 'pdf') {
+        handleExportPDF(containersToExport);
     } else {
-        handleExportXLS(containersToExport, targetName);
+        handleExportXLS(containersToExport);
     }
+    setIsExportDialogOpen(false);
   };
 
-  const handleExportPDF = (containersToExport: Container[], targetName: string) => {
+  const handleExportPDF = (containersToExport: Container[]) => {
     const doc = new jsPDF();
-    const reportTitle = selectedContainers.length > 0 ? `Reporte de Contenedores Seleccionados - ${targetName}` : `Reporte de Contenedores - ${targetName}`;
+    const reportTitle = `Reporte de Contenedores`;
     doc.text(reportTitle, 14, 16);
     
     let yPos = 25;
 
-    containersToExport.forEach((container, index) => {
+    containersToExport.forEach((container) => {
         const bodyData = container.products.map(p => [p.name, p.quantity]);
         
         if (yPos > 250) { // Check for page break
@@ -342,11 +334,11 @@ export default function TransitPage() {
         yPos = (doc as any).autoTable.previous.finalY + 10;
     });
 
-    doc.save(`Reporte_Contenedores_${targetName}.pdf`);
+    doc.save(`Reporte_Contenedores.pdf`);
     toast({ title: 'Éxito', description: 'Reporte PDF generado.' });
   };
 
-  const handleExportXLS = (containersToExport: Container[], targetName: string) => {
+  const handleExportXLS = (containersToExport: Container[]) => {
     let html = '<table><thead><tr><th>Contenedor</th><th>Transportista</th><th>ETA</th><th>Estado</th><th>Fecha Creación</th><th>Producto</th><th>Cantidad</th></tr></thead><tbody>';
 
     containersToExport.forEach(container => {
@@ -383,7 +375,7 @@ export default function TransitPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Reporte_Contenedores_${targetName}.xls`;
+    a.download = `Reporte_Contenedores.xls`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -413,8 +405,6 @@ export default function TransitPage() {
               onEdit={handleOpenEditDialog}
               onReceive={handleReceiveContainer}
               onAddProduct={handleOpenAddProductDialog}
-              isSelected={selectedContainers.includes(container.id)}
-              onSelect={handleSelectionChange}
             />
           ))}
           {list.length === 0 && (
@@ -433,6 +423,8 @@ export default function TransitPage() {
         )}
       </Accordion>
   );
+  
+  const containersForExportDialog = activeTab === 'historial' ? historyContainers : activeContainers;
 
   return (
     <div>
@@ -449,31 +441,57 @@ export default function TransitPage() {
                     Agregar Contenedor
                 </Button>
             )}
-             {selectedContainers.length > 0 && (
-                <Button variant="ghost" size="sm" onClick={() => setSelectedContainers([])}>
-                    <X className="mr-2 h-4 w-4" />
-                    Limpiar Selección ({selectedContainers.length})
-                </Button>
-            )}
-             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+             <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+                <DialogTrigger asChild>
                     <Button variant="outline">
                         <FileDown className="mr-2 h-4 w-4" />
                         Descargar
-                        <ChevronDown className="ml-2 h-4 w-4" />
                     </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => handleExport('pdf')}>
-                        <FileType className="mr-2 h-4 w-4" />
-                        Descargar como PDF
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExport('xls')}>
-                        <FileUp className="mr-2 h-4 w-4" />
-                        Descargar como Excel (XLS)
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Configurar Exportación</DialogTitle>
+                        <DialogDescription>
+                          Seleccione los contenedores a exportar. Si no selecciona ninguno, se exportarán todos los de la vista actual ({activeTab === 'historial' ? 'historial' : 'en tránsito'}).
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                       <div className="space-y-2">
+                         <Label>Contenedores en {activeTab === 'historial' ? 'Historial' : 'Tránsito'}</Label>
+                         <ScrollArea className="h-60 rounded-md border p-2">
+                            {containersForExportDialog.map(c => (
+                                <div key={c.id} className="flex items-center space-x-2 p-1">
+                                    <Checkbox
+                                        id={`export-${c.id}`}
+                                        checked={selectedContainersForExport[c.id] || false}
+                                        onCheckedChange={(checked) => handleExportOptionChange(c.id, Boolean(checked))}
+                                    />
+                                    <Label htmlFor={`export-${c.id}`} className="font-normal text-sm">{c.id} ({c.carrier})</Label>
+                                </div>
+                            ))}
+                            {containersForExportDialog.length === 0 && <p className="text-sm text-muted-foreground text-center p-4">No hay contenedores.</p>}
+                         </ScrollArea>
+                       </div>
+                       <div className="space-y-2">
+                         <Label>Formato de Archivo</Label>
+                          <RadioGroup value={exportFormat} onValueChange={(value) => setExportFormat(value as 'pdf' | 'xls')} className="flex gap-4">
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="pdf" id="format-pdf" />
+                              <Label htmlFor="format-pdf">PDF</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="xls" id="format-xls" />
+                              <Label htmlFor="format-xls">Excel (XLS)</Label>
+                            </div>
+                          </RadioGroup>
+                       </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsExportDialogOpen(false)}>Cancelar</Button>
+                        <Button onClick={handleExport}>Exportar</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
       </Card>
