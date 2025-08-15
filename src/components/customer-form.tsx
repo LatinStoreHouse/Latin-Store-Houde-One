@@ -4,17 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Customer } from '@/app/(main)/customers/page';
+import type { Customer, CustomerStatus } from '@/app/(main)/customers/page';
 
 interface CustomerFormProps {
   customer?: Customer;
-  onSave: (customer: Omit<Customer, 'id'>) => void;
+  onSave: (customer: Omit<Customer, 'id' | 'status'> & { status: CustomerStatus }) => void;
   onCancel: () => void;
 }
 
-const customerSources = ['Instagram', 'WhatsApp', 'Email', 'Sitio Web', 'Referido'];
+const customerSources: Customer['source'][] = ['Instagram', 'WhatsApp', 'Email', 'Sitio Web', 'Referido'];
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones'];
-const customerStatuses = ['Nuevo Lead', 'Contactado', 'Convertido', 'Inactivo'];
+const customerStatuses: CustomerStatus[] = ['Contactado', 'Cotizado', 'Facturado', 'Redireccionado', 'Declinado', 'Sin respuesta', 'Showroom'];
 
 export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) {
   const [name, setName] = useState('');
@@ -22,7 +22,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
   const [email, setEmail] = useState('');
   const [source, setSource] = useState<Customer['source']>('Instagram');
   const [assignedTo, setAssignedTo] = useState('');
-  const [status, setStatus] = useState<Customer['status']>('Nuevo Lead');
+  const [status, setStatus] = useState<CustomerStatus>('Contactado');
   const [error, setError] = useState<string | null>(null);
 
 
@@ -41,7 +41,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       setEmail('');
       setSource('Instagram');
       setAssignedTo('');
-      setStatus('Nuevo Lead');
+      setStatus('Contactado');
     }
     setError(null);
   }, [customer]);
@@ -99,7 +99,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
        </div>
         <div className="space-y-2">
             <Label htmlFor="status">Estado</Label>
-            <Select value={status} onValueChange={(value) => setStatus(value as Customer['status'])}>
+            <Select value={status} onValueChange={(value) => setStatus(value as CustomerStatus)}>
               <SelectTrigger id="status">
                 <SelectValue placeholder="Seleccione un estado" />
               </SelectTrigger>
