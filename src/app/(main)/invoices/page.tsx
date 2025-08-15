@@ -97,7 +97,7 @@ export default function InvoicesPage() {
     
      const handleExportPDF = () => {
         const doc = new jsPDF();
-        doc.text("Historial de Facturas", 14, 16);
+        doc.text("Historial de Cotizaciones", 14, 16);
 
         doc.autoTable({
           head: [
@@ -115,7 +115,7 @@ export default function InvoicesPage() {
           headStyles: { fillColor: [41, 128, 185] },
         });
         
-        doc.save('Historial de Facturas.pdf');
+        doc.save('Historial de Cotizaciones.pdf');
     };
 
     const handleExportXLSX = () => {
@@ -131,7 +131,7 @@ export default function InvoicesPage() {
         const ws = XLSX.utils.json_to_sheet(dataToExport);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Facturas");
-        XLSX.writeFile(wb, "Historial de Facturas.xlsx");
+        XLSX.writeFile(wb, "Historial de Cotizaciones.xlsx");
     };
 
 
@@ -142,9 +142,9 @@ export default function InvoicesPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <CardTitle className="flex items-center gap-2">
-                           <Receipt className="h-6 w-6" /> Historial de Facturas
+                           <Receipt className="h-6 w-6" /> Historial de Cotizaciones
                         </CardTitle>
-                        <CardDescription>Busque y filtre a través de todas sus facturas validadas.</CardDescription>
+                        <CardDescription>Busque y filtre a través de todas sus cotizaciones facturadas.</CardDescription>
                     </div>
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>

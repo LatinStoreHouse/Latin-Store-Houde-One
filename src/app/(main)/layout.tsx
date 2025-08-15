@@ -93,7 +93,7 @@ const navItems = [
     subItems: [
       { href: '/stoneflex-clay-calculator', label: 'Stoneflex' },
       { href: '/starwood-calculator', label: 'Starwood' },
-      { href: '/invoices', label: 'Historial de Facturas', permission: 'invoices:view' },
+      { href: '/invoices', label: 'Historial de Cotizaciones', permission: 'invoices:view' },
     ],
   },
   { href: '/pricing', label: 'Precios', icon: Tags, permission: 'pricing:view' },
@@ -109,7 +109,7 @@ const getIconForSubItem = (label: string) => {
         case 'Contenedores': return Container;
         case 'Reservas': return BookUser;
         case 'Despachos': return Truck;
-        case 'Historial de Facturas': return Receipt;
+        case 'Historial de Cotizaciones': return Receipt;
         default: return Warehouse;
     }
 }
