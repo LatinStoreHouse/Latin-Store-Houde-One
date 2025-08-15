@@ -111,7 +111,7 @@ export const roles: RoleConfig[] = [
             'dashboard:view',
             'inventory:transit',
             'orders:view',
-aliqua',
+            'invoices:view',
             'orders:validate',
             'validation:view',
             'pricing:view',
