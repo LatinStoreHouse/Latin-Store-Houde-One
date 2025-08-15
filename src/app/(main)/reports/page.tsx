@@ -10,33 +10,19 @@ import { Badge } from '@/components/ui/badge';
 import { inventoryMovementData } from '@/lib/inventory-movement';
 import { getSalesForecast } from '@/app/actions';
 import { ForecastSalesOutput } from '@/ai/flows/forecast-sales';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { useToast } from '@/hooks/use-toast';
+
+// Extend the jsPDF type to include the autoTable method
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 
-const ForecastCard = () => {
-    const [forecast, setForecast] = useState<ForecastSalesOutput | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchForecast = async () => {
-            try {
-                setLoading(true);
-                const result = await getSalesForecast();
-                if (result.error) {
-                    setError(result.error);
-                } else {
-                    setForecast(result.result ?? null);
-                }
-            } catch (e) {
-                setError('No se pudo cargar el pronóstico.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchForecast();
-    }, []);
-
+const ForecastCard = ({ forecast, loading, error }: { forecast: ForecastSalesOutput | null, loading: boolean, error: string | null }) => {
     return (
         <Card>
             <CardHeader>
@@ -90,9 +76,75 @@ const ForecastCard = () => {
 
 export default function ReportsPage() {
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [forecast, setForecast] = useState<ForecastSalesOutput | null>(null);
+    const [loadingForecast, setLoadingForecast] = useState(true);
+    const [forecastError, setForecastError] = useState<string | null>(null);
+    const { toast } = useToast();
 
     const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
     const monthlyData = inventoryMovementData[formattedDate] || { topMovers: [], bottomMovers: [] };
+
+    useEffect(() => {
+        const fetchForecast = async () => {
+            try {
+                setLoadingForecast(true);
+                const result = await getSalesForecast();
+                if (result.error) {
+                    setForecastError(result.error);
+                } else {
+                    setForecast(result.result ?? null);
+                }
+            } catch (e) {
+                setForecastError('No se pudo cargar el pronóstico.');
+            } finally {
+                setLoadingForecast(false);
+            }
+        };
+
+        fetchForecast();
+    }, []);
+
+    const handleDownloadReport = () => {
+        const doc = new jsPDF();
+        const monthName = currentDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
+        doc.text(`Reporte Mensual - ${monthName}`, 14, 16);
+
+        if (forecast) {
+            doc.text("Pronóstico de Ventas con IA", 14, 28);
+            doc.autoTable({
+                startY: 32,
+                head: [['Producto', 'Unidades Predichas']],
+                body: forecast.forecast.map(item => [item.productName, item.predictedUnits]),
+            });
+            const forecastSummaryLines = doc.splitTextToSize(forecast.summary, 180);
+            doc.text(forecastSummaryLines, 14, (doc as any).autoTable.previous.finalY + 10);
+        } else {
+            doc.text("Pronóstico no disponible.", 14, 28);
+        }
+        
+        const finalY = (doc as any).autoTable.previous.finalY || 30;
+        doc.text(`Movimiento de Productos - ${monthName}`, 14, finalY + (forecast ? 20 : 10) );
+
+        if(monthlyData.topMovers.length > 0) {
+            doc.autoTable({
+                head: [['Top Movers', 'Unidades', 'Cambio (%)']],
+                body: monthlyData.topMovers.map(p => [p.name, p.moved, p.change]),
+                startY: finalY + (forecast ? 24 : 14),
+            });
+        }
+        
+        if(monthlyData.bottomMovers.length > 0) {
+            const lastTableY = (doc as any).autoTable.previous.finalY || 0;
+            doc.autoTable({
+                head: [['Bottom Movers', 'Unidades']],
+                body: monthlyData.bottomMovers.map(p => [p.name, p.moved]),
+                startY: lastTableY + 10,
+            });
+        }
+        
+        doc.save(`reporte-${formattedDate}.pdf`);
+        toast({ title: 'Éxito', description: 'Reporte PDF generado.' });
+    };
 
 
   return (
@@ -105,7 +157,7 @@ export default function ReportsPage() {
           </div>
           <div className="flex items-center gap-2">
             <MonthPicker date={currentDate} onDateChange={setCurrentDate} />
-            <Button>
+            <Button onClick={handleDownloadReport}>
               <Download className="mr-2 h-4 w-4" />
               Descargar Reporte
             </Button>
@@ -145,7 +197,7 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
       
-      <ForecastCard />
+      <ForecastCard forecast={forecast} loading={loadingForecast} error={forecastError} />
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          <Card>
