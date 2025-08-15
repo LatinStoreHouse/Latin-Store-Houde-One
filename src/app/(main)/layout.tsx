@@ -81,14 +81,7 @@ const navItems = [
       { href: '/inventory', label: 'Inventario', permission: 'inventory:view' },
       { href: '/transit', label: 'Contenedores', permission: 'inventory:transit' },
       { href: '/reservations', label: 'Reservas', permission: 'reservations:view' },
-    ],
-  },
-  {
-    label: 'Ventas',
-    icon: Store,
-    subItems: [
-        { href: '/orders', label: 'Despachos', permission: 'orders:view' },
-        { href: '/invoices', label: 'Historial de Facturas', permission: 'invoices:view' },
+      { href: '/orders', label: 'Despachos', permission: 'orders:view' },
     ],
   },
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
@@ -100,6 +93,7 @@ const navItems = [
     subItems: [
       { href: '/stoneflex-clay-calculator', label: 'Stoneflex' },
       { href: '/starwood-calculator', label: 'Starwood' },
+      { href: '/invoices', label: 'Historial de Facturas', permission: 'invoices:view' },
     ],
   },
   { href: '/pricing', label: 'Precios', icon: Tags, permission: 'pricing:view' },
