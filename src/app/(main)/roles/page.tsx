@@ -1,31 +1,68 @@
 'use client';
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { roles as initialRoles, Permission, RoleConfig } from '@/lib/roles';
 import { Save } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-const allPermissions: { id: Permission, label: string }[] = [
-    { id: 'dashboard:view', label: 'Ver Tablero' },
-    { id: 'inventory:view', label: 'Ver Inventario' },
-    { id: 'orders:view', label: 'Ver Pedidos' },
-    { id: 'orders:validate', label: 'Validar Pedidos' },
-    { id: 'orders:create', label: 'Crear Pedidos' },
-    { id: 'customers:view', label: 'Ver Clientes' },
-    { id: 'customers:create', label: 'Crear Clientes' },
-    { id: 'customers:edit', label: 'Editar Clientes' },
-    { id: 'calculators:use', label: 'Usar Calculadoras' },
-    { id: 'pricing:view', label: 'Ver Precios' },
-    { id: 'pricing:edit', label: 'Editar Precios' },
-    { id: 'users:view', label: 'Ver Usuarios' },
-    { id: 'users:manage', label: 'Gestionar Usuarios' },
-    { id: 'roles:view', label: 'Ver Roles' },
-    { id: 'roles:manage', label: 'Gestionar Roles' },
-    { id: 'reports:view', label: 'Ver Reportes' },
-    { id: 'advisor:use', label: 'Usar Asesor IA' },
+const permissionGroups: { name: string; permissions: { id: Permission, label: string }[] }[] = [
+    {
+        name: 'General',
+        permissions: [
+            { id: 'dashboard:view', label: 'Ver Tablero' },
+        ]
+    },
+    {
+        name: 'Inventario y Ventas',
+        permissions: [
+            { id: 'inventory:view', label: 'Ver Inventario' },
+            { id: 'inventory:transit', label: 'Ver Contenedores en Tránsito' },
+            { id: 'reservations:view', label: 'Ver Reservas' },
+            { id: 'reservations:create', label: 'Crear Reservas' },
+            { id: 'orders:view', label: 'Ver Despachos' },
+            { id: 'orders:create', label: 'Crear Despachos' },
+            { id: 'invoices:view', label: 'Ver Historial de Cotizaciones' },
+        ]
+    },
+    {
+        name: 'Clientes',
+        permissions: [
+            { id: 'customers:view', label: 'Ver Clientes' },
+            { id: 'customers:create', label: 'Crear Clientes' },
+            { id: 'customers:edit', label: 'Editar Clientes' },
+        ]
+    },
+    {
+        name: 'Administración y Contabilidad',
+        permissions: [
+            { id: 'validation:view', label: 'Acceder a Página de Validación' },
+            { id: 'reservations:validate', label: 'Validar Reservas' },
+            { id: 'orders:validate', label: 'Validar Despachos' },
+            { id: 'pricing:view', label: 'Ver Precios' },
+            { id: 'pricing:edit', label: 'Editar Precios' },
+            { id: 'reports:view', label: 'Ver Reportes' },
+        ]
+    },
+    {
+        name: 'Gestión del Sistema',
+        permissions: [
+            { id: 'users:view', label: 'Ver Usuarios' },
+            { id: 'users:manage', label: 'Gestionar Usuarios' },
+            { id: 'roles:view', label: 'Ver Roles' },
+            { id: 'roles:manage', label: 'Gestionar Roles' },
+        ]
+    },
+    {
+        name: 'Herramientas',
+        permissions: [
+            { id: 'calculators:use', label: 'Usar Calculadoras' },
+            { id: 'advisor:use', label: 'Usar Asesor IA' },
+        ]
+    }
 ];
 
 
@@ -78,19 +115,28 @@ export default function RolesPage() {
                   Define a qué puede acceder un {role.name}.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {allPermissions.map(permission => (
-                  <div key={permission.id} className="flex items-center space-x-3">
-                    <Checkbox
-                      id={`${role.id}-${permission.id}`}
-                      checked={role.permissions.includes(permission.id)}
-                      onCheckedChange={(checked) => handlePermissionChange(role.id, permission.id, Boolean(checked))}
-                    />
-                    <Label htmlFor={`${role.id}-${permission.id}`} className="font-normal text-sm">
-                      {permission.label}
-                    </Label>
-                  </div>
-                ))}
+              <CardContent>
+                <Accordion type="multiple" className="w-full">
+                    {permissionGroups.map(group => (
+                        <AccordionItem value={group.name} key={group.name}>
+                            <AccordionTrigger>{group.name}</AccordionTrigger>
+                            <AccordionContent className="space-y-3 pl-1">
+                                {group.permissions.map(permission => (
+                                    <div key={permission.id} className="flex items-center space-x-3">
+                                        <Checkbox
+                                        id={`${role.id}-${permission.id}`}
+                                        checked={role.permissions.includes(permission.id)}
+                                        onCheckedChange={(checked) => handlePermissionChange(role.id, permission.id, Boolean(checked))}
+                                        />
+                                        <Label htmlFor={`${role.id}-${permission.id}`} className="font-normal text-sm">
+                                        {permission.label}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
               </CardContent>
             </Card>
           ))}
