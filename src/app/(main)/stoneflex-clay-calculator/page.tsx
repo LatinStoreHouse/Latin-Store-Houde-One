@@ -101,6 +101,8 @@ export default function StoneflexCalculatorPage() {
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
   const [calculationMode, setCalculationMode] = useState<'sqm' | 'sheets'>('sqm');
   const [transportationCost, setTransportationCost] = useState(0);
+  const [currency, setCurrency] = useState<'COP' | 'USD'>('COP');
+  const [trm, setTrm] = useState<number | string>(4000); // Default TRM
 
   const referenceOptions = useMemo(() => {
     return allReferences.map(ref => ({ value: ref, label: ref }));
@@ -174,11 +176,22 @@ export default function StoneflexCalculatorPage() {
   };
   
   const formatCurrency = (value: number) => {
+    if (currency === 'USD') {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+        }).format(value);
+    }
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
     }).format(value);
+  };
+  
+  const handleItemPriceChange = (id: number, newPricePerSheet: number) => {
+    setQuoteItems(quoteItems.map(item => item.id === id ? { ...item, pricePerSheet: newPricePerSheet } : item));
   };
 
   const calculateQuote = () => {
@@ -190,16 +203,20 @@ export default function StoneflexCalculatorPage() {
     let totalAdhesiveUnits = 0;
     let isWarrantyVoid = false;
 
+    const trmValue = currency === 'USD' ? parseDecimal(trm) : 1;
+    
+    const convert = (value: number) => currency === 'USD' ? value / trmValue : value;
+
     const detailedItems = quoteItems.map(item => {
       const details = referenceDetails[item.reference];
       if (!details) return {...item, itemTotal: 0};
 
       const { brand, line } = details;
-      const pricePerSqm = productPrices[item.reference] || 0;
       const calculatedSqm = item.sqMeters;
       const calculatedSheets = item.sheets;
-
-      const productCost = pricePerSqm * calculatedSqm;
+      
+      const pricePerSheetCOP = item.pricePerSheet;
+      const productCost = convert(pricePerSheetCOP * calculatedSheets);
       
       let itemSealantCost = 0;
       let calculatedSealantUnits = 0;
@@ -210,7 +227,7 @@ export default function StoneflexCalculatorPage() {
         }
         calculatedSealantUnits = Math.ceil(calculatedSqm / sealantYield);
         totalSealantUnits += calculatedSealantUnits;
-        itemSealantCost = calculatedSealantUnits * (productPrices['Sellante'] || 0);
+        itemSealantCost = convert(calculatedSealantUnits * (productPrices['Sellante'] || 0));
         totalSealantCost += itemSealantCost;
       }
 
@@ -232,7 +249,7 @@ export default function StoneflexCalculatorPage() {
             }
         }
         totalAdhesiveUnits += calculatedAdhesiveUnits;
-        itemAdhesiveCost = calculatedAdhesiveUnits * (productPrices['Adhesivo'] || 0);
+        itemAdhesiveCost = convert(calculatedAdhesiveUnits * (productPrices['Adhesivo'] || 0));
         totalAdhesiveCost += itemAdhesiveCost;
       }
       
@@ -252,7 +269,8 @@ export default function StoneflexCalculatorPage() {
     const subtotalBeforeDiscount = totalProductCost + totalSealantCost + totalAdhesiveCost;
     const subtotalBeforeIva = subtotalBeforeDiscount - totalDiscountAmount;
     const ivaAmount = subtotalBeforeIva * IVA_RATE;
-    const totalCost = subtotalBeforeIva + ivaAmount + transportationCost;
+    const finalTransportationCost = convert(transportationCost);
+    const totalCost = subtotalBeforeIva + ivaAmount + finalTransportationCost;
     
     const creationDate = new Date();
     const expiryDate = new Date(creationDate);
@@ -270,7 +288,7 @@ export default function StoneflexCalculatorPage() {
       subtotal: subtotalBeforeIva,
       ivaAmount,
       totalCost,
-      transportationCost,
+      transportationCost: finalTransportationCost,
       creationDate: creationDate.toLocaleDateString('es-CO'),
       expiryDate: expiryDate.toLocaleDateString('es-CO'),
     };
@@ -282,6 +300,10 @@ export default function StoneflexCalculatorPage() {
     if (!quote) return;
 
     let message = `*Cotización de Latin Store House*\n\n`;
+    message += `*Moneda:* ${currency}\n`;
+    if (currency === 'USD') {
+        message += `*TRM usada:* ${formatCurrency(parseDecimal(trm))}\n`;
+    }
     message += `*Fecha de Cotización:* ${quote.creationDate}\n`;
     message += `*Válida hasta:* ${quote.expiryDate}\n\n`;
     
@@ -295,7 +317,7 @@ export default function StoneflexCalculatorPage() {
       }
     });
     
-    message += `\n*Desglose de Costos:*\n`;
+    message += `\n*Desglose de Costos (${currency}):*\n`;
     message += `- Subtotal Productos: ${formatCurrency(quote.totalProductCost)}\n`;
     message += `- Costo Sellante (${quote.totalSealantUnits} u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     message += `- Costo Adhesivo (${quote.totalAdhesiveUnits} u.): ${formatCurrency(quote.totalAdhesiveCost)}\n`;
@@ -334,6 +356,34 @@ export default function StoneflexCalculatorPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+                <Label>Moneda de la Cotización</Label>
+                <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as 'COP' | 'USD')} className="flex gap-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="COP" id="currency-cop" />
+                    <Label htmlFor="currency-cop">COP</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="USD" id="currency-usd" />
+                    <Label htmlFor="currency-usd">USD</Label>
+                  </div>
+                </RadioGroup>
+            </div>
+            {currency === 'USD' && (
+                 <div className="space-y-2">
+                    <Label htmlFor="trm-input">Tasa de Cambio (TRM)</Label>
+                    <Input
+                      id="trm-input"
+                      type="text"
+                      value={trm}
+                      onChange={handleDecimalInputChange(setTrm)}
+                      className="w-full"
+                    />
+                 </div>
+            )}
+         </div>
+         <Separator />
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
                <Label>Referencia de Producto</Label>
@@ -431,7 +481,7 @@ export default function StoneflexCalculatorPage() {
                   <div>
                       <CardTitle>Resumen de la Cotización</CardTitle>
                       <CardDescription>
-                          Cotización válida hasta el {quote.expiryDate}.
+                          Cotización válida hasta el {quote.expiryDate}. Moneda: {currency}
                       </CardDescription>
                   </div>
                   <div className="text-right">
@@ -449,13 +499,28 @@ export default function StoneflexCalculatorPage() {
                     <div className="flex-1">
                       <p className="font-semibold">{item.reference}</p>
                       <p className="text-sm text-muted-foreground">
-                        {`${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²) | ${formatCurrency(item.pricePerSheet)}/lámina`}
-                        {item.discount > 0 && ` - ${item.discount}% desc.`}
+                        {`${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²) `}
+                        {item.discount > 0 && `| ${item.discount}% desc.`}
                       </p>
+                      {currency === 'USD' && (
+                         <div className="flex items-center gap-2 mt-2">
+                            <Label htmlFor={`price-${item.id}`} className="text-xs">Precio/Lámina (USD)</Label>
+                             <Input 
+                                id={`price-${item.id}`}
+                                type="number"
+                                value={convert(item.pricePerSheet, 'USD').toFixed(2)}
+                                onChange={(e) => handleItemPriceChange(item.id, convert(parseDecimal(e.target.value), 'COP'))}
+                                className="h-7 w-28"
+                            />
+                         </div>
+                      )}
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => handleRemoveProduct(item.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <div className="text-right">
+                        <p className="font-semibold">{formatCurrency(item.itemTotal + (item.itemTotal * (item.discount/100)))}</p>
+                        <Button variant="ghost" size="icon" onClick={() => handleRemoveProduct(item.id)} className="mt-1 h-7 w-7">
+                           <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -492,7 +557,7 @@ export default function StoneflexCalculatorPage() {
                   <Input
                     id="transport-cost"
                     type="number"
-                    value={transportationCost}
+                    value={currency === 'USD' ? quote.transportationCost : transportationCost}
                     onChange={(e) => setTransportationCost(Number(e.target.value))}
                     className="w-32 h-8 text-right"
                     placeholder="0"
