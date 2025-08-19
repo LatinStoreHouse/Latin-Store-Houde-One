@@ -370,10 +370,8 @@ export default function DispatchPage() {
                 )}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
-                            <FileDown className="mr-2 h-4 w-4" />
-                            Descargar
-                            <ChevronDown className="ml-2 h-4 w-4" />
+                        <Button variant="outline" size="icon">
+                            <FileDown className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
