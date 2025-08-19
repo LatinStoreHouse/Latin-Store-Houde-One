@@ -35,7 +35,10 @@ export type Permission =
   // Reservations
   'reservations:view' |
   'reservations:create' |
-  'reservations:validate';
+  'reservations:validate' |
+  // Marketing
+  'marketing:view' |
+  'marketing:create';
 
 export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing';
 
@@ -82,7 +85,9 @@ export const roles: RoleConfig[] = [
             'advisor:use',
             'reservations:view',
             'reservations:create',
-            'reservations:validate'
+            'reservations:validate',
+            'marketing:view',
+            'marketing:create'
         ]
     },
     {
@@ -102,7 +107,8 @@ export const roles: RoleConfig[] = [
             'pricing:view',
             'advisor:use',
             'reservations:view',
-            'reservations:create'
+            'reservations:create',
+            'marketing:view'
         ]
     },
     {
@@ -141,7 +147,9 @@ export const roles: RoleConfig[] = [
             'customers:create',
             'customers:edit',
             'reports:view',
-            'advisor:use'
+            'advisor:use',
+            'marketing:view',
+            'marketing:create'
         ]
     }
 ];

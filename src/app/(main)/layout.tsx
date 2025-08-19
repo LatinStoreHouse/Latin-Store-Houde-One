@@ -55,7 +55,8 @@ import {
     Save,
     Camera,
     Receipt,
-    Store
+    Store,
+    Megaphone
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -101,6 +102,7 @@ const navItems = [
     ],
   },
   { href: '/pricing', label: 'Precios', icon: Tags, permission: 'pricing:view' },
+  { href: '/marketing/campaigns', label: 'Marketing', icon: Megaphone, permission: 'marketing:view' },
   { href: '/users', label: 'Usuarios', icon: UserCog, permission: 'users:manage' },
   { href: '/roles', label: 'Roles y Permisos', icon: ShieldCheck, permission: 'roles:manage' },
   { href: '/reports', label: 'Reportes', icon: FileText, permission: 'reports:view' },
@@ -163,6 +165,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const getVisibleNavItems = () => {
     return navItems.filter(item => {
         if (item.subItems) {
+            // Re-order sub-items alphabetically
+            item.subItems.sort((a, b) => a.label.localeCompare(b.label));
             return item.subItems.some(subItem => hasPermission(subItem));
         }
         return hasPermission(item);
