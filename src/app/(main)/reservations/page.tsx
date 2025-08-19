@@ -217,6 +217,12 @@ export default function ReservationsPage() {
         toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos.'});
         return;
     }
+    
+    const quoteExists = reservations.some(r => r.quoteNumber.toLowerCase() === quoteNumber.toLowerCase());
+    if (quoteExists) {
+        toast({ variant: 'destructive', title: 'Error', description: 'El número de cotización ya existe.'});
+        return;
+    }
 
     const productInfo = productOptions.find(p => p.value === productName);
     if (!productInfo) {
