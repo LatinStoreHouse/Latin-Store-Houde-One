@@ -550,7 +550,7 @@ export default function TransitPage() {
                         </Select>
                      </div>
                       <div className="space-y-2">
-                        <Label>Línea / Categoría</Label>
+                        <Label>Línea</Label>
                         <Select value={line} onValueChange={setLine} disabled={!brand}>
                             <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
                             <SelectContent>
@@ -669,5 +669,3 @@ export default function TransitPage() {
     </div>
   );
 }
-
-    
