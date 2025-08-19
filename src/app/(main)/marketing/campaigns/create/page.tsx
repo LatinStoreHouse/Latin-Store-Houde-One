@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Send, BotMessageSquare, Users, BarChartHorizontal, Mail, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, BotMessageSquare, Users, BarChartHorizontal, Mail, Loader2, Paperclip, X } from 'lucide-react';
 import { CampaignPreview } from '@/components/campaign-preview';
 import { Customer, CustomerStatus, initialCustomerData, customerStatuses } from '@/lib/customers';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -31,6 +32,9 @@ export default function CreateCampaignPage() {
     const [message, setMessage] = useState('');
     const [channel, setChannel] = useState<ChannelType>('email');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [image, setImage] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
 
     const selectedCustomers = useMemo(() => {
@@ -87,16 +91,43 @@ export default function CreateCampaignPage() {
             }
             const bcc = emails.join(',');
             const mailtoLink = `mailto:?bcc=${bcc}&subject=${encodeURIComponent(campaignName)}&body=${encodeURIComponent(message)}`;
+            
             window.location.href = mailtoLink;
-            toast({ title: 'Listo para enviar', description: 'Tu cliente de correo se ha abierto para enviar la campaña.' });
+            
+            let toastDescription = 'Tu cliente de correo se ha abierto para enviar el mensaje.';
+            if (image) {
+                toastDescription += ' No olvides adjuntar la imagen seleccionada manualmente.';
+            }
+            toast({ title: 'Listo para enviar', description: toastDescription });
+
         } else { // WhatsApp
             try {
                 await navigator.clipboard.writeText(message);
-                toast({ title: 'Mensaje Copiado', description: 'El mensaje se ha copiado al portapapeles. Ahora puedes pegarlo en WhatsApp.' });
+                let toastDescription = 'El mensaje se ha copiado al portapapeles. Ahora puedes pegarlo en WhatsApp.';
+                if (image) {
+                   toastDescription += ' No olvides adjuntar la imagen también.'
+                }
+                toast({ title: 'Mensaje Copiado', description: toastDescription });
                 window.open('https://web.whatsapp.com', '_blank');
             } catch (err) {
                 toast({ variant: 'destructive', title: 'Error', description: 'No se pudo copiar el mensaje al portapapeles.' });
             }
+        }
+    };
+    
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit for preview
+                toast({ variant: 'destructive', title: 'Error', description: 'La imagen es demasiado grande. Elige una de menos de 2MB.' });
+                return;
+            }
+            setImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -193,6 +224,42 @@ export default function CreateCampaignPage() {
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                      />
+                     <div className="space-y-2 pt-4">
+                        <Label>Imagen de la Campaña (Opcional)</Label>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/png, image/jpeg, image/gif"
+                            onChange={handleImageChange}
+                        />
+                        {!imagePreview ? (
+                            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full">
+                            <Paperclip className="mr-2 h-4 w-4" />
+                            Adjuntar Imagen
+                            </Button>
+                        ) : (
+                            <div className="relative w-full h-48 rounded-md border p-2">
+                                <Image src={imagePreview} alt="Vista previa de la imagen" fill style={{ objectFit: 'contain' }} />
+                                <Button 
+                                    type="button" 
+                                    variant="destructive" 
+                                    size="icon" 
+                                    className="absolute top-2 right-2 h-6 w-6"
+                                    onClick={() => {
+                                        setImage(null);
+                                        setImagePreview(null);
+                                        if(fileInputRef.current) fileInputRef.current.value = '';
+                                    }}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        )}
+                        <p className="text-xs text-muted-foreground text-center">
+                            Recomendado: menor a 500KB para una entrega rápida.
+                        </p>
+                    </div>
                 </CardContent>
             </Card>
              <Card>
