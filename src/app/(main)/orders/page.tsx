@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy, Edit, Calendar as CalendarIcon } from 'lucide-react';
 import { Role } from '@/lib/roles';
-import { cn } from '@/lib/utils';
+import { cn, getLogoBase64 } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -244,12 +244,18 @@ export default function DispatchPage() {
   }
 
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     const doc = new jsPDF({
       orientation: 'landscape',
     });
+    const logoData = await getLogoBase64();
+    
+    doc.addImage(logoData, 'PNG', 14, 10, 40, 15);
+    doc.setFontSize(18);
+    doc.text('Reporte de Despachos', 65, 20);
 
     doc.autoTable({
+      startY: 35,
       head: [
         [
           'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
@@ -554,3 +560,5 @@ export default function DispatchPage() {
     </Card>
   );
 }
+
+    

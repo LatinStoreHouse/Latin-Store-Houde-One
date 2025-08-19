@@ -38,7 +38,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion } from '@/components/ui/accordion';
 import { ContainerHistoryItem } from '@/components/container-history-item';
-import { cn } from '@/lib/utils';
+import { cn, getLogoBase64 } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
@@ -311,12 +311,15 @@ export default function TransitPage() {
     setIsExportDialogOpen(false);
   };
 
-  const handleExportPDF = (containersToExport: ContainerType[]) => {
+  const handleExportPDF = async (containersToExport: ContainerType[]) => {
     const doc = new jsPDF();
-    const reportTitle = `Reporte de Contenedores`;
-    doc.text(reportTitle, 14, 16);
+    const logoData = await getLogoBase64();
     
-    let yPos = 25;
+    doc.addImage(logoData, 'PNG', 14, 10, 40, 15);
+    doc.setFontSize(18);
+    doc.text('Reporte de Contenedores', 65, 20);
+    
+    let yPos = 35;
 
     containersToExport.forEach((container) => {
         const bodyData = container.products.map(p => [p.name, p.quantity]);
@@ -669,3 +672,5 @@ export default function TransitPage() {
     </div>
   );
 }
+
+    

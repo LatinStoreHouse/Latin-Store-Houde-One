@@ -26,6 +26,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { TransferInventoryForm } from '@/components/transfer-inventory-form';
 import { InventoryContext } from '@/context/inventory-context';
+import { getLogoBase64 } from '@/lib/utils';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -232,7 +233,7 @@ export default function InventoryPage() {
     setIsExportDialogOpen(false);
   }
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     const dataToExport = getFilteredDataForExport();
     if(dataToExport.length === 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'No hay datos que coincidan con los filtros seleccionados.' });
@@ -240,6 +241,12 @@ export default function InventoryPage() {
     }
 
     const doc = new jsPDF();
+    const logoData = await getLogoBase64();
+    
+    doc.addImage(logoData, 'PNG', 14, 10, 40, 15);
+    doc.setFontSize(18);
+    doc.text('Reporte de Inventario', 65, 20);
+
     const head: any[] = [['Marca', 'Categoría', 'Producto']];
     const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
     head[0].push(...columns);
@@ -252,7 +259,7 @@ export default function InventoryPage() {
         return row;
     });
 
-    doc.autoTable({ head, body });
+    doc.autoTable({ head, body, startY: 35 });
     doc.save('inventario.pdf');
     toast({ title: 'Éxito', description: 'Inventario exportado a PDF.' });
   }
@@ -478,3 +485,5 @@ export default function InventoryPage() {
     </Card>
   );
 }
+
+    

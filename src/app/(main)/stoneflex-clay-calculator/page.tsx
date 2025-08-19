@@ -13,6 +13,9 @@ import { Separator } from '@/components/ui/separator';
 import { initialProductPrices as productPrices } from '@/lib/prices';
 import { getExchangeRate } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { getLogoBase64 } from '@/lib/utils';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 
 const WhatsAppIcon = () => (
@@ -340,6 +343,22 @@ export default function StoneflexCalculatorPage() {
 
   const quote = quoteItems.length > 0 ? calculateQuote() : null;
 
+  const handleDownloadPdf = async () => {
+    if (!quote) return;
+    const doc = new jsPDF();
+    const logoData = await getLogoBase64();
+    
+    doc.addImage(logoData, 'PNG', 14, 10, 40, 15);
+    doc.setFontSize(18);
+    doc.text(`Cotización StoneFlex`, 65, 20);
+
+    doc.setFontSize(10);
+    doc.text(`Cliente: ${customerName || 'N/A'}`, 14, 30);
+    doc.text(`Válida hasta: ${quote.expiryDate}`, 14, 35);
+    
+    // ... rest of PDF generation ...
+  };
+
   const handleShareOnWhatsApp = () => {
     if (!quote) return;
 
@@ -636,7 +655,7 @@ export default function StoneflexCalculatorPage() {
               
               <div className="flex justify-between items-center pt-2">
                 <div className="flex gap-2">
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={handleDownloadPdf}>
                         <Download className="mr-2 h-4 w-4" />
                         Descargar
                     </Button>
@@ -666,3 +685,5 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
+    

@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
-import { cn } from '@/lib/utils';
+import { cn, getLogoBase64 } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -190,11 +190,16 @@ export default function ValidationPage() {
         }
     }
     
-     const handleExportPDF = () => {
+     const handleExportPDF = async () => {
         const doc = new jsPDF();
-        doc.text("Historial de Validaciones", 14, 16);
+        const logoData = await getLogoBase64();
+        
+        doc.addImage(logoData, 'PNG', 14, 10, 40, 15);
+        doc.setFontSize(18);
+        doc.text("Historial de Validaciones", 65, 20);
 
         doc.autoTable({
+          startY: 35,
           head: [
             ['Tipo', '# Cotización', 'Factura #', 'Cliente', 'Estado', 'Validado Por', 'Fecha Validación']
           ],
@@ -479,3 +484,5 @@ export default function ValidationPage() {
     </div>
   );
 }
+
+    

@@ -13,6 +13,7 @@ import { ForecastSalesOutput } from '@/ai/flows/forecast-sales';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { useToast } from '@/hooks/use-toast';
+import { getLogoBase64 } from '@/lib/utils';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -104,41 +105,55 @@ export default function ReportsPage() {
         fetchForecast();
     }, []);
 
-    const handleDownloadReport = () => {
+    const handleDownloadReport = async () => {
         const doc = new jsPDF();
+        const logoData = await getLogoBase64();
         const monthName = currentDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
-        doc.text(`Reporte Mensual - ${monthName}`, 14, 16);
+        
+        doc.addImage(logoData, 'PNG', 14, 10, 40, 15);
+        doc.setFontSize(18);
+        doc.text(`Reporte Mensual - ${monthName}`, 65, 20);
+
+        let startY = 35;
 
         if (forecast) {
-            doc.text("Pronóstico de Ventas con IA", 14, 28);
+            doc.setFontSize(14);
+            doc.text("Pronóstico de Ventas con IA", 14, startY);
+            startY += 8;
             doc.autoTable({
-                startY: 32,
+                startY,
                 head: [['Producto', 'Unidades Predichas']],
                 body: forecast.forecast.map(item => [item.productName, item.predictedUnits]),
             });
+            startY = (doc as any).autoTable.previous.finalY + 8;
             const forecastSummaryLines = doc.splitTextToSize(forecast.summary, 180);
-            doc.text(forecastSummaryLines, 14, (doc as any).autoTable.previous.finalY + 10);
+            doc.setFontSize(10);
+            doc.text(forecastSummaryLines, 14, startY);
+            startY += forecastSummaryLines.length * 5 + 10;
         } else {
-            doc.text("Pronóstico no disponible.", 14, 28);
+            doc.setFontSize(12);
+            doc.text("Pronóstico no disponible.", 14, startY);
+            startY += 10;
         }
         
-        const finalY = (doc as any).autoTable.previous.finalY || 30;
-        doc.text(`Movimiento de Productos - ${monthName}`, 14, finalY + (forecast ? 20 : 10) );
+        doc.setFontSize(14);
+        doc.text(`Movimiento de Productos - ${monthName}`, 14, startY );
+        startY += 8;
 
         if(monthlyData.topMovers.length > 0) {
             doc.autoTable({
                 head: [['Top Movers', 'Unidades', 'Cambio (%)']],
                 body: monthlyData.topMovers.map(p => [p.name, p.moved, p.change]),
-                startY: finalY + (forecast ? 24 : 14),
+                startY,
             });
+            startY = (doc as any).autoTable.previous.finalY + 10;
         }
         
         if(monthlyData.bottomMovers.length > 0) {
-            const lastTableY = (doc as any).autoTable.previous.finalY || 0;
             doc.autoTable({
                 head: [['Bottom Movers', 'Unidades']],
                 body: monthlyData.bottomMovers.map(p => [p.name, p.moved]),
-                startY: lastTableY + 10,
+                startY: startY,
             });
         }
         
@@ -273,3 +288,5 @@ export default function ReportsPage() {
     </div>
   );
 }
+
+    
