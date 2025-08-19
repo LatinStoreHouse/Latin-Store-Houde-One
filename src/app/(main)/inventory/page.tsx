@@ -38,7 +38,7 @@ declare module 'jspdf' {
   }
 }
 
-const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, isPartner: boolean, onDataChange: Function, inventoryData: any }) => {
+const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMarketing, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, isPartner: boolean, isMarketing: boolean, onDataChange: Function, inventoryData: any }) => {
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
     const isNumber = typeof inventoryData[brand][subCategory][productName][field] === 'number';
     onDataChange(brand, subCategory, productName, field, isNumber ? Number(value) : value, isNameChange);
@@ -58,7 +58,8 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, onData
             <TableHead className="p-2">Nombre del Producto</TableHead>
             <TableHead className="text-right p-2">Disponible Bodega</TableHead>
             <TableHead className="text-right p-2">Disponible Zona Franca</TableHead>
-            {!isPartner && <TableHead className="text-right p-2 w-[100px]">Reservas</TableHead>}
+            {!isPartner && !isMarketing && <TableHead className="text-right p-2 w-[100px]">Reservas</TableHead>}
+            {isMarketing && <TableHead className="text-right p-2">Oportunidad de Campaña</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -66,14 +67,16 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, onData
             if (!name) return null;
             const disponibleBodega = item.bodega - item.separadasBodega;
             const disponibleZonaFranca = item.zonaFranca - item.separadasZonaFranca;
+            const totalDisponible = disponibleBodega + disponibleZonaFranca;
             const hasReservations = item.separadasBodega > 0 || item.separadasZonaFranca > 0;
+            const highStock = totalDisponible > 500;
 
             return (
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
                 <TableCell className="text-right p-2">{disponibleBodega}</TableCell>
                 <TableCell className="text-right p-2">{disponibleZonaFranca}</TableCell>
-                {!isPartner && (
+                {!isPartner && !isMarketing && (
                   <TableCell className="text-right p-2">
                     {hasReservations && (
                        <Tooltip>
@@ -89,6 +92,13 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, onData
                        </Tooltip>
                     )}
                   </TableCell>
+                )}
+                {isMarketing && (
+                    <TableCell className="text-right p-2">
+                        {highStock && (
+                            <Badge variant="success">Sugerencia de Contenido</Badge>
+                        )}
+                    </TableCell>
                 )}
               </TableRow>
             );
@@ -178,6 +188,7 @@ export default function InventoryPage() {
   const currentUserRole = currentUser.roles[0];
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
   const isPartner = currentUserRole === 'Partners';
+  const isMarketing = currentUserRole === 'Marketing';
   
   let columnsForExport: Record<string, boolean>;
   if (canEdit) {
@@ -541,6 +552,7 @@ export default function InventoryPage() {
                                         subCategory={subCategory}
                                         canEdit={canEdit}
                                         isPartner={isPartner}
+                                        isMarketing={isMarketing}
                                         onDataChange={handleDataChange}
                                         inventoryData={inventoryData}
                                     />
@@ -572,6 +584,7 @@ export default function InventoryPage() {
                                                 subCategory={subCategory}
                                                 canEdit={canEdit}
                                                 isPartner={isPartner}
+                                                isMarketing={isMarketing}
                                                 onDataChange={handleDataChange}
                                                 inventoryData={inventoryData}
                                             />
@@ -589,3 +602,5 @@ export default function InventoryPage() {
     </Card>
   );
 }
+
+    
