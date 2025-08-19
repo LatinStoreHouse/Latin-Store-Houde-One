@@ -26,7 +26,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { TransferInventoryForm } from '@/components/transfer-inventory-form';
 import { InventoryContext } from '@/context/inventory-context';
-import { currentUser } from '@/app/(main)/layout';
+import { useUser } from '@/app/(main)/layout';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -136,6 +136,7 @@ export default function InventoryPage() {
     throw new Error('InventoryContext must be used within an InventoryProvider');
   }
   const { inventoryData, setInventoryData, transferFromFreeZone } = context;
+  const { currentUser } = useUser();
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);

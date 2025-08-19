@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Megaphone, Users, Send } from 'lucide-react';
 import { Role, roles } from '@/lib/roles';
-import { currentUser } from '@/app/(main)/layout';
+import { useUser } from '@/app/(main)/layout';
 
 
 const campaigns = [
@@ -37,6 +37,7 @@ const campaigns = [
 type Campaign = typeof campaigns[0];
 
 export default function CampaignsPage() {
+    const { currentUser } = useUser();
     const currentUserRole = currentUser.roles[0];
     const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
     const canCreate = userPermissions.includes('marketing:create');
