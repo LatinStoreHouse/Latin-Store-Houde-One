@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
@@ -258,6 +259,9 @@ export default function StoneflexCalculatorPage() {
     const convert = (value: number) => currency === 'USD' ? value / trmValue : value;
     const discountValue = parseDecimal(discount);
 
+    const sealantPrice = convert(productPrices['Sellante'] || 0);
+    const adhesivePrice = convert(productPrices['Adhesivo'] || 0);
+
     const detailedItems = quoteItems.map(item => {
       const details = referenceDetails[item.reference];
       if (!details) return {...item, itemTotal: 0, pricePerSheet: 0};
@@ -278,7 +282,7 @@ export default function StoneflexCalculatorPage() {
         }
         calculatedSealantUnits = Math.ceil(calculatedSqm / sealantYield);
         totalSealantUnits += calculatedSealantUnits;
-        itemSealantCost = convert(calculatedSealantUnits * (productPrices['Sellante'] || 0));
+        itemSealantCost = calculatedSealantUnits * sealantPrice;
         totalSealantCost += itemSealantCost;
       }
 
@@ -300,7 +304,7 @@ export default function StoneflexCalculatorPage() {
             }
         }
         totalAdhesiveUnits += calculatedAdhesiveUnits;
-        itemAdhesiveCost = convert(calculatedAdhesiveUnits * (productPrices['Adhesivo'] || 0));
+        itemAdhesiveCost = calculatedAdhesiveUnits * adhesivePrice;
         totalAdhesiveCost += itemAdhesiveCost;
       }
       
@@ -331,6 +335,8 @@ export default function StoneflexCalculatorPage() {
       totalProductCost,
       totalSealantCost,
       totalAdhesiveCost,
+      sealantPrice,
+      adhesivePrice,
       totalDiscountAmount,
       totalSealantUnits,
       totalAdhesiveUnits,
@@ -610,11 +616,11 @@ export default function StoneflexCalculatorPage() {
                   <span>{formatCurrency(quote.totalProductCost)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Costo Sellante ({quote.totalSealantUnits} u.)</span>
+                  <span className="text-muted-foreground">Costo Sellante ({quote.totalSealantUnits} u. @ {formatCurrency(quote.sealantPrice)}/u)</span>
                   <span>{formatCurrency(quote.totalSealantCost)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Costo Adhesivo ({quote.totalAdhesiveUnits} u.)</span>
+                  <span className="text-muted-foreground">Costo Adhesivo ({quote.totalAdhesiveUnits} u. @ {formatCurrency(quote.adhesivePrice)}/u)</span>
                   <span>{formatCurrency(quote.totalAdhesiveCost)}</span>
                 </div>
                  <div className="flex justify-between text-red-500">
