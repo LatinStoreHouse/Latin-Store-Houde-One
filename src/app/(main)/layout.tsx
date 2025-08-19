@@ -125,7 +125,7 @@ const getIconForSubItem = (label: string) => {
 const Logo = () => (
     <div className="relative h-24 w-full">
         <Image 
-            src="https://www.latinstorehouse.com/wp-content/uploads/2024/02/logo-white-latin-1-1.png"
+            src="https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp"
             alt="Latin Store House Logo"
             fill
             style={{ objectFit: 'contain' }}

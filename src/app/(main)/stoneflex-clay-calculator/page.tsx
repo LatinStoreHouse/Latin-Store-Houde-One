@@ -572,7 +572,7 @@ export default function StoneflexCalculatorPage() {
                   </div>
                   <div className="text-right">
                       <div className="relative h-10 w-32 mb-2">
-                          <Image src="https://www.latinstorehouse.com/wp-content/uploads/2024/02/logo-white-latin-1-1.png" alt="Latin Store House Logo" fill style={{ objectFit: 'contain' }} />
+                          <Image src="https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp" alt="Latin Store House Logo" fill style={{ objectFit: 'contain' }} />
                       </div>
                       <p className="text-sm font-semibold">Asesor: Usuario Admin</p>
                   </div>
