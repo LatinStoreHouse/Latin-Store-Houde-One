@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
@@ -292,22 +293,24 @@ export default function StoneflexCalculatorPage() {
         const isStandardSize = getSheetDimensions(item.reference).includes('1.22 x 0.61');
         const isXLSize = getSheetDimensions(item.reference).includes('2.44 x 1.22');
         let adhesiveUnits = 0;
-
-        if(isStandardSize) {
-           if (details.line === 'Clay' || details.line === 'Translucida') {
-              adhesiveUnits = Math.ceil(calculatedSheets / 1.5);
-           } else if (details.line === 'Metales') {
-               adhesiveUnits = calculatedSheets;
-           } else { // Pizarra, Cuarcitas, Mármol, Concreto, Madera
-               adhesiveUnits = Math.ceil(calculatedSheets / 2);
-           }
-        } else if (isXLSize) {
-             adhesiveUnits = calculatedSheets * 2;
-        }
-
+      
         if (details.line === 'Translucida') {
+          if (isStandardSize) {
+            adhesiveUnits = Math.ceil(calculatedSheets / 2);
+          } else if (isXLSize) {
+            adhesiveUnits = calculatedSheets * 2;
+          }
           totalTranslucentAdhesiveUnits += adhesiveUnits;
         } else {
+          if (isStandardSize) {
+            if (details.line === 'Metales') {
+              adhesiveUnits = calculatedSheets;
+            } else {
+              adhesiveUnits = Math.ceil(calculatedSheets / 2);
+            }
+          } else if (isXLSize) {
+            adhesiveUnits = calculatedSheets * 2;
+          }
           totalStandardAdhesiveUnits += adhesiveUnits;
         }
       }
@@ -418,7 +421,7 @@ export default function StoneflexCalculatorPage() {
       message += `- Costo Sellante (${quote.totalSealantUnits} u. @ ${formatCurrency(sealantUnitCost)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
     if (quote.totalStandardAdhesiveCost > 0 && quote.totalStandardAdhesiveUnits > 0) {
-        message += `- Costo Adhesivo (${quote.totalStandardAdhesiveUnits} u. @ ${formatCurrency(quote.adhesivePrice)}/u.): ${formatCurrency(quote.totalStandardAdhesiveCost)}\n`;
+        message += `- Costo Adhesivo (Estándar) (${quote.totalStandardAdhesiveUnits} u. @ ${formatCurrency(quote.adhesivePrice)}/u.): ${formatCurrency(quote.totalStandardAdhesiveCost)}\n`;
     }
     if (quote.totalTranslucentAdhesiveCost > 0 && quote.totalTranslucentAdhesiveUnits > 0) {
         message += `- Adhesivo Translúcido (${quote.totalTranslucentAdhesiveUnits} u. @ ${formatCurrency(quote.translucentAdhesivePrice)}/u.): ${formatCurrency(quote.totalTranslucentAdhesiveCost)}\n`;
@@ -763,3 +766,6 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
+
+    
