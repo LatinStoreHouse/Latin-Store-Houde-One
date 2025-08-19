@@ -132,7 +132,6 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: 
                                 <Container className="h-6 w-6" /> {container.id}
                             </CardTitle>
                             <CardDescription className="mt-2 flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                                <span className="flex items-center gap-2"><Ship className="h-4 w-4" /> {container.carrier}</span>
                                 <span className="flex items-center gap-2"><CalendarIcon className="h-4 w-4" /> Llegada a Puerto: {container.eta}</span>
                             </CardDescription>
                         </div>
@@ -183,7 +182,7 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: 
                        <>
                          <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant="success" size="sm">
+                                <Button size="sm">
                                     <CheckCircle className="mr-2 h-4 w-4" />
                                     Marcar como Recibido
                                 </Button>
@@ -197,7 +196,7 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: 
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => onReceive(container.id)} className="bg-success hover:bg-success/90">
+                                    <AlertDialogAction onClick={() => onReceive(container.id)}>
                                         Confirmar Recepción
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
