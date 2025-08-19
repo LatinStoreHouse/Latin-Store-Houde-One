@@ -236,7 +236,13 @@ export default function ReportsPage() {
     const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
     const monthlyData = inventoryMovementData[formattedDate] || { topMovers: [], bottomMovers: [] };
     const monthName = currentDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
-    const isPastOrPresentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0) <= new Date();
+    
+    const isPastOrPresentMonth = useMemo(() => {
+        const today = new Date();
+        const startOfTodayMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const startOfSelectedMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        return startOfSelectedMonth <= startOfTodayMonth;
+    }, [currentDate]);
 
     const { newCustomersCount, customersChangePercentage } = useMemo(() => {
         const selectedYear = currentDate.getFullYear();
