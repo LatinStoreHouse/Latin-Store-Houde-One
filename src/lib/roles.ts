@@ -121,6 +121,7 @@ export const roles: RoleConfig[] = [
             'orders:validate',
             'validation:view',
             'pricing:view',
+            'pricing:edit',
             'reports:view',
             'reservations:view',
             'reservations:validate'
@@ -156,6 +157,7 @@ export const roles: RoleConfig[] = [
         id: 'partners',
         name: 'Partners',
         permissions: [
+            'dashboard:view',
             'inventory:view',
             'calculators:use',
             'invoices:view',
