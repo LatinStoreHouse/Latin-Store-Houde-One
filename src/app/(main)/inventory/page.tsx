@@ -74,7 +74,6 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inv
             <TableHead className="p-2">Nombre del Producto</TableHead>
             <TableHead className="text-right p-2">Disponible Bodega</TableHead>
             <TableHead className="text-right p-2">Disponible Zona Franca</TableHead>
-            <TableHead className="p-2">Estado</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -82,21 +81,12 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inv
             if (!name) return null;
             const disponibleBodega = item.bodega - item.separadasBodega;
             const disponibleZonaFranca = item.zonaFranca - item.separadasZonaFranca;
-            const statusBodega = getAvailabilityStatus(disponibleBodega);
-            const statusZonaFranca = getAvailabilityStatus(disponibleZonaFranca);
 
             return (
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
                 <TableCell className="text-right p-2">{disponibleBodega}</TableCell>
                 <TableCell className="text-right p-2">{disponibleZonaFranca}</TableCell>
-                <TableCell className="p-2">
-                  <div className="flex flex-col gap-1 items-start">
-                    {disponibleBodega > 0 && <Badge variant={getStatusVariant(statusBodega)}>Bodega: {statusBodega}</Badge>}
-                    {disponibleZonaFranca > 0 && <Badge variant={getStatusVariant(statusZonaFranca)}>ZF: {statusZonaFranca}</Badge>}
-                    {disponibleBodega <= 0 && disponibleZonaFranca <= 0 && <Badge variant="destructive">Agotado</Badge>}
-                  </div>
-                </TableCell>
               </TableRow>
             );
           })}
