@@ -165,8 +165,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const getVisibleNavItems = () => {
     return navItems.filter(item => {
         if (item.subItems) {
-            // Re-order sub-items alphabetically
-            item.subItems.sort((a, b) => a.label.localeCompare(b.label));
             return item.subItems.some(subItem => hasPermission(subItem));
         }
         return hasPermission(item);
