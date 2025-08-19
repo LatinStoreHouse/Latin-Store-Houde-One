@@ -292,7 +292,7 @@ export default function ReservationsPage() {
                         </RadioGroup>
                     </div>
                     <div className="space-y-2">
-                        <Label># Cotización</Label>
+                        <Label>cotizacion hecha por sigo</Label>
                         <Input value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" />
                     </div>
                     <div className="space-y-2">
