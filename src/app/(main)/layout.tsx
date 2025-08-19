@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -136,6 +136,7 @@ const Logo = () => (
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState(initialUser);
   
   const userPermissions = React.useMemo(() => {
@@ -211,6 +212,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         return hasPermission(item) ? item : null;
     })
     .filter(Boolean);
+
+  const handleLogout = () => {
+    // In a real app, you would clear the user session here.
+    // For this prototype, we just redirect to the login page.
+    router.push('/login');
+  };
 
 
   return (
@@ -361,9 +368,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                           </>
                       ) : (
                           <>
-                              <DialogClose asChild>
-                                  <Button variant="outline"><LogOut className="mr-2 h-4 w-4" />Cerrar Sesión</Button>
-                              </DialogClose>
+                              <Button variant="outline" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" />Cerrar Sesión</Button>
                               <Button onClick={() => setIsEditingProfile(true)}><Edit className="mr-2 h-4 w-4" />Editar Perfil</Button>
                           </>
                       )}
