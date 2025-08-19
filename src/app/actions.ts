@@ -53,12 +53,8 @@ type SalesForecastState = {
   error?: string;
 }
 
-export async function getSalesForecast(): Promise<SalesForecastState> {
+export async function getSalesForecast(targetMonth: string): Promise<SalesForecastState> {
   try {
-    const now = new Date();
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    const targetMonth = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
-
     const result = await forecastSales({
         historicalData: inventoryMovementData,
         targetMonth: targetMonth,

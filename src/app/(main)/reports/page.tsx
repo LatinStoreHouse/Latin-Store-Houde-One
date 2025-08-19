@@ -22,13 +22,13 @@ declare module 'jspdf' {
 }
 
 
-const ForecastCard = ({ forecast, loading, error }: { forecast: ForecastSalesOutput | null, loading: boolean, error: string | null }) => {
+const ForecastCard = ({ forecast, loading, error, selectedMonth }: { forecast: ForecastSalesOutput | null, loading: boolean, error: string | null, selectedMonth: string }) => {
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <BotMessageSquare />
-                    Pronóstico de Ventas con IA para el Próximo Mes
+                    Pronóstico de Ventas con IA para {selectedMonth}
                 </CardTitle>
                 <CardDescription>
                     Predicción de unidades a mover basada en tendencias históricas.
@@ -83,12 +83,17 @@ export default function ReportsPage() {
 
     const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
     const monthlyData = inventoryMovementData[formattedDate] || { topMovers: [], bottomMovers: [] };
+    const monthName = currentDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
+    const isPastOrPresentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0) <= new Date();
+
 
     useEffect(() => {
         const fetchForecast = async () => {
             try {
                 setLoadingForecast(true);
-                const result = await getSalesForecast();
+                setForecastError(null);
+                const targetMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+                const result = await getSalesForecast(targetMonth);
                 if (result.error) {
                     setForecastError(result.error);
                 } else {
@@ -102,11 +107,10 @@ export default function ReportsPage() {
         };
 
         fetchForecast();
-    }, []);
+    }, [currentDate]);
 
     const handleDownloadReport = async () => {
         const doc = new jsPDF();
-        const monthName = currentDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
         
         doc.setFontSize(18);
         doc.text('Latin Store House', 14, 22);
@@ -119,7 +123,7 @@ export default function ReportsPage() {
 
         if (forecast) {
             doc.setFontSize(14);
-            doc.text("Pronóstico de Ventas con IA", 14, startY);
+            doc.text(`Pronóstico de Ventas con IA para ${monthName}`, 14, startY);
             startY += 8;
             doc.autoTable({
                 startY,
@@ -137,25 +141,27 @@ export default function ReportsPage() {
             startY += 10;
         }
         
-        doc.setFontSize(14);
-        doc.text(`Movimiento de Productos - ${monthName}`, 14, startY );
-        startY += 8;
+        if (isPastOrPresentMonth) {
+            doc.setFontSize(14);
+            doc.text(`Movimiento de Productos - ${monthName}`, 14, startY );
+            startY += 8;
 
-        if(monthlyData.topMovers.length > 0) {
-            doc.autoTable({
-                head: [['Top Movers', 'Unidades', 'Cambio (%)']],
-                body: monthlyData.topMovers.map(p => [p.name, p.moved, p.change]),
-                startY,
-            });
-            startY = (doc as any).autoTable.previous.finalY + 10;
-        }
-        
-        if(monthlyData.bottomMovers.length > 0) {
-            doc.autoTable({
-                head: [['Bottom Movers', 'Unidades']],
-                body: monthlyData.bottomMovers.map(p => [p.name, p.moved]),
-                startY: startY,
-            });
+            if(monthlyData.topMovers.length > 0) {
+                doc.autoTable({
+                    head: [['Top Movers', 'Unidades', 'Cambio (%)']],
+                    body: monthlyData.topMovers.map(p => [p.name, p.moved, p.change]),
+                    startY,
+                });
+                startY = (doc as any).autoTable.previous.finalY + 10;
+            }
+            
+            if(monthlyData.bottomMovers.length > 0) {
+                doc.autoTable({
+                    head: [['Bottom Movers', 'Unidades']],
+                    body: monthlyData.bottomMovers.map(p => [p.name, p.moved]),
+                    startY: startY,
+                });
+            }
         }
         
         doc.save(`reporte-${formattedDate}.pdf`);
@@ -213,79 +219,81 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
       
-      <ForecastCard forecast={forecast} loading={loadingForecast} error={forecastError} />
+      <ForecastCard forecast={forecast} loading={loadingForecast} error={forecastError} selectedMonth={monthName} />
 
-       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         <Card>
-            <CardHeader>
-                <CardTitle>Productos con Mayor Movimiento</CardTitle>
-                <CardDescription>Los productos más vendidos en el período seleccionado.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Producto</TableHead>
-                            <TableHead className="text-right">Unidades Movidas</TableHead>
-                            <TableHead className="text-right">Cambio</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {monthlyData.topMovers.map(item => (
-                            <TableRow key={item.name}>
-                                <TableCell>{item.name}</TableCell>
-                                <TableCell className="text-right">{item.moved}</TableCell>
-                                <TableCell className="text-right">
-                                    <Badge variant={item.change > 0 ? 'default' : 'destructive'} className="flex w-fit items-center gap-1 ml-auto">
-                                        {item.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                                        {item.change}%
-                                    </Badge>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                         {monthlyData.topMovers.length === 0 && (
+      {isPastOrPresentMonth && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Productos con Mayor Movimiento</CardTitle>
+                    <CardDescription>Los productos más vendidos en el período seleccionado.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={3} className="text-center text-muted-foreground">
-                                    No hay datos para este mes.
-                                </TableCell>
+                                <TableHead>Producto</TableHead>
+                                <TableHead className="text-right">Unidades Movidas</TableHead>
+                                <TableHead className="text-right">Cambio</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </CardContent>
-         </Card>
-         <Card>
-            <CardHeader>
-                <CardTitle>Productos con Menor Movimiento</CardTitle>
-                <CardDescription>Los productos menos vendidos en el período seleccionado.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Producto</TableHead>
-                            <TableHead className="text-right">Unidades Movidas</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {monthlyData.bottomMovers.map(item => (
-                            <TableRow key={item.name}>
-                                <TableCell>{item.name}</TableCell>
-                                <TableCell className="text-right">{item.moved}</TableCell>
-                            </TableRow>
-                        ))}
-                        {monthlyData.bottomMovers.length === 0 && (
+                        </TableHeader>
+                        <TableBody>
+                            {monthlyData.topMovers.map(item => (
+                                <TableRow key={item.name}>
+                                    <TableCell>{item.name}</TableCell>
+                                    <TableCell className="text-right">{item.moved}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Badge variant={item.change >= 0 ? 'default' : 'destructive'} className="flex w-fit items-center gap-1 ml-auto">
+                                            {item.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                            {item.change}%
+                                        </Badge>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            {monthlyData.topMovers.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                        No hay datos para este mes.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Productos con Menor Movimiento</CardTitle>
+                    <CardDescription>Los productos menos vendidos en el período seleccionado.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={2} className="text-center text-muted-foreground">
-                                    No hay datos para este mes.
-                                </TableCell>
+                                <TableHead>Producto</TableHead>
+                                <TableHead className="text-right">Unidades Movidas</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </CardContent>
-         </Card>
-      </div>
+                        </TableHeader>
+                        <TableBody>
+                            {monthlyData.bottomMovers.map(item => (
+                                <TableRow key={item.name}>
+                                    <TableCell>{item.name}</TableCell>
+                                    <TableCell className="text-right">{item.moved}</TableCell>
+                                </TableRow>
+                            ))}
+                            {monthlyData.bottomMovers.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={2} className="text-center text-muted-foreground">
+                                        No hay datos para este mes.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
+      )}
     </div>
   );
 }
