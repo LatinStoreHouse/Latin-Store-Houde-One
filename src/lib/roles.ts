@@ -157,7 +157,8 @@ export const roles: RoleConfig[] = [
         name: 'Partners',
         permissions: [
             'inventory:view',
-            'calculators:use'
+            'calculators:use',
+            'invoices:view'
         ]
     }
 ];
