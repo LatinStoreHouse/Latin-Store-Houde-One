@@ -456,9 +456,8 @@ export default function TransitPage() {
             )}
              <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline">
-                        <FileDown className="mr-2 h-4 w-4" />
-                        Descargar
+                    <Button variant="outline" size="icon">
+                        <FileDown className="h-4 w-4" />
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
