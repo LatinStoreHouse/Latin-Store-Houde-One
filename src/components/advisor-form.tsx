@@ -1,8 +1,8 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
 import { getAdvisorSuggestion } from '@/app/actions';
-import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -35,7 +35,7 @@ function SubmitButton() {
 }
 
 export function AdvisorForm() {
-  const [state, formAction] = useFormState(getAdvisorSuggestion, initialState);
+  const [state, formAction] = useActionState(getAdvisorSuggestion, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
