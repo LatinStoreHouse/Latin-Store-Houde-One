@@ -93,7 +93,6 @@ interface QuoteItem {
   sqMeters: number;
   sheets: number;
   includeSealant: boolean;
-  sealantType?: SealantType;
   includeAdhesive: boolean;
   calculationMode: 'sqm' | 'sheets';
   pricePerSheet: number;
@@ -221,7 +220,6 @@ export default function StoneflexCalculatorPage() {
       sqMeters: finalSqm,
       sheets: finalSheets,
       includeSealant,
-      sealantType: includeSealant ? sealantType : undefined,
       includeAdhesive,
       calculationMode,
       pricePerSheet
@@ -255,10 +253,7 @@ export default function StoneflexCalculatorPage() {
 
   const calculateQuote = () => {
     let totalProductCost = 0;
-    let totalSealantCost = 0;
-    let totalAdhesiveCost = 0;
-    
-    let totalSealantUnits = 0;
+    let totalSqMetersForSealant = 0;
     let totalAdhesiveUnits = 0;
     let isWarrantyVoid = false;
 
@@ -286,22 +281,12 @@ export default function StoneflexCalculatorPage() {
       const pricePerSheetCOP = item.pricePerSheet;
       const productCost = convert(pricePerSheetCOP * calculatedSheets);
       
-      let itemSealantCost = 0;
-      if (item.includeSealant && item.sealantType) {
-        let sealantYield = 15; // 1/4 gal default
-        if (item.sealantType.includes('GALON')) { 
-          sealantYield = item.sealantType.includes('SHYNY') ? 40 : 60;
-        } else { 
-          sealantYield = item.sealantType.includes('SHYNY') ? 10 : 15;
-        }
-        
-        const calculatedSealantUnits = Math.ceil(item.sqMeters / sealantYield);
-        totalSealantUnits += calculatedSealantUnits;
-        itemSealantCost = calculatedSealantUnits * sealantPrices[item.sealantType];
-        totalSealantCost += itemSealantCost;
+      totalProductCost += productCost;
+      
+      if (item.includeSealant) {
+        totalSqMetersForSealant += item.sqMeters;
       }
 
-      let itemAdhesiveCost = 0;
       if (item.includeAdhesive) {
         const isStandardSize = item.reference.includes('1.22 X 0.61') || item.reference.includes('120 X 60') || item.reference.includes('1.22X0.61') || item.reference.includes('0.15 X 2.44') || item.reference.includes('2.44 X 0.61');
         const isXLSize = item.reference.includes('2.44 X 1.22');
@@ -317,30 +302,40 @@ export default function StoneflexCalculatorPage() {
             } else if (details.line === 'Metales') {
                 calculatedAdhesiveUnits = calculatedSheets;
             }
-            itemAdhesiveCost = calculatedAdhesiveUnits * (details.line === 'Translucida' ? translucentAdhesivePrice : adhesivePrice);
         } else if (isXLSize) {
-            // For Pizarra, Cuarcita, Concreto, Marmol, Traslucida, Metalicas it's 2 adhesives per sheet
              if (['Pizarra', 'Cuarcitas', 'Mármol', 'Concreto', 'Translucida', 'Metales'].includes(details.line)) {
                 calculatedAdhesiveUnits = calculatedSheets * 2;
-                itemAdhesiveCost = calculatedAdhesiveUnits * (details.line === 'Translucida' ? translucentAdhesivePrice : adhesivePrice);
             }
         }
-        
         totalAdhesiveUnits += calculatedAdhesiveUnits;
-        totalAdhesiveCost += itemAdhesiveCost;
       }
-      
-      totalProductCost += productCost;
       
       if (!item.includeSealant || !item.includeAdhesive) {
         isWarrantyVoid = true;
       }
       
-      const itemSubtotal = productCost + itemSealantCost + itemAdhesiveCost;
+      const itemSubtotal = productCost;
 
       return {...item, itemTotal: itemSubtotal, pricePerSheet: convert(pricePerSheetCOP)};
     });
     
+    // Unified Sealant Calculation
+    let totalSealantCost = 0;
+    let totalSealantUnits = 0;
+    if (includeSealant && totalSqMetersForSealant > 0) {
+        let sealantYield = 15; // default for 1/4 gal
+        if (sealantType.includes('GALON')) { 
+          sealantYield = sealantType.includes('SHYNY') ? 40 : 60;
+        } else { 
+          sealantYield = sealantType.includes('SHYNY') ? 10 : 15;
+        }
+        totalSealantUnits = Math.ceil(totalSqMetersForSealant / sealantYield);
+        totalSealantCost = totalSealantUnits * sealantPrices[sealantType];
+    }
+    
+    // Adhesive Cost Calculation
+    const totalAdhesiveCost = totalAdhesiveUnits * (quoteItems.some(i => referenceDetails[i.reference]?.line === 'Translucida' && i.includeAdhesive) ? translucentAdhesivePrice : adhesivePrice);
+
     const subtotalBeforeDiscount = totalProductCost + totalSealantCost + totalAdhesiveCost;
     const totalDiscountAmount = subtotalBeforeDiscount * (discountValue / 100);
     const subtotalBeforeIva = subtotalBeforeDiscount - totalDiscountAmount;
