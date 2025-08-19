@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -43,6 +43,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { InventoryContext, Product } from '@/context/inventory-context';
+import { Container as ContainerType } from '@/context/inventory-context';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -68,21 +70,6 @@ const initialReservations: Reservation[] = [
     { id: 'RES-002', customer: 'Diseños SAS', product: 'BLACK 1.22 X 0.61', quantity: 100, containerId: 'CMAU7654321', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'En espera de validación' },
 ];
 
-
-export interface Product {
-  name: string;
-  quantity: number;
-}
-
-export interface Container {
-  id: string;
-  eta: string;
-  carrier: string;
-  products: Product[];
-  status: 'En tránsito' | 'Atrasado' | 'Llegado';
-  creationDate: string;
-}
-
 const productOptions = [
     { value: 'CUT STONE 120 X 60', label: 'CUT STONE 120 X 60' },
     { value: 'TRAVERTINO', label: 'TRAVERTINO' },
@@ -92,18 +79,12 @@ const productOptions = [
     // Add all other products here
 ];
 
-const initialContainers: Container[] = [
-    { id: 'MSCU1234567', eta: '2024-08-15', carrier: 'Maersk', status: 'En tránsito', products: [{ name: 'CUT STONE 120 X 60', quantity: 200 }, { name: 'TRAVERTINO', quantity: 150 }], creationDate: '2024-07-01' },
-    { id: 'CMAU7654321', eta: '2024-08-10', carrier: 'CMA CGM', status: 'Atrasado', products: [{ name: 'BLACK 1.22 X 0.61', quantity: 500 }], creationDate: '2024-07-05' },
-    { id: 'ARRIVED001', eta: '2024-07-20', carrier: 'MSC', status: 'Llegado', products: [{ name: 'KUND MULTY 1.22 X 0.61', quantity: 300 }], creationDate: '2024-07-02' },
-];
-
 const currentUserRole: Role = 'Administrador';
 
 const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: {
-    container: Container;
+    container: ContainerType;
     canEdit: boolean;
-    onEdit: (container: Container) => void;
+    onEdit: (container: ContainerType) => void;
     onReceive: (containerId: string) => void;
     onAddProduct: (containerId: string) => void;
 }) => {
@@ -113,7 +94,7 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: 
             .reduce((sum, r) => sum + r.quantity, 0);
     };
 
-    const getStatusBadge = (status: Container['status']) => {
+    const getStatusBadge = (status: ContainerType['status']) => {
         switch (status) {
             case 'En tránsito': return 'secondary';
             case 'Atrasado': return 'destructive';
@@ -191,7 +172,7 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: 
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Confirmar Recepción</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        ¿Está seguro de que desea marcar este contenedor como recibido? Esta acción no se puede deshacer y moverá el contenedor al historial.
+                                        ¿Está seguro de que desea marcar este contenedor como recibido? El contenido se agregará al inventario de Zona Franca y esta acción no se puede deshacer.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -212,10 +193,14 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: 
 };
 
 export default function TransitPage() {
-  const [containers, setContainers] = useState<Container[]>(initialContainers);
+  const context = useContext(InventoryContext);
+  if (!context) {
+    throw new Error('InventoryContext must be used within an InventoryProvider');
+  }
+  const { containers, addContainer, editContainer, receiveContainer } = context;
+
   const [newContainerId, setNewContainerId] = useState('');
   const [newContainerEta, setNewContainerEta] = useState('');
-  const [newContainerCarrier, setNewContainerCarrier] = useState('');
   const [newContainerProducts, setNewContainerProducts] = useState<Product[]>([]);
   const [productToAdd, setProductToAdd] = useState('');
   const [quantityToAdd, setQuantityToAdd] = useState<number | string>('');
@@ -223,7 +208,7 @@ export default function TransitPage() {
   const [isAddContainerDialogOpen, setIsAddContainerDialogOpen] = useState(false);
   const [isEditContainerDialogOpen, setIsEditContainerDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  const [editingContainer, setEditingContainer] = useState<Container | null>(null);
+  const [editingContainer, setEditingContainer] = useState<ContainerType | null>(null);
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
   const [selectedContainersForExport, setSelectedContainersForExport] = useState<Record<string, boolean>>({});
   const [exportFormat, setExportFormat] = useState<'pdf' | 'xls'>('pdf');
@@ -244,7 +229,7 @@ export default function TransitPage() {
         toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete el ID y la fecha de llegada.' });
         return;
     }
-    const newContainer: Container = {
+    const newContainer: ContainerType = {
       id: newContainerId,
       eta: newContainerEta,
       carrier: '', // Carrier removed from form
@@ -252,7 +237,7 @@ export default function TransitPage() {
       status: 'En tránsito',
       creationDate: new Date().toISOString().split('T')[0],
     };
-    setContainers([newContainer, ...containers]);
+    addContainer(newContainer);
     setNewContainerId('');
     setNewContainerEta('');
     setNewContainerProducts([]);
@@ -260,14 +245,14 @@ export default function TransitPage() {
     toast({ title: 'Éxito', description: 'Contenedor agregado correctamente.' });
   };
   
-  const handleOpenEditDialog = (container: Container) => {
+  const handleOpenEditDialog = (container: ContainerType) => {
     setEditingContainer(container);
     setIsEditContainerDialogOpen(true);
   };
 
   const handleEditContainer = () => {
     if (!editingContainer) return;
-    setContainers(containers.map(c => c.id === editingContainer.id ? editingContainer : c));
+    editContainer(editingContainer.id, editingContainer);
     setIsEditContainerDialogOpen(false);
     setEditingContainer(null);
     toast({ title: 'Éxito', description: 'Contenedor actualizado correctamente.' });
@@ -326,7 +311,7 @@ export default function TransitPage() {
     setIsExportDialogOpen(false);
   };
 
-  const handleExportPDF = (containersToExport: Container[]) => {
+  const handleExportPDF = (containersToExport: ContainerType[]) => {
     const doc = new jsPDF();
     const reportTitle = `Reporte de Contenedores`;
     doc.text(reportTitle, 14, 16);
@@ -359,7 +344,7 @@ export default function TransitPage() {
     toast({ title: 'Éxito', description: 'Reporte PDF generado.' });
   };
 
-  const handleExportXLS = (containersToExport: Container[]) => {
+  const handleExportXLS = (containersToExport: ContainerType[]) => {
     let html = '<table><thead><tr><th>Contenedor</th><th>Llegada a Puerto</th><th>Estado</th><th>Fecha Creación</th><th>Producto</th><th>Cantidad</th></tr></thead><tbody>';
 
     containersToExport.forEach(container => {
@@ -403,14 +388,10 @@ export default function TransitPage() {
   };
   
   const handleReceiveContainer = (containerId: string) => {
-     setContainers(prevContainers => 
-         prevContainers.map(c => 
-             c.id === containerId ? { ...c, status: 'Llegado' } : c
-         )
-     );
+     receiveContainer(containerId);
       toast({
           title: `Contenedor ${containerId} Recibido`,
-          description: "El contenedor ha sido movido al historial.",
+          description: "El contenido ha sido agregado al inventario de Zona Franca.",
       });
   };
   
@@ -423,7 +404,7 @@ export default function TransitPage() {
     setIsAddContainerDialogOpen(true);
   }
 
-  const renderActiveList = (list: Container[]) => (
+  const renderActiveList = (list: ContainerType[]) => (
       <div className="space-y-8">
           {list.map((container) => (
             <ContainerCard
@@ -441,7 +422,7 @@ export default function TransitPage() {
       </div>
   );
 
-  const renderHistoryList = (list: Container[]) => (
+  const renderHistoryList = (list: ContainerType[]) => (
        <Accordion type="single" collapsible className="w-full space-y-4">
         {list.map((container) => (
             <ContainerHistoryItem key={container.id} container={container} />
@@ -639,7 +620,7 @@ export default function TransitPage() {
                         <Label>Estado</Label>
                         <Select
                             value={editingContainer.status}
-                            onValueChange={(value) => setEditingContainer({...editingContainer, status: value as Container['status']})}
+                            onValueChange={(value) => setEditingContainer({...editingContainer, status: value as ContainerType['status']})}
                         >
                             <SelectTrigger>
                                 <SelectValue />

@@ -1,18 +1,24 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
+import { InventoryContext } from '@/context/inventory-context';
 
 interface TransferInventoryFormProps {
-  inventoryData: any;
   onTransfer: (data: { product: string; quantity: number }) => void;
 }
 
-export function TransferInventoryForm({ inventoryData, onTransfer }: TransferInventoryFormProps) {
+export function TransferInventoryForm({ onTransfer }: TransferInventoryFormProps) {
+  const context = useContext(InventoryContext);
+  if (!context) {
+    throw new Error('InventoryContext must be used within an InventoryProvider');
+  }
+  const { inventoryData } = context;
+
   const [product, setProduct] = useState('');
   const [quantity, setQuantity] = useState<number | string>('');
   const { toast } = useToast();
