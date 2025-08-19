@@ -22,7 +22,8 @@ import {
     TrendingDown,
     Users,
     Bell,
-    X
+    X,
+    Receipt,
 } from 'lucide-react';
 import { Role, roles } from '@/lib/roles';
 import { useContext } from 'react';
@@ -87,6 +88,12 @@ const bottomMovers = [
     { name: 'CONCRETO MEDIO 2.44 X 1.22', moved: 1, change: 0 },
     { name: 'PANEL 3D - TAN 1.22 X 0.61', moved: 0, change: 0 },
     { name: 'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22', moved: 0, change: 0 },
+];
+
+const latestQuotes = [
+    { id: 'COT-2024-088', customer: 'Diseños Modernos SAS', date: '2024-07-28' },
+    { id: 'COT-2024-087', customer: 'Constructora XYZ', date: '2024-07-27' },
+    { id: 'COT-2024-086', customer: 'Hogar Futuro', date: '2024-07-26' },
 ];
 
 const QuickAccessItem = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => (
@@ -170,64 +177,101 @@ export default function DashboardPage() {
             ))}
         </CardContent>
       </Card>
+      
+      {currentUserRole === 'Partners' && (
+        <Card>
+           <CardHeader>
+              <CardTitle>Últimas Cotizaciones</CardTitle>
+              <CardDescription>Un vistazo rápido a tus cotizaciones más recientes.</CardDescription>
+           </CardHeader>
+           <CardContent>
+              <Table>
+                 <TableHeader>
+                    <TableRow>
+                       <TableHead># Cotización</TableHead>
+                       <TableHead>Cliente</TableHead>
+                       <TableHead>Fecha</TableHead>
+                       <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                 </TableHeader>
+                 <TableBody>
+                    {latestQuotes.map(quote => (
+                       <TableRow key={quote.id}>
+                          <TableCell className="font-medium">{quote.id}</TableCell>
+                          <TableCell>{quote.customer}</TableCell>
+                          <TableCell>{quote.date}</TableCell>
+                          <TableCell className="text-right">
+                              <Button variant="outline" size="sm" asChild>
+                                  <Link href="/invoices">Ver Detalle</Link>
+                              </Button>
+                          </TableCell>
+                       </TableRow>
+                    ))}
+                 </TableBody>
+              </Table>
+           </CardContent>
+        </Card>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         <Card>
-            <CardHeader>
-                <CardTitle>Productos con Mayor Movimiento</CardTitle>
-                <CardDescription>Los productos más vendidos este mes.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Producto</TableHead>
-                            <TableHead className="text-right">Unidades Movidas</TableHead>
-                            <TableHead className="text-right">Cambio</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {topMovers.map(item => (
-                            <TableRow key={item.name}>
-                                <TableCell>{item.name}</TableCell>
-                                <TableCell className="text-right">{item.moved}</TableCell>
-                                <TableCell className="text-right">
-                                    <Badge variant={item.change > 0 ? 'default' : 'destructive'} className="flex w-fit items-center gap-1 ml-auto">
-                                        {item.change > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                                        {item.change}%
-                                    </Badge>
-                                </TableCell>
+      {currentUserRole !== 'Partners' && currentUserRole !== 'Asesor de Ventas' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Productos con Mayor Movimiento</CardTitle>
+                    <CardDescription>Los productos más vendidos este mes.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Producto</TableHead>
+                                <TableHead className="text-right">Unidades Movidas</TableHead>
+                                <TableHead className="text-right">Cambio</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </CardContent>
-         </Card>
-         <Card>
-            <CardHeader>
-                <CardTitle>Productos con Menor Movimiento</CardTitle>
-                <CardDescription>Los productos menos vendidos este mes.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Producto</TableHead>
-                            <TableHead className="text-right">Unidades Movidas</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {bottomMovers.map(item => (
-                            <TableRow key={item.name}>
-                                <TableCell>{item.name}</TableCell>
-                                <TableCell className="text-right">{item.moved}</TableCell>
+                        </TableHeader>
+                        <TableBody>
+                            {topMovers.map(item => (
+                                <TableRow key={item.name}>
+                                    <TableCell>{item.name}</TableCell>
+                                    <TableCell className="text-right">{item.moved}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Badge variant={item.change > 0 ? 'default' : 'destructive'} className="flex w-fit items-center gap-1 ml-auto">
+                                            {item.change > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                            {item.change}%
+                                        </Badge>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Productos con Menor Movimiento</CardTitle>
+                    <CardDescription>Los productos menos vendidos este mes.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Producto</TableHead>
+                                <TableHead className="text-right">Unidades Movidas</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </CardContent>
-         </Card>
-      </div>
+                        </TableHeader>
+                        <TableBody>
+                            {bottomMovers.map(item => (
+                                <TableRow key={item.name}>
+                                    <TableCell>{item.name}</TableCell>
+                                    <TableCell className="text-right">{item.moved}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
+      )}
     </div>
   );
 }
