@@ -4,26 +4,11 @@
  * @fileOverview A Genkit flow for generating marketing campaign messages.
  *
  * - generateCampaignMessage - A function that takes a campaign name and generates a message.
- * - GenerateCampaignInput - The input type for the function.
- * - GenerateCampaignOutput - The return type for the function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { GenerateCampaignInputSchema, GenerateCampaignOutputSchema, type GenerateCampaignInput, type GenerateCampaignOutput } from '@/ai/schemas/campaign-schemas';
 
-export const GenerateCampaignInputSchema = z.object({
-  campaignName: z
-    .string()
-    .describe('El nombre o tema de la campaña de marketing. Por ejemplo: "Promo Verano StoneFlex" o "Descuento para clientes inactivos".'),
-});
-export type GenerateCampaignInput = z.infer<typeof GenerateCampaignInputSchema>;
-
-export const GenerateCampaignOutputSchema = z.object({
-  campaignMessage: z
-    .string()
-    .describe('El contenido del mensaje de marketing generado para la campaña.'),
-});
-export type GenerateCampaignOutput = z.infer<typeof GenerateCampaignOutputSchema>;
 
 export async function generateCampaignMessage(input: GenerateCampaignInput): Promise<GenerateCampaignOutput> {
   return generateCampaignMessageFlow(input);

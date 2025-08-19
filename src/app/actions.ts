@@ -2,7 +2,8 @@
 
 import { suggestAdvisor, SuggestAdvisorInput, SuggestAdvisorOutput } from '@/ai/flows/suggest-advisor';
 import { forecastSales, ForecastSalesOutput } from '@/ai/flows/forecast-sales';
-import { generateCampaignMessage as generateCampaignMessageFlow, GenerateCampaignInput, GenerateCampaignOutput } from '@/ai/flows/generate-campaign-flow';
+import { generateCampaignMessage as generateCampaignMessageFlow,  } from '@/ai/flows/generate-campaign-flow';
+import { GenerateCampaignInput, GenerateCampaignOutput } from '@/ai/schemas/campaign-schemas';
 import { inventoryMovementData } from '@/lib/inventory-movement';
 import { z } from 'zod';
 
