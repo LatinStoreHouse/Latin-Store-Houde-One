@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { initialReservations } from '@/lib/sales-history';
+import { InventoryContext } from '@/context/inventory-context';
 
 
 interface Reservation {
@@ -36,13 +37,6 @@ interface Reservation {
   status: 'En espera de validación' | 'Validada' | 'Rechazada';
   source: 'Contenedor' | 'Bodega' | 'Zona Franca';
 }
-
-// Mock data, in real app this would come from the transit page/state
-const productsInTransit = [
-    { value: 'CUT STONE 120 X 60', label: 'CUT STONE 120 X 60', available: 200, sourceId: 'MSCU1234567' },
-    { value: 'TRAVERTINO', label: 'TRAVERTINO', available: 150, sourceId: 'MSCU1234567' },
-    { value: 'BLACK 1.22 X 0.61', label: 'BLACK 1.22 X 0.61', available: 500, sourceId: 'CMAU7654321' },
-];
 
 const getAllInventoryProducts = () => {
     const products: { name: string, data: any }[] = [];
@@ -62,6 +56,12 @@ const getAllInventoryProducts = () => {
 }
 
 export default function ReservationsPage() {
+  const context = useContext(InventoryContext);
+  if (!context) {
+    throw new Error('ReservationsPage must be used within an InventoryProvider');
+  }
+  const { containers } = context;
+
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
   const [isNewReservationDialogOpen, setIsNewReservationDialogOpen] = useState(false);
   const [customerName, setCustomerName] = useState('');
@@ -71,6 +71,7 @@ export default function ReservationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [quoteNumber, setQuoteNumber] = useState('');
   const [reservationSource, setReservationSource] = useState<'Contenedor' | 'Bodega' | 'Zona Franca'>('Contenedor');
+  const [selectedContainerId, setSelectedContainerId] = useState('');
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -91,19 +92,43 @@ export default function ReservationsPage() {
   }, [searchParams, router]);
 
   const inventoryProducts = useMemo(() => getAllInventoryProducts(), []);
+  
+  const activeContainers = useMemo(() => containers.filter(c => c.status !== 'Llegado'), [containers]);
+
+  const containerOptions = useMemo(() => {
+    return activeContainers.map(c => ({
+        value: c.id,
+        label: `${c.id} (Llegada: ${c.eta})`
+    }));
+  }, [activeContainers]);
 
   const productOptions = useMemo(() => {
-    switch(reservationSource) {
-        case 'Contenedor':
-            return productsInTransit.map(p => ({ ...p, label: `${p.label}`}));
-        case 'Bodega':
-            return inventoryProducts.map(p => ({ value: p.name, label: p.name, available: p.data.bodega - p.data.separadasBodega, sourceId: 'Bodega' }));
-        case 'Zona Franca':
-            return inventoryProducts.map(p => ({ value: p.name, label: p.name, available: p.data.zonaFranca - p.data.separadasZonaFranca, sourceId: 'Zona Franca' }));
-        default:
-            return [];
+    if (reservationSource === 'Contenedor') {
+        if (!selectedContainerId) return [];
+        const container = activeContainers.find(c => c.id === selectedContainerId);
+        if (!container) return [];
+        return container.products.map(p => ({ 
+            value: p.name, 
+            label: `${p.name}`, 
+            available: p.quantity, // In transit, all quantity is "available" for reservation
+            sourceId: container.id 
+        }));
+    } else if (reservationSource === 'Bodega') {
+        return inventoryProducts.map(p => ({ 
+            value: p.name, 
+            label: p.name, 
+            available: p.data.bodega - p.data.separadasBodega, 
+            sourceId: 'Bodega' 
+        }));
+    } else { // Zona Franca
+        return inventoryProducts.map(p => ({ 
+            value: p.name, 
+            label: p.name, 
+            available: p.data.zonaFranca - p.data.separadasZonaFranca, 
+            sourceId: 'Zona Franca' 
+        }));
     }
-  }, [reservationSource, inventoryProducts]);
+  }, [reservationSource, inventoryProducts, activeContainers, selectedContainerId]);
   
   const pendingReservations = useMemo(() => reservations.filter(r => 
     r.status === 'En espera de validación' &&
@@ -125,6 +150,11 @@ export default function ReservationsPage() {
         return;
     }
     
+    if (reservationSource === 'Contenedor' && !selectedContainerId) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione un contenedor.'});
+        return;
+    }
+
     const quoteExists = reservations.some(r => r.quoteNumber.toLowerCase() === quoteNumber.toLowerCase());
     if (quoteExists) {
         toast({ variant: 'destructive', title: 'Error', description: 'El número de cotización ya existe.'});
@@ -160,6 +190,7 @@ export default function ReservationsPage() {
     setQuantity(0);
     setQuoteNumber('');
     setAdvisorName('');
+    setSelectedContainerId('');
     setIsNewReservationDialogOpen(false);
     toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
   };
@@ -254,7 +285,11 @@ export default function ReservationsPage() {
                 <div className="space-y-4 py-4">
                      <div className="space-y-2">
                         <Label>Origen del Producto</Label>
-                        <RadioGroup value={reservationSource} onValueChange={(value) => setReservationSource(value as 'Contenedor' | 'Bodega' | 'Zona Franca')} className="flex gap-4">
+                        <RadioGroup value={reservationSource} onValueChange={(value) => {
+                            setReservationSource(value as 'Contenedor' | 'Bodega' | 'Zona Franca');
+                            setProductName('');
+                            setSelectedContainerId('');
+                        }} className="flex gap-4">
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="Contenedor" id="source-container" />
                             <Label htmlFor="source-container">Contenedor en Tránsito</Label>
@@ -277,6 +312,22 @@ export default function ReservationsPage() {
                         <Label>Nombre del Cliente</Label>
                         <Input value={customerName} onChange={e => setCustomerName(e.target.value)} />
                     </div>
+                    {reservationSource === 'Contenedor' && (
+                         <div className="space-y-2">
+                            <Label>Contenedor</Label>
+                            <Combobox
+                                options={containerOptions}
+                                value={selectedContainerId}
+                                onValueChange={(value) => {
+                                    setSelectedContainerId(value);
+                                    setProductName(''); // Reset product when container changes
+                                }}
+                                placeholder="Seleccione un contenedor"
+                                searchPlaceholder="Buscar contenedor..."
+                                emptyPlaceholder="No hay contenedores en tránsito"
+                            />
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <Label>Producto</Label>
                         <Combobox
@@ -286,6 +337,7 @@ export default function ReservationsPage() {
                             placeholder="Seleccione un producto"
                             searchPlaceholder="Buscar producto..."
                             emptyPlaceholder="No se encontraron productos"
+                            disabled={reservationSource === 'Contenedor' && !selectedContainerId}
                         />
                         <p className="text-sm text-muted-foreground">{getSelectedProductInfo()}</p>
                     </div>
@@ -339,3 +391,5 @@ export default function ReservationsPage() {
     </div>
   );
 }
+
+    
