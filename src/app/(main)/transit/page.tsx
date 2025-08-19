@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useMemo, useContext } from 'react';
 import jsPDF from 'jspdf';
@@ -70,14 +71,6 @@ const initialReservations: Reservation[] = [
     { id: 'RES-002', customer: 'Diseños SAS', product: 'BLACK 1.22 X 0.61', quantity: 100, containerId: 'CMAU7654321', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'En espera de validación' },
 ];
 
-const productOptions = [
-    { value: 'CUT STONE 120 X 60', label: 'CUT STONE 120 X 60' },
-    { value: 'TRAVERTINO', label: 'TRAVERTINO' },
-    { value: 'CONCRETO ENCOFRADO', label: 'CONCRETO ENCOFRADO' },
-    { value: 'BLACK 1.22 X 0.61', label: 'BLACK 1.22 X 0.61' },
-    { value: 'KUND MULTY 1.22 X 0.61', label: 'KUND MULTY 1.22 X 0.61' },
-    // Add all other products here
-];
 
 const currentUserRole: Role = 'Administrador';
 
@@ -183,7 +176,6 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: 
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                          </AlertDialog>
-                        <Button variant="outline" size="sm" onClick={() => onAddProduct(container.id)}>Agregar Producto</Button>
                        </>
                     )}
                 </CardFooter>
@@ -197,13 +189,17 @@ export default function TransitPage() {
   if (!context) {
     throw new Error('InventoryContext must be used within an InventoryProvider');
   }
-  const { containers, addContainer, editContainer, receiveContainer } = context;
+  const { inventoryData, containers, addContainer, editContainer, receiveContainer } = context;
 
   const [newContainerId, setNewContainerId] = useState('');
   const [newContainerEta, setNewContainerEta] = useState('');
   const [newContainerProducts, setNewContainerProducts] = useState<Product[]>([]);
-  const [productToAdd, setProductToAdd] = useState('');
-  const [quantityToAdd, setQuantityToAdd] = useState<number | string>('');
+  
+  // State for the product form inside the dialog
+  const [brand, setBrand] = useState('');
+  const [line, setLine] = useState('');
+  const [productName, setProductName] = useState('');
+  const [quantity, setQuantity] = useState<number | string>('');
 
   const [isAddContainerDialogOpen, setIsAddContainerDialogOpen] = useState(false);
   const [isEditContainerDialogOpen, setIsEditContainerDialogOpen] = useState(false);
@@ -222,6 +218,12 @@ export default function TransitPage() {
     const history = containers.filter(c => c.status === 'Llegado');
     return { activeContainers: active, historyContainers: history };
   }, [containers]);
+
+  const brandOptions = useMemo(() => Object.keys(inventoryData).map(b => ({ value: b, label: b })), [inventoryData]);
+  const lineOptions = useMemo(() => {
+    if (!brand || !inventoryData[brand as keyof typeof inventoryData]) return [];
+    return Object.keys(inventoryData[brand as keyof typeof inventoryData]).map(l => ({ value: l, label: l }));
+  }, [brand, inventoryData]);
 
 
   const handleAddContainer = () => {
@@ -260,22 +262,22 @@ export default function TransitPage() {
 
 
   const handleAddProductToContainer = () => {
-    if (!productToAdd || Number(quantityToAdd) <= 0) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione un producto y una cantidad válida.' });
+    if (!brand || !line || !productName || Number(quantity) <= 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos del producto.' });
         return;
     }
     setNewContainerProducts(prev => {
-        const existingProductIndex = prev.findIndex(p => p.name === productToAdd);
+        const existingProductIndex = prev.findIndex(p => p.name === productName);
         if (existingProductIndex !== -1) {
             const updatedProducts = [...prev];
-            updatedProducts[existingProductIndex].quantity += Number(quantityToAdd);
+            updatedProducts[existingProductIndex].quantity += Number(quantity);
             return updatedProducts;
         } else {
-            return [...prev, { name: productToAdd, quantity: Number(quantityToAdd) }];
+            return [...prev, { name: productName, quantity: Number(quantity), brand, line }];
         }
     });
-    setProductToAdd('');
-    setQuantityToAdd('');
+    setProductName('');
+    setQuantity('');
   };
   
   const handleRemoveProductFromList = (productName: string) => {
@@ -399,8 +401,10 @@ export default function TransitPage() {
     setNewContainerId('');
     setNewContainerEta('');
     setNewContainerProducts([]);
-    setProductToAdd('');
-    setQuantityToAdd('');
+    setBrand('');
+    setLine('');
+    setProductName('');
+    setQuantity('');
     setIsAddContainerDialogOpen(true);
   }
 
@@ -536,25 +540,47 @@ export default function TransitPage() {
                 </div>
               </div>
               <Separator />
-              <div className="space-y-2">
-                  <Label>Productos en el Contenedor</Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-[1fr_100px_auto] gap-2 items-end">
-                      <Combobox
-                          options={productOptions}
-                          value={productToAdd}
-                          onValueChange={setProductToAdd}
-                          placeholder="Seleccionar o crear producto..."
-                          searchPlaceholder="Buscar producto..."
-                          emptyPlaceholder="No se encontraron productos."
-                          allowFreeText
-                      />
-                       <Input
+               <h4 className="font-medium text-center">Productos del Contenedor</h4>
+              <div className="space-y-2 p-4 border rounded-md">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                        <Label>Marca</Label>
+                        <Select value={brand} onValueChange={(v) => {setBrand(v); setLine('');}}>
+                            <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
+                            <SelectContent>
+                                {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                     </div>
+                      <div className="space-y-2">
+                        <Label>Línea / Categoría</Label>
+                        <Select value={line} onValueChange={setLine} disabled={!brand}>
+                            <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
+                            <SelectContent>
+                                {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                     </div>
+                   </div>
+                   <div className="grid grid-cols-1 sm:grid-cols-[1fr_100px_auto] gap-2 items-end pt-2">
+                      <div className="space-y-2">
+                         <Label>Nombre del Producto</Label>
+                         <Input
+                            placeholder="Ingrese el nombre del nuevo producto"
+                            value={productName}
+                            onChange={(e) => setProductName(e.target.value)}
+                         />
+                      </div>
+                       <div className="space-y-2">
+                          <Label>Cantidad</Label>
+                          <Input
                             type="number"
                             placeholder="Cant."
-                            value={quantityToAdd}
-                            onChange={(e) => setQuantityToAdd(e.target.value)}
+                            value={quantity}
+                            onChange={(e) => setQuantity(e.target.value)}
                         />
-                        <Button onClick={handleAddProductToContainer}>Agregar</Button>
+                       </div>
+                        <Button onClick={handleAddProductToContainer} className="self-end">Agregar</Button>
                   </div>
               </div>
               
@@ -570,7 +596,10 @@ export default function TransitPage() {
                     <TableBody>
                         {newContainerProducts.map(p => (
                             <TableRow key={p.name}>
-                                <TableCell>{p.name}</TableCell>
+                                <TableCell>
+                                    <div>{p.name}</div>
+                                    <div className="text-xs text-muted-foreground">{p.brand} &gt; {p.line}</div>
+                                </TableCell>
                                 <TableCell className="text-right">{p.quantity}</TableCell>
                                 <TableCell>
                                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveProductFromList(p.name)}>

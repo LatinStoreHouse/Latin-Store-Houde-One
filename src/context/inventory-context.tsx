@@ -1,3 +1,4 @@
+
 'use client';
 import React, { createContext, useState, ReactNode } from 'react';
 import { initialInventoryData } from '@/lib/initial-inventory';
@@ -6,6 +7,8 @@ import { initialContainers as initialContainerData } from '@/lib/initial-contain
 export interface Product {
   name: string;
   quantity: number;
+  brand?: string;
+  line?: string;
 }
 
 export interface Container {
@@ -92,10 +95,28 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         if (location) {
           const { brand, subCategory } = location;
           newInventory[brand as keyof typeof newInventory][subCategory][productInContainer.name].zonaFranca += productInContainer.quantity;
+        } else if (productInContainer.brand && productInContainer.line) {
+          // If product is new, create it in the specified brand and line
+          const { brand, line, name, quantity } = productInContainer;
+          
+          if (!newInventory[brand]) {
+            newInventory[brand] = {};
+          }
+          if (!newInventory[brand][line]) {
+            newInventory[brand][line] = {};
+          }
+          
+          newInventory[brand][line][name] = {
+            bodega: 0,
+            zonaFranca: quantity,
+            separadasBodega: 0,
+            separadasZonaFranca: 0,
+            muestras: 0,
+          };
+          console.log(`Producto nuevo "${name}" creado en ${brand} > ${line}.`);
+
         } else {
-          // Handle new product not in inventory yet - for now, we log it.
-          // A more robust solution might add it to a default category.
-          console.warn(`Producto "${productInContainer.name}" del contenedor no fue encontrado en el inventario.`);
+          console.warn(`Producto "${productInContainer.name}" del contenedor no fue encontrado y no tiene información de marca/línea para crearlo.`);
         }
       }
       return newInventory;
