@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Send, BotMessageSquare, Users, ShoppingBag } from 'lucide-react';
 import { CampaignPreview } from '@/components/campaign-preview';
 import { initialInventoryData } from '@/lib/initial-inventory';
+import { initialReservations } from '@/lib/sales-history';
 
 
 type AudienceType = 'all' | 'byProduct';
@@ -39,6 +40,19 @@ export default function CreateCampaignPage() {
     const [message, setMessage] = useState('');
 
     const productOptions = useMemo(() => getAllProducts(), []);
+
+    const audienceCount = useMemo(() => {
+        if (audience === 'byProduct' && selectedProduct) {
+            const customersWhoBoughtProduct = new Set(
+                initialReservations
+                    .filter(r => r.product === selectedProduct && r.status === 'Validada')
+                    .map(r => r.customer)
+            );
+            return customersWhoBoughtProduct.size;
+        }
+        return 0; // Or you could calculate total unique customers for 'all'
+    }, [audience, selectedProduct]);
+
 
   return (
     <div className="space-y-6">
@@ -89,9 +103,9 @@ export default function CreateCampaignPage() {
                              <RadioGroupItem value="byProduct" id="audience-product" className="mt-1"/>
                             <div className="flex-1">
                                 <span className="font-semibold flex items-center gap-2"><ShoppingBag className="h-4 w-4" />Clientes por Producto Comprado</span>
-                                <p className="text-sm text-muted-foreground mt-1">Enviar solo a clientes que han comprado un producto específico en el pasado. (Requiere historial de ventas detallado).</p>
+                                <p className="text-sm text-muted-foreground mt-1">Enviar solo a clientes que han comprado un producto específico en el pasado (basado en reservas validadas).</p>
                                 {audience === 'byProduct' && (
-                                    <div className="mt-3">
+                                    <div className="mt-3 space-y-2">
                                          <Combobox
                                             options={productOptions}
                                             value={selectedProduct}
@@ -100,6 +114,11 @@ export default function CreateCampaignPage() {
                                             searchPlaceholder="Buscar producto..."
                                             emptyPlaceholder="No se encontró el producto."
                                         />
+                                        {selectedProduct && (
+                                            <p className="text-sm text-primary font-medium">
+                                                Esta campaña se enviará a **{audienceCount}** {audienceCount === 1 ? 'cliente' : 'clientes'} que han comprado este producto.
+                                            </p>
+                                        )}
                                     </div>
                                 )}
                             </div>

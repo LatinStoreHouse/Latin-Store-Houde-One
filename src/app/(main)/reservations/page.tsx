@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { initialInventoryData } from '@/lib/initial-inventory';
+import { initialReservations } from '@/lib/sales-history';
 
 
 interface Reservation {
@@ -58,13 +59,6 @@ const getAllInventoryProducts = () => {
     }
     return products;
 }
-
-const initialReservations: Reservation[] = [
-    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, sourceId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'Validada', source: 'Contenedor' },
-    { id: 'RES-002', customer: 'Diseños Modernos', product: 'CONCRETO GRIS 1.22 X 0.61', quantity: 10, sourceId: 'Bodega', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'Validada', source: 'Bodega' },
-    { id: 'RES-003', customer: 'Arquitectura Andina', product: 'KUND MULTY 1.22 X 0.61', quantity: 25, sourceId: 'Zona Franca', advisor: 'Jane Smith', quoteNumber: 'COT-2024-003', status: 'Validada', source: 'Zona Franca' },
-    { id: 'RES-004', customer: 'Hogar Futuro', product: 'TAN 1.22 X 0.61', quantity: 30, sourceId: 'Bodega', advisor: 'John Doe', quoteNumber: 'COT-2024-004', status: 'Rechazada', source: 'Bodega' },
-];
 
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
