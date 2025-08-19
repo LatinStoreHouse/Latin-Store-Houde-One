@@ -3,6 +3,7 @@
 import React, { createContext, useState, ReactNode } from 'react';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { initialContainers as initialContainerData } from '@/lib/initial-containers';
+import { initialReservations } from '@/lib/sales-history';
 
 export interface Product {
   name: string;
@@ -28,7 +29,7 @@ export interface Reservation {
   sourceId: string; // Container ID or warehouse location ('Bodega' / 'Zona Franca')
   advisor: string;
   quoteNumber: string;
-  status: 'En espera de validación' | 'Validada' | 'Rechazada';
+  status: 'En espera de validación' | 'Validada' | 'Rechazada' | 'Despachada';
   source: 'Contenedor' | 'Bodega' | 'Zona Franca';
 }
 
@@ -46,10 +47,13 @@ interface InventoryContextType {
   setInventoryData: React.Dispatch<React.SetStateAction<InventoryData>>;
   containers: Container[];
   setContainers: React.Dispatch<React.SetStateAction<Container[]>>;
+  reservations: Reservation[];
+  setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
   notifications: AppNotification[];
   dismissNotification: (id: number) => void;
   transferFromFreeZone: (productName: string, quantity: number) => void;
   receiveContainer: (containerId: string, reservations: Reservation[]) => void;
+  dispatchReservation: (quoteNumber: string) => void;
   addContainer: (container: Container) => void;
   editContainer: (containerId: string, updatedContainer: Container) => void;
 }
@@ -59,6 +63,7 @@ export const InventoryContext = createContext<InventoryContextType | undefined>(
 export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [inventoryData, setInventoryData] = useState<InventoryData>(initialInventoryData);
   const [containers, setContainers] = useState<Container[]>(initialContainerData);
+  const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
 
@@ -168,6 +173,48 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     setNotifications(prev => [newNotification, ...prev]);
   };
   
+  const dispatchReservation = (quoteNumber: string) => {
+    const reservationToDispatch = reservations.find(r => r.quoteNumber === quoteNumber && r.status === 'Validada');
+
+    if (!reservationToDispatch) {
+        // It's not an error if a dispatch doesn't have a reservation
+        console.log(`No se encontró una reserva validada para la cotización ${quoteNumber}. Se procederá con el despacho normal.`);
+        return;
+    }
+
+    const location = findProductLocation(reservationToDispatch.product);
+    if (!location) {
+        throw new Error(`Producto ${reservationToDispatch.product} de la reserva no encontrado en inventario.`);
+    }
+
+    const { brand, subCategory } = location;
+    
+    setInventoryData(prevData => {
+        const newData = JSON.parse(JSON.stringify(prevData));
+        const product = newData[brand as keyof typeof prevData][subCategory][reservationToDispatch.product];
+
+        if (reservationToDispatch.source === 'Bodega') {
+            if (product.bodega < reservationToDispatch.quantity || product.separadasBodega < reservationToDispatch.quantity) {
+                throw new Error('Stock insuficiente en bodega para completar el despacho de la reserva.');
+            }
+            product.bodega -= reservationToDispatch.quantity;
+            product.separadasBodega -= reservationToDispatch.quantity;
+        } else { // Zona Franca or Container (which becomes Zona Franca)
+             if (product.zonaFranca < reservationToDispatch.quantity || product.separadasZonaFranca < reservationToDispatch.quantity) {
+                throw new Error('Stock insuficiente en zona franca para completar el despacho de la reserva.');
+            }
+            product.zonaFranca -= reservationToDispatch.quantity;
+            product.separadasZonaFranca -= reservationToDispatch.quantity;
+        }
+        return newData;
+    });
+    
+    // Update the reservation status to 'Despachada'
+    setReservations(prev => 
+        prev.map(r => r.id === reservationToDispatch.id ? { ...r, status: 'Despachada' } : r)
+    );
+  };
+  
   const addContainer = (container: Container) => {
     setContainers(prev => [container, ...prev]);
   };
@@ -187,10 +234,13 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       setInventoryData, 
       containers, 
       setContainers,
+      reservations,
+      setReservations,
       notifications,
       dismissNotification,
       transferFromFreeZone,
       receiveContainer,
+      dispatchReservation,
       addContainer,
       editContainer
     }}>

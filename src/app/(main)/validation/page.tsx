@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/app/(main)/layout';
+import { InventoryContext } from '@/context/inventory-context';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -77,6 +78,12 @@ const initialHistory: ValidatedItem[] = [
 
 
 export default function ValidationPage() {
+    const context = useContext(InventoryContext);
+    if (!context) {
+        throw new Error('ValidationPage must be used within an InventoryProvider');
+    }
+    const { dispatchReservation } = context;
+
     const [pendingReservations, setPendingReservations] = useState(initialPendingReservations);
     const [pendingDispatches, setPendingDispatches] = useState(initialPendingDispatches);
     const [validationHistory, setValidationHistory] = useState<ValidatedItem[]>(initialHistory);
@@ -145,7 +152,16 @@ export default function ValidationPage() {
         };
         setValidationHistory([newHistoryEntry, ...validationHistory]);
     
-        toast({ title: 'Éxito', description: `Despacho para ${dispatch.cotizacion} ha sido ${newStatus.toLowerCase()}.` });
+        if (newStatus === 'Validada') {
+            try {
+                dispatchReservation(dispatch.cotizacion);
+                toast({ title: 'Éxito', description: `Despacho para ${dispatch.cotizacion} ha sido validado y la reserva ha sido descontada.` });
+            } catch (error: any) {
+                toast({ variant: 'destructive', title: 'Error de Inventario', description: error.message });
+            }
+        } else {
+            toast({ title: 'Éxito', description: `Despacho para ${dispatch.cotizacion} ha sido ${newStatus.toLowerCase()}.` });
+        }
     };
 
     const filteredHistory = useMemo(() => {

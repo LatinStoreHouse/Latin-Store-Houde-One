@@ -22,21 +22,8 @@ import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { initialInventoryData } from '@/lib/initial-inventory';
-import { initialReservations } from '@/lib/sales-history';
-import { InventoryContext } from '@/context/inventory-context';
+import { InventoryContext, Reservation } from '@/context/inventory-context';
 
-
-interface Reservation {
-  id: string;
-  customer: string;
-  product: string;
-  quantity: number;
-  sourceId: string; // Container ID or warehouse location ('Bodega' / 'Zona Franca')
-  advisor: string;
-  quoteNumber: string;
-  status: 'En espera de validación' | 'Validada' | 'Rechazada';
-  source: 'Contenedor' | 'Bodega' | 'Zona Franca';
-}
 
 const getAllInventoryProducts = () => {
     const products: { name: string, data: any }[] = [];
@@ -60,9 +47,8 @@ export default function ReservationsPage() {
   if (!context) {
     throw new Error('ReservationsPage must be used within an InventoryProvider');
   }
-  const { containers } = context;
+  const { containers, reservations, setReservations } = context;
 
-  const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
   const [isNewReservationDialogOpen, setIsNewReservationDialogOpen] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [advisorName, setAdvisorName] = useState('');
@@ -215,6 +201,7 @@ export default function ReservationsPage() {
         case 'Validada': return 'success';
         case 'En espera de validación': return 'secondary';
         case 'Rechazada': return 'destructive';
+        case 'Despachada': return 'default';
     }
   }
   
@@ -391,5 +378,3 @@ export default function ReservationsPage() {
     </div>
   );
 }
-
-    
