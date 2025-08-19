@@ -13,7 +13,6 @@ import { ForecastSalesOutput } from '@/ai/flows/forecast-sales';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { useToast } from '@/hooks/use-toast';
-import { getLogoBase64 } from '@/lib/utils';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -107,12 +106,14 @@ export default function ReportsPage() {
 
     const handleDownloadReport = async () => {
         const doc = new jsPDF();
-        const logoData = await getLogoBase64();
         const monthName = currentDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
         
-        doc.addImage(logoData, 'PNG', 14, 10, 40, 15);
         doc.setFontSize(18);
-        doc.text(`Reporte Mensual - ${monthName}`, 65, 20);
+        doc.text('Latin Store House', 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Reporte Mensual - ${monthName}`, 14, 30);
+
 
         let startY = 35;
 
@@ -288,5 +289,3 @@ export default function ReportsPage() {
     </div>
   );
 }
-
-    

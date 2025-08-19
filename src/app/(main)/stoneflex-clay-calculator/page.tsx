@@ -13,7 +13,6 @@ import { Separator } from '@/components/ui/separator';
 import { initialProductPrices as productPrices } from '@/lib/prices';
 import { getExchangeRate } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import { getLogoBase64 } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -346,15 +345,16 @@ export default function StoneflexCalculatorPage() {
   const handleDownloadPdf = async () => {
     if (!quote) return;
     const doc = new jsPDF();
-    const logoData = await getLogoBase64();
     
-    doc.addImage(logoData, 'PNG', 14, 10, 40, 15);
     doc.setFontSize(18);
-    doc.text(`Cotización StoneFlex`, 65, 20);
+    doc.text('Latin Store House', 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text('Cotización StoneFlex', 14, 30);
 
     doc.setFontSize(10);
-    doc.text(`Cliente: ${customerName || 'N/A'}`, 14, 30);
-    doc.text(`Válida hasta: ${quote.expiryDate}`, 14, 35);
+    doc.text(`Cliente: ${customerName || 'N/A'}`, 14, 40);
+    doc.text(`Válida hasta: ${quote.expiryDate}`, 14, 45);
     
     // ... rest of PDF generation ...
   };
@@ -572,7 +572,7 @@ export default function StoneflexCalculatorPage() {
                   </div>
                   <div className="text-right">
                       <div className="relative h-10 w-32 mb-2">
-                          <Image src="https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp" alt="Latin Store House Logo" fill style={{ objectFit: 'contain' }} />
+                          <Image src="https://www.latinstorehouse.com/wp-content/uploads/2021/02/LATIN-STORE-HOUSE.png" alt="Latin Store House Logo" fill style={{ objectFit: 'contain' }} />
                       </div>
                       <p className="text-sm font-semibold">Asesor: Usuario Admin</p>
                   </div>
@@ -685,5 +685,3 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
-
-    

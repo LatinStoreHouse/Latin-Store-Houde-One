@@ -26,7 +26,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { TransferInventoryForm } from '@/components/transfer-inventory-form';
 import { InventoryContext } from '@/context/inventory-context';
-import { getLogoBase64 } from '@/lib/utils';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -241,11 +240,13 @@ export default function InventoryPage() {
     }
 
     const doc = new jsPDF();
-    const logoData = await getLogoBase64();
     
-    doc.addImage(logoData, 'PNG', 14, 10, 40, 15);
     doc.setFontSize(18);
-    doc.text('Reporte de Inventario', 65, 20);
+    doc.text('Latin Store House', 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text('Reporte de Inventario', 14, 30);
+
 
     const head: any[] = [['Marca', 'Categoría', 'Producto']];
     const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
@@ -485,5 +486,3 @@ export default function InventoryPage() {
     </Card>
   );
 }
-
-    

@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
-import { cn, getLogoBase64 } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -192,11 +192,13 @@ export default function ValidationPage() {
     
      const handleExportPDF = async () => {
         const doc = new jsPDF();
-        const logoData = await getLogoBase64();
         
-        doc.addImage(logoData, 'PNG', 14, 10, 40, 15);
         doc.setFontSize(18);
-        doc.text("Historial de Validaciones", 65, 20);
+        doc.text('Latin Store House', 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text("Historial de Validaciones", 14, 30);
+
 
         doc.autoTable({
           startY: 35,
@@ -484,5 +486,3 @@ export default function ValidationPage() {
     </div>
   );
 }
-
-    
