@@ -19,6 +19,17 @@ import {
   DialogClose,
   DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -170,14 +181,28 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: 
                     </Button>
                     {container.status !== 'Llegado' && (
                        <>
-                         <Button
-                            variant="success"
-                            size="sm"
-                            onClick={() => onReceive(container.id)}
-                          >
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Marcar como Recibido
-                          </Button>
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="success" size="sm">
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Marcar como Recibido
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirmar Recepción</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        ¿Está seguro de que desea marcar este contenedor como recibido? Esta acción no se puede deshacer y moverá el contenedor al historial.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => onReceive(container.id)} className="bg-success hover:bg-success/90">
+                                        Confirmar Recepción
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                         </AlertDialog>
                         <Button variant="outline" size="sm" onClick={() => onAddProduct(container.id)}>Agregar Producto</Button>
                        </>
                     )}
