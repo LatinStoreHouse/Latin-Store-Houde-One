@@ -28,7 +28,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser } from 'lucide-react';
+import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -36,6 +36,10 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { initialCustomerData, Customer, CustomerStatus, statusColors, customerSources, customerStatuses } from '@/lib/customers';
 import { Role, roles } from '@/lib/roles';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -53,6 +57,7 @@ const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones'];
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomerData);
   const [searchTerm, setSearchTerm] = useState('');
+  const [date, setDate] = useState<DateRange | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined);
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
@@ -67,15 +72,30 @@ export default function CustomersPage() {
         const searchMatch =
             customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             customer.phone.includes(searchTerm) ||
-            customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+            customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customer.city.toLowerCase().includes(searchTerm.toLowerCase());
 
         const sourceMatch = sourceFilter.length === 0 || sourceFilter.includes(customer.source);
         const advisorMatch = advisorFilter.length === 0 || advisorFilter.includes(customer.assignedTo);
         const statusMatch = statusFilter.length === 0 || statusFilter.includes(customer.status);
 
-        return searchMatch && sourceMatch && advisorMatch && statusMatch;
+        const itemDate = new Date(customer.registrationDate);
+        const fromDate = date?.from ? new Date(date.from) : null;
+        const toDate = date?.to ? new Date(date.to) : null;
+
+        if(fromDate) fromDate.setHours(0,0,0,0);
+        if(toDate) toDate.setHours(23,59,59,999);
+        
+        const dateMatch =
+            !date ||
+            (!fromDate && !toDate) ||
+            (fromDate && !toDate && itemDate >= fromDate) ||
+            (!fromDate && toDate && itemDate <= toDate) ||
+            (fromDate && toDate && itemDate >= fromDate && itemDate <= toDate);
+
+        return searchMatch && sourceMatch && advisorMatch && statusMatch && dateMatch;
     });
-  }, [customers, searchTerm, sourceFilter, advisorFilter, statusFilter]);
+  }, [customers, searchTerm, sourceFilter, advisorFilter, statusFilter, date]);
   
   const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
   const canCreateCampaign = userPermissions.includes('marketing:create');
@@ -87,7 +107,7 @@ export default function CustomersPage() {
     setIsModalOpen(true);
   };
   
-  const handleSaveCustomer = (customerData: Omit<Customer, 'id'>) => {
+  const handleSaveCustomer = (customerData: Omit<Customer, 'id' | 'registrationDate'>) => {
     if (!customerData.phone && !customerData.email) {
       toast({
         variant: "destructive",
@@ -99,11 +119,16 @@ export default function CustomersPage() {
 
     if (selectedCustomer) {
       // Edit
-      setCustomers(customers.map(c => c.id === selectedCustomer.id ? { ...c, ...customerData } : c));
+      setCustomers(customers.map(c => c.id === selectedCustomer.id ? { ...c, ...customerData } as Customer : c));
       toast({ title: 'Cliente Actualizado', description: 'Los datos del cliente se han actualizado.' });
     } else {
       // Add
-      const newCustomer = { ...customerData, id: Date.now(), address: '' };
+      const newCustomer: Customer = { 
+          ...customerData, 
+          id: Date.now(), 
+          address: customerData.address || '',
+          registrationDate: new Date().toISOString().split('T')[0]
+        };
       setCustomers([...customers, newCustomer]);
       toast({ title: 'Cliente Agregado', description: 'El nuevo cliente se ha guardado.' });
     }
@@ -165,9 +190,10 @@ export default function CustomersPage() {
     setSourceFilter([]);
     setAdvisorFilter([]);
     setStatusFilter([]);
+    setDate(undefined);
   }
 
-  const areFiltersActive = sourceFilter.length > 0 || advisorFilter.length > 0 || statusFilter.length > 0;
+  const areFiltersActive = sourceFilter.length > 0 || advisorFilter.length > 0 || statusFilter.length > 0 || date !== undefined;
 
   return (
     <>
@@ -187,70 +213,109 @@ export default function CustomersPage() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 flex items-center gap-4">
-          <div className="relative flex-1">
+        <div className="mb-4 flex flex-col md:flex-row items-center gap-2">
+          <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nombre, teléfono o email..."
+              placeholder="Buscar por nombre, tel, email o ciudad..."
               className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                    <ListFilter className="h-4 w-4" />
-                    <span>Filtros</span>
-                    {areFiltersActive && <div className="h-2 w-2 rounded-full bg-primary" />}
+          <div className="flex w-full md:w-auto items-center gap-2">
+            <Popover>
+                <PopoverTrigger asChild>
+                <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                    "w-full sm:w-[260px] justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                    )}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                    date.to ? (
+                        <>
+                        {format(date.from, "LLL dd, y")} -{" "}
+                        {format(date.to, "LLL dd, y")}
+                        </>
+                    ) : (
+                        format(date.from, "LLL dd, y")
+                    )
+                    ) : (
+                    <span>Filtrar por fecha</span>
+                    )}
                 </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuLabel>Filtrar por Fuente</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {customerSources.map(source => (
-                    <DropdownMenuCheckboxItem
-                        key={source}
-                        checked={sourceFilter.includes(source)}
-                        onCheckedChange={() => toggleFilter(setSourceFilter, source)}
-                    >
-                        {source}
-                    </DropdownMenuCheckboxItem>
-                ))}
-                
-                <DropdownMenuLabel>Filtrar por Asesor</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {salesAdvisors.map(advisor => (
-                    <DropdownMenuCheckboxItem
-                        key={advisor}
-                        checked={advisorFilter.includes(advisor)}
-                        onCheckedChange={() => toggleFilter(setAdvisorFilter, advisor)}
-                    >
-                        {advisor}
-                    </DropdownMenuCheckboxItem>
-                ))}
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                />
+                </PopoverContent>
+            </Popover>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="gap-2">
+                        <ListFilter className="h-4 w-4" />
+                        <span>Filtros</span>
+                        {areFiltersActive && <div className="h-2 w-2 rounded-full bg-primary" />}
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                    <DropdownMenuLabel>Filtrar por Fuente</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {customerSources.map(source => (
+                        <DropdownMenuCheckboxItem
+                            key={source}
+                            checked={sourceFilter.includes(source)}
+                            onCheckedChange={() => toggleFilter(setSourceFilter, source)}
+                        >
+                            {source}
+                        </DropdownMenuCheckboxItem>
+                    ))}
+                    
+                    <DropdownMenuLabel>Filtrar por Asesor</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {salesAdvisors.map(advisor => (
+                        <DropdownMenuCheckboxItem
+                            key={advisor}
+                            checked={advisorFilter.includes(advisor)}
+                            onCheckedChange={() => toggleFilter(setAdvisorFilter, advisor)}
+                        >
+                            {advisor}
+                        </DropdownMenuCheckboxItem>
+                    ))}
 
-                <DropdownMenuLabel>Filtrar por Estado</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {customerStatuses.map(status => (
-                    <DropdownMenuCheckboxItem
-                        key={status}
-                        checked={statusFilter.includes(status)}
-                        onCheckedChange={() => toggleFilter(setStatusFilter, status)}
-                    >
-                        {status}
-                    </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                    <DropdownMenuLabel>Filtrar por Estado</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {customerStatuses.map(status => (
+                        <DropdownMenuCheckboxItem
+                            key={status}
+                            checked={statusFilter.includes(status)}
+                            onCheckedChange={() => toggleFilter(setStatusFilter, status)}
+                        >
+                            {status}
+                        </DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
 
-          {areFiltersActive && (
-              <Button variant="ghost" onClick={clearFilters} className="gap-2 text-muted-foreground">
-                  <X className="h-4 w-4" />
-                  Limpiar Filtros
-              </Button>
-          )}
-
+            {areFiltersActive && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground">
+                    <X className="h-4 w-4" />
+                    Limpiar
+                </Button>
+            )}
+          </div>
+        </div>
+        <div className="flex justify-start mb-4">
           {canCreateCampaign && selectedCustomers.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -281,6 +346,7 @@ export default function CustomersPage() {
               <TableHead className="p-2">Cliente</TableHead>
               <TableHead className="p-2">Fuente</TableHead>
               <TableHead className="p-2">Asesor Asignado</TableHead>
+              <TableHead className="p-2">Fecha Reg.</TableHead>
               <TableHead className="p-2">Estado</TableHead>
               <TableHead className="text-right p-2">Acciones</TableHead>
             </TableRow>
@@ -297,16 +363,21 @@ export default function CustomersPage() {
                 </TableCell>
                 <TableCell className="p-2">
                   <div className="font-medium">{customer.name}</div>
-                  <div className="text-sm text-muted-foreground">{customer.phone}</div>
                   <div className="text-sm text-muted-foreground">{customer.email}</div>
+                  <div className="text-sm text-muted-foreground">{customer.phone}</div>
+                  <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                    <MapPin className="h-3 w-3" />
+                    {customer.city}
+                  </div>
                 </TableCell>
                 <TableCell className="p-2">
                   <Badge variant="outline" className="flex w-fit items-center gap-2">
-                    {React.createElement(sourceIcons[customer.source] || 'div')}
+                    {React.createElement(sourceIcons[customer.source as keyof typeof sourceIcons] || 'div')}
                     {customer.source}
                   </Badge>
                 </TableCell>
                 <TableCell className="p-2">{customer.assignedTo}</TableCell>
+                <TableCell className="p-2">{customer.registrationDate}</TableCell>
                 <TableCell className="p-2">
                   <Badge
                      className={cn("border", statusColors[customer.status])}

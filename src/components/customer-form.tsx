@@ -6,13 +6,22 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Customer, CustomerStatus, customerSources, customerStatuses } from '@/lib/customers';
 import { Textarea } from './ui/textarea';
-
+import { Combobox } from './ui/combobox';
 
 interface CustomerFormProps {
   customer?: Customer;
-  onSave: (customer: Omit<Customer, 'id'>) => void;
+  onSave: (customer: Omit<Customer, 'id' | 'registrationDate'> & { registrationDate?: string }) => void;
   onCancel: () => void;
 }
+
+const colombianCities = [
+  "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta", 
+  "Soacha", "Soledad", "Bucaramanga", "Ibagué", "Santa Marta", "Villavicencio", 
+  "Pereira", "Manizales", "Pasto", "Neiva", "Armenia", "Popayán", "Sincelejo", 
+  "Montería", "Valledupar", "Tunja", "Riohacha", "Florencia", "Yopal", 
+  "Quibdó", "Arauca", "San Andrés", "Mocoa", "Leticia", "Inírida", 
+  "San José del Guaviare", "Puerto Carreño", "Mitú"
+].map(city => ({ value: city, label: city }));
 
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones'];
 
@@ -20,6 +29,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [source, setSource] = useState<Customer['source']>('Instagram');
   const [assignedTo, setAssignedTo] = useState('');
@@ -32,6 +42,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       setName(customer.name);
       setPhone(customer.phone);
       setEmail(customer.email);
+      setCity(customer.city);
       setAddress(customer.address);
       setSource(customer.source);
       setAssignedTo(customer.assignedTo);
@@ -41,6 +52,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       setName('');
       setPhone('');
       setEmail('');
+      setCity('');
       setAddress('');
       setSource('Instagram');
       setAssignedTo('');
@@ -56,16 +68,16 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       return;
     }
     setError(null);
-    onSave({ name, phone, email, address, source, assignedTo, status });
+    onSave({ name, phone, email, city, address, source, assignedTo, status });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Nombre Completo</Label>
-        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-      </div>
-       <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2 col-span-2">
+            <Label htmlFor="name">Nombre Completo</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+        </div>
         <div className="space-y-2">
             <Label htmlFor="phone">Teléfono</Label>
             <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
@@ -76,16 +88,29 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
         </div>
       </div>
       {error && <p className="text-sm text-destructive -mt-2 text-center">{error}</p>}
-       <div className="space-y-2">
-            <Label htmlFor="address">Dirección (Opcional)</Label>
-            <Textarea 
-                id="address" 
-                value={address} 
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Dirección completa para despachos"
-                rows={2}
-            />
-        </div>
+       <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="city">Ciudad</Label>
+                <Combobox
+                    options={colombianCities}
+                    value={city}
+                    onValueChange={setCity}
+                    placeholder="Seleccione una ciudad"
+                    searchPlaceholder="Buscar ciudad..."
+                    emptyPlaceholder="No se encontró la ciudad."
+                    allowFreeText
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="address">Dirección (Opcional)</Label>
+                <Input 
+                    id="address" 
+                    value={address} 
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Dirección para despachos"
+                />
+            </div>
+       </div>
        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="source">Fuente</Label>
