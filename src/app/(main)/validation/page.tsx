@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/app/(main)/layout';
-import { InventoryContext } from '@/context/inventory-context';
+import { InventoryContext, Reservation } from '@/context/inventory-context';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -28,17 +28,6 @@ declare module 'jspdf' {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
   }
-}
-
-interface Reservation {
-  id: string;
-  customer: string;
-  product: string;
-  quantity: number;
-  source: 'Contenedor' | 'Bodega' | 'Zona Franca';
-  sourceId: string;
-  advisor: string;
-  quoteNumber: string;
 }
 
 interface ValidatedItem {
@@ -61,11 +50,6 @@ interface PendingDispatch {
     factura: string;
 }
 
-const initialPendingReservations: (Reservation & { status: 'En espera de validación', factura: string })[] = [
-    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, source: 'Contenedor', sourceId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'En espera de validación', factura: '' },
-    { id: 'RES-002', customer: 'Diseños SAS', product: 'BLACK 1.22 X 0.61', quantity: 100, source: 'Contenedor', sourceId: 'CMAU7654321', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'En espera de validación', factura: '' },
-];
-
 const initialPendingDispatches: PendingDispatch[] = [
     { id: 1, cotizacion: 'COT-001', cliente: 'ConstruCali', vendedor: 'John Doe', factura: '' },
 ]
@@ -82,11 +66,11 @@ export default function ValidationPage() {
     if (!context) {
         throw new Error('ValidationPage must be used within an InventoryProvider');
     }
-    const { dispatchReservation } = context;
+    const { reservations, setReservations, dispatchReservation } = context;
 
-    const [pendingReservations, setPendingReservations] = useState(initialPendingReservations);
     const [pendingDispatches, setPendingDispatches] = useState(initialPendingDispatches);
     const [validationHistory, setValidationHistory] = useState<ValidatedItem[]>(initialHistory);
+    const [facturaNumbers, setFacturaNumbers] = useState<Record<string, string>>({});
     const [searchTerm, setSearchTerm] = useState('');
     const [date, setDate] = useState<DateRange | undefined>(undefined);
     const [activeTab, setActiveTab] = useState('todas');
@@ -94,26 +78,26 @@ export default function ValidationPage() {
     const { currentUser } = useUser();
 
     const canValidate = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
+
+    const pendingReservations = useMemo(() => {
+        return reservations.filter(r => r.status === 'En espera de validación');
+    }, [reservations]);
     
-    const handleInvoiceChange = (id: string, value: string, type: 'reservation' | 'dispatch') => {
-        if (type === 'reservation') {
-            setPendingReservations(
-                pendingReservations.map(r => r.id === id ? { ...r, factura: value } : r)
-            );
-        } else {
-             setPendingDispatches(
-                pendingDispatches.map(d => d.id === Number(id) ? { ...d, factura: value } : d)
-            );
-        }
+    const handleInvoiceChange = (id: string, value: string) => {
+        setFacturaNumbers(prev => ({ ...prev, [id]: value }));
     };
 
-    const handleReservationValidation = (reservation: (typeof pendingReservations)[0], newStatus: 'Validada' | 'Rechazada') => {
-        if (!reservation.factura) {
+    const handleReservationValidation = (reservation: Reservation, newStatus: 'Validada' | 'Rechazada') => {
+        const factura = facturaNumbers[reservation.id];
+        if (!factura) {
             toast({ variant: 'destructive', title: 'Error', description: 'Se requiere un número de factura para validar.' });
             return;
         }
 
-        setPendingReservations(pendingReservations.filter(r => r.id !== reservation.id));
+        // Update global reservation state
+        setReservations(prev => 
+            prev.map(r => r.id === reservation.id ? { ...r, status: newStatus } : r)
+        );
         
         const newHistoryEntry: ValidatedItem = {
             id: reservation.id,
@@ -123,7 +107,7 @@ export default function ValidationPage() {
             status: newStatus,
             validatedBy: currentUser.name,
             validationDate: new Date().toISOString().split('T')[0],
-            factura: reservation.factura,
+            factura,
             type: 'Reserva',
         };
         setValidationHistory([newHistoryEntry, ...validationHistory]);
@@ -132,7 +116,8 @@ export default function ValidationPage() {
     };
     
     const handleDispatchValidation = (dispatch: PendingDispatch, newStatus: 'Validada' | 'Rechazada') => {
-        if (!dispatch.factura) {
+        const factura = facturaNumbers[`dispatch-${dispatch.id}`];
+        if (!factura) {
             toast({ variant: 'destructive', title: 'Error', description: 'Se requiere un número de factura para validar.' });
             return;
         }
@@ -147,7 +132,7 @@ export default function ValidationPage() {
             status: newStatus,
             validatedBy: currentUser.name,
             validationDate: new Date().toISOString().split('T')[0],
-            factura: dispatch.factura,
+            factura,
             type: 'Despacho',
         };
         setValidationHistory([newHistoryEntry, ...validationHistory]);
@@ -298,8 +283,8 @@ export default function ValidationPage() {
                         <TableCell>{reservation.advisor}</TableCell>
                         <TableCell>
                             <Input 
-                                value={reservation.factura}
-                                onChange={(e) => handleInvoiceChange(reservation.id, e.target.value, 'reservation')}
+                                value={facturaNumbers[reservation.id] || ''}
+                                onChange={(e) => handleInvoiceChange(reservation.id, e.target.value)}
                                 placeholder="Ingrese factura..."
                                 disabled={!canValidate}
                             />
@@ -307,10 +292,10 @@ export default function ValidationPage() {
                         <TableCell className="text-right">
                             {canValidate && (
                                 <div className="flex gap-2 justify-end">
-                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(reservation, 'Validada')} disabled={!reservation.factura}>
+                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(reservation, 'Validada')} disabled={!facturaNumbers[reservation.id]}>
                                         <Check className="h-4 w-4 text-green-600" />
                                     </Button>
-                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(reservation, 'Rechazada')} disabled={!reservation.factura}>
+                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(reservation, 'Rechazada')} disabled={!facturaNumbers[reservation.id]}>
                                         <X className="h-4 w-4 text-red-600" />
                                     </Button>
                                 </div>
@@ -347,8 +332,8 @@ export default function ValidationPage() {
                             <TableCell>{dispatch.vendedor}</TableCell>
                             <TableCell>
                                 <Input 
-                                    value={dispatch.factura}
-                                    onChange={(e) => handleInvoiceChange(String(dispatch.id), e.target.value, 'dispatch')}
+                                    value={facturaNumbers[`dispatch-${dispatch.id}`] || ''}
+                                    onChange={(e) => handleInvoiceChange(`dispatch-${dispatch.id}`, e.target.value)}
                                     placeholder="Ingrese factura..."
                                     disabled={!canValidate}
                                 />
@@ -356,10 +341,10 @@ export default function ValidationPage() {
                             <TableCell className="text-right">
                                 {canValidate && (
                                     <div className="flex gap-2 justify-end">
-                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleDispatchValidation(dispatch, 'Validada')} disabled={!dispatch.factura}>
+                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleDispatchValidation(dispatch, 'Validada')} disabled={!facturaNumbers[`dispatch-${dispatch.id}`]}>
                                             <Check className="h-4 w-4 text-green-600" />
                                         </Button>
-                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleDispatchValidation(dispatch, 'Rechazada')} disabled={!dispatch.factura}>
+                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleDispatchValidation(dispatch, 'Rechazada')} disabled={!facturaNumbers[`dispatch-${dispatch.id}`]}>
                                             <X className="h-4 w-4 text-red-600" />
                                         </Button>
                                     </div>

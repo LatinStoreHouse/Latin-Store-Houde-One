@@ -111,7 +111,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const receiveContainer = (containerId: string, reservations: Reservation[]) => {
+  const receiveContainer = (containerId: string, reservationsToProcess: Reservation[]) => {
     const container = containers.find(c => c.id === containerId);
     if (!container) return;
 
@@ -121,7 +121,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       for (const productInContainer of container.products) {
         const location = findProductLocation(productInContainer.name);
         
-        const reservedQuantity = reservations
+        const reservedQuantity = reservationsToProcess
             .filter(r => r.product === productInContainer.name && r.status === 'Validada')
             .reduce((sum, r) => sum + r.quantity, 0);
 
