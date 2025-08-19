@@ -132,6 +132,7 @@ export default function StoneflexCalculatorPage() {
 
 
   const getSqmPerSheet = (ref: string) => {
+    if (!ref) return 0;
     if (ref.includes('1.22 X 0.61') || ref.includes('120 X 60') || ref.includes('1.22X0.61')) {
       return 0.7442;
     } else if (ref.includes('2.44 X 1.22')) {
@@ -144,6 +145,22 @@ export default function StoneflexCalculatorPage() {
         return 1.4884;
     }
     return 1; // Default
+  }
+  
+  const getSheetDimensions = (ref: string) => {
+    if (!ref) return "N/A";
+    if (ref.includes('1.22 X 0.61') || ref.includes('120 X 60') || ref.includes('1.22X0.61')) {
+      return "1.22 x 0.61 Mts";
+    } else if (ref.includes('2.44 X 1.22')) {
+      return "2.44 x 1.22 Mts";
+    } else if (ref.includes('0.15 X 2.44')) {
+      return "0.15 x 2.44 Mts";
+    } else if (ref.includes('0,90 M2')) {
+      return "N/A (Caja 0.90 M²)";
+    } else if (ref.includes('2.44 X 0.61')) {
+        return "2.44 x 0.61 Mts";
+    }
+    return "No especificadas";
   }
   
   const parseDecimal = (value: string | number) => {
@@ -440,6 +457,11 @@ export default function StoneflexCalculatorPage() {
                  searchPlaceholder="Buscar referencia..."
                  emptyPlaceholder="No se encontraron referencias."
                />
+                 {reference && (
+                    <div className="text-sm text-muted-foreground pt-1">
+                        <span className="font-medium">Medidas:</span> {getSheetDimensions(reference)} | <span className="font-medium">M² por Lámina:</span> {getSqmPerSheet(reference).toFixed(2)} M²
+                    </div>
+                 )}
              </div>
              <div className="space-y-2">
                 <Label>Calcular por</Label>
