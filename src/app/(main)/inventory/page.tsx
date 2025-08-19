@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, Save, Truck } from 'lucide-react';
+import { FileDown, Save, Truck, BadgeCheck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Role } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { TransferInventoryForm } from '@/components/transfer-inventory-form';
 import { InventoryContext } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -50,12 +51,14 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inv
   // Simplified view for non-editor roles
   if (!canEdit) {
     return (
+     <TooltipProvider>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="p-2">Nombre del Producto</TableHead>
             <TableHead className="text-right p-2">Disponible Bodega</TableHead>
             <TableHead className="text-right p-2">Disponible Zona Franca</TableHead>
+            <TableHead className="text-right p-2 w-[100px]">Reservas</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -63,17 +66,34 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inv
             if (!name) return null;
             const disponibleBodega = item.bodega - item.separadasBodega;
             const disponibleZonaFranca = item.zonaFranca - item.separadasZonaFranca;
+            const hasReservations = item.separadasBodega > 0 || item.separadasZonaFranca > 0;
 
             return (
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
                 <TableCell className="text-right p-2">{disponibleBodega}</TableCell>
                 <TableCell className="text-right p-2">{disponibleZonaFranca}</TableCell>
+                <TableCell className="text-right p-2">
+                  {hasReservations && (
+                     <Tooltip>
+                        <TooltipTrigger asChild>
+                           <div className="flex justify-end">
+                             <BadgeCheck className="h-5 w-5 text-green-600" />
+                           </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           <p>Bodega: {item.separadasBodega}</p>
+                           <p>Zona Franca: {item.separadasZonaFranca}</p>
+                        </TooltipContent>
+                     </Tooltip>
+                  )}
+                </TableCell>
               </TableRow>
             );
           })}
         </TableBody>
       </Table>
+     </TooltipProvider>
     );
   }
 
