@@ -88,9 +88,9 @@ const navItems = [
 const currentUserRole: Role = 'Administrador';
 
 const QuickAccessItem = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => (
-    <Button variant="outline" className="flex flex-col h-24 w-full" asChild>
+    <Button variant="outline" className="flex flex-col h-28 w-full justify-center" asChild>
         <Link href={href}>
-            <Icon className="h-8 w-8 text-primary mb-1" />
+            <Icon className="h-8 w-8 text-primary mb-2" />
             <span className="text-center text-xs">{label}</span>
         </Link>
     </Button>
@@ -113,7 +113,7 @@ export default function DashboardPage() {
           <Card key={item.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-              <item.icon className="h-4 w-4 text-muted-foreground" />
+              <item.icon className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{item.value}</div>
