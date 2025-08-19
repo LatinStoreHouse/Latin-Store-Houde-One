@@ -9,13 +9,15 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Send, BotMessageSquare, Users, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Send, BotMessageSquare, Users, ShoppingBag, BarChartHorizontal } from 'lucide-react';
 import { CampaignPreview } from '@/components/campaign-preview';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { initialReservations } from '@/lib/sales-history';
+import { CustomerStatus, initialCustomerData, customerStatuses } from '@/lib/customers';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
-type AudienceType = 'all' | 'byProduct';
+type AudienceType = 'all' | 'byProduct' | 'byStatus';
 
 const getAllProducts = (): ComboboxOption[] => {
     const products: ComboboxOption[] = [];
@@ -37,6 +39,7 @@ export default function CreateCampaignPage() {
     const [campaignName, setCampaignName] = useState('');
     const [audience, setAudience] = useState<AudienceType>('all');
     const [selectedProduct, setSelectedProduct] = useState('');
+    const [selectedStatuses, setSelectedStatuses] = useState<CustomerStatus[]>([]);
     const [message, setMessage] = useState('');
 
     const productOptions = useMemo(() => getAllProducts(), []);
@@ -50,8 +53,24 @@ export default function CreateCampaignPage() {
             );
             return customersWhoBoughtProduct.size;
         }
+         if (audience === 'byStatus' && selectedStatuses.length > 0) {
+            const customersWithStatus = new Set(
+                initialCustomerData
+                    .filter(c => selectedStatuses.includes(c.status))
+                    .map(c => c.id)
+            );
+            return customersWithStatus.size;
+        }
         return 0; // Or you could calculate total unique customers for 'all'
-    }, [audience, selectedProduct]);
+    }, [audience, selectedProduct, selectedStatuses]);
+    
+    const handleStatusChange = (status: CustomerStatus, checked: boolean) => {
+        if (checked) {
+            setSelectedStatuses([...selectedStatuses, status]);
+        } else {
+            setSelectedStatuses(selectedStatuses.filter(s => s !== status));
+        }
+    }
 
 
   return (
@@ -117,6 +136,34 @@ export default function CreateCampaignPage() {
                                         {selectedProduct && (
                                             <p className="text-sm text-primary font-medium">
                                                 Esta campaña se enviará a **{audienceCount}** {audienceCount === 1 ? 'cliente' : 'clientes'} que han comprado este producto.
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </Label>
+                         <Label htmlFor="audience-status" className="flex items-start gap-4 space-y-1 rounded-md border p-4 cursor-pointer">
+                             <RadioGroupItem value="byStatus" id="audience-status" className="mt-1"/>
+                            <div className="flex-1">
+                                <span className="font-semibold flex items-center gap-2"><BarChartHorizontal className="h-4 w-4" />Clientes por Estado</span>
+                                <p className="text-sm text-muted-foreground mt-1">Enviar solo a clientes que se encuentren en los estados seleccionados.</p>
+                                {audience === 'byStatus' && (
+                                    <div className="mt-3 space-y-2">
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                            {customerStatuses.map(status => (
+                                                 <div key={status} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={`status-${status}`}
+                                                        checked={selectedStatuses.includes(status)}
+                                                        onCheckedChange={(checked) => handleStatusChange(status, Boolean(checked))}
+                                                    />
+                                                    <Label htmlFor={`status-${status}`} className="font-normal text-sm">{status}</Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {selectedStatuses.length > 0 && (
+                                            <p className="text-sm text-primary font-medium pt-2">
+                                                Esta campaña se enviará a **{audienceCount}** {audienceCount === 1 ? 'cliente' : 'clientes'}.
                                             </p>
                                         )}
                                     </div>

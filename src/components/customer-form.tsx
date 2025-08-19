@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Customer, CustomerStatus } from '@/app/(main)/customers/page';
+import { Customer, CustomerStatus, customerSources, customerStatuses } from '@/lib/customers';
+
 
 interface CustomerFormProps {
   customer?: Customer;
@@ -12,9 +13,7 @@ interface CustomerFormProps {
   onCancel: () => void;
 }
 
-const customerSources: Customer['source'][] = ['Instagram', 'WhatsApp', 'Email', 'Sitio Web', 'Referido'];
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones'];
-const customerStatuses: CustomerStatus[] = ['Contactado', 'Cotizado', 'Facturado', 'Redireccionado', 'Declinado', 'Sin respuesta', 'Showroom'];
 
 export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) {
   const [name, setName] = useState('');
