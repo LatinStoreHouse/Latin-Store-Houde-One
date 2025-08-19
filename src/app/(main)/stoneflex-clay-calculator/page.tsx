@@ -265,14 +265,14 @@ export default function StoneflexCalculatorPage() {
     const convert = (value: number) => currency === 'USD' ? value / trmValue : value;
     const discountValue = parseDecimal(discount);
     
-    const sealantPrices: Record<SealantType, number> = {
-        'SELLANTE SEMI - BRIGHT GALON': convert(productPrices['SELLANTE SEMI - BRIGHT GALON'] || 0),
-        'SELLANTE SEMI - BRIGTH 1/ 4 GALON': convert(productPrices['SELLANTE SEMI - BRIGTH 1/ 4 GALON'] || 0),
-        'SELLANTE SHYNY GALON': convert(productPrices['SELLANTE SHYNY GALON'] || 0),
-        'SELLANTE SHYNY 1/4 GALON': convert(productPrices['SELLANTE SHYNY 1/4 GALON'] || 0),
+    const sealantPricesCOP: Record<SealantType, number> = {
+        'SELLANTE SEMI - BRIGHT GALON': productPrices['SELLANTE SEMI - BRIGHT GALON'] || 0,
+        'SELLANTE SEMI - BRIGTH 1/ 4 GALON': productPrices['SELLANTE SEMI - BRIGTH 1/ 4 GALON'] || 0,
+        'SELLANTE SHYNY GALON': productPrices['SELLANTE SHYNY GALON'] || 0,
+        'SELLANTE SHYNY 1/4 GALON': productPrices['SELLANTE SHYNY 1/4 GALON'] || 0,
     };
-    const adhesivePrice = convert(productPrices['Adhesivo'] || 0);
-    const translucentAdhesivePrice = convert(productPrices['ADHESIVO TRASLUCIDO'] || 0);
+    const adhesivePriceCOP = productPrices['Adhesivo'] || 0;
+    const translucentAdhesivePriceCOP = productPrices['ADHESIVO TRASLUCIDO'] || 0;
 
     const detailedItems = quoteItems.map(item => {
       const details = referenceDetails[item.reference];
@@ -338,12 +338,12 @@ export default function StoneflexCalculatorPage() {
           sealantYield = sealantType.includes('SHYNY') ? 10 : 15;
         }
         totalSealantUnits = Math.ceil(totalSqMetersForSealant / sealantYield);
-        totalSealantCost = totalSealantUnits * sealantPrices[sealantType];
+        totalSealantCost = convert(totalSealantUnits * sealantPricesCOP[sealantType]);
     }
     
     // Adhesive Cost Calculation
-    const totalStandardAdhesiveCost = totalStandardAdhesiveUnits * adhesivePrice;
-    const totalTranslucentAdhesiveCost = totalTranslucentAdhesiveUnits * translucentAdhesivePrice;
+    const totalStandardAdhesiveCost = convert(totalStandardAdhesiveUnits * adhesivePriceCOP);
+    const totalTranslucentAdhesiveCost = convert(totalTranslucentAdhesiveUnits * translucentAdhesivePriceCOP);
 
     const subtotalBeforeDiscount = totalProductCost + totalSealantCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost;
     const totalDiscountAmount = subtotalBeforeDiscount * (discountValue / 100);
@@ -363,9 +363,9 @@ export default function StoneflexCalculatorPage() {
       totalSealantCost,
       totalStandardAdhesiveCost,
       totalTranslucentAdhesiveCost,
-      sealantPrices,
-      adhesivePrice,
-      translucentAdhesivePrice,
+      sealantPrice: convert(sealantPricesCOP[sealantType]),
+      adhesivePrice: convert(adhesivePriceCOP),
+      translucentAdhesivePrice: convert(translucentAdhesivePriceCOP),
       totalDiscountAmount,
       totalSealantUnits,
       totalStandardAdhesiveUnits,
@@ -631,7 +631,7 @@ export default function StoneflexCalculatorPage() {
                   </div>
                   <div className="text-right">
                       <div className="relative h-10 w-32 mb-2">
-                          <Image src="https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp" alt="Latin Store House Logo" fill style={{ objectFit: 'contain' }} />
+                          <Image src="https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp" alt="Latin Store House" fill style={{ objectFit: 'contain' }} />
                       </div>
                       <p className="text-sm font-semibold">Asesor: Usuario Admin</p>
                   </div>
@@ -655,7 +655,7 @@ export default function StoneflexCalculatorPage() {
                              <Input 
                                 id={`price-${item.id}`}
                                 type="text"
-                                value={new Intl.NumberFormat('es-CO').format(item.pricePerSheet || 0)}
+                                value={new Intl.NumberFormat('es-CO').format(productPrices[item.reference] || 0)}
                                 onChange={(e) => handleItemPriceChange(item.id, parseDecimal(e.target.value.replace(/[^0-9]/g, '')))}
                                 className="h-7 w-28"
                             />
@@ -681,7 +681,7 @@ export default function StoneflexCalculatorPage() {
                 </div>
                  {quote.totalSealantCost > 0 && quote.totalSealantUnits > 0 && (
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Costo Sellante ({quote.totalSealantUnits} u. @ {formatCurrency(quote.totalSealantCost / quote.totalSealantUnits)}/u.)</span>
+                        <span className="text-muted-foreground">Costo Sellante ({quote.totalSealantUnits} u. @ {formatCurrency(quote.sealantPrice)}/u.)</span>
                         <span>{formatCurrency(quote.totalSealantCost)}</span>
                     </div>
                 )}
@@ -723,7 +723,7 @@ export default function StoneflexCalculatorPage() {
                   <Input
                     id="labor-cost"
                     type="text"
-                    value={formatCurrency(laborCost).replace(/[^0-9]/g, '')}
+                    value={new Intl.NumberFormat(currency === 'COP' ? 'es-CO' : 'en-US').format(laborCost)}
                     onChange={(e) => handleCurrencyInputChange(setLaborCost)(e)}
                     className="w-32 h-8 text-right"
                     placeholder="0"
@@ -734,7 +734,7 @@ export default function StoneflexCalculatorPage() {
                   <Input
                     id="transport-cost"
                     type="text"
-                    value={formatCurrency(transportationCost).replace(/[^0-9]/g, '')}
+                    value={new Intl.NumberFormat(currency === 'COP' ? 'es-CO' : 'en-US').format(transportationCost)}
                     onChange={(e) => handleCurrencyInputChange(setTransportationCost)(e)}
                     className="w-32 h-8 text-right"
                     placeholder="0"
@@ -777,5 +777,3 @@ export default function StoneflexCalculatorPage() {
   )
 }
 
-
-    
