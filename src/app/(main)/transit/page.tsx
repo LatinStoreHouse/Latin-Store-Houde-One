@@ -395,7 +395,7 @@ export default function TransitPage() {
      receiveContainer(containerId);
       toast({
           title: `Contenedor ${containerId} Recibido`,
-          description: "El contenido ha sido agregado al inventario de Zona Franca.",
+          description: "El contenido ha sido agregado al inventario de Zona Franca. Se ha notificado al equipo sobre la llegada de nuevo material.",
       });
   };
   
