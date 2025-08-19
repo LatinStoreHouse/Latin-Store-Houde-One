@@ -289,15 +289,13 @@ export default function StoneflexCalculatorPage() {
       let itemSealantCost = 0;
       let calculatedSealantUnits = 0;
       if (item.includeSealant && item.sealantType) {
-        let sealantYield = 15; // 1/4 gal
-        if(item.sealantType.includes('GALON')) {
-          sealantYield = 60; // 1 gal
+        let sealantYield = 15; // 1/4 gal default
+        if (item.sealantType.includes('GALON')) { // SELLANTE SEMI - BRIGHT GALON or SELLANTE SHYNY GALON
+          sealantYield = item.sealantType.includes('SHYNY') ? 40 : 60; // 40 for shiny, 60 for semi-bright
+        } else { // 1/4 gal
+          sealantYield = item.sealantType.includes('SHYNY') ? 10 : 15; // 10 for shiny, 15 for semi-bright
         }
         
-        if (item.sealantType.includes('SHYNY')) {
-          sealantYield = item.sealantType.includes('GALON') ? 40 : 10;
-        }
-
         calculatedSealantUnits = Math.ceil(calculatedSqm / sealantYield);
         totalSealantUnits += calculatedSealantUnits;
         itemSealantCost = calculatedSealantUnits * sealantPrices[item.sealantType];
@@ -308,15 +306,13 @@ export default function StoneflexCalculatorPage() {
       let calculatedAdhesiveUnits = 0;
       if (item.includeAdhesive) {
         if(line === 'Translucida') {
-           const adhesiveYield = 2.5; // m2/ml
-           const mlNeeded = calculatedSqm / adhesiveYield;
-           calculatedAdhesiveUnits = Math.ceil(mlNeeded / 290);
+           const adhesiveYield = 2.5; // m2 per tube
+           calculatedAdhesiveUnits = Math.ceil(calculatedSqm / adhesiveYield);
            totalAdhesiveUnits += calculatedAdhesiveUnits;
            itemAdhesiveCost = calculatedAdhesiveUnits * translucentAdhesivePrice;
         } else {
-           const adhesiveYield = 1.2; // m2/ml
-           const mlNeeded = calculatedSqm / adhesiveYield;
-           calculatedAdhesiveUnits = Math.ceil(mlNeeded / 310);
+           const adhesiveYield = 1.2; // m2 per tube
+           calculatedAdhesiveUnits = Math.ceil(calculatedSqm / adhesiveYield);
            totalAdhesiveUnits += calculatedAdhesiveUnits;
            itemAdhesiveCost = calculatedAdhesiveUnits * adhesivePrice;
         }
@@ -352,7 +348,8 @@ export default function StoneflexCalculatorPage() {
       totalSealantCost,
       totalAdhesiveCost,
       sealantPrices,
-      adhesivePrice,
+      adhesivePrice: adhesivePrice,
+      translucentAdhesivePrice: translucentAdhesivePrice,
       totalDiscountAmount,
       totalSealantUnits,
       totalAdhesiveUnits,
@@ -410,7 +407,8 @@ export default function StoneflexCalculatorPage() {
       message += `- Costo Sellante (${quote.totalSealantUnits} u. @ ${formatCurrency(sealantUnitCost)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
     if(quote.totalAdhesiveCost > 0) {
-      const adhesiveUnitCost = quote.totalAdhesiveCost / quote.totalAdhesiveUnits;
+       const isTranslucent = quote.items.some(item => referenceDetails[item.reference]?.line === 'Translucida' && item.includeAdhesive);
+       const adhesiveUnitCost = isTranslucent ? quote.translucentAdhesivePrice : quote.adhesivePrice;
        message += `- Costo Adhesivo (${quote.totalAdhesiveUnits} u. @ ${formatCurrency(adhesiveUnitCost)}/u.): ${formatCurrency(quote.totalAdhesiveCost)}\n`;
     }
     if (quote.totalDiscountAmount > 0) {
@@ -548,7 +546,7 @@ export default function StoneflexCalculatorPage() {
                   id="sheets-input"
                   type="text"
                   value={sheets}
-                  onChange={e => setSheets(e.target.value)}
+                  onChange={(e) => setSheets(e.target.value)}
                   className="w-full"
                 />
               </div>
