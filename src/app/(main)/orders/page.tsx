@@ -31,6 +31,7 @@ import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { currentUser as userLayout } from '@/app/(main)/layout';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -121,24 +122,20 @@ const initialDispatchData = [
 type DispatchData = typeof initialDispatchData[0];
 
 
-// In a real app, this would come from an auth context.
-const currentUser = {
-  name: 'John Doe',
-  role: 'Administrador' as Role,
-};
-
 export default function DispatchPage() {
   const [dispatchData, setDispatchData] = useState(initialDispatchData);
   const [searchTerm, setSearchTerm] = useState('');
   const [date, setDate] = useState<DateRange | undefined>(undefined);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDispatch, setEditingDispatch] = useState<DispatchData | null>(null);
+  
+  const currentUser = userLayout;
 
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  const canEditLogistica = currentUser.role === 'Administrador' || currentUser.role === 'Logística';
-  const canCreateDispatch = currentUser.role === 'Administrador' || currentUser.role === 'Asesor de Ventas';
+  const canEditLogistica = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística');
+  const canCreateDispatch = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
   useEffect(() => {
     const action = searchParams.get('action');
@@ -530,7 +527,7 @@ export default function DispatchPage() {
                   </TableCell>
                   <TableCell className="text-right p-0">
                     <div className="flex items-center justify-end h-full">
-                      {(currentUser.role === 'Administrador' || (currentUser.name === item.vendedor && !isReadOnly)) && (
+                      {(currentUser.roles.includes('Administrador') || (currentUser.name === item.vendedor && !isReadOnly)) && (
                         <>
                           <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none">
                             <Edit className="h-4 w-4" />

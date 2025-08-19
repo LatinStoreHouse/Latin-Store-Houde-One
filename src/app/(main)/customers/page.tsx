@@ -43,6 +43,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
+import { currentUser } from '@/app/(main)/layout';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -53,8 +54,6 @@ const sourceIcons: { [key: string]: React.ElementType } = {
   'Referido': UserPlus
 };
 
-// Mocked user role
-const currentUserRole: Role = 'Administrador';
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones'];
 
 export default function CustomersPage() {
@@ -69,6 +68,8 @@ export default function CustomersPage() {
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const { toast } = useToast();
   const router = useRouter();
+
+  const currentUserRole = currentUser.roles[0];
 
   const filteredCustomers = useMemo(() => {
     return customers.filter(customer => {

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -67,15 +67,16 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryProvider } from '@/context/inventory-context';
 
-
-const initialUser: User = {
+// CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
+export const currentUser: User = {
   id: '1',
   name: 'Admin Latin',
   email: 'admin@latinhouse.com',
-  roles: ['Administrador'],
+  roles: ['Administrador'], // <-- CHANGE THIS VALUE TO TEST DIFFERENT ROLES
   avatar: 'https://placehold.co/40x40.png',
   active: true,
 };
+
 
 export const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
@@ -137,9 +138,8 @@ const Logo = () => (
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState(initialUser);
   
-  const userPermissions = React.useMemo(() => {
+  const userPermissions = useMemo(() => {
     const permissions = new Set<string>();
     currentUser.roles.forEach(userRole => {
       const roleConfig = roles.find(r => r.name === userRole);
@@ -188,16 +188,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   };
 
   const handleProfileSave = () => {
-    setCurrentUser(prev => ({
-        ...prev,
-        name: editedName,
-        avatar: editedAvatar,
-    }));
-    setIsEditingProfile(false);
+    // In a real app, this would be an API call. Here we just show a toast.
     toast({
         title: 'Perfil Actualizado',
         description: 'Tu información ha sido guardada exitosamente.'
     });
+    setIsEditingProfile(false);
   }
   
   const accessibleModules = navItems

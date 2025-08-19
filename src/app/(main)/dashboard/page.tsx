@@ -28,7 +28,7 @@ import { Role, roles } from '@/lib/roles';
 import { useContext } from 'react';
 import { InventoryContext } from '@/context/inventory-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { navItems } from '@/app/(main)/layout';
+import { navItems, currentUser } from '@/app/(main)/layout';
 
 
 const inventoryOverviewItems = [
@@ -89,9 +89,6 @@ const bottomMovers = [
     { name: 'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22', moved: 0, change: 0 },
 ];
 
-
-const currentUserRole: Role = 'Administrador';
-
 const QuickAccessItem = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => (
     <Button variant="outline" className="flex flex-col h-28 w-full justify-center" asChild>
         <Link href={href}>
@@ -108,6 +105,7 @@ export default function DashboardPage() {
     }
     const { notifications, dismissNotification } = context;
 
+    const currentUserRole = currentUser.roles[0];
     const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
 
     const hasPermission = (permission?: string) => {

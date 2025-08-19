@@ -45,6 +45,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InventoryContext, Product } from '@/context/inventory-context';
 import { Container as ContainerType } from '@/context/inventory-context';
+import { currentUser } from '@/app/(main)/layout';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -69,9 +70,6 @@ const initialReservations: Reservation[] = [
     { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'Validada' },
     { id: 'RES-002', customer: 'Diseños SAS', product: 'BLACK 1.22 X 0.61', quantity: 100, containerId: 'CMAU7654321', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'En espera de validación' },
 ];
-
-
-const currentUserRole: Role = 'Administrador';
 
 const ContainerCard = ({ container, canEdit, onEdit, onReceive }: {
     container: ContainerType;
@@ -209,7 +207,7 @@ export default function TransitPage() {
   const [activeTab, setActiveTab] = useState('en-transito');
   const { toast } = useToast();
   
-  const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística' || currentUserRole === 'Contador';
+  const canEdit = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística') || currentUser.roles.includes('Contador');
 
   const { activeContainers, historyContainers } = useMemo(() => {
     const active = containers.filter(c => c.status !== 'Llegado');

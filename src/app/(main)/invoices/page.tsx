@@ -17,6 +17,7 @@ import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { currentUser as userLayout } from '@/app/(main)/layout';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -42,25 +43,17 @@ const initialHistory: Invoice[] = [
     { id: 'COT-001', quoteNumber: 'COT-001', customer: 'ConstruCali', advisor: 'John Doe', status: 'Validada', validationDate: '2024-07-30', factura: 'FAC-202', type: 'Despacho' },
 ]
 
-// This is a mocked current user. In a real app, this would come from an auth context.
-// Change role to 'Asesor de Ventas' to see the filtering in action.
-const currentUser = {
-    name: 'Admin Latin',
-    role: 'Administrador' as Role, // or 'Asesor de Ventas'
-    // name: 'Jane Smith', 
-    // role: 'Asesor de Ventas' as Role,
-}
-
 export default function InvoicesPage() {
     const [invoiceHistory, setInvoiceHistory] = useState<Invoice[]>(initialHistory);
     const [searchTerm, setSearchTerm] = useState('');
     const [date, setDate] = useState<DateRange | undefined>(undefined);
+    const currentUser = userLayout;
 
     const filteredHistory = useMemo(() => {
         let history = invoiceHistory;
 
         // Filter by current user's name if they are not an administrator
-        if (currentUser.role !== 'Administrador') {
+        if (!currentUser.roles.includes('Administrador')) {
             history = history.filter(item => item.advisor === currentUser.name);
         }
 
@@ -83,7 +76,7 @@ export default function InvoicesPage() {
 
                 return itemDate >= fromDate && itemDate <= toDate;
             });
-    }, [invoiceHistory, searchTerm, date]);
+    }, [invoiceHistory, searchTerm, date, currentUser]);
 
     const getStatusBadgeVariant = (status: Invoice['status']) => {
         switch (status) {
@@ -220,7 +213,7 @@ export default function InvoicesPage() {
                         <TableHead># Cotización</TableHead>
                         <TableHead>Factura #</TableHead>
                         <TableHead>Cliente</TableHead>
-                        {currentUser.role === 'Administrador' && <TableHead>Asesor</TableHead>}
+                        {currentUser.roles.includes('Administrador') && <TableHead>Asesor</TableHead>}
                         <TableHead>Estado</TableHead>
                         <TableHead>Fecha Validación</TableHead>
                       </TableRow>
@@ -231,7 +224,7 @@ export default function InvoicesPage() {
                           <TableCell>{item.quoteNumber}</TableCell>
                           <TableCell>{item.factura}</TableCell>
                           <TableCell>{item.customer}</TableCell>
-                          {currentUser.role === 'Administrador' && <TableCell>{item.advisor}</TableCell>}
+                          {currentUser.roles.includes('Administrador') && <TableCell>{item.advisor}</TableCell>}
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(item.status)}>{item.status}</Badge>
                           </TableCell>
@@ -240,7 +233,7 @@ export default function InvoicesPage() {
                       ))}
                       {filteredHistory.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={currentUser.role === 'Administrador' ? 6 : 5} className="text-center text-muted-foreground">
+                            <TableCell colSpan={currentUser.roles.includes('Administrador') ? 6 : 5} className="text-center text-muted-foreground">
                                 No se encontraron facturas.
                             </TableCell>
                         </TableRow>

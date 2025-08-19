@@ -19,6 +19,7 @@ import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { currentUser as userLayout } from '@/app/(main)/layout';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -74,10 +75,6 @@ const initialHistory: ValidatedItem[] = [
     { id: 'DIS-001', quoteNumber: 'COT-002', customer: 'Diseños Modernos SAS', advisor: 'Jane Smith', status: 'Validada', validatedBy: 'Usuario Admin', validationDate: '2024-07-29', factura: 'FAC-201', type: 'Despacho' },
 ]
 
-const currentUser = {
-    name: 'Usuario Admin',
-    role: 'Administrador' as Role,
-}
 
 export default function ValidationPage() {
     const [pendingReservations, setPendingReservations] = useState(initialPendingReservations);
@@ -87,8 +84,9 @@ export default function ValidationPage() {
     const [date, setDate] = useState<DateRange | undefined>(undefined);
     const [activeTab, setActiveTab] = useState('todas');
     const { toast } = useToast();
+    const currentUser = userLayout;
 
-    const canValidate = currentUser.role === 'Administrador' || currentUser.role === 'Contador';
+    const canValidate = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
     
     const handleInvoiceChange = (id: string, value: string, type: 'reservation' | 'dispatch') => {
         if (type === 'reservation') {

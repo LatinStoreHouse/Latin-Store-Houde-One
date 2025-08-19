@@ -26,6 +26,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { TransferInventoryForm } from '@/components/transfer-inventory-form';
 import { InventoryContext } from '@/context/inventory-context';
+import { currentUser } from '@/app/(main)/layout';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -34,9 +35,6 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
   }
 }
-
-// Mocked user role. In a real app, this would come from an auth context.
-const currentUserRole: Role = 'Administrador';
 
 const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, onDataChange: Function, inventoryData: any }) => {
   const getAvailabilityStatus = (disponible: number) => {
@@ -157,6 +155,7 @@ export default function InventoryPage() {
   const { toast } = useToast();
 
   const brands = Object.keys(inventoryData);
+  const currentUserRole = currentUser.roles[0];
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
   
   const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
