@@ -71,7 +71,7 @@ const getConventionClasses = (value: string) => {
 };
 
 // Mocked data for dispatch requests
-const initialDispatchData = [
+export const initialDispatchData = [
   {
     id: 1,
     vendedor: 'John Doe',
