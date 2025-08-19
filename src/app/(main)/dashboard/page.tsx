@@ -178,7 +178,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
       
-      {currentUserRole === 'Partners' && (
+      {(currentUserRole === 'Partners' || currentUserRole === 'Asesor de Ventas') && (
         <Card>
            <CardHeader>
               <CardTitle>Últimas Cotizaciones</CardTitle>
