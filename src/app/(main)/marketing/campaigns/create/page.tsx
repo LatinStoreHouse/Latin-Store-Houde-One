@@ -8,10 +8,12 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Send, BotMessageSquare, Users, BarChartHorizontal, Mail } from 'lucide-react';
+import { ArrowLeft, Send, BotMessageSquare, Users, BarChartHorizontal, Mail, Loader2 } from 'lucide-react';
 import { CampaignPreview } from '@/components/campaign-preview';
 import { Customer, CustomerStatus, initialCustomerData, customerStatuses } from '@/lib/customers';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useToast } from '@/hooks/use-toast';
+import { generateCampaignMessage } from '@/app/actions';
 
 
 type AudienceType = 'all' | 'byStatus';
@@ -28,21 +30,20 @@ export default function CreateCampaignPage() {
     const [selectedStatuses, setSelectedStatuses] = useState<CustomerStatus[]>([]);
     const [message, setMessage] = useState('');
     const [channel, setChannel] = useState<ChannelType>('email');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const { toast } = useToast();
 
-    const audienceCount = useMemo(() => {
+    const selectedCustomers = useMemo(() => {
         if (audience === 'all') {
-            return initialCustomerData.length;
+            return initialCustomerData;
         }
-         if (audience === 'byStatus' && selectedStatuses.length > 0) {
-            const customersWithStatus = new Set(
-                initialCustomerData
-                    .filter(c => selectedStatuses.includes(c.status))
-                    .map(c => c.id)
-            );
-            return customersWithStatus.size;
+        if (audience === 'byStatus' && selectedStatuses.length > 0) {
+            return initialCustomerData.filter(c => selectedStatuses.includes(c.status));
         }
-        return 0;
+        return [];
     }, [audience, selectedStatuses]);
+    
+    const audienceCount = selectedCustomers.length;
     
     const handleStatusChange = (status: CustomerStatus, checked: boolean) => {
         if (checked) {
@@ -50,7 +51,54 @@ export default function CreateCampaignPage() {
         } else {
             setSelectedStatuses(selectedStatuses.filter(s => s !== status));
         }
-    }
+    };
+    
+    const handleGenerateWithAI = async () => {
+        if (!campaignName) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Por favor, ingrese un nombre de campaña para generar el mensaje.' });
+            return;
+        }
+        setIsGenerating(true);
+        const result = await generateCampaignMessage({ campaignName });
+        if (result.error) {
+            toast({ variant: 'destructive', title: 'Error de IA', description: result.error });
+        } else if (result.result) {
+            setMessage(result.result.campaignMessage);
+            toast({ title: 'Éxito', description: 'Mensaje de campaña generado por la IA.' });
+        }
+        setIsGenerating(false);
+    };
+
+    const handleSendCampaign = async () => {
+        if (!message) {
+            toast({ variant: 'destructive', title: 'Error', description: 'El mensaje no puede estar vacío.' });
+            return;
+        }
+        if (audienceCount === 0) {
+            toast({ variant: 'destructive', title: 'Error', description: 'La audiencia seleccionada no tiene clientes.' });
+            return;
+        }
+
+        if (channel === 'email') {
+            const emails = selectedCustomers.map(c => c.email).filter(Boolean);
+            if (emails.length === 0) {
+                toast({ variant: 'destructive', title: 'Error', description: 'Ninguno de los clientes seleccionados tiene un correo electrónico.' });
+                return;
+            }
+            const bcc = emails.join(',');
+            const mailtoLink = `mailto:?bcc=${bcc}&subject=${encodeURIComponent(campaignName)}&body=${encodeURIComponent(message)}`;
+            window.location.href = mailtoLink;
+            toast({ title: 'Listo para enviar', description: 'Tu cliente de correo se ha abierto para enviar la campaña.' });
+        } else { // WhatsApp
+            try {
+                await navigator.clipboard.writeText(message);
+                toast({ title: 'Mensaje Copiado', description: 'El mensaje se ha copiado al portapapeles. Ahora puedes pegarlo en WhatsApp.' });
+                window.open('https://web.whatsapp.com', '_blank');
+            } catch (err) {
+                toast({ variant: 'destructive', title: 'Error', description: 'No se pudo copiar el mensaje al portapapeles.' });
+            }
+        }
+    };
 
 
   return (
@@ -140,7 +188,7 @@ export default function CreateCampaignPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <Textarea 
-                        placeholder="Escribe el mensaje de tu campaña aquí..."
+                        placeholder="Escribe el mensaje de tu campaña aquí o genéralo con IA..."
                         rows={8}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
@@ -166,11 +214,11 @@ export default function CreateCampaignPage() {
                         </Label>
                     </RadioGroup>
                     <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                        <Button variant="outline" className="w-full">
-                            <BotMessageSquare className="mr-2 h-4 w-4" />
+                        <Button variant="outline" className="w-full" onClick={handleGenerateWithAI} disabled={isGenerating}>
+                             {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BotMessageSquare className="mr-2 h-4 w-4" />}
                             Generar con IA
                         </Button>
-                        <Button className="w-full">
+                        <Button className="w-full" onClick={handleSendCampaign}>
                             <Send className="mr-2 h-4 w-4" />
                             Enviar Campaña
                         </Button>

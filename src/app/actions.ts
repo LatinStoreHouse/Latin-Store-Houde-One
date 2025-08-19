@@ -2,6 +2,7 @@
 
 import { suggestAdvisor, SuggestAdvisorInput, SuggestAdvisorOutput } from '@/ai/flows/suggest-advisor';
 import { forecastSales, ForecastSalesOutput } from '@/ai/flows/forecast-sales';
+import { generateCampaignMessage, GenerateCampaignInput, GenerateCampaignOutput } from '@/ai/flows/generate-campaign-flow';
 import { inventoryMovementData } from '@/lib/inventory-movement';
 import { z } from 'zod';
 
@@ -86,4 +87,24 @@ export async function getExchangeRate(): Promise<ExchangeRateState> {
     console.error(e);
     return { error: 'No se pudo obtener la tasa de cambio.' };
   }
+}
+
+
+type CampaignMessageState = {
+  result?: GenerateCampaignOutput;
+  error?: string;
+}
+
+export async function generateCampaignMessage(input: GenerateCampaignInput): Promise<CampaignMessageState> {
+    if (!input.campaignName) {
+        return { error: 'El nombre de la campaña no puede estar vacío.' };
+    }
+    
+    try {
+        const result = await generateCampaignMessage(input);
+        return { result };
+    } catch (e: any) {
+        console.error(e);
+        return { error: e.message || 'Ocurrió un error al generar el mensaje de la campaña.' };
+    }
 }
