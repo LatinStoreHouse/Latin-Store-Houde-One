@@ -42,9 +42,13 @@ const initialHistory: Invoice[] = [
     { id: 'COT-001', quoteNumber: 'COT-001', customer: 'ConstruCali', advisor: 'John Doe', status: 'Validada', validationDate: '2024-07-30', factura: 'FAC-202', type: 'Despacho' },
 ]
 
+// This is a mocked current user. In a real app, this would come from an auth context.
+// Change role to 'Asesor de Ventas' to see the filtering in action.
 const currentUser = {
-    name: 'Jane Smith',
-    role: 'Asesor de Ventas' as Role,
+    name: 'Admin Latin',
+    role: 'Administrador' as Role, // or 'Asesor de Ventas'
+    // name: 'Jane Smith', 
+    // role: 'Asesor de Ventas' as Role,
 }
 
 export default function InvoicesPage() {
@@ -55,8 +59,7 @@ export default function InvoicesPage() {
     const filteredHistory = useMemo(() => {
         let history = invoiceHistory;
 
-        // In a real app, you'd filter by current user's ID.
-        // For this prototype, we filter by name if the role is not 'Administrador'.
+        // Filter by current user's name if they are not an administrator
         if (currentUser.role !== 'Administrador') {
             history = history.filter(item => item.advisor === currentUser.name);
         }
@@ -217,7 +220,7 @@ export default function InvoicesPage() {
                         <TableHead># Cotización</TableHead>
                         <TableHead>Factura #</TableHead>
                         <TableHead>Cliente</TableHead>
-                        <TableHead>Asesor</TableHead>
+                        {currentUser.role === 'Administrador' && <TableHead>Asesor</TableHead>}
                         <TableHead>Estado</TableHead>
                         <TableHead>Fecha Validación</TableHead>
                       </TableRow>
@@ -228,7 +231,7 @@ export default function InvoicesPage() {
                           <TableCell>{item.quoteNumber}</TableCell>
                           <TableCell>{item.factura}</TableCell>
                           <TableCell>{item.customer}</TableCell>
-                          <TableCell>{item.advisor}</TableCell>
+                          {currentUser.role === 'Administrador' && <TableCell>{item.advisor}</TableCell>}
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(item.status)}>{item.status}</Badge>
                           </TableCell>
@@ -237,7 +240,7 @@ export default function InvoicesPage() {
                       ))}
                       {filteredHistory.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            <TableCell colSpan={currentUser.role === 'Administrador' ? 6 : 5} className="text-center text-muted-foreground">
                                 No se encontraron facturas.
                             </TableCell>
                         </TableRow>
