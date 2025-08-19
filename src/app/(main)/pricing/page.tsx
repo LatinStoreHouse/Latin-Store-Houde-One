@@ -100,6 +100,21 @@ const productStructure: { [key: string]: { [line: string]: string[] } } = {
         'LISTON 6.8x2.5 - 3 MTS CAMEL',
         'LISTON 6.8x2.5 - 3 MTS COFFEE',
         'LISTON 6.8x2.5 - 3 MTS CHOCOLATE',
+      ],
+      'Insumos': [
+        'CLIP PLASTICO PARA DECK WPC',
+        'DURMIENTE PLASTICO 3x3 - 2.90 MTS',
+        'DURMIENTE PLASTICO 6 X 6 - 1 MTS',
+        'DAILY CLEAN',
+        'INTENSIVE CLEAN',
+        'SELLANTE WPC 1 GALON',
+        'SELLANTE WPC 1/4 GALON',
+        'DAILY CLEAN GALON',
+        'REMATE WALL PANEL ROBLE',
+        'REMATE WALL PANEL MAPLE',
+        'REMATE WALL PANEL NEGRO',
+        'REMATE WALL PANEL GRIS',
+        'BOCEL DECORATIVO BLANCO',
       ]
   }
 };
@@ -142,7 +157,7 @@ export default function PricingPage() {
     const numericPrice = Number(newPriceValue);
     if (isNaN(numericPrice)) return;
 
-    let productsInLine = productStructure[brand][line];
+    let productsInLine = productStructure[brand as keyof typeof productStructure][line];
     
     if (sizeFilter === 'estandar') {
         productsInLine = productsInLine.filter(p => p.includes('1.22 X 0.61'));
@@ -180,7 +195,7 @@ export default function PricingPage() {
   const brands = Object.keys(productStructure);
   
   const lineHasMultipleSizes = (brand: string, line: string) => {
-    const products = productStructure[brand][line];
+    const products = productStructure[brand as keyof typeof productStructure][line];
     const hasEstandar = products.some(p => p.includes('1.22 X 0.61'));
     const hasXL = products.some(p => p.includes('2.44 X 1.22'));
     return hasEstandar && hasXL;
