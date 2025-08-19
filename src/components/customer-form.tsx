@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Customer, CustomerStatus, customerSources, customerStatuses } from '@/lib/customers';
+import { Textarea } from './ui/textarea';
 
 
 interface CustomerFormProps {
   customer?: Customer;
-  onSave: (customer: Omit<Customer, 'id' | 'status'> & { status: CustomerStatus }) => void;
+  onSave: (customer: Omit<Customer, 'id'>) => void;
   onCancel: () => void;
 }
 
@@ -19,6 +20,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
   const [source, setSource] = useState<Customer['source']>('Instagram');
   const [assignedTo, setAssignedTo] = useState('');
   const [status, setStatus] = useState<CustomerStatus>('Contactado');
@@ -30,6 +32,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       setName(customer.name);
       setPhone(customer.phone);
       setEmail(customer.email);
+      setAddress(customer.address);
       setSource(customer.source);
       setAssignedTo(customer.assignedTo);
       setStatus(customer.status);
@@ -38,6 +41,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       setName('');
       setPhone('');
       setEmail('');
+      setAddress('');
       setSource('Instagram');
       setAssignedTo('');
       setStatus('Contactado');
@@ -52,7 +56,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       return;
     }
     setError(null);
-    onSave({ name, phone, email, source, assignedTo, status });
+    onSave({ name, phone, email, address, source, assignedTo, status });
   };
 
   return (
@@ -72,6 +76,16 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
         </div>
       </div>
       {error && <p className="text-sm text-destructive -mt-2 text-center">{error}</p>}
+       <div className="space-y-2">
+            <Label htmlFor="address">Dirección (Opcional)</Label>
+            <Textarea 
+                id="address" 
+                value={address} 
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Dirección completa para despachos"
+                rows={2}
+            />
+        </div>
        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="source">Fuente</Label>

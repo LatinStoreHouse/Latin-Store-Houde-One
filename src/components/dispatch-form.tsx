@@ -30,6 +30,7 @@ const dispatchFormSchema = z.object({
   id: z.number().optional(),
   cotizacion: z.string().min(1, 'La cotización es requerida.'),
   cliente: z.string().min(1, 'El cliente es requerido.'),
+  vendedor: z.string().optional(),
   ciudad: z.string().min(1, 'La ciudad es requerida.'),
   direccion: z.string().min(1, 'La dirección es requerida.'),
   observacion: z.string().optional(),
@@ -38,7 +39,7 @@ const dispatchFormSchema = z.object({
 export type DispatchFormValues = z.infer<typeof dispatchFormSchema>;
 
 interface DispatchFormProps {
-  initialData?: DispatchFormValues;
+  initialData?: Partial<DispatchFormValues>;
   onSave: (data: DispatchFormValues) => void;
   onCancel: () => void;
 }
@@ -49,6 +50,7 @@ export function DispatchForm({ initialData, onSave, onCancel }: DispatchFormProp
     defaultValues: initialData || {
       cotizacion: '',
       cliente: '',
+      vendedor: '',
       ciudad: '',
       direccion: '',
       observacion: '',
@@ -146,7 +148,7 @@ export function DispatchForm({ initialData, onSave, onCancel }: DispatchFormProp
           <Button type="button" variant="ghost" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">{initialData ? 'Guardar Cambios' : 'Crear Despacho'}</Button>
+          <Button type="submit">{initialData?.id ? 'Guardar Cambios' : 'Crear Despacho'}</Button>
         </div>
       </form>
     </Form>

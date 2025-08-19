@@ -28,7 +28,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X } from 'lucide-react';
+import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -79,6 +79,7 @@ export default function CustomersPage() {
   
   const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
   const canCreateCampaign = userPermissions.includes('marketing:create');
+  const canCreateDispatch = userPermissions.includes('orders:create');
   
   const handleOpenModal = (customer?: Customer) => {
     setSelectedCustomer(customer);
@@ -101,7 +102,7 @@ export default function CustomersPage() {
       toast({ title: 'Cliente Actualizado', description: 'Los datos del cliente se han actualizado.' });
     } else {
       // Add
-      const newCustomer = { ...customerData, id: Date.now() };
+      const newCustomer = { ...customerData, id: Date.now(), address: '' };
       setCustomers([...customers, newCustomer]);
       toast({ title: 'Cliente Agregado', description: 'El nuevo cliente se ha guardado.' });
     }
@@ -135,6 +136,15 @@ export default function CustomersPage() {
       router.push(`/marketing/campaigns/create?customer_ids=${customerIds}`);
     }
   };
+
+  const handleCreateDispatch = (customer: Customer) => {
+    const params = new URLSearchParams();
+    params.set('action', 'create');
+    params.set('cliente', customer.name);
+    params.set('vendedor', customer.assignedTo);
+    if(customer.address) params.set('direccion', customer.address);
+    router.push(`/orders?${params.toString()}`);
+  }
   
   const toggleFilter = (filterSetter: React.Dispatch<React.SetStateAction<string[]>>, value: string) => {
     filterSetter(prev => 
@@ -307,6 +317,12 @@ export default function CustomersPage() {
                         <Edit className="mr-2 h-4 w-4" />
                         Editar
                       </DropdownMenuItem>
+                       {canCreateDispatch && (
+                        <DropdownMenuItem onClick={() => handleCreateDispatch(customer)}>
+                          <Truck className="mr-2 h-4 w-4" />
+                          Crear Despacho
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => handleDeleteCustomer(customer.id)} className="text-destructive">
                         <Trash2 className="mr-2 h-4 w-4" />
                         Eliminar

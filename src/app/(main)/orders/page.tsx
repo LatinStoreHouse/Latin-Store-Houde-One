@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -132,9 +133,40 @@ export default function DispatchPage() {
   const [date, setDate] = useState<DateRange | undefined>(undefined);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDispatch, setEditingDispatch] = useState<DispatchData | null>(null);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
   
   const canEditLogistica = currentUser.role === 'Administrador' || currentUser.role === 'Logística';
   const canCreateDispatch = currentUser.role === 'Administrador' || currentUser.role === 'Asesor de Ventas';
+
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'create') {
+      const cliente = searchParams.get('cliente') || '';
+      const vendedor = searchParams.get('vendedor') || '';
+      const direccion = searchParams.get('direccion') || '';
+
+      setEditingDispatch({
+        id: 0, // temp id
+        cliente,
+        vendedor,
+        direccion,
+        ciudad: '',
+        cotizacion: '',
+        fechaSolicitud: '',
+        remision: '',
+        observacion: '',
+        rutero: 'none',
+        fechaDespacho: '',
+        guia: '',
+        convencion: 'Prealistamiento de pedido'
+      });
+      setIsFormOpen(true);
+      // Clean up URL params
+      router.replace('/orders', undefined);
+    }
+  }, [searchParams, router]);
   
   const handleInputChange = (id: number, field: keyof DispatchData, value: string | boolean) => {
     setDispatchData(prevData =>
@@ -151,7 +183,7 @@ export default function DispatchPage() {
         const newId = dispatchData.length > 0 ? Math.max(...dispatchData.map(d => d.id)) + 1 : 1;
         const newDispatch: DispatchData = {
             id: newId,
-            vendedor: currentUser.name,
+            vendedor: data.vendedor || currentUser.name,
             fechaSolicitud: new Date().toISOString().split('T')[0],
             cotizacion: data.cotizacion,
             cliente: data.cliente,
@@ -543,9 +575,9 @@ export default function DispatchPage() {
       }}>
         <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-                <DialogTitle>{editingDispatch ? 'Editar Solicitud de Despacho' : 'Crear Solicitud de Despacho'}</DialogTitle>
+                <DialogTitle>{editingDispatch?.id ? 'Editar Solicitud de Despacho' : 'Crear Solicitud de Despacho'}</DialogTitle>
                 <DialogDescription>
-                  {editingDispatch ? 'Actualice los detalles de la solicitud.' : 'Complete el formulario para enviar una nueva solicitud de despacho a validación.'}
+                  {editingDispatch?.id ? 'Actualice los detalles de la solicitud.' : 'Complete el formulario para enviar una nueva solicitud de despacho a validación.'}
                 </DialogDescription>
             </DialogHeader>
             <DispatchForm 
