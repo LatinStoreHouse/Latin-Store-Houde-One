@@ -17,9 +17,10 @@ const getMonthName = (monthIndex: number) => {
 interface MonthPickerProps {
   date: Date;
   onDateChange: (date: Date) => void;
+  className?: string;
 }
 
-export function MonthPicker({ date, onDateChange }: MonthPickerProps) {
+export function MonthPicker({ date, onDateChange, className }: MonthPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [year, setYear] = React.useState(date.getFullYear());
 
@@ -39,7 +40,8 @@ export function MonthPicker({ date, onDateChange }: MonthPickerProps) {
           variant={'outline'}
           className={cn(
             'w-[280px] justify-start text-left font-normal',
-            !date && 'text-muted-foreground'
+            !date && 'text-muted-foreground',
+            className
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -63,8 +65,9 @@ export function MonthPicker({ date, onDateChange }: MonthPickerProps) {
                 key={i}
                 onClick={() => handleMonthSelect(i)}
                 variant={date.getMonth() === i && date.getFullYear() === year ? 'default' : 'ghost'}
+                className="capitalize"
               >
-                {getMonthName(i).charAt(0).toUpperCase() + getMonthName(i).slice(1, 3)}
+                {getMonthName(i).substring(0, 3)}
               </Button>
             ))}
           </div>
