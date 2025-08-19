@@ -1,3 +1,4 @@
+
 export const initialProductPrices: { [key: string]: number } = {
     // Pizarra Estándar
     'BLACK 1.22 X 0.61': 131100,
@@ -59,6 +60,7 @@ export const initialProductPrices: { [key: string]: number } = {
     // Madera
     'MADERA NOGAL 0.15 X 2.44 MTS': 81512,
     'MADERA TEKA 0.15 X 2.44 MTS': 81512,
+    'MADERA ÉBANO 0.15 X 2.44 MTS': 81512,
     
     // Metálicas 244x61
     'CORTEN STELL - 2.44 X 0.61': 399050,

@@ -73,6 +73,7 @@ const productStructure: { [key: string]: { [line: string]: string[] } } = {
     'Madera': [
       'MADERA NOGAL 0.15 X 2.44 MTS',
       'MADERA TEKA 0.15 X 2.44 MTS',
+      'MADERA ÉBANO 0.15 X 2.44 MTS',
     ],
     'Metales': [
       'CORTEN STELL - 2.44 X 0.61',
