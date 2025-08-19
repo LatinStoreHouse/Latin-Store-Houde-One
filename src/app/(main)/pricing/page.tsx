@@ -84,8 +84,12 @@ const productStructure: { [key: string]: { [line: string]: string[] } } = {
       '3D ADHESIVO - 0,90 M2 - TAN',
     ],
     'Insumos': [
-      'Sellante',
       'Adhesivo',
+      'ADHESIVO TRASLUCIDO',
+      'SELLANTE SEMI - BRIGHT GALON',
+      'SELLANTE SEMI - BRIGTH 1/ 4 GALON',
+      'SELLANTE SHYNY GALON',
+      'SELLANTE SHYNY 1/4 GALON',
     ],
   },
   'Starwood': {

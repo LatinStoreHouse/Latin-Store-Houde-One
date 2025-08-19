@@ -85,7 +85,7 @@ const allReferences = Object.keys(referenceDetails);
 
 const IVA_RATE = 0.19; // 19%
 
-type SealantType = 'SELLANTE SEMI - BRIGHT GALON' | 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' | 'SELLANTE SHYNY 1/4 GALON';
+type SealantType = 'SELLANTE SEMI - BRIGHT GALON' | 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' | 'SELLANTE SHYNY GALON' | 'SELLANTE SHYNY 1/4 GALON';
 
 interface QuoteItem {
   id: number;
@@ -269,9 +269,11 @@ export default function StoneflexCalculatorPage() {
     const sealantPrices: Record<SealantType, number> = {
         'SELLANTE SEMI - BRIGHT GALON': convert(productPrices['SELLANTE SEMI - BRIGHT GALON'] || 0),
         'SELLANTE SEMI - BRIGTH 1/ 4 GALON': convert(productPrices['SELLANTE SEMI - BRIGTH 1/ 4 GALON'] || 0),
+        'SELLANTE SHYNY GALON': convert(productPrices['SELLANTE SHYNY GALON'] || 0),
         'SELLANTE SHYNY 1/4 GALON': convert(productPrices['SELLANTE SHYNY 1/4 GALON'] || 0),
     };
     const adhesivePrice = convert(productPrices['Adhesivo'] || 0);
+    const translucentAdhesivePrice = convert(productPrices['ADHESIVO TRASLUCIDO'] || 0);
 
     const detailedItems = quoteItems.map(item => {
       const details = referenceDetails[item.reference];
@@ -287,12 +289,15 @@ export default function StoneflexCalculatorPage() {
       let itemSealantCost = 0;
       let calculatedSealantUnits = 0;
       if (item.includeSealant && item.sealantType) {
-        let sealantYield = 15; // Default for StoneFlex
-        if (brand === 'StoneFlex' && line === 'Clay') {
-          sealantYield = 11;
-        } else if (item.sealantType === 'SELLANTE SEMI - BRIGHT GALON') {
-          sealantYield = 60; // Galon yield
+        let sealantYield = 15; // 1/4 gal
+        if(item.sealantType.includes('GALON')) {
+          sealantYield = 60; // 1 gal
         }
+        
+        if (item.sealantType.includes('SHYNY')) {
+          sealantYield = item.sealantType.includes('GALON') ? 40 : 10;
+        }
+
         calculatedSealantUnits = Math.ceil(calculatedSqm / sealantYield);
         totalSealantUnits += calculatedSealantUnits;
         itemSealantCost = calculatedSealantUnits * sealantPrices[item.sealantType];
@@ -302,22 +307,19 @@ export default function StoneflexCalculatorPage() {
       let itemAdhesiveCost = 0;
       let calculatedAdhesiveUnits = 0;
       if (item.includeAdhesive) {
-        if (item.reference.includes('1.22 X 0.61') || item.reference.includes('1.22X0.61')) {
-            calculatedAdhesiveUnits = Math.ceil(calculatedSheets / 2);
-        } else if (line === 'Metales' && item.reference.includes('2.44 X 0.61')) {
-            calculatedAdhesiveUnits = calculatedSheets;
-        } else if (item.reference.includes('2.44 X 1.22')) {
-            calculatedAdhesiveUnits = calculatedSheets * 2;
+        if(line === 'Translucida') {
+           const adhesiveYield = 2.5; // m2/ml
+           const mlNeeded = calculatedSqm / adhesiveYield;
+           calculatedAdhesiveUnits = Math.ceil(mlNeeded / 290);
+           totalAdhesiveUnits += calculatedAdhesiveUnits;
+           itemAdhesiveCost = calculatedAdhesiveUnits * translucentAdhesivePrice;
         } else {
-            const adhesiveLines = ['Pizarra', 'Cuarcitas', 'Concreto', 'Clay'];
-            if (adhesiveLines.includes(line)) {
-                calculatedAdhesiveUnits = Math.ceil(calculatedSheets / 2);
-            } else {
-                calculatedAdhesiveUnits = Math.ceil(calculatedSqm / 1); 
-            }
+           const adhesiveYield = 1.2; // m2/ml
+           const mlNeeded = calculatedSqm / adhesiveYield;
+           calculatedAdhesiveUnits = Math.ceil(mlNeeded / 310);
+           totalAdhesiveUnits += calculatedAdhesiveUnits;
+           itemAdhesiveCost = calculatedAdhesiveUnits * adhesivePrice;
         }
-        totalAdhesiveUnits += calculatedAdhesiveUnits;
-        itemAdhesiveCost = calculatedAdhesiveUnits * adhesivePrice;
         totalAdhesiveCost += itemAdhesiveCost;
       }
       
@@ -404,10 +406,12 @@ export default function StoneflexCalculatorPage() {
     message += `\n*Desglose de Costos (${currency}):*\n`;
     message += `- Subtotal Productos: ${formatCurrency(quote.totalProductCost)}\n`;
     if(quote.totalSealantCost > 0) {
-      message += `- Costo Sellante (${quote.totalSealantUnits} u.): ${formatCurrency(quote.totalSealantCost)}\n`;
+      const sealantUnitCost = quote.totalSealantCost / quote.totalSealantUnits;
+      message += `- Costo Sellante (${quote.totalSealantUnits} u. @ ${formatCurrency(sealantUnitCost)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
     if(quote.totalAdhesiveCost > 0) {
-       message += `- Costo Adhesivo (${quote.totalAdhesiveUnits} u.): ${formatCurrency(quote.totalAdhesiveCost)}\n`;
+      const adhesiveUnitCost = quote.totalAdhesiveCost / quote.totalAdhesiveUnits;
+       message += `- Costo Adhesivo (${quote.totalAdhesiveUnits} u. @ ${formatCurrency(adhesiveUnitCost)}/u.): ${formatCurrency(quote.totalAdhesiveCost)}\n`;
     }
     if (quote.totalDiscountAmount > 0) {
         message += `- Descuento Total: -${formatCurrency(quote.totalDiscountAmount)}\n`;
@@ -542,10 +546,9 @@ export default function StoneflexCalculatorPage() {
                 <Label htmlFor="sheets-input">Número de Láminas</Label>
                 <Input
                   id="sheets-input"
-                  type="number"
+                  type="text"
                   value={sheets}
-                  onChange={(e) => setSheets(e.target.value)}
-                  min="1"
+                  onChange={e => setSheets(e.target.value)}
                   className="w-full"
                 />
               </div>
@@ -577,9 +580,10 @@ export default function StoneflexCalculatorPage() {
                         <SelectValue placeholder="Tipo de sellante" />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="SELLANTE SEMI - BRIGTH 1/ 4 GALON">Semi-Brillante (1/4 Gal)</SelectItem>
                         <SelectItem value="SELLANTE SEMI - BRIGHT GALON">Semi-Brillante (Galón)</SelectItem>
-                        <SelectItem value="SELLANTE SEMI - BRIGTH 1/ 4 GALON">Semi-Brillante (1/4 Galón)</SelectItem>
-                        <SelectItem value="SELLANTE SHYNY 1/4 GALON">Brillante (1/4 Galón)</SelectItem>
+                        <SelectItem value="SELLANTE SHYNY 1/4 GALON">Brillante (1/4 Gal)</SelectItem>
+                        <SelectItem value="SELLANTE SHYNY GALON">Brillante (Galón)</SelectItem>
                     </SelectContent>
                    </Select>
                 </div>
@@ -653,13 +657,13 @@ export default function StoneflexCalculatorPage() {
                 </div>
                  {quote.totalSealantCost > 0 && (
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Costo Sellante ({quote.totalSealantUnits} u.)</span>
+                        <span className="text-muted-foreground">Costo Sellante ({quote.totalSealantUnits} u. @ {formatCurrency(quote.totalSealantCost / quote.totalSealantUnits)}/u.)</span>
                         <span>{formatCurrency(quote.totalSealantCost)}</span>
                     </div>
                 )}
                  {quote.totalAdhesiveCost > 0 && (
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Costo Adhesivo ({quote.totalAdhesiveUnits} u.)</span>
+                        <span className="text-muted-foreground">Costo Adhesivo ({quote.totalAdhesiveUnits} u. @ {formatCurrency(quote.totalAdhesiveCost / quote.totalAdhesiveUnits)}/u.)</span>
                         <span>{formatCurrency(quote.totalAdhesiveCost)}</span>
                     </div>
                  )}
