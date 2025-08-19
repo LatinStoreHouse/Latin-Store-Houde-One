@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Megaphone, Users, Send } from 'lucide-react';
-import { Role } from '@/lib/roles';
+import { Role, roles } from '@/lib/roles';
 
 
 const campaigns = [
@@ -35,10 +35,12 @@ const campaigns = [
 
 type Campaign = typeof campaigns[0];
 
+// Mocked user role
 const currentUserRole: Role = 'Administrador';
 
 export default function CampaignsPage() {
-    const canCreate = currentUserRole === 'Administrador' || currentUserRole === 'Marketing';
+    const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
+    const canCreate = userPermissions.includes('marketing:create');
 
     const getStatusBadgeVariant = (status: Campaign['status']) => {
         switch (status) {
