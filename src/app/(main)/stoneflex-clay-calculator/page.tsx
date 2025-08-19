@@ -260,7 +260,7 @@ export default function StoneflexCalculatorPage() {
 
     const detailedItems = quoteItems.map(item => {
       const details = referenceDetails[item.reference];
-      if (!details) return {...item, itemTotal: 0};
+      if (!details) return {...item, itemTotal: 0, pricePerSheet: 0};
 
       const { brand, line } = details;
       const calculatedSqm = item.sqMeters;
@@ -312,7 +312,7 @@ export default function StoneflexCalculatorPage() {
       
       const itemSubtotal = productCost + itemSealantCost + itemAdhesiveCost;
 
-      return {...item, itemTotal: itemSubtotal};
+      return {...item, itemTotal: itemSubtotal, pricePerSheet: convert(pricePerSheetCOP)};
     });
     
     const subtotalBeforeDiscount = totalProductCost + totalSealantCost + totalAdhesiveCost;
@@ -575,6 +575,9 @@ export default function StoneflexCalculatorPage() {
                       <p className="font-semibold">{item.reference}</p>
                       <p className="text-sm text-muted-foreground">
                         {`${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²)`}
+                      </p>
+                       <p className="text-sm text-muted-foreground font-medium">
+                        Precio/Unidad: {formatCurrency(item.pricePerSheet)}
                       </p>
                       {currency === 'USD' && (
                          <div className="flex items-center gap-2 mt-2">
