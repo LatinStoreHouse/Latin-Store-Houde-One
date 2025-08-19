@@ -69,21 +69,16 @@ export default function InvoicesPage() {
                        item.factura.toLowerCase().includes(term);
             })
              .filter(item => {
+                if (!date?.from) return true; // No date filter applied
                 const itemDate = new Date(item.validationDate);
-                const fromDate = date?.from ? new Date(date.from) : null;
-                const toDate = date?.to ? new Date(date.to) : null;
-
-                if(fromDate) fromDate.setHours(0,0,0,0);
-                if(toDate) toDate.setHours(23,59,59,999);
-
-                const matchesDate = 
-                    !date || 
-                    (!fromDate && !toDate) ||
-                    (fromDate && !toDate && itemDate >= fromDate) ||
-                    (!fromDate && toDate && itemDate <= toDate) ||
-                    (fromDate && toDate && itemDate >= fromDate && itemDate <= toDate);
+                const fromDate = new Date(date.from);
+                const toDate = date.to ? new Date(date.to) : new Date(date.from);
                 
-                return matchesDate;
+                // Adjust to include the whole day
+                fromDate.setHours(0, 0, 0, 0);
+                toDate.setHours(23, 59, 59, 999);
+
+                return itemDate >= fromDate && itemDate <= toDate;
             });
     }, [invoiceHistory, searchTerm, date]);
 
@@ -91,6 +86,7 @@ export default function InvoicesPage() {
         switch (status) {
             case 'Validada': return 'success';
             case 'Rechazada': return 'destructive';
+            default: return 'secondary';
         }
     }
     
@@ -246,3 +242,5 @@ export default function InvoicesPage() {
     </div>
   );
 }
+
+    

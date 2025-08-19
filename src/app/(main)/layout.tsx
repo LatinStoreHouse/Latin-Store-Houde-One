@@ -112,6 +112,8 @@ const getIconForSubItem = (label: string) => {
         case 'Reservas': return BookUser;
         case 'Despachos': return Truck;
         case 'Historial de Cotizaciones': return Receipt;
+        case 'Stoneflex': return Store;
+        case 'Starwood': return Store;
         default: return Warehouse;
     }
 }
@@ -377,3 +379,5 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     </SidebarProvider>
   );
 }
+
+    
