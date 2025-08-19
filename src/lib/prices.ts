@@ -97,6 +97,8 @@ export const initialProductPrices: { [key: string]: number } = {
 
     // Insumos StoneFlex
     'Sellante': 50000,
+    'SELLANTE SEMI - BRIGHT GALON': 60000,
     'SELLANTE SEMI - BRIGTH 1/ 4 GALON': 46200,
+    'SELLANTE SHYNY 1/4 GALON': 46200,
     'Adhesivo': 28039,
 };
