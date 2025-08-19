@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/dialog';
 import { UserForm } from '@/components/user-form';
 import { User, Role, roles } from '@/lib/roles';
+import { useUser } from '../layout';
 
 
 const initialUsers: User[] = [

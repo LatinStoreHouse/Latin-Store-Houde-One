@@ -28,7 +28,7 @@ import { Role, roles } from '@/lib/roles';
 import { useContext } from 'react';
 import { InventoryContext } from '@/context/inventory-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { navItems, currentUser } from '@/app/(main)/layout';
+import { navItems, useUser } from '@/app/(main)/layout';
 
 
 const inventoryOverviewItems = [
@@ -99,11 +99,13 @@ const QuickAccessItem = ({ href, icon: Icon, label }: { href: string; icon: Reac
 );
 
 export default function DashboardPage() {
-    const context = useContext(InventoryContext);
-    if (!context) {
-      throw new Error('DashboardPage must be used within an InventoryProvider');
+    const inventoryContext = useContext(InventoryContext);
+    const userContext = useUser();
+    if (!inventoryContext || !userContext) {
+      throw new Error('DashboardPage must be used within an InventoryProvider and UserProvider');
     }
-    const { notifications, dismissNotification } = context;
+    const { notifications, dismissNotification } = inventoryContext;
+    const { currentUser } = userContext;
 
     const currentUserRole = currentUser.roles[0];
     const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];

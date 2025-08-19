@@ -43,7 +43,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
-import { currentUser } from '@/app/(main)/layout';
+import { useUser } from '@/app/(main)/layout';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -69,6 +69,7 @@ export default function CustomersPage() {
   const { toast } = useToast();
   const router = useRouter();
 
+  const { currentUser } = useUser();
   const currentUserRole = currentUser.roles[0];
 
   const filteredCustomers = useMemo(() => {

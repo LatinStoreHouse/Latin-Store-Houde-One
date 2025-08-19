@@ -31,7 +31,7 @@ import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { currentUser as userLayout } from '@/app/(main)/layout';
+import { useUser } from '@/app/(main)/layout';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -129,7 +129,7 @@ export default function DispatchPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDispatch, setEditingDispatch] = useState<DispatchData | null>(null);
   
-  const currentUser = userLayout;
+  const { currentUser } = useUser();
 
   const searchParams = useSearchParams();
   const router = useRouter();

@@ -17,7 +17,7 @@ import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { currentUser as userLayout } from '@/app/(main)/layout';
+import { useUser } from '@/app/(main)/layout';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -47,7 +47,7 @@ export default function InvoicesPage() {
     const [invoiceHistory, setInvoiceHistory] = useState<Invoice[]>(initialHistory);
     const [searchTerm, setSearchTerm] = useState('');
     const [date, setDate] = useState<DateRange | undefined>(undefined);
-    const currentUser = userLayout;
+    const { currentUser } = useUser();
 
     const filteredHistory = useMemo(() => {
         let history = invoiceHistory;

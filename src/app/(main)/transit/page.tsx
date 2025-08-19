@@ -45,7 +45,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InventoryContext, Product } from '@/context/inventory-context';
 import { Container as ContainerType } from '@/context/inventory-context';
-import { currentUser } from '@/app/(main)/layout';
+import { useUser } from '@/app/(main)/layout';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -186,6 +186,7 @@ export default function TransitPage() {
     throw new Error('InventoryContext must be used within an InventoryProvider');
   }
   const { inventoryData, containers, addContainer, editContainer, receiveContainer } = context;
+  const { currentUser } = useUser();
 
   const [newContainerId, setNewContainerId] = useState('');
   const [newContainerEta, setNewContainerEta] = useState('');

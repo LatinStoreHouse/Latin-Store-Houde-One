@@ -19,7 +19,7 @@ import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { currentUser as userLayout } from '@/app/(main)/layout';
+import { useUser } from '@/app/(main)/layout';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -84,7 +84,7 @@ export default function ValidationPage() {
     const [date, setDate] = useState<DateRange | undefined>(undefined);
     const [activeTab, setActiveTab] = useState('todas');
     const { toast } = useToast();
-    const currentUser = userLayout;
+    const { currentUser } = useUser();
 
     const canValidate = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
     
