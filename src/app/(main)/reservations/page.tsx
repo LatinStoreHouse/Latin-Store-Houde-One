@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,12 +65,30 @@ export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
   const [isNewReservationDialogOpen, setIsNewReservationDialogOpen] = useState(false);
   const [customerName, setCustomerName] = useState('');
+  const [advisorName, setAdvisorName] = useState('');
   const [productName, setProductName] = useState('');
   const [quantity, setQuantity] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [quoteNumber, setQuoteNumber] = useState('');
   const [reservationSource, setReservationSource] = useState<'Contenedor' | 'Bodega' | 'Zona Franca'>('Contenedor');
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'create') {
+      const cliente = searchParams.get('cliente') || '';
+      const asesor = searchParams.get('asesor') || '';
+
+      setCustomerName(cliente);
+      setAdvisorName(asesor);
+      setIsNewReservationDialogOpen(true);
+      // Clean up URL params
+      router.replace('/reservations', undefined);
+    }
+  }, [searchParams, router]);
 
   const inventoryProducts = useMemo(() => getAllInventoryProducts(), []);
 
@@ -129,7 +148,7 @@ export default function ReservationsPage() {
         product: productName,
         quantity,
         sourceId: productInfo.sourceId,
-        advisor: 'Usuario Admin', // Mock current user
+        advisor: advisorName || 'Usuario Admin', // Mock current user or from params
         quoteNumber: quoteNumber,
         status: 'En espera de validación',
         source: reservationSource,
@@ -140,6 +159,7 @@ export default function ReservationsPage() {
     setProductName('');
     setQuantity(0);
     setQuoteNumber('');
+    setAdvisorName('');
     setIsNewReservationDialogOpen(false);
     toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
   };
