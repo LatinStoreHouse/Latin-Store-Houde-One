@@ -305,17 +305,20 @@ export default function StoneflexCalculatorPage() {
       let itemAdhesiveCost = 0;
       let calculatedAdhesiveUnits = 0;
       if (item.includeAdhesive) {
-        if(line === 'Translucida') {
-           const adhesiveYield = 2.5; // m2 per tube
-           calculatedAdhesiveUnits = Math.ceil(calculatedSqm / adhesiveYield);
-           totalAdhesiveUnits += calculatedAdhesiveUnits;
-           itemAdhesiveCost = calculatedAdhesiveUnits * translucentAdhesivePrice;
+        if (line === 'Translucida') {
+            const adhesiveYield = 2.5; // m2 per tube
+            calculatedAdhesiveUnits = Math.ceil(calculatedSqm / adhesiveYield);
+            itemAdhesiveCost = calculatedAdhesiveUnits * translucentAdhesivePrice;
+        } else if (line === 'Concreto') {
+            // Regla: 1 adhesivo por cada 2 láminas
+            calculatedAdhesiveUnits = Math.ceil(calculatedSheets / 2);
+            itemAdhesiveCost = calculatedAdhesiveUnits * adhesivePrice;
         } else {
-           const adhesiveYield = 1.2; // m2 per tube
-           calculatedAdhesiveUnits = Math.ceil(calculatedSqm / adhesiveYield);
-           totalAdhesiveUnits += calculatedAdhesiveUnits;
-           itemAdhesiveCost = calculatedAdhesiveUnits * adhesivePrice;
+            const adhesiveYield = 1.2; // m2 per tube for standard products
+            calculatedAdhesiveUnits = Math.ceil(calculatedSqm / adhesiveYield);
+            itemAdhesiveCost = calculatedAdhesiveUnits * adhesivePrice;
         }
+        totalAdhesiveUnits += calculatedAdhesiveUnits;
         totalAdhesiveCost += itemAdhesiveCost;
       }
       
