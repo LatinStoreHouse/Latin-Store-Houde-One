@@ -254,7 +254,8 @@ export default function StoneflexCalculatorPage() {
   const calculateQuote = () => {
     let totalProductCost = 0;
     let totalSqMetersForSealant = 0;
-    let totalAdhesiveUnits = 0;
+    let totalStandardAdhesiveUnits = 0;
+    let totalTranslucentAdhesiveUnits = 0;
     let isWarrantyVoid = false;
 
     const trmValue = currency === 'USD' ? parseDecimal(trm) : 1;
@@ -287,27 +288,28 @@ export default function StoneflexCalculatorPage() {
         totalSqMetersForSealant += item.sqMeters;
       }
 
-      if (item.includeAdhesive) {
-        const isStandardSize = item.reference.includes('1.22 X 0.61') || item.reference.includes('120 X 60') || item.reference.includes('1.22X0.61') || item.reference.includes('0.15 X 2.44') || item.reference.includes('2.44 X 0.61');
-        const isXLSize = item.reference.includes('2.44 X 1.22');
-        let calculatedAdhesiveUnits = 0;
+      if (item.includeAdhesive && details.line !== '3D') {
+        const isStandardSize = getSheetDimensions(item.reference).includes('1.22 x 0.61');
+        const isXLSize = getSheetDimensions(item.reference).includes('2.44 x 1.22');
+        let adhesiveUnits = 0;
 
-        if (details.line === '3D') {
-            calculatedAdhesiveUnits = 0; // 3D is self-adhesive
-        } else if (isStandardSize) {
-            if (['Pizarra', 'Cuarcitas', 'Mármol', 'Concreto', 'Madera'].includes(details.line)) {
-                calculatedAdhesiveUnits = Math.ceil(calculatedSheets / 2);
-            } else if (details.line === 'Clay' || details.line === 'Translucida') {
-                calculatedAdhesiveUnits = Math.ceil(calculatedSheets / 1.5);
-            } else if (details.line === 'Metales') {
-                calculatedAdhesiveUnits = calculatedSheets;
-            }
+        if(isStandardSize) {
+           if (details.line === 'Clay' || details.line === 'Translucida') {
+              adhesiveUnits = Math.ceil(calculatedSheets / 1.5);
+           } else if (details.line === 'Metales') {
+               adhesiveUnits = calculatedSheets;
+           } else { // Pizarra, Cuarcitas, Mármol, Concreto, Madera
+               adhesiveUnits = Math.ceil(calculatedSheets / 2);
+           }
         } else if (isXLSize) {
-             if (['Pizarra', 'Cuarcitas', 'Mármol', 'Concreto', 'Translucida', 'Metales'].includes(details.line)) {
-                calculatedAdhesiveUnits = calculatedSheets * 2;
-            }
+             adhesiveUnits = calculatedSheets * 2;
         }
-        totalAdhesiveUnits += calculatedAdhesiveUnits;
+
+        if (details.line === 'Translucida') {
+          totalTranslucentAdhesiveUnits += adhesiveUnits;
+        } else {
+          totalStandardAdhesiveUnits += adhesiveUnits;
+        }
       }
       
       if (!item.includeSealant || !item.includeAdhesive) {
@@ -334,9 +336,10 @@ export default function StoneflexCalculatorPage() {
     }
     
     // Adhesive Cost Calculation
-    const totalAdhesiveCost = totalAdhesiveUnits * (quoteItems.some(i => referenceDetails[i.reference]?.line === 'Translucida' && i.includeAdhesive) ? translucentAdhesivePrice : adhesivePrice);
+    const totalStandardAdhesiveCost = totalStandardAdhesiveUnits * adhesivePrice;
+    const totalTranslucentAdhesiveCost = totalTranslucentAdhesiveUnits * translucentAdhesivePrice;
 
-    const subtotalBeforeDiscount = totalProductCost + totalSealantCost + totalAdhesiveCost;
+    const subtotalBeforeDiscount = totalProductCost + totalSealantCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost;
     const totalDiscountAmount = subtotalBeforeDiscount * (discountValue / 100);
     const subtotalBeforeIva = subtotalBeforeDiscount - totalDiscountAmount;
     const ivaAmount = subtotalBeforeIva * IVA_RATE;
@@ -352,13 +355,15 @@ export default function StoneflexCalculatorPage() {
       items: detailedItems,
       totalProductCost,
       totalSealantCost,
-      totalAdhesiveCost,
+      totalStandardAdhesiveCost,
+      totalTranslucentAdhesiveCost,
       sealantPrices,
-      adhesivePrice: adhesivePrice,
-      translucentAdhesivePrice: translucentAdhesivePrice,
+      adhesivePrice,
+      translucentAdhesivePrice,
       totalDiscountAmount,
       totalSealantUnits,
-      totalAdhesiveUnits,
+      totalStandardAdhesiveUnits,
+      totalTranslucentAdhesiveUnits,
       isWarrantyVoid,
       subtotal: subtotalBeforeIva,
       ivaAmount,
@@ -412,11 +417,13 @@ export default function StoneflexCalculatorPage() {
       const sealantUnitCost = quote.totalSealantCost / quote.totalSealantUnits;
       message += `- Costo Sellante (${quote.totalSealantUnits} u. @ ${formatCurrency(sealantUnitCost)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
-    if(quote.totalAdhesiveCost > 0 && quote.totalAdhesiveUnits > 0) {
-       const isTranslucent = quote.items.some(item => referenceDetails[item.reference]?.line === 'Translucida' && item.includeAdhesive);
-       const adhesiveUnitCost = isTranslucent ? quote.translucentAdhesivePrice : quote.adhesivePrice;
-       message += `- Costo Adhesivo (${quote.totalAdhesiveUnits} u. @ ${formatCurrency(adhesiveUnitCost)}/u.): ${formatCurrency(quote.totalAdhesiveCost)}\n`;
+    if (quote.totalStandardAdhesiveCost > 0 && quote.totalStandardAdhesiveUnits > 0) {
+        message += `- Costo Adhesivo (${quote.totalStandardAdhesiveUnits} u. @ ${formatCurrency(quote.adhesivePrice)}/u.): ${formatCurrency(quote.totalStandardAdhesiveCost)}\n`;
     }
+    if (quote.totalTranslucentAdhesiveCost > 0 && quote.totalTranslucentAdhesiveUnits > 0) {
+        message += `- Adhesivo Translúcido (${quote.totalTranslucentAdhesiveUnits} u. @ ${formatCurrency(quote.translucentAdhesivePrice)}/u.): ${formatCurrency(quote.totalTranslucentAdhesiveCost)}\n`;
+    }
+
     if (quote.totalDiscountAmount > 0) {
         message += `- Descuento Total: -${formatCurrency(quote.totalDiscountAmount)}\n`;
     }
@@ -550,11 +557,10 @@ export default function StoneflexCalculatorPage() {
                 <Label htmlFor="sheets-input">Número de Láminas</Label>
                 <Input
                   id="sheets-input"
-                  type="number"
+                  type="text"
                   value={sheets}
                   onChange={(e) => setSheets(e.target.value)}
                   className="w-full"
-                  min="1"
                 />
               </div>
             )}
@@ -666,10 +672,16 @@ export default function StoneflexCalculatorPage() {
                         <span>{formatCurrency(quote.totalSealantCost)}</span>
                     </div>
                 )}
-                 {quote.totalAdhesiveCost > 0 && quote.totalAdhesiveUnits > 0 && (
+                 {quote.totalStandardAdhesiveCost > 0 && (
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Costo Adhesivo ({quote.totalAdhesiveUnits} u. @ {formatCurrency(quote.totalAdhesiveCost / quote.totalAdhesiveUnits)}/u.)</span>
-                        <span>{formatCurrency(quote.totalAdhesiveCost)}</span>
+                        <span className="text-muted-foreground">Costo Adhesivo (Estándar) ({quote.totalStandardAdhesiveUnits} u. @ {formatCurrency(quote.adhesivePrice)}/u.)</span>
+                        <span>{formatCurrency(quote.totalStandardAdhesiveCost)}</span>
+                    </div>
+                 )}
+                 {quote.totalTranslucentAdhesiveCost > 0 && (
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Costo Adhesivo (Translúcido) ({quote.totalTranslucentAdhesiveUnits} u. @ {formatCurrency(quote.translucentAdhesivePrice)}/u.)</span>
+                        <span>{formatCurrency(quote.totalTranslucentAdhesiveCost)}</span>
                     </div>
                  )}
                  <div className="flex justify-between text-red-500">
