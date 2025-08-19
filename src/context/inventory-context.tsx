@@ -20,6 +20,18 @@ export interface Container {
   creationDate: string;
 }
 
+export interface Reservation {
+  id: string;
+  customer: string;
+  product: string;
+  quantity: number;
+  sourceId: string; // Container ID or warehouse location ('Bodega' / 'Zona Franca')
+  advisor: string;
+  quoteNumber: string;
+  status: 'En espera de validación' | 'Validada' | 'Rechazada';
+  source: 'Contenedor' | 'Bodega' | 'Zona Franca';
+}
+
 export interface AppNotification {
   id: number;
   title: string;
@@ -37,7 +49,7 @@ interface InventoryContextType {
   notifications: AppNotification[];
   dismissNotification: (id: number) => void;
   transferFromFreeZone: (productName: string, quantity: number) => void;
-  receiveContainer: (containerId: string) => void;
+  receiveContainer: (containerId: string, reservations: Reservation[]) => void;
   addContainer: (container: Container) => void;
   editContainer: (containerId: string, updatedContainer: Container) => void;
 }
@@ -94,7 +106,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const receiveContainer = (containerId: string) => {
+  const receiveContainer = (containerId: string, reservations: Reservation[]) => {
     const container = containers.find(c => c.id === containerId);
     if (!container) return;
 
@@ -103,9 +115,16 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       
       for (const productInContainer of container.products) {
         const location = findProductLocation(productInContainer.name);
+        
+        const reservedQuantity = reservations
+            .filter(r => r.product === productInContainer.name && r.status === 'Validada')
+            .reduce((sum, r) => sum + r.quantity, 0);
+
         if (location) {
           const { brand, subCategory } = location;
-          newInventory[brand as keyof typeof newInventory][subCategory][productInContainer.name].zonaFranca += productInContainer.quantity;
+          const invProduct = newInventory[brand as keyof typeof newInventory][subCategory][productInContainer.name];
+          invProduct.zonaFranca += productInContainer.quantity;
+          invProduct.separadasZonaFranca += reservedQuantity;
         } else if (productInContainer.brand && productInContainer.line) {
           // If product is new, create it in the specified brand and line
           const { brand, line, name, quantity } = productInContainer;
@@ -121,7 +140,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
             bodega: 0,
             zonaFranca: quantity,
             separadasBodega: 0,
-            separadasZonaFranca: 0,
+            separadasZonaFranca: reservedQuantity,
             muestras: 0,
           };
           console.log(`Producto nuevo "${name}" creado en ${brand} > ${line}.`);

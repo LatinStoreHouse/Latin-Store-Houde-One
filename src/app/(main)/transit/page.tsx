@@ -43,9 +43,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { InventoryContext, Product } from '@/context/inventory-context';
+import { InventoryContext, Product, Reservation } from '@/context/inventory-context';
 import { Container as ContainerType } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
+import { initialReservations } from '@/lib/sales-history';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -55,31 +56,15 @@ declare module 'jspdf' {
   }
 }
 
-interface Reservation {
-    id: string;
-    customer: string;
-    product: string;
-    quantity: number;
-    containerId: string;
-    advisor: string;
-    quoteNumber: string;
-    status: 'En espera de validación' | 'Validada' | 'Rechazada';
-}
-
-const initialReservations: Reservation[] = [
-    { id: 'RES-001', customer: 'Constructora XYZ', product: 'CUT STONE 120 X 60', quantity: 50, containerId: 'MSCU1234567', advisor: 'Jane Smith', quoteNumber: 'COT-2024-001', status: 'Validada' },
-    { id: 'RES-002', customer: 'Diseños SAS', product: 'BLACK 1.22 X 0.61', quantity: 100, containerId: 'CMAU7654321', advisor: 'John Doe', quoteNumber: 'COT-2024-002', status: 'En espera de validación' },
-];
-
 const ContainerCard = ({ container, canEdit, onEdit, onReceive }: {
     container: ContainerType;
     canEdit: boolean;
     onEdit: (container: ContainerType) => void;
-    onReceive: (containerId: string) => void;
+    onReceive: (containerId: string, reservations: Reservation[]) => void;
 }) => {
     const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
         return initialReservations
-            .filter(r => r.containerId === containerId && r.product === productName && r.status === 'Validada')
+            .filter(r => r.sourceId === containerId && r.product === productName && r.status === 'Validada')
             .reduce((sum, r) => sum + r.quantity, 0);
     };
 
@@ -166,7 +151,7 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive }: {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => onReceive(container.id)}>
+                                    <AlertDialogAction onClick={() => onReceive(container.id, initialReservations.filter(r => r.source === 'Contenedor' && r.sourceId === container.id))}>
                                         Confirmar Recepción
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
@@ -390,8 +375,8 @@ export default function TransitPage() {
     toast({ title: 'Éxito', description: 'Reporte Excel generado.' });
   };
   
-  const handleReceiveContainer = (containerId: string) => {
-     receiveContainer(containerId);
+  const handleReceiveContainer = (containerId: string, reservations: Reservation[]) => {
+     receiveContainer(containerId, reservations);
       toast({
           title: `Contenedor ${containerId} Recibido`,
           description: "El contenido ha sido agregado al inventario de Zona Franca. Se ha notificado al equipo sobre la llegada de nuevo material.",
