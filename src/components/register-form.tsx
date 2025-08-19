@@ -8,20 +8,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+const CAPTCHA_KEYWORD = "seguridad";
+
 export function RegisterForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [captchaNum1, setCaptchaNum1] = useState(0);
-  const [captchaNum2, setCaptchaNum2] = useState(0);
   const [captchaAnswer, setCaptchaAnswer] = useState('');
   const router = useRouter();
-
-  useEffect(() => {
-    // Generate captcha numbers on client-side to avoid hydration mismatch
-    setCaptchaNum1(Math.floor(Math.random() * 10) + 1);
-    setCaptchaNum2(Math.floor(Math.random() * 10) + 1);
-  }, []);
 
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,11 +27,8 @@ export function RegisterForm() {
       return;
     }
     
-    if (parseInt(captchaAnswer, 10) !== captchaNum1 + captchaNum2) {
-      setError('La respuesta del CAPTCHA es incorrecta. Por favor, inténtelo de nuevo.');
-      // Regenerate numbers on failed attempt
-      setCaptchaNum1(Math.floor(Math.random() * 10) + 1);
-      setCaptchaNum2(Math.floor(Math.random() * 10) + 1);
+    if (captchaAnswer.toLowerCase() !== CAPTCHA_KEYWORD) {
+      setError(`La palabra de seguridad es incorrecta. Por favor, escriba "${CAPTCHA_KEYWORD}".`);
       setCaptchaAnswer('');
       return;
     }
@@ -81,20 +72,21 @@ export function RegisterForm() {
             />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 rounded-md border bg-muted/50 p-3">
             <Label htmlFor="captcha">Verificación de Seguridad</Label>
-             <div className="flex items-center gap-2">
-                <span className="p-2 bg-muted rounded-md text-sm">{`¿Cuánto es ${captchaNum1} + ${captchaNum2}?`}</span>
-                <Input 
-                    id="captcha" 
-                    type="number"
-                    required 
-                    value={captchaAnswer}
-                    onChange={(e) => setCaptchaAnswer(e.target.value)}
-                    placeholder="Respuesta"
-                    className="w-full"
-                />
-            </div>
+             <p className="text-sm text-muted-foreground">
+                Para continuar, por favor escriba la palabra <span className="font-bold text-foreground">{`"${CAPTCHA_KEYWORD}"`}</span> en el campo de abajo.
+             </p>
+            <Input 
+                id="captcha" 
+                type="text"
+                required 
+                value={captchaAnswer}
+                onChange={(e) => setCaptchaAnswer(e.target.value)}
+                placeholder="Escriba la palabra aquí..."
+                className="w-full bg-background"
+                autoComplete="off"
+            />
         </div>
         
         {error && (
