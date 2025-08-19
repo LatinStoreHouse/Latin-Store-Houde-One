@@ -38,7 +38,7 @@ declare module 'jspdf' {
   }
 }
 
-const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, onDataChange: Function, inventoryData: any }) => {
+const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, isPartner: boolean, onDataChange: Function, inventoryData: any }) => {
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
     const isNumber = typeof inventoryData[brand][subCategory][productName][field] === 'number';
     onDataChange(brand, subCategory, productName, field, isNumber ? Number(value) : value, isNameChange);
@@ -58,7 +58,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inv
             <TableHead className="p-2">Nombre del Producto</TableHead>
             <TableHead className="text-right p-2">Disponible Bodega</TableHead>
             <TableHead className="text-right p-2">Disponible Zona Franca</TableHead>
-            <TableHead className="text-right p-2 w-[100px]">Reservas</TableHead>
+            {!isPartner && <TableHead className="text-right p-2 w-[100px]">Reservas</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -73,21 +73,23 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inv
                 <TableCell className="font-medium p-2">{name}</TableCell>
                 <TableCell className="text-right p-2">{disponibleBodega}</TableCell>
                 <TableCell className="text-right p-2">{disponibleZonaFranca}</TableCell>
-                <TableCell className="text-right p-2">
-                  {hasReservations && (
-                     <Tooltip>
-                        <TooltipTrigger asChild>
-                           <div className="flex justify-end">
-                             <BadgeCheck className="h-5 w-5 text-green-600" />
-                           </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                           <p>Bodega: {item.separadasBodega}</p>
-                           <p>Zona Franca: {item.separadasZonaFranca}</p>
-                        </TooltipContent>
-                     </Tooltip>
-                  )}
-                </TableCell>
+                {!isPartner && (
+                  <TableCell className="text-right p-2">
+                    {hasReservations && (
+                       <Tooltip>
+                          <TooltipTrigger asChild>
+                             <div className="flex justify-end">
+                               <BadgeCheck className="h-5 w-5 text-green-600" />
+                             </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                             <p>Bodega: {item.separadasBodega}</p>
+                             <p>Zona Franca: {item.separadasZonaFranca}</p>
+                          </TooltipContent>
+                       </Tooltip>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             );
           })}
@@ -538,6 +540,7 @@ export default function InventoryPage() {
                                         brand={brand}
                                         subCategory={subCategory}
                                         canEdit={canEdit}
+                                        isPartner={isPartner}
                                         onDataChange={handleDataChange}
                                         inventoryData={inventoryData}
                                     />
@@ -568,6 +571,7 @@ export default function InventoryPage() {
                                                 brand={brand}
                                                 subCategory={subCategory}
                                                 canEdit={canEdit}
+                                                isPartner={isPartner}
                                                 onDataChange={handleDataChange}
                                                 inventoryData={inventoryData}
                                             />
