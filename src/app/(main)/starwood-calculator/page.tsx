@@ -126,20 +126,19 @@ export default function StarwoodCalculatorPage() {
   };
 
   const calculateQuote = () => {
-    let totalCost = 0;
+    let subtotal = 0;
     const detailedItems = quoteItems.map(item => {
-      const productCost = item.units * (productPrices[item.reference] || 0);
-      totalCost += productCost;
+      const itemCost = item.units * (productPrices[item.reference] || 0);
+      subtotal += itemCost;
       
       return { 
-        ...item, 
-        productCost,
-        subtotal: productCost,
+        ...item,
+        itemCost
       };
     });
 
-    const iva = totalCost * IVA_RATE;
-    const finalTotal = totalCost + iva;
+    const iva = subtotal * IVA_RATE;
+    const total = subtotal + iva;
     
     const creationDate = new Date();
     const expiryDate = new Date(creationDate);
@@ -147,9 +146,9 @@ export default function StarwoodCalculatorPage() {
 
     return {
       items: detailedItems,
-      subtotal: totalCost,
+      subtotal: subtotal,
       iva,
-      total: finalTotal,
+      total: total,
       creationDate: creationDate.toLocaleDateString('es-CO'),
       expiryDate: expiryDate.toLocaleDateString('es-CO'),
     };
@@ -176,7 +175,7 @@ export default function StarwoodCalculatorPage() {
       item.reference,
       item.units,
       formatCurrency(productPrices[item.reference] || 0),
-      formatCurrency(item.subtotal)
+      formatCurrency(item.itemCost)
     ]);
 
     doc.autoTable({ 
@@ -316,7 +315,7 @@ export default function StarwoodCalculatorPage() {
                         <p className="text-sm text-muted-foreground">{item.units} unidades</p>
                      </div>
                     <div className="flex items-center gap-4">
-                       <p className="font-medium">{formatCurrency(item.subtotal)}</p>
+                       <p className="font-medium">{formatCurrency(item.itemCost)}</p>
                         <Button variant="ghost" size="icon" onClick={() => handleRemoveProduct(item.id)} className="h-7 w-7">
                            <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>

@@ -206,7 +206,7 @@ export default function PricingPage() {
       <CardHeader>
         <CardTitle>Gestión de Precios de Productos</CardTitle>
         <CardDescription>
-          Ajuste los precios para cada producto individual o actualice una línea de productos completa. Los precios (excepto insumos) son por metro cuadrado (M²) o por unidad, según corresponda.
+          Ajuste los precios para cada producto individual o actualice una línea de productos completa. Todos los precios son por unidad.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -278,7 +278,7 @@ export default function PricingPage() {
                               <TableHeader>
                                 <TableRow>
                                   <TableHead>Producto</TableHead>
-                                  <TableHead className="text-right">Precio (COP)</TableHead>
+                                  <TableHead className="text-right">Precio por Unidad (COP)</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>

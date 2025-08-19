@@ -88,7 +88,6 @@ interface QuoteItem {
   reference: string;
   sqMeters: number;
   sheets: number;
-  discount: number;
   includeSealant: boolean;
   includeAdhesive: boolean;
   calculationMode: 'sqm' | 'sheets';
@@ -187,8 +186,7 @@ export default function StoneflexCalculatorPage() {
     }
     
     const wasteValue = parseDecimal(wastePercentage);
-    const discountValue = parseDecimal(discount);
-
+    
     const sqmPerSheet = getSqmPerSheet(reference);
     const wasteFactor = 1 + wasteValue / 100;
     
@@ -206,16 +204,13 @@ export default function StoneflexCalculatorPage() {
     const finalSqm = baseSqm * wasteFactor;
     const finalSheets = Math.ceil(finalSqm / sqmPerSheet);
 
-    const pricePerSqm = productPrices[reference] || 0;
-    const pricePerSheet = pricePerSqm * sqmPerSheet;
-
+    const pricePerSheet = productPrices[reference] || 0;
 
     const newItem: QuoteItem = {
       id: Date.now(),
       reference,
       sqMeters: finalSqm,
       sheets: finalSheets,
-      discount: discountValue,
       includeSealant,
       includeAdhesive,
       calculationMode,
@@ -252,7 +247,7 @@ export default function StoneflexCalculatorPage() {
     let totalProductCost = 0;
     let totalSealantCost = 0;
     let totalAdhesiveCost = 0;
-    let totalDiscountAmount = 0;
+    
     let totalSealantUnits = 0;
     let totalAdhesiveUnits = 0;
     let isWarrantyVoid = false;
@@ -261,6 +256,7 @@ export default function StoneflexCalculatorPage() {
     if (currency === 'USD' && trmValue === 0) return null;
     
     const convert = (value: number) => currency === 'USD' ? value / trmValue : value;
+    const discountValue = parseDecimal(discount);
 
     const detailedItems = quoteItems.map(item => {
       const details = referenceDetails[item.reference];
@@ -315,13 +311,12 @@ export default function StoneflexCalculatorPage() {
       }
       
       const itemSubtotal = productCost + itemSealantCost + itemAdhesiveCost;
-      const discountAmount = itemSubtotal * (item.discount / 100);
-      totalDiscountAmount += discountAmount;
 
-      return {...item, itemTotal: itemSubtotal - discountAmount};
+      return {...item, itemTotal: itemSubtotal};
     });
-
+    
     const subtotalBeforeDiscount = totalProductCost + totalSealantCost + totalAdhesiveCost;
+    const totalDiscountAmount = subtotalBeforeDiscount * (discountValue / 100);
     const subtotalBeforeIva = subtotalBeforeDiscount - totalDiscountAmount;
     const ivaAmount = subtotalBeforeIva * IVA_RATE;
     const finalTransportationCost = convert(transportationCost);
@@ -382,19 +377,16 @@ export default function StoneflexCalculatorPage() {
     
     message += `*Resumen de Productos:*\n`;
     quote.items.forEach(item => {
-      message += `- *${item.reference}*: ${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²)`;
-      if (item.discount > 0) {
-        message += ` con ${item.discount}% de descuento.\n`;
-      } else {
-        message += `\n`;
-      }
+      message += `- *${item.reference}*: ${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²)\n`;
     });
     
     message += `\n*Desglose de Costos (${currency}):*\n`;
     message += `- Subtotal Productos: ${formatCurrency(quote.totalProductCost)}\n`;
     message += `- Costo Sellante (${quote.totalSealantUnits} u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     message += `- Costo Adhesivo (${quote.totalAdhesiveUnits} u.): ${formatCurrency(quote.totalAdhesiveCost)}\n`;
-    message += `- Descuento Total: -${formatCurrency(quote.totalDiscountAmount)}\n`;
+    if (quote.totalDiscountAmount > 0) {
+        message += `- Descuento Total: -${formatCurrency(quote.totalDiscountAmount)}\n`;
+    }
     message += `- *Subtotal:* ${formatCurrency(quote.subtotal)}\n`;
     message += `- IVA (19%): ${formatCurrency(quote.ivaAmount)}\n`;
     if (quote.transportationCost > 0) {
@@ -530,27 +522,15 @@ export default function StoneflexCalculatorPage() {
                 />
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="waste-input">Desperdicio (%)</Label>
-                  <Input
+            <div className="space-y-2">
+                <Label htmlFor="waste-input">Desperdicio (%)</Label>
+                <Input
                     id="waste-input"
                     type="text"
                     value={wastePercentage}
                     onChange={handleDecimalInputChange(setWastePercentage)}
                     className="w-full"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="discount-input">Descuento (%)</Label>
-                  <Input
-                    id="discount-input"
-                    type="text"
-                    value={discount}
-                    onChange={handleDecimalInputChange(setDiscount)}
-                    className="w-full"
-                  />
-                </div>
+                />
             </div>
           </div>
           <div className="flex items-center gap-4 pt-2">
@@ -594,8 +574,7 @@ export default function StoneflexCalculatorPage() {
                     <div className="flex-1">
                       <p className="font-semibold">{item.reference}</p>
                       <p className="text-sm text-muted-foreground">
-                        {`${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²) `}
-                        {item.discount > 0 && `| ${item.discount}% desc.`}
+                        {`${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²)`}
                       </p>
                       {currency === 'USD' && (
                          <div className="flex items-center gap-2 mt-2">
@@ -611,7 +590,7 @@ export default function StoneflexCalculatorPage() {
                       )}
                     </div>
                     <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(item.itemTotal + (item.itemTotal * (item.discount/100)))}</p>
+                        <p className="font-semibold">{formatCurrency(item.itemTotal)}</p>
                         <Button variant="ghost" size="icon" onClick={() => handleRemoveProduct(item.id)} className="mt-1 h-7 w-7">
                            <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -636,7 +615,16 @@ export default function StoneflexCalculatorPage() {
                   <span>{formatCurrency(quote.totalAdhesiveCost)}</span>
                 </div>
                  <div className="flex justify-between text-red-500">
-                  <span className="text-muted-foreground">Descuento Total</span>
+                    <div className="flex items-center gap-2">
+                        <Label htmlFor="discount-total" className="text-muted-foreground">Descuento Total (%)</Label>
+                        <Input
+                            id="discount-total"
+                            type="text"
+                            value={discount}
+                            onChange={handleDecimalInputChange(setDiscount)}
+                            className="w-20 h-7"
+                        />
+                    </div>
                   <span>-{formatCurrency(quote.totalDiscountAmount)}</span>
                 </div>
                  <div className="flex justify-between font-medium">
