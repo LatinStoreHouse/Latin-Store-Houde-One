@@ -36,26 +36,26 @@ declare module 'jspdf' {
   }
 }
 
-const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, onDataChange: Function, inventoryData: any }) => {
-  const getAvailabilityStatus = (disponible: number) => {
+const getAvailabilityStatus = (disponible: number) => {
     if (disponible > 100) return 'En Stock';
     if (disponible > 0) return 'Poco Stock';
     return 'Agotado';
-  };
+};
 
-  const getStatusVariant = (status: string): 'success' | 'secondary' | 'destructive' | 'outline' => {
+const getStatusVariant = (status: string): 'success' | 'secondary' | 'destructive' | 'outline' => {
     switch (status) {
-      case 'En Stock':
+        case 'En Stock':
         return 'success';
-      case 'Poco Stock':
+        case 'Poco Stock':
         return 'secondary';
-      case 'Agotado':
+        case 'Agotado':
         return 'destructive';
-      default:
+        default:
         return 'outline';
     }
-  };
-  
+};
+
+const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, onDataChange: Function, inventoryData: any }) => {
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
     const isNumber = typeof inventoryData[brand][subCategory][productName][field] === 'number';
     onDataChange(brand, subCategory, productName, field, isNumber ? Number(value) : value, isNameChange);
@@ -65,6 +65,47 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inv
     return <p className="p-4 text-center text-muted-foreground">No hay productos en esta categoría.</p>;
   }
 
+  // Simplified view for non-editor roles
+  if (!canEdit) {
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="p-2">Nombre del Producto</TableHead>
+            <TableHead className="text-right p-2">Disponible Bodega</TableHead>
+            <TableHead className="text-right p-2">Disponible Zona Franca</TableHead>
+            <TableHead className="p-2">Estado</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Object.entries(products).map(([name, item]) => {
+            if (!name) return null;
+            const disponibleBodega = item.bodega - item.separadasBodega;
+            const disponibleZonaFranca = item.zonaFranca - item.separadasZonaFranca;
+            const statusBodega = getAvailabilityStatus(disponibleBodega);
+            const statusZonaFranca = getAvailabilityStatus(disponibleZonaFranca);
+
+            return (
+              <TableRow key={name}>
+                <TableCell className="font-medium p-2">{name}</TableCell>
+                <TableCell className="text-right p-2">{disponibleBodega}</TableCell>
+                <TableCell className="text-right p-2">{disponibleZonaFranca}</TableCell>
+                <TableCell className="p-2">
+                  <div className="flex flex-col gap-1 items-start">
+                    {disponibleBodega > 0 && <Badge variant={getStatusVariant(statusBodega)}>Bodega: {statusBodega}</Badge>}
+                    {disponibleZonaFranca > 0 && <Badge variant={getStatusVariant(statusZonaFranca)}>ZF: {statusZonaFranca}</Badge>}
+                    {disponibleBodega <= 0 && disponibleZonaFranca <= 0 && <Badge variant="destructive">Agotado</Badge>}
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    );
+  }
+
+  // Full view for editor roles
   return (
     <Table>
       <TableHeader>
@@ -75,51 +116,34 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inv
           <TableHead className="text-right p-2">Zona Franca</TableHead>
           <TableHead className="text-right p-2">Separadas ZF</TableHead>
           <TableHead className="text-right p-2">Muestras</TableHead>
-          <TableHead className="p-2">Estado</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {Object.entries(products).map(([name, item]) => {
           if (!name) return null;
-          const disponibleBodega = item.bodega - item.separadasBodega;
-          const disponibleZonaFranca = item.zonaFranca - item.separadasZonaFranca;
-          const statusBodega = getAvailabilityStatus(disponibleBodega);
-          const statusZonaFranca = getAvailabilityStatus(disponibleZonaFranca);
-
           return (
             <TableRow key={name}>
               <TableCell className="font-medium p-2">
-                {canEdit ? (
-                    <Input 
-                        defaultValue={name} 
-                        onBlur={(e) => handleInputChange(name, 'name', e.target.value, true)}
-                        className="h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0"
-                    />
-                ) : (
-                    name
-                )}
+                <Input 
+                    defaultValue={name} 
+                    onBlur={(e) => handleInputChange(name, 'name', e.target.value, true)}
+                    className="h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0"
+                />
               </TableCell>
               <TableCell className="text-right p-0">
-                {canEdit ? <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" /> : item.bodega}
+                <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
               </TableCell>
               <TableCell className="text-right p-0">
-                {canEdit ? <Input type="number" defaultValue={item.separadasBodega} onBlur={(e) => handleInputChange(name, 'separadasBodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" /> : item.separadasBodega}
+                <Input type="number" defaultValue={item.separadasBodega} onBlur={(e) => handleInputChange(name, 'separadasBodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
               </TableCell>
               <TableCell className="text-right p-0">
-                {canEdit ? <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" /> : item.zonaFranca}
+                <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
               </TableCell>
               <TableCell className="text-right p-0">
-                {canEdit ? <Input type="number" defaultValue={item.separadasZonaFranca} onBlur={(e) => handleInputChange(name, 'separadasZonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" /> : item.separadasZonaFranca}
+                <Input type="number" defaultValue={item.separadasZonaFranca} onBlur={(e) => handleInputChange(name, 'separadasZonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
               </TableCell>
               <TableCell className="text-right p-0">
-                 {canEdit ? <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" /> : item.muestras}
-              </TableCell>
-              <TableCell className="p-2">
-                <div className="flex flex-col gap-1 items-start">
-                  {disponibleBodega > 0 && <Badge variant={getStatusVariant(statusBodega)}>Bodega: {statusBodega}</Badge>}
-                  {disponibleZonaFranca > 0 && <Badge variant={getStatusVariant(statusZonaFranca)}>ZF: {statusZonaFranca}</Badge>}
-                  {disponibleBodega <= 0 && disponibleZonaFranca <= 0 && <Badge variant="destructive">Agotado</Badge>}
-                </div>
+                 <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
               </TableCell>
             </TableRow>
           );
