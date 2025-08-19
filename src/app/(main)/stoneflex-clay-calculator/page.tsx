@@ -308,8 +308,7 @@ export default function StoneflexCalculatorPage() {
         let calculatedAdhesiveUnits = 0;
 
         if (details.line === '3D') {
-            calculatedAdhesiveUnits = calculatedSheets; // 1 tube per box
-            itemAdhesiveCost = calculatedAdhesiveUnits * adhesivePrice;
+            calculatedAdhesiveUnits = 0; // 3D is self-adhesive
         } else if (isStandardSize) {
             if (['Pizarra', 'Cuarcitas', 'Mármol', 'Concreto', 'Madera'].includes(details.line)) {
                 calculatedAdhesiveUnits = Math.ceil(calculatedSheets / 2);
@@ -320,8 +319,9 @@ export default function StoneflexCalculatorPage() {
             }
             itemAdhesiveCost = calculatedAdhesiveUnits * (details.line === 'Translucida' ? translucentAdhesivePrice : adhesivePrice);
         } else if (isXLSize) {
-             if (['Pizarra', 'Cuarcitas', 'Mármol', 'Concreto', 'Translúcida'].includes(details.line)) {
-                calculatedAdhesiveUnits = calculatedSheets;
+            // For Pizarra, Cuarcita, Concreto, Marmol, Traslucida, Metalicas it's 2 adhesives per sheet
+             if (['Pizarra', 'Cuarcitas', 'Mármol', 'Concreto', 'Translucida', 'Metales'].includes(details.line)) {
+                calculatedAdhesiveUnits = calculatedSheets * 2;
                 itemAdhesiveCost = calculatedAdhesiveUnits * (details.line === 'Translucida' ? translucentAdhesivePrice : adhesivePrice);
             }
         }
@@ -555,10 +555,11 @@ export default function StoneflexCalculatorPage() {
                 <Label htmlFor="sheets-input">Número de Láminas</Label>
                 <Input
                   id="sheets-input"
-                  type="text"
+                  type="number"
                   value={sheets}
                   onChange={(e) => setSheets(e.target.value)}
                   className="w-full"
+                  min="1"
                 />
               </div>
             )}
