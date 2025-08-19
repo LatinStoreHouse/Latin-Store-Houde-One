@@ -31,7 +31,7 @@ import {
   DropdownMenuSubTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, MapPin, Calculator } from 'lucide-react';
+import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, MapPin, Calculator, StickyNote } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -44,6 +44,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { useUser } from '@/app/(main)/layout';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -107,7 +108,8 @@ export default function CustomersPage() {
   const canCreateDispatch = userPermissions.includes('orders:create');
   const canCreateReservation = userPermissions.includes('reservations:create');
   const canUseCalculators = userPermissions.includes('calculators:use');
-  
+  const canEditNotes = currentUserRole === 'Administrador' || currentUserRole === 'Marketing';
+
   const handleOpenModal = (customer?: Customer) => {
     setSelectedCustomer(customer);
     setIsModalOpen(true);
@@ -375,7 +377,21 @@ export default function CustomersPage() {
                     />
                 </TableCell>
                 <TableCell className="p-2">
-                  <div className="font-medium">{customer.name}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{customer.name}</span>
+                    {canEditNotes && customer.notes && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <StickyNote className="h-4 w-4 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">{customer.notes}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
                   <div className="text-sm text-muted-foreground">{customer.email}</div>
                   <div className="text-sm text-muted-foreground">{customer.phone}</div>
                   <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
@@ -464,6 +480,8 @@ export default function CustomersPage() {
                 customer={selectedCustomer}
                 onSave={handleSaveCustomer}
                 onCancel={() => setIsModalOpen(false)}
+                canEditNotes={canEditNotes}
+                currentUser={currentUser}
             />
         </DialogContent>
     </Dialog>

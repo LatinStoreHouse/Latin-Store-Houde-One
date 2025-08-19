@@ -7,11 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Customer, CustomerStatus, customerSources, customerStatuses } from '@/lib/customers';
 import { Textarea } from './ui/textarea';
 import { Combobox } from './ui/combobox';
+import { User } from '@/lib/roles';
 
 interface CustomerFormProps {
   customer?: Customer;
   onSave: (customer: Omit<Customer, 'id' | 'registrationDate'> & { registrationDate?: string }) => void;
   onCancel: () => void;
+  canEditNotes: boolean;
+  currentUser: User;
 }
 
 const colombianCities = [
@@ -23,9 +26,9 @@ const colombianCities = [
   "San José del Guaviare", "Puerto Carreño", "Mitú"
 ].map(city => ({ value: city, label: city }));
 
-const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones'];
+const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin'];
 
-export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) {
+export function CustomerForm({ customer, onSave, onCancel, canEditNotes, currentUser }: CustomerFormProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -34,6 +37,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
   const [source, setSource] = useState<Customer['source']>('Instagram');
   const [assignedTo, setAssignedTo] = useState('');
   const [status, setStatus] = useState<CustomerStatus>('Contactado');
+  const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
 
 
@@ -47,6 +51,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       setSource(customer.source);
       setAssignedTo(customer.assignedTo);
       setStatus(customer.status);
+      setNotes(customer.notes || '');
     } else {
       // Reset form for new customer
       setName('');
@@ -55,11 +60,14 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       setCity('');
       setAddress('');
       setSource('Instagram');
-      setAssignedTo('');
+      // Auto-assign to current user if they are a sales advisor
+      const isSalesAdvisor = currentUser.roles.includes('Asesor de Ventas');
+      setAssignedTo(isSalesAdvisor ? currentUser.name : '');
       setStatus('Contactado');
+      setNotes('');
     }
     setError(null);
-  }, [customer]);
+  }, [customer, currentUser]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +76,7 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       return;
     }
     setError(null);
-    onSave({ name, phone, email, city, address, source, assignedTo, status });
+    onSave({ name, phone, email, city, address, source, assignedTo, status, notes });
   };
 
   return (
@@ -146,6 +154,18 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
               </SelectContent>
             </Select>
         </div>
+        {canEditNotes && (
+             <div className="space-y-2">
+                <Label htmlFor="notes">Notas Internas (Visible para Admin/Marketing)</Label>
+                <Textarea
+                    id="notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Añadir una nota sobre el cliente..."
+                    rows={3}
+                />
+             </div>
+        )}
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="ghost" onClick={onCancel}>
           Cancelar
