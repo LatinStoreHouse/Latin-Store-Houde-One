@@ -146,10 +146,8 @@ export default function InvoicesPage() {
                     </div>
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline">
-                                <Download className="mr-2 h-4 w-4" />
-                                Descargar Historial
-                                <ChevronDown className="ml-2 h-4 w-4" />
+                            <Button variant="outline" size="icon">
+                                <Download className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
