@@ -153,8 +153,8 @@ export default function StoneflexCalculatorPage() {
 
 
   const handleAddProduct = () => {
-    if (!reference || !customerName) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, ingrese el nombre del cliente y seleccione una referencia.' });
+    if (!reference) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione una referencia.' });
         return;
     }
     
@@ -386,7 +386,7 @@ export default function StoneflexCalculatorPage() {
       <CardContent className="space-y-4">
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
            <div className="space-y-2">
-                <Label htmlFor="customer-name">Nombre del Cliente</Label>
+                <Label htmlFor="customer-name">Nombre del Cliente (Opcional)</Label>
                 <Input
                   id="customer-name"
                   value={customerName}
@@ -514,7 +514,7 @@ export default function StoneflexCalculatorPage() {
               </div>
           </div>
           <div className="flex justify-end">
-              <Button onClick={handleAddProduct} className="mt-4" disabled={!reference || !customerName}>
+              <Button onClick={handleAddProduct} className="mt-4" disabled={!reference}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Agregar Producto
               </Button>
@@ -526,7 +526,7 @@ export default function StoneflexCalculatorPage() {
                   <div>
                       <CardTitle>Resumen de la Cotización</CardTitle>
                       <CardDescription>
-                          Cliente: {customerName} | Válida hasta {quote.expiryDate} | Moneda: {currency}
+                          Cliente: {customerName || 'N/A'} | Válida hasta {quote.expiryDate} | Moneda: {currency}
                       </CardDescription>
                   </div>
                   <div className="text-right">

@@ -218,7 +218,7 @@ export default function StarwoodCalculatorPage() {
       </CardHeader>
       <CardContent className="space-y-4">
          <div className="space-y-2">
-            <Label htmlFor="customer-name">Nombre del Cliente</Label>
+            <Label htmlFor="customer-name">Nombre del Cliente (Opcional)</Label>
             <Input
               id="customer-name"
               value={customerName}
@@ -261,7 +261,7 @@ export default function StarwoodCalculatorPage() {
               </div>
           </div>
           <div className="flex justify-end">
-              <Button onClick={handleAddProduct} className="mt-4" disabled={!reference || !customerName}>
+              <Button onClick={handleAddProduct} className="mt-4" disabled={!reference}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Agregar a la Cotización
               </Button>
@@ -271,7 +271,7 @@ export default function StarwoodCalculatorPage() {
           <Card className="bg-primary/5 mt-6">
             <CardHeader>
               <CardTitle>Resumen de la Cotización</CardTitle>
-              <CardDescription>Cliente: {customerName}</CardDescription>
+              <CardDescription>Cliente: {customerName || 'N/A'} | Válida hasta: {quote.expiryDate}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
