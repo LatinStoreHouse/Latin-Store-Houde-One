@@ -101,7 +101,7 @@ export default function StoneflexCalculatorPage() {
   const [reference, setReference] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [sqMeters, setSqMeters] = useState<number | string>(1);
-  const [sheets, setSheets] = useState(1);
+  const [sheets, setSheets] = useState<number | string>(1);
   const [discount, setDiscount] = useState<number | string>(0);
   const [wastePercentage, setWastePercentage] = useState<number | string>(0);
   const [includeSealant, setIncludeSealant] = useState(true);
@@ -198,7 +198,7 @@ export default function StoneflexCalculatorPage() {
       baseSqm = parseDecimal(sqMeters);
       baseSheets = Math.ceil(baseSqm / sqmPerSheet);
     } else {
-      baseSheets = sheets;
+      baseSheets = Math.ceil(parseDecimal(sheets));
       baseSqm = baseSheets * sqmPerSheet;
     }
 
@@ -388,8 +388,8 @@ export default function StoneflexCalculatorPage() {
     
     message += `\n*Desglose de Costos (${currency}):*\n`;
     message += `- Subtotal Productos: ${formatCurrency(quote.totalProductCost)}\n`;
-    message += `- Costo Sellante (${quote.totalSealantUnits} u.): ${formatCurrency(quote.totalSealantCost)}\n`;
-    message += `- Costo Adhesivo (${quote.totalAdhesiveUnits} u.): ${formatCurrency(quote.totalAdhesiveCost)}\n`;
+    message += `- Costo Sellante (${quote.totalSealantUnits} u. @ ${formatCurrency(quote.sealantPrice)}/u): ${formatCurrency(quote.totalSealantCost)}\n`;
+    message += `- Costo Adhesivo (${quote.totalAdhesiveUnits} u. @ ${formatCurrency(quote.adhesivePrice)}/u): ${formatCurrency(quote.totalAdhesiveCost)}\n`;
     if (quote.totalDiscountAmount > 0) {
         message += `- Descuento Total: -${formatCurrency(quote.totalDiscountAmount)}\n`;
     }
@@ -522,7 +522,7 @@ export default function StoneflexCalculatorPage() {
                   id="sheets-input"
                   type="number"
                   value={sheets}
-                  onChange={(e) => setSheets(Number(e.target.value))}
+                  onChange={(e) => setSheets(e.target.value)}
                   min="1"
                   className="w-full"
                 />
