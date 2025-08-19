@@ -7,12 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Save } from 'lucide-react';
+import { Save, MoreHorizontal, Edit, Trash2, PlusCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { initialProductPrices } from '@/lib/prices';
 import { useUser } from '@/app/(main)/layout';
 import { roles } from '@/lib/roles';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Combobox } from '@/components/ui/combobox';
 
 
 const productStructure: { [key: string]: { [line: string]: string[] } } = {
@@ -130,19 +135,81 @@ const productStructure: { [key: string]: { [line: string]: string[] } } = {
 type SizeFilter = 'todos' | 'estandar' | 'xl';
 
 export default function PricingPage() {
+  const [localProductStructure, setLocalProductStructure] = useState(productStructure);
   const [prices, setPrices] = useState(initialProductPrices);
   const [linePrices, setLinePrices] = useState<{ [key: string]: string }>({});
   const [sizeFilters, setSizeFilters] = useState<{ [key: string]: SizeFilter }>({});
   const { toast } = useToast();
   const { currentUser } = useUser();
+  
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<{ name: string; price: number } | null>(null);
 
   const userPermissions = roles.find(r => r.name === currentUser.roles[0])?.permissions || [];
   const canEdit = userPermissions.includes('pricing:edit');
-
-  const handlePriceChange = (product: string, value: string) => {
-    const numericValue = Number(value.replace(/[^0-9]/g, ''));
-    setPrices(prev => ({ ...prev, [product]: isNaN(numericValue) ? 0 : numericValue }));
+  
+  const handleOpenEditModal = (productName: string) => {
+    setEditingProduct({ name: productName, price: prices[productName] || 0 });
+    setIsEditModalOpen(true);
   };
+
+  const handleUpdatePrice = () => {
+    if (editingProduct) {
+        setPrices(prev => ({...prev, [editingProduct.name]: editingProduct.price}));
+        setIsEditModalOpen(false);
+        setEditingProduct(null);
+        toast({ title: 'Precio actualizado', description: `El precio de "${editingProduct.name}" ha sido actualizado.` });
+    }
+  };
+  
+  const handleAddProduct = (newProduct: { brand: string; line: string; name: string; price: number }) => {
+    const { brand, line, name, price } = newProduct;
+    if (!brand || !line || !name) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Todos los campos son requeridos para agregar un producto.' });
+      return;
+    }
+
+    setLocalProductStructure(prev => {
+        const newStructure = { ...prev };
+        if (!newStructure[brand as keyof typeof newStructure]) newStructure[brand as keyof typeof newStructure] = {};
+        if (!newStructure[brand as keyof typeof newStructure][line]) newStructure[brand as keyof typeof newStructure][line] = [];
+
+        if (newStructure[brand as keyof typeof newStructure][line].includes(name)) {
+            toast({ variant: 'destructive', title: 'Error', description: `El producto "${name}" ya existe en esta línea.` });
+            return prev;
+        }
+
+        newStructure[brand as keyof typeof newStructure][line].push(name);
+        return newStructure;
+    });
+
+    setPrices(prev => ({...prev, [name]: price}));
+    toast({ title: 'Producto Agregado', description: `Se ha agregado "${name}" a la lista de precios.` });
+    setIsAddModalOpen(false);
+  };
+  
+  const handleDeleteProduct = (productName: string) => {
+    setPrices(prev => {
+        const newPrices = {...prev};
+        delete newPrices[productName];
+        return newPrices;
+    });
+    setLocalProductStructure(prev => {
+        const newStructure = JSON.parse(JSON.stringify(prev));
+        for (const brand in newStructure) {
+            for (const line in newStructure[brand]) {
+                const index = newStructure[brand][line].indexOf(productName);
+                if (index > -1) {
+                    newStructure[brand][line].splice(index, 1);
+                }
+            }
+        }
+        return newStructure;
+    });
+    toast({ variant: 'destructive', title: 'Producto Eliminado', description: `Se ha eliminado "${productName}" de la lista de precios.` });
+  };
+
 
   const handleLinePriceChange = (line: string, value: string) => {
     const formattedValue = value.replace(/[^0-9]/g, '');
@@ -169,7 +236,7 @@ export default function PricingPage() {
     const numericPrice = Number(newPriceValue);
     if (isNaN(numericPrice)) return;
 
-    let productsInLine = productStructure[brand as keyof typeof productStructure][line];
+    let productsInLine = localProductStructure[brand as keyof typeof localProductStructure][line];
     
     if (sizeFilter === 'estandar') {
         productsInLine = productsInLine.filter(p => p.includes('1.22 X 0.61'));
@@ -204,10 +271,10 @@ export default function PricingPage() {
     });
   };
   
-  const brands = Object.keys(productStructure);
+  const brands = Object.keys(localProductStructure);
   
   const lineHasMultipleSizes = (brand: string, line: string) => {
-    const products = productStructure[brand as keyof typeof productStructure][line];
+    const products = localProductStructure[brand as keyof typeof localProductStructure][line];
     const hasEstandar = products.some(p => p.includes('1.22 X 0.61'));
     const hasXL = products.some(p => p.includes('2.44 X 1.22'));
     return hasEstandar && hasXL;
@@ -215,11 +282,19 @@ export default function PricingPage() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Gestión de Precios de Productos</CardTitle>
-        <CardDescription>
-          Ajuste los precios para cada producto individual o actualice una línea de productos completa. Todos los precios son por unidad.
-        </CardDescription>
+      <CardHeader className="flex flex-row justify-between items-start">
+        <div>
+            <CardTitle>Gestión de Precios de Productos</CardTitle>
+            <CardDescription>
+              Ajuste los precios para cada producto individual o actualice una línea de productos completa. Todos los precios son por unidad.
+            </CardDescription>
+        </div>
+        {canEdit && (
+            <Button onClick={() => setIsAddModalOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Añadir Producto
+            </Button>
+        )}
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={brands[0]} className="w-full">
@@ -234,15 +309,15 @@ export default function PricingPage() {
             <TabsContent value={brand} key={brand} className="mt-4">
               <Card>
                 <CardContent className="p-0">
-                  <Tabs defaultValue={Object.keys(productStructure[brand as keyof typeof productStructure])[0]} className="w-full" orientation="vertical">
+                  <Tabs defaultValue={Object.keys(localProductStructure[brand as keyof typeof localProductStructure])[0]} className="w-full" orientation="vertical">
                       <div className="flex justify-center mt-4">
                         <TabsList>
-                            {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
+                            {Object.keys(localProductStructure[brand as keyof typeof localProductStructure]).map((line) => (
                                 <TabsTrigger value={line} key={line}>{line}</TabsTrigger>
                             ))}
                         </TabsList>
                       </div>
-                      {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
+                      {Object.keys(localProductStructure[brand as keyof typeof localProductStructure]).map((line) => (
                           <TabsContent value={line} key={line}>
                             {line !== 'Insumos' && canEdit && (
                               <div className="mb-6 rounded-md border p-4">
@@ -294,24 +369,57 @@ export default function PricingPage() {
                                 <TableRow>
                                   <TableHead>Producto</TableHead>
                                   <TableHead className="text-right">Precio por Unidad (COP)</TableHead>
+                                  {canEdit && <TableHead className="w-[100px] text-right">Acciones</TableHead>}
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {productStructure[brand as keyof typeof productStructure][line].map((product) => (
+                                {localProductStructure[brand as keyof typeof localProductStructure][line].map((product) => (
                                   <TableRow key={product}>
                                     <TableCell>
                                       <Label htmlFor={`price-${product}`} className="font-medium">{product}</Label>
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                      <Input
-                                        id={`price-${product}`}
-                                        type="text"
-                                        value={new Intl.NumberFormat('es-CO').format(prices[product] || 0)}
-                                        onChange={(e) => handlePriceChange(product, e.target.value)}
-                                        className="w-48 ml-auto text-right"
-                                        disabled={!canEdit}
-                                      />
+                                    <TableCell className="text-right font-medium">
+                                       {formatCurrency(prices[product] || 0)}
                                     </TableCell>
+                                     {canEdit && (
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent>
+                                                    <DropdownMenuItem onClick={() => handleOpenEditModal(product)}>
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        Editar Precio
+                                                    </DropdownMenuItem>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                                Eliminar Producto
+                                                            </DropdownMenuItem>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Esta acción no se puede deshacer. Se eliminará el producto y su precio de forma permanente.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDeleteProduct(product)} className="bg-destructive hover:bg-destructive/90">
+                                                                    Eliminar
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                     )}
                                   </TableRow>
                                 ))}
                               </TableBody>
@@ -333,6 +441,115 @@ export default function PricingPage() {
           </Button>
         </CardFooter>
       )}
+
+      {/* Edit Price Modal */}
+      {editingProduct && (
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Editar Precio</DialogTitle>
+                    <DialogDescription>
+                        Ajuste el precio para el producto: <span className="font-semibold">{editingProduct.name}</span>
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <Label htmlFor="edit-price">Nuevo Precio (COP)</Label>
+                    <Input
+                        id="edit-price"
+                        type="text"
+                        value={new Intl.NumberFormat('es-CO').format(editingProduct.price)}
+                        onChange={(e) => setEditingProduct({...editingProduct, price: Number(e.target.value.replace(/[^0-9]/g, ''))})}
+                    />
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="ghost">Cancelar</Button></DialogClose>
+                    <Button onClick={handleUpdatePrice}>Guardar</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+      )}
+      
+      {/* Add Product Modal */}
+      <AddProductDialog
+        isOpen={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        onSave={handleAddProduct}
+        brands={Object.keys(localProductStructure)}
+        linesByBrand={Object.entries(localProductStructure).reduce((acc, [brand, lines]) => {
+            acc[brand] = Object.keys(lines);
+            return acc;
+        }, {} as Record<string, string[]>)}
+      />
+
     </Card>
   );
+}
+
+
+interface AddProductDialogProps {
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSave: (product: { brand: string; line: string; name: string; price: number }) => void;
+    brands: string[];
+    linesByBrand: Record<string, string[]>;
+}
+
+function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesByBrand }: AddProductDialogProps) {
+    const [brand, setBrand] = useState('');
+    const [line, setLine] = useState('');
+    const [name, setName] = useState('');
+    const [price, setPrice] = useState(0);
+    
+    const brandOptions = brands.map(b => ({ value: b, label: b }));
+    const lineOptions = brand ? (linesByBrand[brand] || []).map(l => ({ value: l, label: l })) : [];
+    
+    const handleSave = () => {
+        onSave({ brand, line, name, price });
+        setBrand('');
+        setLine('');
+        setName('');
+        setPrice(0);
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Añadir Nuevo Producto</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label>Marca</Label>
+                        <Select onValueChange={(v) => { setBrand(v); setLine(''); }}>
+                           <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
+                           <SelectContent>
+                             {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
+                           </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                        <Label>Línea</Label>
+                        <Select onValueChange={setLine} disabled={!brand}>
+                           <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
+                           <SelectContent>
+                             {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                           </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                        <Label>Nombre del Producto</Label>
+                        <Input value={name} onChange={e => setName(e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label>Precio (COP)</Label>
+                        <Input type="number" value={price} onChange={e => setPrice(Number(e.target.value))} />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="ghost">Cancelar</Button></DialogClose>
+                    <Button onClick={handleSave}>Añadir Producto</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
 }
