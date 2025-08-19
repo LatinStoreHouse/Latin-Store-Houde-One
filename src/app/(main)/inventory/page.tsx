@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Role } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -160,6 +160,10 @@ const simplifiedColumns = {
     reservas: true,
 };
 
+const partnerColumns = {
+    totalDisponible: true,
+}
+
 export default function InventoryPage() {
   const context = useContext(InventoryContext);
   if (!context) {
@@ -172,10 +176,20 @@ export default function InventoryPage() {
   
   const currentUserRole = currentUser.roles[0];
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
+  const isPartner = currentUserRole === 'Partners';
+  
+  let columnsForExport: Record<string, boolean>;
+  if (canEdit) {
+    columnsForExport = detailedColumns;
+  } else if (isPartner) {
+    columnsForExport = partnerColumns;
+  } else {
+    columnsForExport = simplifiedColumns;
+  }
   
   const [exportOptions, setExportOptions] = useState({
     format: 'pdf',
-    columns: canEdit ? detailedColumns : simplifiedColumns,
+    columns: columnsForExport,
     brands: {} as Record<string, boolean>,
     categories: {} as Record<string, boolean>,
     products: {} as Record<string, boolean>,
@@ -237,7 +251,11 @@ export default function InventoryPage() {
           if (selectedProducts.length > 0 && !selectedProducts.includes(productName)) return;
           
           let exportValues = values;
-          if (!canEdit) {
+          if (isPartner) {
+             exportValues = {
+                totalDisponible: (values.bodega - values.separadasBodega) + (values.zonaFranca - values.separadasZonaFranca)
+             }
+          } else if (!canEdit) {
             exportValues = {
               disponibleBodega: values.bodega - values.separadasBodega,
               disponibleZonaFranca: values.zonaFranca - values.separadasZonaFranca,
@@ -281,8 +299,7 @@ export default function InventoryPage() {
     doc.setTextColor(100);
     doc.text('Reporte de Inventario', 14, 30);
 
-    const columnConfig = canEdit ? detailedColumns : simplifiedColumns;
-    const columns = Object.keys(columnConfig).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
+    const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
     const head: any[] = [['Marca', 'Categoría', 'Producto']];
     head[0].push(...columns.map(c => c.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())));
     
@@ -306,8 +323,7 @@ export default function InventoryPage() {
         return;
     }
 
-    const columnConfig = canEdit ? detailedColumns : simplifiedColumns;
-    const columns = Object.keys(columnConfig).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
+    const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
     const headers = ['Marca', 'Categoría', 'Producto', ...columns.map(c => c.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()))];
 
     let html = '<table><thead><tr>';
@@ -360,7 +376,8 @@ export default function InventoryPage() {
   
   const columnLabels: Record<string, string> = {
     ...Object.fromEntries(Object.keys(detailedColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())])),
-    ...Object.fromEntries(Object.keys(simplifiedColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())]))
+    ...Object.fromEntries(Object.keys(simplifiedColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())])),
+    ...Object.fromEntries(Object.keys(partnerColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())])),
   };
 
 
@@ -402,6 +419,9 @@ export default function InventoryPage() {
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Configurar Exportación de Inventario</DialogTitle>
+                         <DialogDescription>
+                            Seleccione el formato, las columnas y los filtros para su exportación.
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
                         <div className="space-y-4">
