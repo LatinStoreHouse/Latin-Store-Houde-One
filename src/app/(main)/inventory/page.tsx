@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useContext } from 'react';
 import jsPDF from 'jspdf';
@@ -35,25 +36,6 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
   }
 }
-
-const getAvailabilityStatus = (disponible: number) => {
-    if (disponible > 100) return 'En Stock';
-    if (disponible > 0) return 'Poco Stock';
-    return 'Agotado';
-};
-
-const getStatusVariant = (status: string): 'success' | 'secondary' | 'destructive' | 'outline' => {
-    switch (status) {
-        case 'En Stock':
-        return 'success';
-        case 'Poco Stock':
-        return 'secondary';
-        case 'Agotado':
-        return 'destructive';
-        default:
-        return 'outline';
-    }
-};
 
 const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, onDataChange: Function, inventoryData: any }) => {
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
@@ -464,6 +446,7 @@ export default function InventoryPage() {
                     {brands.map((brand) => (
                         <TabsTrigger value={brand} key={brand}>{formatBrandName(brand)}</TabsTrigger>
                     ))}
+                    <TabsTrigger value="all">Todo</TabsTrigger>
                 </TabsList>
             </div>
             {brands.map((brand) => (
@@ -495,8 +478,41 @@ export default function InventoryPage() {
                     </Card>
                 </TabsContent>
             ))}
+             <TabsContent value="all" className="mt-4">
+                <Accordion type="multiple" className="w-full space-y-2">
+                  {brands.map(brand => (
+                    <AccordionItem value={brand} key={brand}>
+                        <AccordionTrigger className="px-4 py-2 bg-muted/50 rounded-md hover:no-underline font-semibold text-base">
+                            {formatBrandName(brand)}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div className="p-2 space-y-4">
+                                {Object.entries(inventoryData[brand as keyof typeof inventoryData]).map(([subCategory, products]) => (
+                                    <Card key={subCategory}>
+                                        <CardHeader className="p-4">
+                                            <CardTitle className="text-lg">{subCategory}</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="p-0">
+                                            <ProductTable
+                                                products={products}
+                                                brand={brand}
+                                                subCategory={subCategory}
+                                                canEdit={canEdit}
+                                                onDataChange={handleDataChange}
+                                                inventoryData={inventoryData}
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+            </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
   );
 }
+
