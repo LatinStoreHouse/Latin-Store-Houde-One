@@ -146,6 +146,20 @@ const ProductTable = ({ products, brand, subCategory, canEdit, onDataChange, inv
 };
 
 
+const detailedColumns = {
+  bodega: true,
+  separadasBodega: true,
+  zonaFranca: true,
+  separadasZonaFranca: true,
+  muestras: true,
+};
+
+const simplifiedColumns = {
+    disponibleBodega: true,
+    disponibleZonaFranca: true,
+    reservas: true,
+};
+
 export default function InventoryPage() {
   const context = useContext(InventoryContext);
   if (!context) {
@@ -155,16 +169,13 @@ export default function InventoryPage() {
   const { currentUser } = useUser();
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  
+  const currentUserRole = currentUser.roles[0];
+  const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
+  
   const [exportOptions, setExportOptions] = useState({
     format: 'pdf',
-    columns: {
-      bodega: true,
-      separadasBodega: true,
-      zonaFranca: true,
-      separadasZonaFranca: true,
-      muestras: true,
-    },
+    columns: canEdit ? detailedColumns : simplifiedColumns,
     brands: {} as Record<string, boolean>,
     categories: {} as Record<string, boolean>,
     products: {} as Record<string, boolean>,
@@ -172,8 +183,6 @@ export default function InventoryPage() {
   const { toast } = useToast();
 
   const brands = Object.keys(inventoryData);
-  const currentUserRole = currentUser.roles[0];
-  const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
   
   const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
     setInventoryData(prevData => {
@@ -227,11 +236,20 @@ export default function InventoryPage() {
         Object.entries(products).forEach(([productName, values]) => {
           if (selectedProducts.length > 0 && !selectedProducts.includes(productName)) return;
           
+          let exportValues = values;
+          if (!canEdit) {
+            exportValues = {
+              disponibleBodega: values.bodega - values.separadasBodega,
+              disponibleZonaFranca: values.zonaFranca - values.separadasZonaFranca,
+              reservas: (values.separadasBodega > 0 || values.separadasZonaFranca > 0) ? `Bodega: ${values.separadasBodega}, ZF: ${values.separadasZonaFranca}` : 'No'
+            }
+          }
+
           filteredData.push({
             brand,
             category,
             name: productName,
-            values
+            values: exportValues
           });
         });
       });
@@ -263,10 +281,10 @@ export default function InventoryPage() {
     doc.setTextColor(100);
     doc.text('Reporte de Inventario', 14, 30);
 
-
+    const columnConfig = canEdit ? detailedColumns : simplifiedColumns;
+    const columns = Object.keys(columnConfig).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
     const head: any[] = [['Marca', 'Categoría', 'Producto']];
-    const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
-    head[0].push(...columns);
+    head[0].push(...columns.map(c => c.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())));
     
     const body = dataToExport.map(item => {
         const row = [item.brand, item.category, item.name];
@@ -288,8 +306,9 @@ export default function InventoryPage() {
         return;
     }
 
-    const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
-    const headers = ['Marca', 'Categoría', 'Producto', ...columns];
+    const columnConfig = canEdit ? detailedColumns : simplifiedColumns;
+    const columns = Object.keys(columnConfig).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
+    const headers = ['Marca', 'Categoría', 'Producto', ...columns.map(c => c.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()))];
 
     let html = '<table><thead><tr>';
     headers.forEach(header => html += `<th>${header}</th>`);
@@ -334,11 +353,16 @@ export default function InventoryPage() {
      try {
        transferFromFreeZone(product, quantity);
        toast({ title: 'Traslado Exitoso', description: `${quantity} unidades de ${product} movidas de Zona Franca a Bodega.` });
-       setIsTransferDialogOpen(false);
      } catch (error: any) {
        toast({ variant: 'destructive', title: 'Error', description: error.message });
      }
   };
+  
+  const columnLabels: Record<string, string> = {
+    ...Object.fromEntries(Object.keys(detailedColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())])),
+    ...Object.fromEntries(Object.keys(simplifiedColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())]))
+  };
+
 
   return (
     <Card>
@@ -351,7 +375,7 @@ export default function InventoryPage() {
                     <Save className="mr-2 h-4 w-4" />
                     Guardar Cambios
                 </Button>
-                <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
+                <Dialog>
                     <DialogTrigger asChild>
                         <Button variant="outline" size="sm">
                             <Truck className="mr-2 h-4 w-4" />
@@ -404,7 +428,7 @@ export default function InventoryPage() {
                                     checked={exportOptions.columns[col as keyof typeof exportOptions.columns]}
                                     onCheckedChange={(checked) => handleExportOptionChange('columns', col, Boolean(checked))}
                                   />
-                                  <Label htmlFor={`col-${col}`} className="font-normal text-sm capitalize">{col.replace(/([A-Z])/g, ' $1')}</Label>
+                                  <Label htmlFor={`col-${col}`} className="font-normal text-sm capitalize">{columnLabels[col]}</Label>
                                 </div>
                                ))}
                              </div>
@@ -535,4 +559,3 @@ export default function InventoryPage() {
     </Card>
   );
 }
-
