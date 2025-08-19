@@ -295,23 +295,26 @@ export default function StoneflexCalculatorPage() {
         let adhesiveUnits = 0;
       
         if (details.line === 'Translucida') {
-          if (isStandardSize) {
-            adhesiveUnits = Math.ceil(calculatedSheets / 2);
-          } else if (isXLSize) {
-            adhesiveUnits = calculatedSheets * 2;
-          }
-          totalTranslucentAdhesiveUnits += adhesiveUnits;
-        } else {
-          if (isStandardSize) {
-            if (details.line === 'Metales') {
-              adhesiveUnits = calculatedSheets;
-            } else {
-              adhesiveUnits = Math.ceil(calculatedSheets / 2);
+           if (isStandardSize) {
+             adhesiveUnits = Math.ceil(calculatedSheets / 1.5);
+           } else if (isXLSize) {
+             adhesiveUnits = calculatedSheets * 2;
+           }
+           totalTranslucentAdhesiveUnits += adhesiveUnits;
+        } else { // All other products
+            if (isStandardSize) {
+                if (details.line === 'Metales') {
+                  adhesiveUnits = calculatedSheets; // 1 per sheet
+                } else if (details.line === 'Clay') {
+                  adhesiveUnits = Math.ceil(calculatedSheets / 1.5);
+                }
+                else { // Pizarra, Cuarcita, Mármol, Concreto, Madera
+                  adhesiveUnits = Math.ceil(calculatedSheets / 2);
+                }
+            } else if (isXLSize) {
+                adhesiveUnits = calculatedSheets * 2;
             }
-          } else if (isXLSize) {
-            adhesiveUnits = calculatedSheets * 2;
-          }
-          totalStandardAdhesiveUnits += adhesiveUnits;
+            totalStandardAdhesiveUnits += adhesiveUnits;
         }
       }
       
@@ -456,6 +459,12 @@ export default function StoneflexCalculatorPage() {
       setter(value);
     }
   };
+  
+  const handleCurrencyInputChange = (setter: React.Dispatch<React.SetStateAction<number>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const numericValue = Number(value.replace(/[^0-9]/g, ''));
+    setter(numericValue);
+  };
 
 
   return (
@@ -564,6 +573,7 @@ export default function StoneflexCalculatorPage() {
                   value={sheets}
                   onChange={(e) => setSheets(e.target.value)}
                   className="w-full"
+                  min="1"
                 />
               </div>
             )}
@@ -712,9 +722,9 @@ export default function StoneflexCalculatorPage() {
                   <Label htmlFor="labor-cost" className="text-muted-foreground">Costo Mano de Obra</Label>
                   <Input
                     id="labor-cost"
-                    type="number"
-                    value={currency === 'USD' ? quote.laborCost : laborCost}
-                    onChange={(e) => setLaborCost(Number(e.target.value))}
+                    type="text"
+                    value={formatCurrency(laborCost).replace(/[^0-9]/g, '')}
+                    onChange={(e) => handleCurrencyInputChange(setLaborCost)(e)}
                     className="w-32 h-8 text-right"
                     placeholder="0"
                   />
@@ -723,9 +733,9 @@ export default function StoneflexCalculatorPage() {
                   <Label htmlFor="transport-cost" className="text-muted-foreground">Costo Transporte</Label>
                   <Input
                     id="transport-cost"
-                    type="number"
-                    value={currency === 'USD' ? quote.transportationCost : transportationCost}
-                    onChange={(e) => setTransportationCost(Number(e.target.value))}
+                    type="text"
+                    value={formatCurrency(transportationCost).replace(/[^0-9]/g, '')}
+                    onChange={(e) => handleCurrencyInputChange(setTransportationCost)(e)}
                     className="w-32 h-8 text-right"
                     placeholder="0"
                   />
