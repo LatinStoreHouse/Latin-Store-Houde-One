@@ -31,9 +31,14 @@ import {
     BookUser,
     FileText,
     BotMessageSquare,
-    Ship
+    Ship,
+    Bell,
+    X
 } from 'lucide-react';
 import { Role, roles } from '@/lib/roles';
+import { useContext } from 'react';
+import { InventoryContext } from '@/context/inventory-context';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const overviewItems = [
   {
@@ -97,6 +102,12 @@ const QuickAccessItem = ({ href, icon: Icon, label }: { href: string; icon: Reac
 );
 
 export default function DashboardPage() {
+    const context = useContext(InventoryContext);
+    if (!context) {
+      throw new Error('DashboardPage must be used within an InventoryProvider');
+    }
+    const { notifications, dismissNotification } = context;
+
     const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
 
     const hasPermission = (item: any) => {
@@ -108,6 +119,26 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <div className="space-y-4">
+        {notifications.map(notification => (
+           <Alert key={notification.id} className="relative bg-primary/10 border-primary/20">
+             <Bell className="h-4 w-4 text-primary" />
+             <AlertTitle className="text-primary font-semibold">{notification.title}</AlertTitle>
+             <AlertDescription className="text-primary/80">
+                {notification.message}
+             </AlertDescription>
+             <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute top-2 right-2 h-6 w-6 text-primary/80 hover:text-primary"
+                onClick={() => dismissNotification(notification.id)}
+             >
+                <X className="h-4 w-4" />
+             </Button>
+           </Alert>
+        ))}
+      </div>
+
       <div className="grid gap-6 md:grid-cols-3">
         {overviewItems.map((item) => (
           <Card key={item.title}>

@@ -20,6 +20,13 @@ export interface Container {
   creationDate: string;
 }
 
+export interface AppNotification {
+  id: number;
+  title: string;
+  message: string;
+  date: string;
+}
+
 export type InventoryData = typeof initialInventoryData;
 
 interface InventoryContextType {
@@ -27,6 +34,8 @@ interface InventoryContextType {
   setInventoryData: React.Dispatch<React.SetStateAction<InventoryData>>;
   containers: Container[];
   setContainers: React.Dispatch<React.SetStateAction<Container[]>>;
+  notifications: AppNotification[];
+  dismissNotification: (id: number) => void;
   transferFromFreeZone: (productName: string, quantity: number) => void;
   receiveContainer: (containerId: string) => void;
   addContainer: (container: Container) => void;
@@ -38,6 +47,8 @@ export const InventoryContext = createContext<InventoryContextType | undefined>(
 export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [inventoryData, setInventoryData] = useState<InventoryData>(initialInventoryData);
   const [containers, setContainers] = useState<Container[]>(initialContainerData);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+
 
   const findProductLocation = (productName: string) => {
     for (const brand in inventoryData) {
@@ -127,6 +138,15 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         c.id === containerId ? { ...c, status: 'Llegado' } : c
       )
     );
+    
+    // Add notification
+    const newNotification: AppNotification = {
+        id: Date.now(),
+        title: '¡Nuevo Material Disponible!',
+        message: `El contenedor ${containerId} ha llegado y su contenido ha sido añadido al inventario de Zona Franca.`,
+        date: new Date().toISOString(),
+    };
+    setNotifications(prev => [newNotification, ...prev]);
   };
   
   const addContainer = (container: Container) => {
@@ -136,6 +156,10 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const editContainer = (containerId: string, updatedContainer: Container) => {
      setContainers(prev => prev.map(c => c.id === containerId ? updatedContainer : c));
   };
+  
+  const dismissNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }
 
 
   return (
@@ -144,6 +168,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       setInventoryData, 
       containers, 
       setContainers,
+      notifications,
+      dismissNotification,
       transferFromFreeZone,
       receiveContainer,
       addContainer,
