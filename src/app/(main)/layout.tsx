@@ -77,7 +77,7 @@ const initialUser: User = {
   active: true,
 };
 
-const navItems = [
+export const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
   {
     label: 'Inventario',
@@ -214,8 +214,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     .filter(Boolean);
 
   const handleLogout = () => {
-    // In a real app, you would clear the user session here.
-    // For this prototype, we just redirect to the login page.
     router.push('/login');
   };
 
@@ -381,7 +379,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           <header className="flex h-14 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur-sm">
             <SidebarTrigger />
             <h1 className="text-lg font-semibold md:text-xl">
-              {navItems.flatMap(item => item.subItems || item).find((navItem) => navItem.href === pathname)?.label || 'Inicio'}
+              {navItems.flatMap(item => item.subItems ? [{href: item.href, label: item.label}, ...item.subItems] : item).find((navItem) => navItem?.href === pathname)?.label || 'Inicio'}
             </h1>
           </header>
           <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>

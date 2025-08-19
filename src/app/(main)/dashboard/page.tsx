@@ -18,20 +18,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-    Warehouse, 
-    Truck, 
-    PackageSearch,
     TrendingUp,
     TrendingDown,
     Users,
-    UserCog,
-    Tags,
-    ShieldCheck,
-    CheckSquare,
-    BookUser,
-    FileText,
-    BotMessageSquare,
-    Ship,
     Bell,
     X
 } from 'lucide-react';
@@ -39,27 +28,50 @@ import { Role, roles } from '@/lib/roles';
 import { useContext } from 'react';
 import { InventoryContext } from '@/context/inventory-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { navItems } from '@/app/(main)/layout';
 
-const overviewItems = [
+
+const inventoryOverviewItems = [
   {
     title: 'En Almacén',
     value: '12,504',
-    icon: Warehouse,
+    icon: TrendingUp,
     description: '+2.5% desde el mes pasado',
   },
   {
     title: 'En Tránsito',
     value: '1,230',
-    icon: Truck,
+    icon: TrendingUp,
     description: '+15.1% desde el mes pasado',
   },
   {
     title: 'En Zona Franca',
     value: '3,456',
-    icon: PackageSearch,
+    icon: TrendingDown,
     description: '-3.2% desde el mes pasado',
   },
 ];
+
+const salesOverviewItems = [
+    {
+      title: 'Nuevos Clientes',
+      value: '+235',
+      icon: Users,
+      description: '+18.1% desde el mes pasado',
+    },
+    {
+      title: 'Cotizaciones Enviadas',
+      value: '1,286',
+      icon: TrendingUp,
+      description: '+12.2% desde el mes pasado',
+    },
+    {
+      title: 'Ventas Cerradas',
+      value: '315',
+      icon: TrendingUp,
+      description: '+8.9% desde el mes pasado',
+    },
+]
 
 const topMovers = [
     { name: 'KUND MULTY 1.22 X 0.61', moved: 152, change: 12.5 },
@@ -77,18 +89,6 @@ const bottomMovers = [
     { name: 'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22', moved: 0, change: 0 },
 ];
 
-const navItems = [
-  { href: '/inventory', label: 'Inventario', icon: Warehouse, permission: 'inventory:view' },
-  { href: '/transit', label: 'Contenedores', icon: Ship, permission: 'inventory:transit' },
-  { href: '/reservations', label: 'Reservas', icon: BookUser, permission: 'reservations:view' },
-  { href: '/orders', label: 'Despachos', icon: Truck, permission: 'orders:view' },
-  { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
-  { href: '/customers', label: 'Clientes', icon: Users, permission: 'customers:view' },
-  { href: '/pricing', label: 'Precios', icon: Tags, permission: 'pricing:view' },
-  { href: '/users', label: 'Usuarios', icon: UserCog, permission: 'users:manage' },
-  { href: '/reports', label: 'Reportes', icon: FileText, permission: 'reports:view' },
-  { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare, permission: 'advisor:use' },
-];
 
 const currentUserRole: Role = 'Administrador';
 
@@ -110,12 +110,14 @@ export default function DashboardPage() {
 
     const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
 
-    const hasPermission = (item: any) => {
-        if (!item.permission) return true;
-        return userPermissions.includes(item.permission);
+    const hasPermission = (permission?: string) => {
+        if (!permission) return true;
+        return userPermissions.includes(permission);
     };
 
-    const accessibleNavItems = navItems.filter(hasPermission);
+    const allNavItems = navItems.flatMap(item => item.subItems ? item.subItems.map(sub => ({...sub, icon: item.icon})) : [{ ...item, icon: item.icon }]);
+    const accessibleNavItems = allNavItems.filter(item => item.href !== '/dashboard' && hasPermission(item.permission));
+    const overviewItems = currentUserRole === 'Asesor de Ventas' ? salesOverviewItems : inventoryOverviewItems;
 
   return (
     <div className="space-y-6">
@@ -161,7 +163,7 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {accessibleNavItems.map(item => (
-                <QuickAccessItem key={item.label} href={item.href} icon={item.icon} label={item.label} />
+                <QuickAccessItem key={item.label} href={item.href!} icon={item.icon} label={item.label} />
             ))}
         </CardContent>
       </Card>
