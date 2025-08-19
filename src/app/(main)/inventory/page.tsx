@@ -151,7 +151,6 @@ const detailedColumns = {
   separadasBodega: true,
   zonaFranca: true,
   separadasZonaFranca: true,
-  muestras: true,
 };
 
 const simplifiedColumns = {
@@ -250,12 +249,19 @@ export default function InventoryPage() {
         Object.entries(products).forEach(([productName, values]) => {
           if (selectedProducts.length > 0 && !selectedProducts.includes(productName)) return;
           
-          let exportValues = values;
+          let exportValues: Record<string, any> = {};
           if (isPartner) {
              exportValues = {
                 totalDisponible: (values.bodega - values.separadasBodega) + (values.zonaFranca - values.separadasZonaFranca)
              }
-          } else if (!canEdit) {
+          } else if (canEdit) {
+             exportValues = {
+                bodega: values.bodega,
+                separadasBodega: values.separadasBodega,
+                zonaFranca: values.zonaFranca,
+                separadasZonaFranca: values.separadasZonaFranca,
+             }
+          } else {
             exportValues = {
               disponibleBodega: values.bodega - values.separadasBodega,
               disponibleZonaFranca: values.zonaFranca - values.separadasZonaFranca,
