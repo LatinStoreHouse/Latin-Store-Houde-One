@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
 import { MonthPicker } from '@/components/month-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,8 @@ import { ForecastSalesOutput } from '@/ai/flows/forecast-sales';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { useToast } from '@/hooks/use-toast';
+import { initialCustomerData } from '@/lib/customers';
+import { cn } from '@/lib/utils';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -85,6 +87,38 @@ export default function ReportsPage() {
     const monthlyData = inventoryMovementData[formattedDate] || { topMovers: [], bottomMovers: [] };
     const monthName = currentDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
     const isPastOrPresentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0) <= new Date();
+
+    const { newCustomersCount, customersChangePercentage } = useMemo(() => {
+        const selectedYear = currentDate.getFullYear();
+        const selectedMonth = currentDate.getMonth();
+
+        const currentMonthCustomers = initialCustomerData.filter(c => {
+            const regDate = new Date(c.registrationDate);
+            return regDate.getFullYear() === selectedYear && regDate.getMonth() === selectedMonth;
+        }).length;
+
+        const prevMonthDate = new Date(currentDate);
+        prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
+        const prevMonthYear = prevMonthDate.getFullYear();
+        const prevMonth = prevMonthDate.getMonth();
+
+        const previousMonthCustomers = initialCustomerData.filter(c => {
+            const regDate = new Date(c.registrationDate);
+            return regDate.getFullYear() === prevMonthYear && regDate.getMonth() === prevMonth;
+        }).length;
+        
+        let changePercentage = 0;
+        if (previousMonthCustomers > 0) {
+            changePercentage = ((currentMonthCustomers - previousMonthCustomers) / previousMonthCustomers) * 100;
+        } else if (currentMonthCustomers > 0) {
+            changePercentage = 100; // If previous was 0 and current is > 0, it's a 100% increase
+        }
+
+        return { 
+            newCustomersCount: currentMonthCustomers,
+            customersChangePercentage: changePercentage
+        };
+    }, [currentDate]);
 
 
     useEffect(() => {
@@ -192,8 +226,11 @@ export default function ReportsPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+235</div>
-              <p className="text-xs text-muted-foreground">+18.1% desde el mes pasado</p>
+              <div className="text-2xl font-bold">+{newCustomersCount}</div>
+               <p className={cn("text-xs text-muted-foreground flex items-center", customersChangePercentage > 0 ? "text-green-600" : "text-red-600")}>
+                {customersChangePercentage > 0 ? <ArrowUp className="h-3 w-3 mr-1" /> : <ArrowDown className="h-3 w-3 mr-1" />}
+                {customersChangePercentage.toFixed(1)}% desde el mes pasado
+              </p>
             </CardContent>
           </Card>
           <Card>

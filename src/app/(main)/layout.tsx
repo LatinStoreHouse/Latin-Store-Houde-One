@@ -56,7 +56,9 @@ import {
     Camera,
     Receipt,
     Store,
-    Megaphone
+    Megaphone,
+    ArrowUp,
+    ArrowDown
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
