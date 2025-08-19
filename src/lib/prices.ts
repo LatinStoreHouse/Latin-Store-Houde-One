@@ -97,5 +97,5 @@ export const initialProductPrices: { [key: string]: number } = {
 
     // Insumos StoneFlex
     'Sellante': 50000,
-    'Adhesivo': 30000,
+    'Adhesivo': 28039,
 };
