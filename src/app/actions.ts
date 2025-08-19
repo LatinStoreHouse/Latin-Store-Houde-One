@@ -2,7 +2,7 @@
 
 import { suggestAdvisor, SuggestAdvisorInput, SuggestAdvisorOutput } from '@/ai/flows/suggest-advisor';
 import { forecastSales, ForecastSalesOutput } from '@/ai/flows/forecast-sales';
-import { generateCampaignMessage, GenerateCampaignInput, GenerateCampaignOutput } from '@/ai/flows/generate-campaign-flow';
+import { generateCampaignMessage as generateCampaignMessageFlow, GenerateCampaignInput, GenerateCampaignOutput } from '@/ai/flows/generate-campaign-flow';
 import { inventoryMovementData } from '@/lib/inventory-movement';
 import { z } from 'zod';
 
@@ -95,13 +95,13 @@ type CampaignMessageState = {
   error?: string;
 }
 
-export async function generateCampaignMessage(input: GenerateCampaignInput): Promise<CampaignMessageState> {
+export async function getCampaignMessageSuggestion(input: GenerateCampaignInput): Promise<CampaignMessageState> {
     if (!input.campaignName) {
         return { error: 'El nombre de la campaña no puede estar vacío.' };
     }
     
     try {
-        const result = await generateCampaignMessage(input);
+        const result = await generateCampaignMessageFlow(input);
         return { result };
     } catch (e: any) {
         console.error(e);

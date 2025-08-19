@@ -13,7 +13,7 @@ import { CampaignPreview } from '@/components/campaign-preview';
 import { Customer, CustomerStatus, initialCustomerData, customerStatuses } from '@/lib/customers';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { generateCampaignMessage } from '@/app/actions';
+import { getCampaignMessageSuggestion } from '@/app/actions';
 
 
 type AudienceType = 'all' | 'byStatus';
@@ -59,7 +59,7 @@ export default function CreateCampaignPage() {
             return;
         }
         setIsGenerating(true);
-        const result = await generateCampaignMessage({ campaignName });
+        const result = await getCampaignMessageSuggestion({ campaignName });
         if (result.error) {
             toast({ variant: 'destructive', title: 'Error de IA', description: result.error });
         } else if (result.result) {
