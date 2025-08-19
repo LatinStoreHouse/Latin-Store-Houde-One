@@ -21,6 +21,7 @@ export const initialCustomerData: Customer[] = [
   { id: 5, name: 'Ethan Davis', phone: '555-0105', email: 'ethan@example.com', address: 'Transversal 5 # 10-1', city: 'Medellín', source: 'Email', assignedTo: 'Jane Smith', status: 'Sin respuesta', registrationDate: '2024-05-05' },
   { id: 6, name: 'Fiona Garcia', phone: '555-0106', email: 'fiona@example.com', address: '', city: 'Barranquilla', source: 'Sitio Web', assignedTo: 'John Doe', status: 'Showroom', registrationDate: '2024-05-12' },
   { id: 7, name: 'George Harris', phone: '555-0107', email: 'george@example.com', address: '', city: 'Bogotá', source: 'Referido', assignedTo: 'Peter Jones', status: 'Cotizado', registrationDate: '2024-04-30' },
+  { id: 8, name: 'International Corp', phone: '555-0108', email: 'contact@inter.co', address: '123 Global Way', city: 'Miami', source: 'Referido', assignedTo: 'Jane Smith', status: 'Contactado', registrationDate: '2024-07-22' },
 ];
 
 

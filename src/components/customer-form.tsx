@@ -90,14 +90,14 @@ export function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) 
       {error && <p className="text-sm text-destructive -mt-2 text-center">{error}</p>}
        <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-                <Label htmlFor="city">Ciudad</Label>
+                <Label htmlFor="city">Ciudad / País</Label>
                 <Combobox
                     options={colombianCities}
                     value={city}
                     onValueChange={setCity}
-                    placeholder="Seleccione una ciudad"
-                    searchPlaceholder="Buscar ciudad..."
-                    emptyPlaceholder="No se encontró la ciudad."
+                    placeholder="Seleccione una ubicación"
+                    searchPlaceholder="Buscar ubicación..."
+                    emptyPlaceholder="No se encontró la ubicación."
                     allowFreeText
                 />
             </div>
