@@ -7,52 +7,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
-import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Send, BotMessageSquare, Users, ShoppingBag, BarChartHorizontal } from 'lucide-react';
+import { ArrowLeft, Send, BotMessageSquare, Users, BarChartHorizontal } from 'lucide-react';
 import { CampaignPreview } from '@/components/campaign-preview';
-import { initialInventoryData } from '@/lib/initial-inventory';
-import { initialReservations } from '@/lib/sales-history';
 import { CustomerStatus, initialCustomerData, customerStatuses } from '@/lib/customers';
 import { Checkbox } from '@/components/ui/checkbox';
 
 
-type AudienceType = 'all' | 'byProduct' | 'byStatus';
+type AudienceType = 'all' | 'byStatus';
 
-const getAllProducts = (): ComboboxOption[] => {
-    const products: ComboboxOption[] = [];
-    for (const brand in initialInventoryData) {
-        for (const subCategory in initialInventoryData[brand as keyof typeof initialInventoryData]) {
-            for (const productName in initialInventoryData[brand as keyof typeof initialInventoryData][subCategory]) {
-                products.push({
-                    value: productName,
-                    label: productName,
-                });
-            }
-        }
-    }
-    // Remove duplicates and sort
-    return [...new Map(products.map(item => [item['value'], item])).values()].sort((a,b) => a.label.localeCompare(b.label));
-};
 
 export default function CreateCampaignPage() {
     const [campaignName, setCampaignName] = useState('');
     const [audience, setAudience] = useState<AudienceType>('all');
-    const [selectedProduct, setSelectedProduct] = useState('');
     const [selectedStatuses, setSelectedStatuses] = useState<CustomerStatus[]>([]);
     const [message, setMessage] = useState('');
 
-    const productOptions = useMemo(() => getAllProducts(), []);
-
     const audienceCount = useMemo(() => {
-        if (audience === 'byProduct' && selectedProduct) {
-            const customersWhoBoughtProduct = new Set(
-                initialReservations
-                    .filter(r => r.product === selectedProduct && r.status === 'Validada')
-                    .map(r => r.customer)
-            );
-            return customersWhoBoughtProduct.size;
-        }
          if (audience === 'byStatus' && selectedStatuses.length > 0) {
             const customersWithStatus = new Set(
                 initialCustomerData
@@ -62,7 +33,7 @@ export default function CreateCampaignPage() {
             return customersWithStatus.size;
         }
         return 0; // Or you could calculate total unique customers for 'all'
-    }, [audience, selectedProduct, selectedStatuses]);
+    }, [audience, selectedStatuses]);
     
     const handleStatusChange = (status: CustomerStatus, checked: boolean) => {
         if (checked) {
@@ -116,30 +87,6 @@ export default function CreateCampaignPage() {
                             <div className="flex-1">
                                 <span className="font-semibold flex items-center gap-2"><Users className="h-4 w-4" />Todos los Clientes</span>
                                 <p className="text-sm text-muted-foreground mt-1">Enviar la campaña a cada cliente en tu base de datos.</p>
-                            </div>
-                        </Label>
-                        <Label htmlFor="audience-product" className="flex items-start gap-4 space-y-1 rounded-md border p-4 cursor-pointer">
-                             <RadioGroupItem value="byProduct" id="audience-product" className="mt-1"/>
-                            <div className="flex-1">
-                                <span className="font-semibold flex items-center gap-2"><ShoppingBag className="h-4 w-4" />Clientes por Producto Comprado</span>
-                                <p className="text-sm text-muted-foreground mt-1">Enviar solo a clientes que han comprado un producto específico en el pasado (basado en reservas validadas).</p>
-                                {audience === 'byProduct' && (
-                                    <div className="mt-3 space-y-2">
-                                         <Combobox
-                                            options={productOptions}
-                                            value={selectedProduct}
-                                            onValueChange={setSelectedProduct}
-                                            placeholder="Seleccione un producto"
-                                            searchPlaceholder="Buscar producto..."
-                                            emptyPlaceholder="No se encontró el producto."
-                                        />
-                                        {selectedProduct && (
-                                            <p className="text-sm text-primary font-medium">
-                                                Esta campaña se enviará a **{audienceCount}** {audienceCount === 1 ? 'cliente' : 'clientes'} que han comprado este producto.
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
                             </div>
                         </Label>
                          <Label htmlFor="audience-status" className="flex items-start gap-4 space-y-1 rounded-md border p-4 cursor-pointer">
