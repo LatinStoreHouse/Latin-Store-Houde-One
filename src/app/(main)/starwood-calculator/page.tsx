@@ -46,6 +46,7 @@ interface QuoteItem {
 export default function StarwoodCalculatorPage() {
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
+  const [customerName, setCustomerName] = useState('');
   const [sqMeters, setSqMeters] = useState<number | string>(1);
   const [wastePercentage, setWastePercentage] = useState<number | string>(5);
 
@@ -156,10 +157,11 @@ export default function StarwoodCalculatorPage() {
   const handleDownloadPdf = () => {
     if (!quote) return;
     const doc = new jsPDF();
-    doc.text(`Cotización Starwood - Válida hasta ${quote.expiryDate}`, 14, 20);
+    doc.text(`Cotización Starwood - Cliente: ${customerName || 'N/A'}`, 14, 20);
+    doc.text(`Válida hasta ${quote.expiryDate}`, 14, 26);
 
     quote.items.forEach((item, index) => {
-        let y = 30 + (index * 50);
+        let y = 35 + (index * 50);
         doc.text(`Producto: ${item.reference}`, 14, y);
         y += 7;
         const tableBody = [
@@ -184,6 +186,7 @@ export default function StarwoodCalculatorPage() {
     if (!quote) return;
 
     let message = `*Cotización de Starwood - Latin Store House*\n\n`;
+    message += `*Cliente:* ${customerName || 'N/A'}\n`;
     message += `*Fecha de Cotización:* ${quote.creationDate}\n`;
     message += `*Válida hasta:* ${quote.expiryDate}\n\n`;
 
@@ -214,6 +217,16 @@ export default function StarwoodCalculatorPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+         <div className="space-y-2">
+            <Label htmlFor="customer-name">Nombre del Cliente</Label>
+            <Input
+              id="customer-name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Ingrese el nombre del cliente..."
+            />
+          </div>
+          <Separator />
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
             <div className="space-y-2">
                <Label>Referencia de Producto</Label>
@@ -248,7 +261,7 @@ export default function StarwoodCalculatorPage() {
               </div>
           </div>
           <div className="flex justify-end">
-              <Button onClick={handleAddProduct} className="mt-4" disabled={!reference}>
+              <Button onClick={handleAddProduct} className="mt-4" disabled={!reference || !customerName}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Agregar a la Cotización
               </Button>
@@ -258,6 +271,7 @@ export default function StarwoodCalculatorPage() {
           <Card className="bg-primary/5 mt-6">
             <CardHeader>
               <CardTitle>Resumen de la Cotización</CardTitle>
+              <CardDescription>Cliente: {customerName}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
