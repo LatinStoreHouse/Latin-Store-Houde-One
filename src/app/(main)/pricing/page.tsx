@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -10,6 +11,8 @@ import { Save } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { initialProductPrices } from '@/lib/prices';
+import { useUser } from '@/app/(main)/layout';
+import { roles } from '@/lib/roles';
 
 
 const productStructure: { [key: string]: { [line: string]: string[] } } = {
@@ -130,6 +133,10 @@ export default function PricingPage() {
   const [linePrices, setLinePrices] = useState<{ [key: string]: string }>({});
   const [sizeFilters, setSizeFilters] = useState<{ [key: string]: SizeFilter }>({});
   const { toast } = useToast();
+  const { currentUser } = useUser();
+
+  const userPermissions = roles.find(r => r.name === currentUser.roles[0])?.permissions || [];
+  const canEdit = userPermissions.includes('pricing:edit');
 
   const handlePriceChange = (product: string, value: string) => {
     const numericValue = Number(value.replace(/[^0-9]/g, ''));
@@ -236,7 +243,7 @@ export default function PricingPage() {
                       </div>
                       {Object.keys(productStructure[brand as keyof typeof productStructure]).map((line) => (
                           <TabsContent value={line} key={line}>
-                            {line !== 'Insumos' && (
+                            {line !== 'Insumos' && canEdit && (
                               <div className="mb-6 rounded-md border p-4">
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                                     <div className="flex-1 space-y-1.5 md:col-span-1">
@@ -247,6 +254,7 @@ export default function PricingPage() {
                                          placeholder="Ingrese un nuevo precio..."
                                          value={new Intl.NumberFormat('es-CO').format(Number(linePrices[line] || 0))}
                                          onChange={(e) => handleLinePriceChange(line, e.target.value)}
+                                         disabled={!canEdit}
                                        />
                                     </div>
                                     {lineHasMultipleSizes(brand, line) && (
@@ -256,7 +264,9 @@ export default function PricingPage() {
                                               defaultValue="todos" 
                                               value={sizeFilters[line] || 'todos'}
                                               onValueChange={(value) => handleSizeFilterChange(line, value as SizeFilter)}
-                                              className="flex gap-4 pt-2">
+                                              className="flex gap-4 pt-2"
+                                              disabled={!canEdit}
+                                          >
                                             <div className="flex items-center space-x-2">
                                               <RadioGroupItem value="todos" id={`size-todos-${brand}-${line}`} />
                                               <Label htmlFor={`size-todos-${brand}-${line}`}>Todos</Label>
@@ -273,7 +283,7 @@ export default function PricingPage() {
                                       </div>
                                     )}
                                     <div className="md:col-span-1">
-                                      <Button onClick={() => handleApplyPriceToLine(brand, line)} className="w-full">Aplicar a Selección</Button>
+                                      <Button onClick={() => handleApplyPriceToLine(brand, line)} className="w-full" disabled={!canEdit}>Aplicar a Selección</Button>
                                     </div>
                                 </div>
                                </div>
@@ -298,6 +308,7 @@ export default function PricingPage() {
                                         value={new Intl.NumberFormat('es-CO').format(prices[product] || 0)}
                                         onChange={(e) => handlePriceChange(product, e.target.value)}
                                         className="w-48 ml-auto text-right"
+                                        disabled={!canEdit}
                                       />
                                     </TableCell>
                                   </TableRow>
@@ -313,12 +324,14 @@ export default function PricingPage() {
           ))}
         </Tabs>
       </CardContent>
-      <CardFooter className="flex justify-end">
-        <Button onClick={handleSaveChanges}>
-          <Save className="mr-2 h-4 w-4" />
-          Guardar Cambios
-        </Button>
-      </CardFooter>
+      {canEdit && (
+        <CardFooter className="flex justify-end">
+          <Button onClick={handleSaveChanges}>
+            <Save className="mr-2 h-4 w-4" />
+            Guardar Cambios
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }
