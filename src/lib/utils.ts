@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const getLogoBase64 = async (): Promise<string> => {
-  const response = await fetch('https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp');
+  const response = await fetch('https://www.latinstorehouse.com/wp-content/uploads/2021/02/LATIN-STORE-HOUSE.png');
   const blob = await response.blob();
   const reader = new FileReader();
   return new Promise((resolve) => {
