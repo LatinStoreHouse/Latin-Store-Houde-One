@@ -296,7 +296,7 @@ export default function StoneflexCalculatorPage() {
       
         if (details.line === 'Translucida') {
            if (isStandardSize) {
-             adhesiveUnits = Math.ceil(calculatedSheets / 1.5);
+             adhesiveUnits = Math.ceil(calculatedSheets / 2);
            } else if (isXLSize) {
              adhesiveUnits = calculatedSheets * 2;
            }
@@ -420,7 +420,7 @@ export default function StoneflexCalculatorPage() {
     message += `\n*Desglose de Costos (${currency}):*\n`;
     message += `- Subtotal Productos: ${formatCurrency(quote.totalProductCost)}\n`;
     if(quote.totalSealantCost > 0 && quote.totalSealantUnits > 0) {
-      const sealantUnitCost = quote.totalSealantCost / quote.totalSealantUnits;
+      const sealantUnitCost = quote.sealantPrice;
       message += `- Costo Sellante (${quote.totalSealantUnits} u. @ ${formatCurrency(sealantUnitCost)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
     if (quote.totalStandardAdhesiveCost > 0 && quote.totalStandardAdhesiveUnits > 0) {
@@ -763,6 +763,11 @@ export default function StoneflexCalculatorPage() {
                   <p>
                     Esta es una cotización preliminar y no incluye costos de instalación si no se especifica.
                   </p>
+                  {currency === 'USD' && (
+                    <p className="font-semibold">
+                      Nota: La TRM (Tasa Representativa del Mercado) puede variar diariamente, lo cual podría afectar el valor final de esta cotización al momento de la facturación.
+                    </p>
+                  )}
                   {quote.isWarrantyVoid && (
                     <p className="font-semibold text-destructive">
                       La no inclusión de sellante o adhesivo puede anular la garantía del producto.
@@ -776,4 +781,5 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
 
