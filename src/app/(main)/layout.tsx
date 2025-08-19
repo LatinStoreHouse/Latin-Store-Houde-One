@@ -82,10 +82,10 @@ const navItems = [
     label: 'Inventario',
     icon: Warehouse,
     subItems: [
-      { href: '/inventory', label: 'Inventario', permission: 'inventory:view' },
       { href: '/transit', label: 'Contenedores', permission: 'inventory:transit' },
-      { href: '/reservations', label: 'Reservas', permission: 'reservations:view' },
       { href: '/orders', label: 'Despachos', permission: 'orders:view' },
+      { href: '/inventory', label: 'Inventario', permission: 'inventory:view' },
+      { href: '/reservations', label: 'Reservas', permission: 'reservations:view' },
     ],
   },
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
