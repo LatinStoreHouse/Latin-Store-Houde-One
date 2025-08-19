@@ -89,7 +89,7 @@ export default function CreateCampaignPage() {
                              <RadioGroupItem value="byProduct" id="audience-product" className="mt-1"/>
                             <div className="flex-1">
                                 <span className="font-semibold flex items-center gap-2"><ShoppingBag className="h-4 w-4" />Clientes por Producto Comprado</span>
-                                <p className="text-sm text-muted-foreground mt-1">Enviar solo a clientes que han comprado un producto específico.</p>
+                                <p className="text-sm text-muted-foreground mt-1">Enviar solo a clientes que han comprado un producto específico en el pasado. (Requiere historial de ventas detallado).</p>
                                 {audience === 'byProduct' && (
                                     <div className="mt-3">
                                          <Combobox
