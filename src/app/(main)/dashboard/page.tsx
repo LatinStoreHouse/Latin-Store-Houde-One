@@ -141,20 +141,23 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {overviewItems.map((item) => (
-          <Card key={item.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-              <item.icon className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{item.value}</div>
-              <p className="text-xs text-muted-foreground">{item.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {currentUserRole !== 'Partners' && (
+        <div className="grid gap-6 md:grid-cols-3">
+            {overviewItems.map((item) => (
+            <Card key={item.title}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+                <item.icon className="h-5 w-5 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                <div className="text-2xl font-bold">{item.value}</div>
+                <p className="text-xs text-muted-foreground">{item.description}</p>
+                </CardContent>
+            </Card>
+            ))}
+        </div>
+      )}
+
 
       <Card>
         <CardHeader>
