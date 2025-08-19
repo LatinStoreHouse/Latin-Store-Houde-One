@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -139,6 +140,7 @@ export default function PricingPage() {
   const [prices, setPrices] = useState(initialProductPrices);
   const [linePrices, setLinePrices] = useState<{ [key: string]: string }>({});
   const [sizeFilters, setSizeFilters] = useState<{ [key: string]: SizeFilter }>({});
+  const [isEditingLine, setIsEditingLine] = useState(false);
   const { toast } = useToast();
   const { currentUser } = useUser();
   
@@ -320,48 +322,60 @@ export default function PricingPage() {
                       {Object.keys(localProductStructure[brand as keyof typeof localProductStructure]).map((line) => (
                           <TabsContent value={line} key={line}>
                             {line !== 'Insumos' && canEdit && (
-                              <div className="mb-6 rounded-md border p-4">
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                                    <div className="flex-1 space-y-1.5 md:col-span-1">
-                                      <Label htmlFor={`line-price-${brand}-${line}`}>Nuevo Precio para la Línea {line}</Label>
-                                       <Input
-                                         id={`line-price-${brand}-${line}`}
-                                         type="text"
-                                         placeholder="Ingrese un nuevo precio..."
-                                         value={new Intl.NumberFormat('es-CO').format(Number(linePrices[line] || 0))}
-                                         onChange={(e) => handleLinePriceChange(line, e.target.value)}
-                                         disabled={!canEdit}
-                                       />
+                                <div className="mb-6 rounded-md border p-4">
+                                  {!isEditingLine ? (
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-sm text-muted-foreground">Actualice los precios de toda la línea de una vez.</p>
+                                        <Button variant="outline" onClick={() => setIsEditingLine(true)}>
+                                            <Edit className="mr-2 h-4 w-4" /> Editar Precios de Línea
+                                        </Button>
                                     </div>
-                                    {lineHasMultipleSizes(brand, line) && (
-                                       <div className="md:col-span-1">
-                                          <Label>Aplicar a Tamaño</Label>
-                                          <RadioGroup 
-                                              defaultValue="todos" 
-                                              value={sizeFilters[line] || 'todos'}
-                                              onValueChange={(value) => handleSizeFilterChange(line, value as SizeFilter)}
-                                              className="flex gap-4 pt-2"
-                                              disabled={!canEdit}
-                                          >
-                                            <div className="flex items-center space-x-2">
-                                              <RadioGroupItem value="todos" id={`size-todos-${brand}-${line}`} />
-                                              <Label htmlFor={`size-todos-${brand}-${line}`}>Todos</Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                              <RadioGroupItem value="estandar" id={`size-estandar-${brand}-${line}`} />
-                                              <Label htmlFor={`size-estandar-${brand}-${line}`}>Estándar</Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                              <RadioGroupItem value="xl" id={`size-xl-${brand}-${line}`} />
-                                              <Label htmlFor={`size-xl-${brand}-${line}`}>XL</Label>
-                                            </div>
-                                          </RadioGroup>
-                                      </div>
-                                    )}
-                                    <div className="md:col-span-1">
-                                      <Button onClick={() => handleApplyPriceToLine(brand, line)} className="w-full" disabled={!canEdit}>Aplicar a Selección</Button>
+                                  ) : (
+                                    <>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                        <div className="flex-1 space-y-1.5 md:col-span-1">
+                                          <Label htmlFor={`line-price-${brand}-${line}`}>Nuevo Precio para la Línea {line}</Label>
+                                           <Input
+                                             id={`line-price-${brand}-${line}`}
+                                             type="text"
+                                             placeholder="Ingrese un nuevo precio..."
+                                             value={new Intl.NumberFormat('es-CO').format(Number(linePrices[line] || 0))}
+                                             onChange={(e) => handleLinePriceChange(line, e.target.value)}
+                                             disabled={!canEdit}
+                                           />
+                                        </div>
+                                        {lineHasMultipleSizes(brand, line) && (
+                                           <div className="md:col-span-1">
+                                              <Label>Aplicar a Tamaño</Label>
+                                              <RadioGroup 
+                                                  defaultValue="todos" 
+                                                  value={sizeFilters[line] || 'todos'}
+                                                  onValueChange={(value) => handleSizeFilterChange(line, value as SizeFilter)}
+                                                  className="flex gap-4 pt-2"
+                                                  disabled={!canEdit}
+                                              >
+                                                <div className="flex items-center space-x-2">
+                                                  <RadioGroupItem value="todos" id={`size-todos-${brand}-${line}`} />
+                                                  <Label htmlFor={`size-todos-${brand}-${line}`}>Todos</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                  <RadioGroupItem value="estandar" id={`size-estandar-${brand}-${line}`} />
+                                                  <Label htmlFor={`size-estandar-${brand}-${line}`}>Estándar</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                  <RadioGroupItem value="xl" id={`size-xl-${brand}-${line}`} />
+                                                  <Label htmlFor={`size-xl-${brand}-${line}`}>XL</Label>
+                                                </div>
+                                              </RadioGroup>
+                                          </div>
+                                        )}
+                                        <div className="md:col-span-1 flex gap-2">
+                                          <Button onClick={() => handleApplyPriceToLine(brand, line)} className="w-full" disabled={!canEdit}>Aplicar</Button>
+                                          <Button variant="ghost" onClick={() => setIsEditingLine(false)}>Cancelar</Button>
+                                        </div>
                                     </div>
-                                </div>
+                                    </>
+                                  )}
                                </div>
                             )}
                             <Table>
