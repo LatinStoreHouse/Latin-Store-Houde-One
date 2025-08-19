@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import {
@@ -148,7 +149,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {currentUserRole !== 'Partners' && (
+      {currentUserRole !== 'Partners' && currentUserRole !== 'Marketing' && (
         <div className="grid gap-6 md:grid-cols-3">
             {overviewItems.map((item) => (
             <Card key={item.title}>
