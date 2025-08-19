@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -28,7 +29,6 @@ import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, Messag
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
-import { BulkMessageForm } from '@/components/bulk-message-form';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { initialCustomerData, Customer, CustomerStatus, statusColors } from '@/lib/customers';
@@ -45,10 +45,10 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomerData);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isBulkMessageModalOpen, setIsBulkMessageModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined);
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const { toast } = useToast();
+  const router = useRouter();
 
   const filteredCustomers = customers.filter(
     (customer) =>
@@ -106,7 +106,13 @@ export default function CustomersPage() {
     }
   }
 
-  const customersForBulkMessage = customers.filter(c => selectedCustomers.includes(c.id));
+  const handleBulkAction = () => {
+    if (selectedCustomers.length > 0) {
+      const customerIds = selectedCustomers.join(',');
+      router.push(`/marketing/campaigns/create?customer_ids=${customerIds}`);
+    }
+  };
+
 
   return (
     <>
@@ -136,7 +142,7 @@ export default function CustomersPage() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setIsBulkMessageModalOpen(true)} disabled={selectedCustomers.length === 0}>
+                <DropdownMenuItem onClick={handleBulkAction} disabled={selectedCustomers.length === 0}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Enviar Mensaje/Campaña
                 </DropdownMenuItem>
@@ -232,18 +238,6 @@ export default function CustomersPage() {
                 onSave={handleSaveCustomer}
                 onCancel={() => setIsModalOpen(false)}
             />
-        </DialogContent>
-    </Dialog>
-    
-    <Dialog open={isBulkMessageModalOpen} onOpenChange={setIsBulkMessageModalOpen}>
-        <DialogContent>
-             <DialogHeader>
-                <DialogTitle>Enviar Mensaje Masivo</DialogTitle>
-                <DialogDescription>
-                  Redacte un mensaje para enviar a los {selectedCustomers.length} clientes seleccionados.
-                </DialogDescription>
-            </DialogHeader>
-            <BulkMessageForm customers={customersForBulkMessage} />
         </DialogContent>
     </Dialog>
     </>

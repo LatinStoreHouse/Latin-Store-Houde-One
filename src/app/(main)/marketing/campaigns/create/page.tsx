@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Send, BotMessageSquare, Users, BarChartHorizontal, Mail, Loader2, Paperclip, X } from 'lucide-react';
+import { ArrowLeft, Send, BotMessageSquare, Users, BarChartHorizontal, Mail, Loader2, Paperclip, X, UserCheck } from 'lucide-react';
 import { CampaignPreview } from '@/components/campaign-preview';
 import { Customer, CustomerStatus, initialCustomerData, customerStatuses } from '@/lib/customers';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getCampaignMessageSuggestion } from '@/app/actions';
 
 
-type AudienceType = 'all' | 'byStatus';
+type AudienceType = 'all' | 'byStatus' | 'selected';
 type ChannelType = 'email' | 'whatsapp';
 
 const WhatsAppIcon = () => (
@@ -26,6 +27,9 @@ const WhatsAppIcon = () => (
 
 
 export default function CreateCampaignPage() {
+    const searchParams = useSearchParams();
+    const customerIdsParam = searchParams.get('customer_ids');
+
     const [campaignName, setCampaignName] = useState('');
     const [audience, setAudience] = useState<AudienceType>('all');
     const [selectedStatuses, setSelectedStatuses] = useState<CustomerStatus[]>([]);
@@ -37,6 +41,16 @@ export default function CreateCampaignPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
 
+    const preselectedCustomerIds = useMemo(() => {
+        return customerIdsParam ? customerIdsParam.split(',').map(Number) : [];
+    }, [customerIdsParam]);
+
+    useEffect(() => {
+        if (preselectedCustomerIds.length > 0) {
+            setAudience('selected');
+        }
+    }, [preselectedCustomerIds]);
+
     const selectedCustomers = useMemo(() => {
         if (audience === 'all') {
             return initialCustomerData;
@@ -44,8 +58,11 @@ export default function CreateCampaignPage() {
         if (audience === 'byStatus' && selectedStatuses.length > 0) {
             return initialCustomerData.filter(c => selectedStatuses.includes(c.status));
         }
+        if (audience === 'selected' && preselectedCustomerIds.length > 0) {
+            return initialCustomerData.filter(c => preselectedCustomerIds.includes(c.id));
+        }
         return [];
-    }, [audience, selectedStatuses]);
+    }, [audience, selectedStatuses, preselectedCustomerIds]);
     
     const audienceCount = selectedCustomers.length;
     
@@ -170,6 +187,20 @@ export default function CreateCampaignPage() {
                 </CardHeader>
                 <CardContent>
                     <RadioGroup value={audience} onValueChange={(v) => setAudience(v as AudienceType)} className="space-y-4">
+                        {preselectedCustomerIds.length > 0 && (
+                             <Label htmlFor="audience-selected" className="flex items-start gap-4 space-y-1 rounded-md border-2 border-primary bg-primary/5 p-4 cursor-pointer">
+                                <RadioGroupItem value="selected" id="audience-selected" className="mt-1"/>
+                                <div className="flex-1">
+                                    <span className="font-semibold flex items-center gap-2"><UserCheck className="h-4 w-4 text-primary" />Clientes Seleccionados</span>
+                                    <p className="text-sm text-primary/80 mt-1">Enviar la campaña a los clientes que elegiste en la página anterior.</p>
+                                     {audience === 'selected' && (
+                                         <p className="text-sm text-primary font-bold pt-2">
+                                            Esta campaña se enviará a **{audienceCount}** {audienceCount === 1 ? 'cliente' : 'clientes'}.
+                                        </p>
+                                     )}
+                                </div>
+                            </Label>
+                        )}
                         <Label htmlFor="audience-all" className="flex items-start gap-4 space-y-1 rounded-md border p-4 cursor-pointer">
                             <RadioGroupItem value="all" id="audience-all" className="mt-1"/>
                             <div className="flex-1">
