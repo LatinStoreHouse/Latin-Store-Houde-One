@@ -31,7 +31,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Role } from '@/lib/roles';
@@ -74,12 +73,11 @@ const initialReservations: Reservation[] = [
 
 const currentUserRole: Role = 'Administrador';
 
-const ContainerCard = ({ container, canEdit, onEdit, onReceive, onAddProduct }: {
+const ContainerCard = ({ container, canEdit, onEdit, onReceive }: {
     container: ContainerType;
     canEdit: boolean;
     onEdit: (container: ContainerType) => void;
     onReceive: (containerId: string) => void;
-    onAddProduct: (containerId: string) => void;
 }) => {
     const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
         return initialReservations
@@ -417,7 +415,6 @@ export default function TransitPage() {
               canEdit={canEdit}
               onEdit={handleOpenEditDialog}
               onReceive={handleReceiveContainer}
-              onAddProduct={() => {}} // No longer needed
             />
           ))}
           {list.length === 0 && (
@@ -672,3 +669,5 @@ export default function TransitPage() {
     </div>
   );
 }
+
+    
