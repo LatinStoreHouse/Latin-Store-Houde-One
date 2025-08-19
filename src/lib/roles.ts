@@ -40,7 +40,7 @@ export type Permission =
   'marketing:view' |
   'marketing:create';
 
-export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing';
+export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners';
 
 export interface RoleConfig {
     id: string;
@@ -150,6 +150,14 @@ export const roles: RoleConfig[] = [
             'advisor:use',
             'marketing:view',
             'marketing:create'
+        ]
+    },
+    {
+        id: 'partners',
+        name: 'Partners',
+        permissions: [
+            'inventory:view',
+            'calculators:use'
         ]
     }
 ];
