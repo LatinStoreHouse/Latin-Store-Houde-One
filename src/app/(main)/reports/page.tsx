@@ -185,17 +185,7 @@ export default function ReportsPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Ingresos Totales</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">$45,231.89</div>
-              <p className="text-xs text-muted-foreground">+20.1% desde el mes pasado</p>
-            </CardContent>
-          </Card>
+        <CardContent className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader className="flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Nuevos Clientes</CardTitle>
