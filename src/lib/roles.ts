@@ -148,7 +148,8 @@ export const roles: RoleConfig[] = [
             'reports:view',
             'advisor:use',
             'marketing:view',
-            'marketing:create'
+            'marketing:create',
+            'pricing:view'
         ]
     },
     {
