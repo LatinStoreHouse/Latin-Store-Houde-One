@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2 } from 'lucide-react';
@@ -95,6 +96,7 @@ interface QuoteItem {
 }
 
 export default function StoneflexCalculatorPage() {
+  const searchParams = useSearchParams();
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -114,6 +116,13 @@ export default function StoneflexCalculatorPage() {
   const referenceOptions = useMemo(() => {
     return allReferences.map(ref => ({ value: ref, label: ref }));
   }, []);
+
+  useEffect(() => {
+    const customerNameParam = searchParams.get('customerName');
+    if (customerNameParam) {
+        setCustomerName(decodeURIComponent(customerNameParam));
+    }
+  }, [searchParams]);
 
   const fetchTrm = async () => {
     setTrmLoading(true);

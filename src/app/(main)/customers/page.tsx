@@ -25,10 +25,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, MapPin } from 'lucide-react';
+import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, MapPin, Calculator } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -101,6 +104,7 @@ export default function CustomersPage() {
   const canCreateCampaign = userPermissions.includes('marketing:create');
   const canCreateDispatch = userPermissions.includes('orders:create');
   const canCreateReservation = userPermissions.includes('reservations:create');
+  const canUseCalculators = userPermissions.includes('calculators:use');
   
   const handleOpenModal = (customer?: Customer) => {
     setSelectedCustomer(customer);
@@ -180,6 +184,13 @@ export default function CustomersPage() {
     router.push(`/reservations?${params.toString()}`);
   }
   
+  const handleCreateQuote = (customer: Customer, type: 'stoneflex' | 'starwood') => {
+    const params = new URLSearchParams();
+    params.set('customerName', customer.name);
+    const url = type === 'stoneflex' ? '/stoneflex-clay-calculator' : '/starwood-calculator';
+    router.push(`${url}?${params.toString()}`);
+  };
+
   const toggleFilter = (filterSetter: React.Dispatch<React.SetStateAction<string[]>>, value: string) => {
     filterSetter(prev => 
       prev.includes(value) ? prev.filter(item => item !== value) : [...prev, value]
@@ -408,6 +419,22 @@ export default function CustomersPage() {
                             <BookUser className="mr-2 h-4 w-4" />
                             Crear Reserva
                         </DropdownMenuItem>
+                      )}
+                       {canUseCalculators && (
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            <Calculator className="mr-2 h-4 w-4" />
+                            Crear Cotización
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem onClick={() => handleCreateQuote(customer, 'stoneflex')}>
+                              Cotización StoneFlex
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleCreateQuote(customer, 'starwood')}>
+                              Cotización Starwood
+                            </DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
                       )}
                       <DropdownMenuItem onClick={() => handleDeleteCustomer(customer.id)} className="text-destructive">
                         <Trash2 className="mr-2 h-4 w-4" />

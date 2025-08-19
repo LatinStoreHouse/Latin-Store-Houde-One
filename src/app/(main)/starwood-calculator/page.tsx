@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calculator, PlusCircle, Trash2, Download } from 'lucide-react';
@@ -44,6 +45,7 @@ interface QuoteItem {
 }
 
 export default function StarwoodCalculatorPage() {
+  const searchParams = useSearchParams();
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -53,6 +55,13 @@ export default function StarwoodCalculatorPage() {
   const referenceOptions = useMemo(() => {
     return Object.keys(starwoodProducts).map(ref => ({ value: ref, label: ref }));
   }, []);
+  
+  useEffect(() => {
+    const customerNameParam = searchParams.get('customerName');
+    if (customerNameParam) {
+        setCustomerName(decodeURIComponent(customerNameParam));
+    }
+  }, [searchParams]);
 
   const parseDecimal = (value: string | number) => {
     if (typeof value === 'number') return value;
