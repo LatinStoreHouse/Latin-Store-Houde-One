@@ -1,10 +1,9 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
-import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calculator, PlusCircle, Trash2, Download } from 'lucide-react';
+import { PlusCircle, Trash2, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Combobox } from '@/components/ui/combobox';
@@ -18,30 +17,20 @@ const WhatsAppIcon = () => (
 );
 
 
-const starwoodProducts = {
-    'PERGOLA 9x4 - 3 MTS COFFEE': { width: 0.09, length: 3, type: 'pergola' },
-    'PERGOLA 9x4 - 3 MTS CHOCOLATE': { width: 0.09, length: 3, type: 'pergola' },
-    'PERGOLA 10x5 - 3 COFFEE': { width: 0.1, length: 3, type: 'pergola' },
-    'PERGOLA 10x5 - 3 MTS CHOCOLATE': { width: 0.1, length: 3, type: 'pergola' },
-    'DECK ESTANDAR 14.5 CM X 2.2 CM X 2.21 MTS COFFEE': { width: 0.145, length: 2.21, type: 'deck' },
-    'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR CF - WN': { width: 0.138, length: 3, type: 'deck' },
-    'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR EB - LG': { width: 0.138, length: 3, type: 'deck' },
-    'LISTON 6.8x2.5 - 3 MTS CAMEL': { width: 0.068, length: 3, type: 'liston' },
-    'LISTON 6.8x2.5 - 3 MTS COFFEE': { width: 0.068, length: 3, type: 'liston' },
-    'LISTON 6.8x2.5 - 3 MTS CHOCOLATE': { width: 0.068, length: 3, type: 'liston' },
-};
+const starwoodProducts = [
+    'Pérgola 9x4 cm',
+    'Pérgola 10x5 cm',
+    'Pérgola 16x8 cm',
+    'Liston 6.8x2.5 cm',
+    'Deck 13.8x2.9 cm',
+];
 
 const IVA_RATE = 0.19;
 
 interface QuoteItem {
   id: number;
   reference: string;
-  sqMeters: number;
   units: number;
-  clips: number;
-  sleepers: number;
-  screws: number;
-  sealant: number;
 }
 
 export default function StarwoodCalculatorPage() {
@@ -49,11 +38,10 @@ export default function StarwoodCalculatorPage() {
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
   const [customerName, setCustomerName] = useState('');
-  const [sqMeters, setSqMeters] = useState<number | string>(1);
-  const [wastePercentage, setWastePercentage] = useState<number | string>(5);
+  const [units, setUnits] = useState<number | string>(1);
 
   const referenceOptions = useMemo(() => {
-    return Object.keys(starwoodProducts).map(ref => ({ value: ref, label: ref }));
+    return starwoodProducts.map(ref => ({ value: ref, label: ref }));
   }, []);
   
   useEffect(() => {
@@ -63,47 +51,14 @@ export default function StarwoodCalculatorPage() {
     }
   }, [searchParams]);
 
-  const parseDecimal = (value: string | number) => {
-    if (typeof value === 'number') return value;
-    return parseFloat(value.toString().replace(',', '.')) || 0;
-  };
-  
-  const handleDecimalInputChange = (setter: React.Dispatch<React.SetStateAction<string | number>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (/^\d*[,.]?\d*$/.test(value)) {
-      setter(value);
-    }
-  };
 
   const handleAddProduct = () => {
-    if (!reference) return;
-
-    const productInfo = starwoodProducts[reference as keyof typeof starwoodProducts];
-    const totalSqm = parseDecimal(sqMeters) * (1 + parseDecimal(wastePercentage) / 100);
-    const sqmPerUnit = productInfo.width * productInfo.length;
-    
-    const units = Math.ceil(totalSqm / sqmPerUnit);
-    
-    // Insumos
-    const clipsPerSqm = 23;
-    const sleepersPerSqm = 3.5;
-    const screwsPerSqm = 46;
-    const sealantYieldPerGallon = 20; // m2
-
-    const clips = Math.ceil(totalSqm * clipsPerSqm);
-    const sleepers = Math.ceil(totalSqm * sleepersPerSqm);
-    const screws = Math.ceil(totalSqm * screwsPerSqm);
-    const sealantGallons = Math.ceil(totalSqm / sealantYieldPerGallon);
+    if (!reference || Number(units) <= 0) return;
 
     const newItem: QuoteItem = {
       id: Date.now(),
       reference,
-      sqMeters: totalSqm,
-      units,
-      clips,
-      sleepers,
-      screws,
-      sealant: sealantGallons,
+      units: Number(units),
     };
 
     setQuoteItems([...quoteItems, newItem]);
@@ -125,22 +80,12 @@ export default function StarwoodCalculatorPage() {
     let totalCost = 0;
     const detailedItems = quoteItems.map(item => {
       const productCost = item.units * (productPrices[item.reference] || 0);
-      const clipsCost = item.clips * (productPrices['CLIP PLASTICO PARA DECK WPC'] || 0);
-      const sleepersCost = item.sleepers * (productPrices['DURMIENTE PLASTICO 3x3 - 2.90 MTS'] || 0);
-      const screwsCost = 0; // Screws price not available yet
-      const sealantCost = item.sealant * (productPrices['SELLANTE WPC 1 GALON'] || 0);
-
-      const subtotal = productCost + clipsCost + sleepersCost + screwsCost + sealantCost;
-      totalCost += subtotal;
+      totalCost += productCost;
       
       return { 
         ...item, 
         productCost,
-        clipsCost,
-        sleepersCost,
-        screwsCost,
-        sealantCost,
-        subtotal
+        subtotal: productCost,
       };
     });
 
@@ -178,23 +123,19 @@ export default function StarwoodCalculatorPage() {
     doc.text(`Cliente: ${customerName || 'N/A'}`, 14, 40);
     doc.text(`Válida hasta: ${quote.expiryDate}`, 14, 45);
 
+    const tableBody = quote.items.map(item => [
+      item.reference,
+      item.units,
+      formatCurrency(productPrices[item.reference] || 0),
+      formatCurrency(item.subtotal)
+    ]);
 
-    let startY = 55;
-    quote.items.forEach((item, index) => {
-        doc.setFontSize(12);
-        doc.text(`Producto: ${item.reference}`, 14, startY);
-        startY += 7;
-        const tableBody = [
-            ['Item', 'Cantidad', 'Precio Unitario', 'Total'],
-            [`Unidades (${item.sqMeters.toFixed(2)} M² total)`, item.units, formatCurrency(productPrices[item.reference] || 0), formatCurrency(item.productCost)],
-            ['Clips', item.clips, formatCurrency(productPrices['CLIP PLASTICO PARA DECK WPC'] || 0), formatCurrency(item.clipsCost)],
-            ['Durmientes', item.sleepers, formatCurrency(productPrices['DURMIENTE PLASTICO 3x3 - 2.90 MTS'] || 0), formatCurrency(item.sleepersCost)],
-            ['Sellante (galón)', item.sealant, formatCurrency(productPrices['SELLANTE WPC 1 GALON'] || 0), formatCurrency(item.sealantCost)],
-        ];
-        doc.autoTable({ startY: startY, head: [tableBody[0]], body: tableBody.slice(1) });
-        startY = (doc as any).autoTable.previous.finalY + 10;
+    doc.autoTable({ 
+      startY: 55, 
+      head: [['Producto', 'Unidades', 'Precio Unitario', 'Total']], 
+      body: tableBody 
     });
-
+    
     const finalY = (doc as any).autoTable.previous.finalY || 150;
     doc.setFontSize(12);
     doc.text(`Subtotal: ${formatCurrency(quote.subtotal)}`, 14, finalY + 10);
@@ -215,17 +156,14 @@ export default function StarwoodCalculatorPage() {
 
     quote.items.forEach(item => {
         message += `*Producto: ${item.reference}*\n`;
-        message += `- ${item.units} unidades para ${item.sqMeters.toFixed(2)} M²\n`;
-        message += `- ${item.clips} clips\n`;
-        message += `- ${item.sleepers} durmientes\n`;
-        message += `- ${item.sealant} galones de sellante\n\n`;
+        message += `- ${item.units} unidades\n\n`;
     });
 
     message += `*Desglose de Costos (COP):*\n`;
     message += `- *Subtotal:* ${formatCurrency(quote.subtotal)}\n`;
     message += `- IVA (19%): ${formatCurrency(quote.iva)}\n`;
     message += `\n*Total Estimado: ${formatCurrency(quote.total)}*\n\n`;
-    message += `_Esta es una cotización preliminar y no incluye costos de instalación._`;
+    message += `_Esta es una cotización preliminar y no incluye costos de instalación o insumos._`;
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
@@ -236,7 +174,7 @@ export default function StarwoodCalculatorPage() {
       <CardHeader>
         <CardTitle>Calculadora de Cotizaciones - Starwood</CardTitle>
         <CardDescription>
-          Estime la cantidad de materiales y el costo para productos Starwood (Decks, Pérgolas, etc.).
+          Estime el costo para productos Starwood por unidad.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -250,7 +188,7 @@ export default function StarwoodCalculatorPage() {
             />
           </div>
           <Separator />
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr] gap-4 items-end">
             <div className="space-y-2">
                <Label>Referencia de Producto</Label>
                <Combobox
@@ -263,24 +201,15 @@ export default function StarwoodCalculatorPage() {
                />
              </div>
              <div className="space-y-2">
-                <Label htmlFor="sqm-input">Metros Cuadrados (M²)</Label>
+                <Label htmlFor="units-input">Cantidad (Unidades)</Label>
                 <Input
-                  id="sqm-input"
-                  type="text"
-                  value={sqMeters}
-                  onChange={handleDecimalInputChange(setSqMeters)}
+                  id="units-input"
+                  type="number"
+                  value={units}
+                  onChange={(e) => setUnits(e.target.value)}
                   className="w-full"
+                  min="1"
                 />
-              </div>
-              <div className="space-y-2">
-                  <Label htmlFor="waste-input">Desperdicio (%)</Label>
-                  <Input
-                    id="waste-input"
-                    type="text"
-                    value={wastePercentage}
-                    onChange={handleDecimalInputChange(setWastePercentage)}
-                    className="w-full"
-                  />
               </div>
           </div>
           <div className="flex justify-end">
@@ -297,22 +226,19 @@ export default function StarwoodCalculatorPage() {
               <CardDescription>Cliente: {customerName || 'N/A'} | Válida hasta: {quote.expiryDate}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {quote.items.map(item => (
-                  <div key={item.id} className="p-3 rounded-md bg-background">
-                    <div className="flex justify-between items-start">
-                        <p className="font-semibold">{item.reference} - {item.sqMeters.toFixed(2)} M²</p>
+                  <div key={item.id} className="flex justify-between items-center p-3 rounded-md bg-background">
+                     <div>
+                        <p className="font-semibold">{item.reference}</p>
+                        <p className="text-sm text-muted-foreground">{item.units} unidades</p>
+                     </div>
+                    <div className="flex items-center gap-4">
+                       <p className="font-medium">{formatCurrency(item.subtotal)}</p>
                         <Button variant="ghost" size="icon" onClick={() => handleRemoveProduct(item.id)} className="h-7 w-7">
                            <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                     </div>
-                     <ul className="text-sm text-muted-foreground list-disc pl-5 mt-1">
-                        <li>{item.units} unidades de {item.reference} - {formatCurrency(item.productCost)}</li>
-                        <li>{item.clips} clips - {formatCurrency(item.clipsCost)}</li>
-                        <li>{item.sleepers} durmientes - {formatCurrency(item.sleepersCost)}</li>
-                        <li>{item.sealant} galones de sellante - {formatCurrency(item.sealantCost)}</li>
-                    </ul>
-                    <p className="text-right font-medium mt-2">Subtotal Item: {formatCurrency(item.subtotal)}</p>
                   </div>
                 ))}
               </div>
