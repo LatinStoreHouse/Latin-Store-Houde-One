@@ -132,7 +132,7 @@ const adhesiveReferenceData = [
         xl: '3' 
     },
     { 
-        line: 'Metales', 
+        line: 'Metales (2.44x0.61)', 
         standard: '1.5', 
         xl: '3' 
     },
@@ -143,8 +143,8 @@ const adhesiveReferenceData = [
     },
     { 
         line: 'Translúcida', 
-        standard: '0.5 (Adh. Translúcido)', 
-        xl: '2 (Adh. Translúcido)' 
+        standard: '0.5 (Translúcido)', 
+        xl: '2 (Translúcido)' 
     },
 ];
 
@@ -416,6 +416,7 @@ export default function StoneflexCalculatorPage() {
 
       if (item.includeAdhesive && details.line !== '3D') {
         const isXL = item.reference.includes('2.44 X 1.22');
+        const isStandardMetal = details.line === 'Metales' && item.reference.includes('2.44 X 0.61');
         let adhesivePerSheet = 0;
 
         if (details.line === 'Translucida') {
@@ -424,8 +425,10 @@ export default function StoneflexCalculatorPage() {
         } else {
             if (details.line === 'Concreto') {
                 adhesivePerSheet = isXL ? 3 : 1.8;
-            } else if (details.line === 'Metales') {
-                adhesivePerSheet = isXL ? 3 : 1.5;
+            } else if (isStandardMetal) { // Metal standard size
+                adhesivePerSheet = 1.5;
+            } else if (details.line === 'Metales' && isXL) { // Metal XL size
+                adhesivePerSheet = 3;
             } else if (item.reference.includes('HIMALAYA')) {
                 adhesivePerSheet = isXL ? 3.5 : 1.5;
             } else if (details.line === 'Madera') {
