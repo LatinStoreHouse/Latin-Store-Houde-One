@@ -1,5 +1,6 @@
 
 
+
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
@@ -26,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const WhatsAppIcon = () => (
-    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 fill-current"><title>WhatsApp</title><path d="M12.04 2.018c-5.523 0-10 4.477-10 10s4.477 10 10 10c1.573 0 3.09-.37 4.49-1.035l3.493 1.032-1.06-3.39c.734-1.424 1.145-3.01 1.145-4.688.002-5.522-4.476-9.92-9.998-9.92zm3.328 12.353c-.15.27-.547.433-.945.513-.378.075-.826.104-1.312-.054-.933-.3-1.854-.9-2.61-1.68-.89-.897-1.472-1.95-1.63-2.93-.05-.293.003-.593.05-.86.06-.29.117-.582.26-.78.23-.32.512-.423.703-.408.19.012.36.003.504.003.144 0 .317.006.46.33.175.39.593 1.45.64 1.55.05.1.085.225.01.375-.074.15-.15.255-.255.36-.105.105-.204.224-.29.33-.085.105-.18.21-.074.405.23.45.983 1.416 1.95 2.13.772.58 1.48.74 1.83.656.35-.086.58-.33.725-.63.144-.3.11-.555.07-.643-.04-.09-.436-.51-.58-.68-.144-.17-.29-.26-.404-.16-.115.1-.26.15-.375.12-.114-.03-.26-.06-.375-.11-.116-.05-.17-.06-.24-.01-.07.05-.16.21-.21.28-.05.07-.1.08-.15.05-.05-.03-.21-.07-.36-.13-.15-.06-.8-.38-1.52-.98-.98-.82-1.65-1.85-1.72-2.02-.07-.17.08-1.3 1.3-1.3h.2c.114 0 .22.05.29.13.07.08.1.18.1.28l.02 1.35c0 .11-.05.22-.13.29-.08.07-.18-.1-.28-.1H9.98c-.11 0-.22-.05-.29-.13-.07-.08-.1-.18-.1-.28v-.15c0-.11.05-.22.13-.29-.08-.07-.18-.1-.28-.1h.02c.11 0 .22.05.29.13.07.08.1.18.1.28l.01.12c0 .11-.05.22-.13.29-.08.07-.18-.1-.28-.1h-.03c-.11 0-.22-.05-.29-.13-.07-.08-.1-.18-.1-.28v-.02c0-.11.05-.22.13-.29.08-.07-.18.1.28.1h.01c.11 0 .22.05.29.13.07.08.1.18.1.28a.38.38 0 0 0-.13-.29c-.08-.07-.18-.1-.28-.1z"/></svg>
+    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 fill-current"><title>WhatsApp</title><path d="M12.04 2.018c-5.523 0-10 4.477-10 10s4.477 10 10 10c1.573 0 3.09-.37 4.49-1.035l3.493 1.032-1.06-3.39c.734-1.424 1.145-3.01 1.145-4.688.002-5.522-4.476-9.92-9.998-9.92zm3.328 12.353c-.15.27-.547.433-.945.513-.378.075-.826.104-1.312-.054-.933-.3-1.854-.9-2.61-1.68-.89-.897-1.472-1.95-1.63-2.93-.05-.293.003-.593.05-.86.06-.29.117-.582.26-.78.23-.32.512-.423.703-.408.19.012.36.003.504.003.144 0 .317.006.46.33.175.39.593 1.45.64 1.55.05.1.085.225.01.375-.074.15-.15.255-.255.36-.105.105-.204.224-.29.33-.085.105-.18.21-.074.405.23.45.983 1.416 1.95 2.13.772.58 1.48.74 1.83.656.35-.086.58-.33.725-.63.144-.3.11-.555.07-.643-.04-.09-.436-.51-.58-.68-.144-.17-.29-.26-.404-.16-.115.1-.26.15-.375.12-.114-.03-.26-.06-.375-.11-.116-.05-.17-.06-.24-.01-.07.05-.16.21-.21.28-.05.07-.1.08-.15.05-.05-.03-.21-.07-.36-.13-.15-.06-.8-.38-1.52-.98-.98-.82-1.65-1.85-1.72-2.02-.07-.17.08-1.3 1.3-1.3h.2c.114 0 .22.05.29.13.07.08.1.18.1.28l.02 1.35c0 .11-.05.22-.13.29-.08.07-.18-.1-.28-.1H9.98c-.11 0-.22-.05-.29-.13-.07-.08-.1-.18-.1-.28v-.15c0-.11.05-.22.13-.29-.08-.07-.18-.1-.28-.1h.02c.11 0 .22.05.29.13.07.08.1.18.1.28l.01.12c0 .11-.05.22-.13.29-.08.07-.18-.1-.28-.1h-.03c-.11 0-.22-.05-.29-.13-.07-.08-.1-.18-.1-.28v-.02c0-.11.05-.22.13-.29.08-.07-.18.1.28.1h.01c.11 0 .22-.05.29-.13.07.08.1.18.1.28a.38.38 0 0 0-.13-.29c-.08-.07-.18-.1-.28-.1z"/></svg>
 );
 
 
@@ -133,44 +134,57 @@ const adhesiveReferenceByLine: {
   {
     line: 'Cuarcitas',
     items: [
-      { reference: 'Cuarcitas', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+      { reference: 'BURNING FOREST', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+      { reference: 'COPPER', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+      { reference: 'JEERA GREEN', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+      { reference: 'SILVER SHINE', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+      { reference: 'SILVER SHINE GOLD', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+      { reference: 'STEEL GRAY', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
     ]
   },
-  {
+   {
     line: 'Mármol',
     items: [
-      { reference: 'Mármol General', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: '(Ref. Himalaya)', standard: '1.22x0.61 - 1.5u', xl: '2.44x1.22 - 3.5u' },
+      { reference: 'CARRARA', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+      { reference: 'CRYSTAL WHITE', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+      { reference: 'MINT WHITE', standard: '1.22x0.61 - 0.5u', xl: 'N/A' },
+      { reference: 'HIMALAYA GOLD', standard: '1.22x0.61 - 1.5u', xl: '2.44x1.22 - 3.5u' },
     ]
   },
   {
     line: 'Concreto',
     items: [
-      { reference: 'Concreto', standard: '1.22x0.61 - 1.8u', xl: '2.44x1.22 - 3u' },
+      { reference: 'CONCRETO BLANCO', standard: '1.22x0.61 - 1.8u', xl: '2.44x1.22 - 3u' },
+      { reference: 'CONCRETO GRIS', standard: '1.22x0.61 - 1.8u', xl: '2.44x1.22 - 3u' },
+      { reference: 'CONCRETE WITH HOLES', standard: '1.22x0.61 - 1.8u', xl: '2.44x1.22 - 3u' },
+      { reference: 'CONCRETO GRIS MEDIUM', standard: '1.22x0.61 - 1.8u', xl: 'N/A' },
     ]
   },
   {
     line: 'Metales',
     items: [
-      { reference: 'Metales (2.44x0.61)', standard: '1.5u', xl: '2.44x1.22 - 3u' },
+      { reference: 'Metales', standard: '2.44x0.61 - 1.5u', xl: '2.44x1.22 - 3u' },
     ]
   },
   {
     line: 'Madera',
     items: [
-      { reference: 'Madera', standard: '0.15x2.44 - 0.5u', xl: 'N/A' },
+       { reference: 'MADERA NOGAL', standard: '0.15x2.44 - 0.5u', xl: 'N/A' },
+       { reference: 'MADERA TEKA', standard: '0.15x2.44 - 0.5u', xl: 'N/A' },
+       { reference: 'MADERA ÉBANO', standard: '0.15x2.44 - 0.5u', xl: 'N/A' },
     ]
   },
   {
     line: 'Translúcida',
     items: [
-      { reference: 'Translúcida', standard: '1.22x0.61 - 0.5u (T)', xl: '2.44x1.22 - 2u (T)' },
+      { reference: 'INDIAN AUTUMN', standard: '1.22x0.61 - 0.5u (T)', xl: '2.44x1.22 - 2u (T)' },
     ]
   },
   {
     line: 'Clay',
     items: [
-      { reference: 'CLAY CUT STONE / TRAVERTINO', standard: '1.20x0.60 - 0.5u', xl: '' },
+      { reference: 'CLAY CUT STONE', standard: '1.20x0.60 - 0.5u', xl: '' },
+      { reference: 'CLAY TRAVERTINO', standard: '1.20x0.60 - 0.5u', xl: '' },
       { reference: 'CLAY TAPIA NEGRA', standard: '', xl: '2.95x1.20 - 2u' },
       { reference: 'CONCRETO ENCOFRADO', standard: '', xl: '2.90x0.56 - 2u' },
     ]
@@ -443,34 +457,29 @@ export default function StoneflexCalculatorPage() {
         totalSqMetersForSealant += item.sqMeters;
       }
 
-       if (item.includeAdhesive && details.line !== '3D') {
+      if (item.includeAdhesive && details.line !== '3D') {
           let adhesivePerSheet = 0;
-          const isStandardSize = item.reference.includes('1.22 X 0.61') || item.reference.includes('1.20*0.60') || item.reference.includes('0.15 X 2.44');
+          const isStandardSize = item.reference.includes('1.22 X 0.61') || item.reference.includes('1.20*0.60');
+          const isMetalStandardSize = item.reference.includes('2.44 X 0.61');
           const isXLSize = item.reference.includes('2.44 X 1.22') || item.reference.includes('2.95*1.20') || item.reference.includes('2.90*0.56');
-          const isMetalStandard = item.reference.includes('2.44 X 0.61');
+          const isWoodSize = item.reference.includes('0.15 X 2.44');
 
           if (details.line === 'Translúcida') {
               adhesivePerSheet = isStandardSize ? 0.5 : 2;
               totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           } else {
-              if (['Pizarra', 'Cuarcitas', 'Clay'].includes(details.line)) {
+              if (details.line === 'Pizarra' || details.line === 'Cuarcitas' || (details.line === 'Mármol' && !item.reference.includes('HIMALAYA'))) {
                   adhesivePerSheet = isStandardSize ? 0.5 : 2;
-              } else if (details.line === 'Mármol') {
-                  if (item.reference.includes('HIMALAYA')) {
-                      adhesivePerSheet = isStandardSize ? 1.5 : 3.5;
-                  } else {
-                      adhesivePerSheet = isStandardSize ? 0.5 : 2;
-                  }
+              } else if (details.line === 'Mármol' && item.reference.includes('HIMALAYA')) {
+                  adhesivePerSheet = isStandardSize ? 1.5 : 3.5;
               } else if (details.line === 'Concreto') {
                   adhesivePerSheet = isStandardSize ? 1.8 : 3;
               } else if (details.line === 'Metales') {
-                  if(isMetalStandard) {
-                    adhesivePerSheet = 1.5;
-                  } else if (isXLSize) {
-                    adhesivePerSheet = 3;
-                  }
+                  adhesivePerSheet = isMetalStandardSize ? 1.5 : 3;
               } else if (details.line === 'Madera') {
-                  adhesivePerSheet = 0.5;
+                  adhesivePerSheet = isWoodSize ? 0.5 : 0;
+              } else if (details.line === 'Clay') {
+                  adhesivePerSheet = isStandardSize ? 0.5 : 2;
               }
               totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           }
@@ -1015,5 +1024,6 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
 
 
