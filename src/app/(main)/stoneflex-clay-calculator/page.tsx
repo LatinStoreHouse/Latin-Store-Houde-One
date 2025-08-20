@@ -84,6 +84,15 @@ const referenceDetails: { [key: string]: { brand: string, line: string } } = {
 
 const allReferences = Object.keys(referenceDetails);
 
+const supplies = [
+  'Adhesivo',
+  'ADHESIVO TRASLUCIDO',
+  'SELLANTE SEMI - BRIGHT GALON',
+  'SELLANTE SEMI - BRIGTH 1/ 4 GALON',
+  'SELLANTE SHYNY GALON',
+  'SELLANTE SHYNY 1/4 GALON',
+];
+
 
 const IVA_RATE = 0.19; // 19%
 
@@ -96,7 +105,7 @@ interface QuoteItem {
   sheets: number;
   includeSealant: boolean;
   includeAdhesive: boolean;
-  calculationMode: 'sqm' | 'sheets';
+  calculationMode: 'sqm' | 'sheets' | 'units';
   pricePerSheet: number;
 }
 
@@ -120,8 +129,15 @@ export default function StoneflexCalculatorPage() {
   const [trmLoading, setTrmLoading] = useState(false);
   const { toast } = useToast();
 
+  const [supplyReference, setSupplyReference] = useState('');
+  const [supplyUnits, setSupplyUnits] = useState<number | string>(1);
+
   const referenceOptions = useMemo(() => {
     return allReferences.map(ref => ({ value: ref, label: ref }));
+  }, []);
+
+  const supplyOptions = useMemo(() => {
+    return supplies.map(ref => ({ value: ref, label: ref }));
   }, []);
 
   useEffect(() => {
@@ -186,7 +202,6 @@ export default function StoneflexCalculatorPage() {
     return parseFloat(value.toString().replace(',', '.')) || 0;
   };
 
-
   const handleAddProduct = () => {
     if (!reference) {
         toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione una referencia.' });
@@ -229,6 +244,30 @@ export default function StoneflexCalculatorPage() {
 
     setQuoteItems([...quoteItems, newItem]);
   };
+  
+  const handleAddSupply = () => {
+    const units = Number(supplyUnits);
+    if (!supplyReference || units <= 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Seleccione un insumo y una cantidad válida.' });
+        return;
+    }
+
+    const newItem: QuoteItem = {
+      id: Date.now(),
+      reference: supplyReference,
+      sqMeters: 0,
+      sheets: units,
+      includeSealant: false,
+      includeAdhesive: false,
+      calculationMode: 'units',
+      pricePerSheet: productPrices[supplyReference] || 0
+    };
+    
+    setQuoteItems([...quoteItems, newItem]);
+    setSupplyReference('');
+    setSupplyUnits(1);
+  };
+
 
   const handleRemoveProduct = (id: number) => {
     setQuoteItems(quoteItems.filter(item => item.id !== id));
@@ -259,6 +298,7 @@ export default function StoneflexCalculatorPage() {
     let totalStandardAdhesiveUnits = 0;
     let totalTranslucentAdhesiveUnits = 0;
     let isWarrantyVoid = false;
+    let manualSuppliesCost = 0;
 
     const trmValue = currency === 'USD' ? parseDecimal(trm) : 1;
     if (currency === 'USD' && trmValue === 0) return null;
@@ -277,6 +317,13 @@ export default function StoneflexCalculatorPage() {
 
     const detailedItems = quoteItems.map(item => {
       const details = referenceDetails[item.reference];
+      
+      if (item.calculationMode === 'units') { // Manual Supply
+          const itemCost = convert(item.pricePerSheet * item.sheets);
+          manualSuppliesCost += itemCost;
+          return {...item, itemTotal: itemCost, pricePerSheet: convert(item.pricePerSheet)};
+      }
+
       if (!details) return {...item, itemTotal: 0, pricePerSheet: 0};
 
       const calculatedSheets = item.sheets;
@@ -344,7 +391,7 @@ export default function StoneflexCalculatorPage() {
     const totalStandardAdhesiveCost = convert(totalStandardAdhesiveUnits * adhesivePriceCOP);
     const totalTranslucentAdhesiveCost = convert(totalTranslucentAdhesiveUnits * translucentAdhesivePriceCOP);
 
-    const subtotalBeforeDiscount = totalProductCost + totalSealantCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost;
+    const subtotalBeforeDiscount = totalProductCost + totalSealantCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost + manualSuppliesCost;
     const totalDiscountAmount = subtotalBeforeDiscount * (discountValue / 100);
     const subtotalBeforeIva = subtotalBeforeDiscount - totalDiscountAmount;
     const ivaAmount = subtotalBeforeIva * IVA_RATE;
@@ -362,6 +409,7 @@ export default function StoneflexCalculatorPage() {
       totalSealantCost,
       totalStandardAdhesiveCost,
       totalTranslucentAdhesiveCost,
+      manualSuppliesCost,
       sealantPrice: convert(sealantPricesCOP[sealantType]),
       adhesivePrice: convert(adhesivePriceCOP),
       translucentAdhesivePrice: convert(translucentAdhesivePriceCOP),
@@ -413,7 +461,11 @@ export default function StoneflexCalculatorPage() {
     
     message += `*Resumen de Productos:*\n`;
     quote.items.forEach(item => {
-      message += `- *${item.reference}*: ${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²)\n`;
+      if (item.calculationMode !== 'units') {
+          message += `- *${item.reference}*: ${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²)\n`;
+      } else {
+          message += `- *${item.reference}*: ${item.sheets} unidades\n`;
+      }
     });
     
     message += `\n*Desglose de Costos (${currency}):*\n`;
@@ -427,6 +479,9 @@ export default function StoneflexCalculatorPage() {
     }
     if (quote.totalTranslucentAdhesiveCost > 0 && quote.totalTranslucentAdhesiveUnits > 0) {
         message += `- Adhesivo Translúcido (${quote.totalTranslucentAdhesiveUnits} u. @ ${formatCurrency(quote.translucentAdhesivePrice)}/u.): ${formatCurrency(quote.totalTranslucentAdhesiveCost)}\n`;
+    }
+     if (quote.manualSuppliesCost > 0) {
+        message += `- Insumos Adicionales: ${formatCurrency(quote.manualSuppliesCost)}\n`;
     }
 
     if (quote.totalDiscountAmount > 0) {
@@ -516,104 +571,141 @@ export default function StoneflexCalculatorPage() {
              </div>
         )}
          <Separator />
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-               <Label>Referencia de Producto</Label>
-               <Combobox
-                 options={referenceOptions}
-                 value={reference}
-                 onValueChange={setReference}
-                 placeholder="Seleccione una referencia"
-                 searchPlaceholder="Buscar referencia..."
-                 emptyPlaceholder="No se encontraron referencias."
-               />
-                 {reference && (
-                    <div className="text-sm text-muted-foreground pt-1">
-                        <span className="font-medium">Medidas:</span> {getSheetDimensions(reference)} | <span className="font-medium">M² por Lámina:</span> {getSqmPerSheet(reference).toFixed(2)} M²
-                    </div>
-                 )}
-             </div>
-             <div className="space-y-2">
-                <Label>Calcular por</Label>
-                <RadioGroup defaultValue="sqm" value={calculationMode} onValueChange={(value) => setCalculationMode(value as 'sqm' | 'sheets')} className="flex gap-4 pt-2">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="sqm" id="sqm" />
-                    <Label htmlFor="sqm">M²</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="sheets" id="sheets" />
-                    <Label htmlFor="sheets">Láminas</Label>
-                  </div>
-                </RadioGroup>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {calculationMode === 'sqm' ? (
-              <div className="space-y-2">
-                <Label htmlFor="sqm-input">Metros Cuadrados (M²)</Label>
-                <Input
-                  id="sqm-input"
-                  type="text"
-                  value={sqMeters}
-                  onChange={handleDecimalInputChange(setSqMeters)}
-                  className="w-full"
-                />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label htmlFor="sheets-input">Número de Láminas</Label>
-                <Input
-                  id="sheets-input"
-                  type="text"
-                  value={sheets}
-                  onChange={(e) => setSheets(e.target.value)}
-                  className="w-full"
-                  min="1"
-                />
-              </div>
-            )}
-            <div className="space-y-2">
-                <Label htmlFor="waste-input">Desperdicio (%)</Label>
-                <Input
-                    id="waste-input"
-                    type="text"
-                    value={wastePercentage}
-                    onChange={handleDecimalInputChange(setWastePercentage)}
-                    className="w-full"
-                />
-            </div>
-          </div>
-          <div className="flex items-center gap-4 pt-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
-                <Label htmlFor="include-adhesive">Incluir Adhesivo</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
-                <Label htmlFor="include-sealant">Incluir Sellante</Label>
-              </div>
-              {includeSealant && (
-                <div className="w-64">
-                   <Select value={sealantType} onValueChange={(value) => setSealantType(value as SealantType)}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Tipo de sellante" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="SELLANTE SEMI - BRIGTH 1/ 4 GALON">Semi-Brillante (1/4 Gal)</SelectItem>
-                        <SelectItem value="SELLANTE SEMI - BRIGHT GALON">Semi-Brillante (Galón)</SelectItem>
-                        <SelectItem value="SELLANTE SHYNY 1/4 GALON">Brillante (1/4 Gal)</SelectItem>
-                        <SelectItem value="SELLANTE SHYNY GALON">Brillante (Galón)</SelectItem>
-                    </SelectContent>
-                   </Select>
+         <div>
+            <h3 className="text-lg font-medium">Añadir Producto StoneFlex</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <div className="space-y-2">
+                   <Label>Referencia de Producto</Label>
+                   <Combobox
+                     options={referenceOptions}
+                     value={reference}
+                     onValueChange={setReference}
+                     placeholder="Seleccione una referencia"
+                     searchPlaceholder="Buscar referencia..."
+                     emptyPlaceholder="No se encontraron referencias."
+                   />
+                     {reference && (
+                        <div className="text-sm text-muted-foreground pt-1">
+                            <span className="font-medium">Medidas:</span> {getSheetDimensions(reference)} | <span className="font-medium">M² por Lámina:</span> {getSqmPerSheet(reference).toFixed(2)} M²
+                        </div>
+                     )}
+                 </div>
+                 <div className="space-y-2">
+                    <Label>Calcular por</Label>
+                    <RadioGroup defaultValue="sqm" value={calculationMode} onValueChange={(value) => setCalculationMode(value as 'sqm' | 'sheets')} className="flex gap-4 pt-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="sqm" id="sqm" />
+                        <Label htmlFor="sqm">M²</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="sheets" id="sheets" />
+                        <Label htmlFor="sheets">Láminas</Label>
+                      </div>
+                    </RadioGroup>
                 </div>
-              )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {calculationMode === 'sqm' ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="sqm-input">Metros Cuadrados (M²)</Label>
+                    <Input
+                      id="sqm-input"
+                      type="text"
+                      value={sqMeters}
+                      onChange={handleDecimalInputChange(setSqMeters)}
+                      className="w-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="sheets-input">Número de Láminas</Label>
+                    <Input
+                      id="sheets-input"
+                      type="text"
+                      value={sheets}
+                      onChange={(e) => setSheets(e.target.value)}
+                      className="w-full"
+                      min="1"
+                    />
+                  </div>
+                )}
+                <div className="space-y-2">
+                    <Label htmlFor="waste-input">Desperdicio (%)</Label>
+                    <Input
+                        id="waste-input"
+                        type="text"
+                        value={wastePercentage}
+                        onChange={handleDecimalInputChange(setWastePercentage)}
+                        className="w-full"
+                    />
+                </div>
+              </div>
+              <div className="flex items-center gap-4 pt-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
+                    <Label htmlFor="include-adhesive">Incluir Adhesivo (Automático)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
+                    <Label htmlFor="include-sealant">Incluir Sellante (Automático)</Label>
+                  </div>
+                  {includeSealant && (
+                    <div className="w-64">
+                       <Select value={sealantType} onValueChange={(value) => setSealantType(value as SealantType)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Tipo de sellante" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="SELLANTE SEMI - BRIGTH 1/ 4 GALON">Semi-Brillante (1/4 Gal)</SelectItem>
+                            <SelectItem value="SELLANTE SEMI - BRIGHT GALON">Semi-Brillante (Galón)</SelectItem>
+                            <SelectItem value="SELLANTE SHYNY 1/4 GALON">Brillante (1/4 Gal)</SelectItem>
+                            <SelectItem value="SELLANTE SHYNY GALON">Brillante (Galón)</SelectItem>
+                        </SelectContent>
+                       </Select>
+                    </div>
+                  )}
+              </div>
+              <div className="flex justify-end">
+                  <Button onClick={handleAddProduct} className="mt-4" disabled={!reference}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Agregar Producto
+                  </Button>
+                </div>
+         </div>
+
+         <Separator />
+          <div>
+            <h3 className="text-lg font-medium mb-4">Insumos y Accesorios Adicionales</h3>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_auto] gap-4 items-end">
+                <div className="space-y-2">
+                   <Label>Insumo</Label>
+                   <Combobox
+                     options={supplyOptions}
+                     value={supplyReference}
+                     onValueChange={setSupplyReference}
+                     placeholder="Seleccione un insumo"
+                     searchPlaceholder="Buscar insumo..."
+                     emptyPlaceholder="No se encontraron insumos."
+                   />
+                 </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="supply-units-input">Cantidad (Unidades)</Label>
+                    <Input
+                      id="supply-units-input"
+                      type="number"
+                      value={supplyUnits}
+                      onChange={(e) => setSupplyUnits(e.target.value)}
+                      className="w-full"
+                      min="1"
+                    />
+                  </div>
+                  <Button onClick={handleAddSupply} disabled={!supplyReference}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Agregar Insumo
+                  </Button>
+              </div>
           </div>
-          <div className="flex justify-end">
-              <Button onClick={handleAddProduct} className="mt-4" disabled={!reference}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Agregar Producto
-              </Button>
-            </div>
+         
          {quote && (
           <Card className="bg-primary/5 mt-6">
             <CardHeader>
@@ -639,12 +731,15 @@ export default function StoneflexCalculatorPage() {
                     <div className="flex-1">
                       <p className="font-semibold">{item.reference}</p>
                       <p className="text-sm text-muted-foreground">
-                        {`${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²)`}
+                        {item.calculationMode !== 'units' ? 
+                            `${item.sheets} láminas (${item.sqMeters.toFixed(2)} M²)` : 
+                            `${item.sheets} unidades`
+                        }
                       </p>
                        <p className="text-sm text-muted-foreground font-medium">
                         Precio/Unidad: {formatCurrency(item.pricePerSheet)}
                       </p>
-                      {currency !== 'USD' && (
+                      {currency !== 'USD' && item.calculationMode !== 'units' && (
                          <div className="flex items-center gap-2 mt-2">
                             <Label htmlFor={`price-${item.id}`} className="text-xs">Precio/Lámina (COP)</Label>
                              <Input 
@@ -692,6 +787,12 @@ export default function StoneflexCalculatorPage() {
                         <span>{formatCurrency(quote.totalTranslucentAdhesiveCost)}</span>
                     </div>
                  )}
+                  {quote.manualSuppliesCost > 0 && (
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Insumos Adicionales</span>
+                        <span>{formatCurrency(quote.manualSuppliesCost)}</span>
+                    </div>
+                  )}
                  <div className="flex justify-between text-red-500">
                     <div className="flex items-center gap-2">
                         <Label htmlFor="discount-total" className="text-muted-foreground">Descuento Total (%)</Label>
@@ -776,4 +877,3 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
-
