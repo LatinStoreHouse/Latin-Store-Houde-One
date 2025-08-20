@@ -291,8 +291,10 @@ export default function StoneflexCalculatorPage() {
       }
 
       if (item.includeAdhesive && details.line !== '3D') {
-          const isStandardSize = getSheetDimensions(item.reference).includes('1.22 x 0.61');
-          const isXLSize = getSheetDimensions(item.reference).includes('2.44 x 1.22');
+          const sheetDimensions = getSheetDimensions(item.reference);
+          const isStandardSize = sheetDimensions.includes('1.22 x 0.61');
+          const isXLSize = sheetDimensions.includes('2.44 x 1.22');
+          const isMetalSize = sheetDimensions.includes('2.44 x 0.61');
 
           if (details.line === 'Translucida') {
               if (isStandardSize) {
@@ -301,14 +303,14 @@ export default function StoneflexCalculatorPage() {
                   totalTranslucentAdhesiveUnits += calculatedSheets * 2;
               }
           } else { // Standard Adhesive
-              if (isStandardSize) {
+              if (isStandardSize) { // Pizarra, Cuarcita, Concreto, Mármol, Madera
                   if (details.line === 'Clay') {
                       totalStandardAdhesiveUnits += Math.ceil(calculatedSheets / 1.5);
-                  } else if (details.line === 'Metales') {
-                      totalStandardAdhesiveUnits += calculatedSheets;
-                  } else { // Pizarra, Cuarcita, Concreto, Mármol, Madera
+                  } else {
                       totalStandardAdhesiveUnits += Math.ceil(calculatedSheets / 2);
                   }
+              } else if (isMetalSize) { // Metales
+                  totalStandardAdhesiveUnits += calculatedSheets;
               } else if (isXLSize) {
                   totalStandardAdhesiveUnits += calculatedSheets * 2;
               }
@@ -774,3 +776,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
