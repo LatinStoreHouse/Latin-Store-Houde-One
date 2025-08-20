@@ -71,11 +71,11 @@ export const initialProductPrices: { [key: string]: number } = {
     // Metálicas Gran Formato (244x122)
     'CORTEN STEEL 2.44 X 1.22': 798100,
 
-    // Clay (sin precio en la imagen, se mantiene el anterior)
-    'CUT STONE 120 X 60': 176000,
-    'TRAVERTINO': 176000,
-    'CONCRETO ENCOFRADO': 176000,
-    'TAPIA NEGRA': 176000,
+    // Clay
+    'CLAY CUT STONE 1,20*0,60': 176000,
+    'CLAY TRAVERTINO 1,20*0,60': 176000,
+    'CONCRETO ENCOFRADO 2,90*0,56': 176000,
+    'CLAY TAPIA NEGRA 2,95*1,20': 176000,
 
     // 3D (sin precio en la imagen, se mantiene el anterior)
     '3D ADHESIVO - 0,90 M2 - BLACK': 207072,

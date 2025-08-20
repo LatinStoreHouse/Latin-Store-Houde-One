@@ -31,10 +31,10 @@ const WhatsAppIcon = () => (
 
 
 const referenceDetails: { [key: string]: { brand: string, line: string } } = {
-  'CUT STONE 120 X 60': { brand: 'StoneFlex', line: 'Clay' },
-  'TRAVERTINO': { brand: 'StoneFlex', line: 'Clay' },
-  'CONCRETO ENCOFRADO': { brand: 'StoneFlex', line: 'Clay' },
-  'TAPIA NEGRA': { brand: 'StoneFlex', line: 'Clay' },
+  'CLAY CUT STONE 1,20*0,60': { brand: 'StoneFlex', line: 'Clay' },
+  'CLAY TRAVERTINO 1,20*0,60': { brand: 'StoneFlex', line: 'Clay' },
+  'CONCRETO ENCOFRADO 2,90*0,56': { brand: 'StoneFlex', line: 'Clay' },
+  'CLAY TAPIA NEGRA 2,95*1,20': { brand: 'StoneFlex', line: 'Clay' },
   'BLACK 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
   'KUND MULTY 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
   'TAN 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
@@ -113,63 +113,61 @@ interface QuoteItem {
   pricePerSheet: number;
 }
 
-const adhesiveReferenceByLine = [
-    {
-        line: 'Pizarra',
-        items: [
-            { size: '1.22 x 0.61', adhesive: '0.5' },
-            { size: '2.44 x 1.22', adhesive: '2' },
-        ]
-    },
-    {
-        line: 'Cuarcitas',
-        items: [
-            { size: '1.22 x 0.61', adhesive: '0.5' },
-            { size: '2.44 x 1.22', adhesive: '2' },
-        ]
-    },
-    {
-        line: 'Clay',
-        items: [
-            { size: '1.20 x 0.60', adhesive: '0.5' },
-        ]
-    },
-    {
-        line: 'Mármol',
-        items: [
-            { size: '1.22 x 0.61', adhesive: '0.5' },
-            { size: '2.44 x 1.22', adhesive: '2' },
-            { size: '1.22 x 0.61 (Himalaya)', adhesive: '1.5' },
-            { size: '2.44 x 1.22 (Himalaya)', adhesive: '3.5' },
-        ]
-    },
-    {
-        line: 'Concreto',
-        items: [
-            { size: '1.22 x 0.61', adhesive: '1.8' },
-            { size: '2.44 x 1.22', adhesive: '3' },
-        ]
-    },
-     {
-        line: 'Metales',
-        items: [
-            { size: '2.44 x 0.61', adhesive: '1.5' },
-            { size: '2.44 x 1.22', adhesive: '3' },
-        ]
-    },
-     {
-        line: 'Madera',
-        items: [
-            { size: '0.15 x 2.44', adhesive: '0.5' },
-        ]
-    },
-    {
-        line: 'Translúcida',
-        items: [
-            { size: '1.22 x 0.61', adhesive: '0.5 (Translúcido)' },
-            { size: '2.44 x 1.22', adhesive: '2 (Translúcido)' },
-        ]
-    },
+const adhesiveReferenceByLine: {
+  line: string;
+  items: { size: string; adhesive: string }[];
+}[] = [
+  {
+    line: 'Pizarra, Cuarcitas',
+    items: [
+      { size: '1.22 x 0.61', adhesive: '0.5' },
+      { size: '2.44 x 1.22', adhesive: '2' },
+    ],
+  },
+  {
+    line: 'Mármol',
+    items: [
+        { size: '1.22 x 0.61', adhesive: '0.5' },
+        { size: '2.44 x 1.22', adhesive: '2' },
+        { size: '(Ref. Himalaya) 1.22 x 0.61', adhesive: '1.5' },
+        { size: '(Ref. Himalaya) 2.44 x 1.22', adhesive: '3.5' },
+    ]
+  },
+  {
+      line: 'Concreto',
+      items: [
+          { size: '1.22 x 0.61', adhesive: '1.8' },
+          { size: '2.44 x 1.22', adhesive: '3' },
+      ]
+  },
+   {
+      line: 'Metales',
+      items: [
+          { size: '2.44 x 0.61', adhesive: '1.5' },
+          { size: '2.44 x 1.22', adhesive: '3' },
+      ]
+  },
+   {
+      line: 'Madera',
+      items: [
+          { size: '0.15 x 2.44', adhesive: '0.5' },
+      ]
+  },
+  {
+      line: 'Translúcida',
+      items: [
+          { size: '1.22 x 0.61', adhesive: '0.5 (Translúcido)' },
+          { size: '2.44 x 1.22', adhesive: '2 (Translúcido)' },
+      ]
+  },
+  {
+      line: 'Clay',
+      items: [
+          { size: '1.20 x 0.60', adhesive: '0.5' },
+          { size: '2.95 x 1.20', adhesive: '2' },
+          { size: '2.90 x 0.56', adhesive: '2' },
+      ]
+  }
 ];
 
 function AdhesiveReferenceTable() {
@@ -267,33 +265,27 @@ export default function StoneflexCalculatorPage() {
 
   const getSqmPerSheet = (ref: string) => {
     if (!ref) return 0;
-    if (ref.includes('1.22 X 0.61') || ref.includes('120 X 60') || ref.includes('1.22X0.61')) {
-      return 0.7442;
-    } else if (ref.includes('2.44 X 1.22')) {
-      return 2.9768;
-    } else if (ref.includes('0.15 X 2.44')) {
-      return 0.366;
-    } else if (ref.includes('0,90 M2')) {
-      return 0.9;
-    } else if (ref.includes('2.44 X 0.61')) {
-        return 1.4884;
-    }
+    if (ref.includes('1.22 X 0.61') || ref.includes('1.22X0.61')) return 0.7442;
+    if (ref.includes('1,20*0,60')) return 0.72;
+    if (ref.includes('2.44 X 1.22')) return 2.9768;
+    if (ref.includes('0.15 X 2.44')) return 0.366;
+    if (ref.includes('0,90 M2')) return 0.9;
+    if (ref.includes('2.44 X 0.61')) return 1.4884;
+    if (ref.includes('2,95*1,20')) return 3.54;
+    if (ref.includes('2,90*0,56')) return 1.624;
     return 1; // Default
   }
   
   const getSheetDimensions = (ref: string) => {
     if (!ref) return "N/A";
-    if (ref.includes('1.22 X 0.61') || ref.includes('120 X 60') || ref.includes('1.22X0.61')) {
-      return "1.22 x 0.61 Mts";
-    } else if (ref.includes('2.44 X 1.22')) {
-      return "2.44 x 1.22 Mts";
-    } else if (ref.includes('0.15 X 2.44')) {
-      return "0.15 x 2.44 Mts";
-    } else if (ref.includes('0,90 M2')) {
-      return "N/A (Caja 0.90 M²)";
-    } else if (ref.includes('2.44 X 0.61')) {
-        return "2.44 x 0.61 Mts";
-    }
+    if (ref.includes('1.22 X 0.61') || ref.includes('1.22X0.61')) return "1.22 x 0.61 Mts";
+    if (ref.includes('1,20*0,60')) return "1.20 x 0.60 Mts";
+    if (ref.includes('2.44 X 1.22')) return "2.44 x 1.22 Mts";
+    if (ref.includes('0.15 X 2.44')) return "0.15 x 2.44 Mts";
+    if (ref.includes('0,90 M2')) return "N/A (Caja 0.90 M²)";
+    if (ref.includes('2.44 X 0.61')) return "2.44 x 0.61 Mts";
+    if (ref.includes('2,95*1,20')) return "2.95 x 1.20 Mts";
+    if (ref.includes('2,90*0,56')) return "2.90 x 0.56 Mts";
     return "No especificadas";
   }
   
@@ -438,30 +430,33 @@ export default function StoneflexCalculatorPage() {
       }
 
       if (item.includeAdhesive && details.line !== '3D') {
-        const isXL = item.reference.includes('2.44 X 1.22');
-        const isStandard = item.reference.includes('1.22 X 0.61');
-        const isClay = item.reference.includes('120 X 60');
-        const isStandardMetal = item.reference.includes('2.44 X 0.61');
-        const isWood = item.reference.includes('0.15 X 2.44');
-        let adhesivePerSheet = 0;
+          let adhesivePerSheet = 0;
 
-        if (details.line === 'Translucida') {
-            adhesivePerSheet = isXL ? 2 : 0.5;
-            totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
-        } else {
-            if (details.line === 'Concreto') {
-                adhesivePerSheet = isXL ? 3 : 1.8;
-            } else if (details.line === 'Metales') {
-                adhesivePerSheet = isXL ? 3 : 1.5;
-            } else if (item.reference.includes('HIMALAYA')) {
-                adhesivePerSheet = isXL ? 3.5 : 1.5;
-            } else if (details.line === 'Madera') {
-                adhesivePerSheet = 0.5;
-            } else { // Pizarra, Cuarcitas, Clay, Other Mármol
-                adhesivePerSheet = isXL ? 2 : 0.5;
-            }
-            totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
-        }
+          if (details.line === 'Translúcida') {
+              if (item.reference.includes('2.44 X 1.22')) adhesivePerSheet = 2;
+              else adhesivePerSheet = 0.5;
+              totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
+          } else {
+              if (details.line === 'Pizarra' || details.line === 'Cuarcitas') {
+                  adhesivePerSheet = item.reference.includes('2.44 X 1.22') ? 2 : 0.5;
+              } else if (details.line === 'Mármol') {
+                  if (item.reference.includes('Himalaya')) {
+                      adhesivePerSheet = item.reference.includes('2.44 X 1.22') ? 3.5 : 1.5;
+                  } else {
+                      adhesivePerSheet = item.reference.includes('2.44 X 1.22') ? 2 : 0.5;
+                  }
+              } else if (details.line === 'Concreto') {
+                  adhesivePerSheet = item.reference.includes('2.44 X 1.22') ? 3 : 1.8;
+              } else if (details.line === 'Metales') {
+                  adhesivePerSheet = item.reference.includes('2.44 X 1.22') ? 3 : 1.5;
+              } else if (details.line === 'Madera') {
+                  adhesivePerSheet = 0.5;
+              } else if (details.line === 'Clay') {
+                  if (item.reference.includes('1,20*0,60')) adhesivePerSheet = 0.5;
+                  else if (item.reference.includes('2,95*1,20') || item.reference.includes('2,90*0,56')) adhesivePerSheet = 2;
+              }
+              totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
+          }
       }
       
       if (!item.includeSealant || !item.includeAdhesive) {
