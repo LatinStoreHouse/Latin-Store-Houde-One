@@ -115,64 +115,68 @@ interface QuoteItem {
 
 const adhesiveReferenceByLine: {
   line: string;
-  items: { size: string; adhesive: string }[];
+  items: {
+    reference: string;
+    standard: string;
+    xl: string;
+  }[];
 }[] = [
   {
-    line: 'Pizarra, Cuarcitas',
+    line: 'Pizarra',
     items: [
-      { size: '1.22 x 0.61', adhesive: '0.5' },
-      { size: '2.44 x 1.22', adhesive: '2' },
-    ],
+      { reference: 'Pizarra', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+    ]
+  },
+  {
+    line: 'Cuarcitas',
+    items: [
+      { reference: 'Cuarcitas', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+    ]
   },
   {
     line: 'Mármol',
     items: [
-        { size: '1.22 x 0.61', adhesive: '0.5' },
-        { size: '2.44 x 1.22', adhesive: '2' },
-        { size: '(Ref. Himalaya) 1.22 x 0.61', adhesive: '1.5' },
-        { size: '(Ref. Himalaya) 2.44 x 1.22', adhesive: '3.5' },
+      { reference: 'Mármol General', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
+      { reference: '(Ref. Himalaya)', standard: '1.22x0.61 - 1.5u', xl: '2.44x1.22 - 3.5u' },
     ]
   },
   {
-      line: 'Concreto',
-      items: [
-          { size: '1.22 x 0.61', adhesive: '1.8' },
-          { size: '2.44 x 1.22', adhesive: '3' },
-      ]
-  },
-   {
-      line: 'Metales',
-      items: [
-          { size: '2.44 x 0.61', adhesive: '1.5' },
-          { size: '2.44 x 1.22', adhesive: '3' },
-      ]
-  },
-   {
-      line: 'Madera',
-      items: [
-          { size: '0.15 x 2.44', adhesive: '0.5' },
-      ]
+    line: 'Concreto',
+    items: [
+      { reference: 'Concreto', standard: '1.22x0.61 - 1.8u', xl: '2.44x1.22 - 3u' },
+    ]
   },
   {
-      line: 'Translúcida',
-      items: [
-          { size: '1.22 x 0.61', adhesive: '0.5 (Translúcido)' },
-          { size: '2.44 x 1.22', adhesive: '2 (Translúcido)' },
-      ]
+    line: 'Metales',
+    items: [
+      { reference: 'Metales', standard: '2.44x0.61 - 1.5u', xl: '2.44x1.22 - 3u' },
+    ]
   },
   {
-      line: 'Clay',
-      items: [
-          { size: '1.20 x 0.60', adhesive: '0.5' },
-          { size: '2.95 x 1.20', adhesive: '2' },
-          { size: '2.90 x 0.56', adhesive: '2' },
-      ]
+    line: 'Madera',
+    items: [
+      { reference: 'Madera', standard: '0.15x2.44 - 0.5u', xl: 'N/A' },
+    ]
+  },
+  {
+    line: 'Translúcida',
+    items: [
+      { reference: 'Translúcida', standard: '1.22x0.61 - 0.5u (T)', xl: '2.44x1.22 - 2u (T)' },
+    ]
+  },
+  {
+    line: 'Clay',
+    items: [
+      { reference: 'Clay', standard: '1.20x0.60 - 0.5u', xl: '2.95x1.20 - 2u' },
+      { reference: '', standard: '2.90x0.56 - 2u', xl: '' },
+    ]
   }
 ];
 
+
 function AdhesiveReferenceTable() {
     return (
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl">
             <DialogHeader>
                 <DialogTitle>Tabla de Referencia de Rendimiento de Adhesivo</DialogTitle>
                  <CardDescription>Unidades de adhesivo recomendadas por cada lámina.</CardDescription>
@@ -185,15 +189,17 @@ function AdhesiveReferenceTable() {
                              <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Tamaño de Lámina</TableHead>
-                                        <TableHead className="text-right">Unidades de Adhesivo</TableHead>
+                                        <TableHead>Referencias</TableHead>
+                                        <TableHead>Medida y Rendimiento Estándar</TableHead>
+                                        <TableHead>Medida y Rendimiento XL</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {lineData.items.map(item => (
-                                        <TableRow key={item.size}>
-                                            <TableCell>{item.size}</TableCell>
-                                            <TableCell className="text-right">{item.adhesive}</TableCell>
+                                        <TableRow key={item.reference}>
+                                            <TableCell className="font-medium">{item.reference}</TableCell>
+                                            <TableCell>{item.standard}</TableCell>
+                                            <TableCell>{item.xl}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -431,29 +437,31 @@ export default function StoneflexCalculatorPage() {
 
       if (item.includeAdhesive && details.line !== '3D') {
           let adhesivePerSheet = 0;
+          const isStandard = !item.reference.includes('2.44 X 1.22');
+          const isMetalStandard = item.reference.includes('2.44 X 0.61');
 
           if (details.line === 'Translúcida') {
-              if (item.reference.includes('2.44 X 1.22')) adhesivePerSheet = 2;
-              else adhesivePerSheet = 0.5;
+              adhesivePerSheet = isStandard ? 0.5 : 2;
               totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           } else {
               if (details.line === 'Pizarra' || details.line === 'Cuarcitas') {
-                  adhesivePerSheet = item.reference.includes('2.44 X 1.22') ? 2 : 0.5;
+                  adhesivePerSheet = isStandard ? 0.5 : 2;
               } else if (details.line === 'Mármol') {
-                  if (item.reference.includes('Himalaya')) {
-                      adhesivePerSheet = item.reference.includes('2.44 X 1.22') ? 3.5 : 1.5;
+                  if (item.reference.includes('HIMALAYA')) {
+                      adhesivePerSheet = isStandard ? 1.5 : 3.5;
                   } else {
-                      adhesivePerSheet = item.reference.includes('2.44 X 1.22') ? 2 : 0.5;
+                      adhesivePerSheet = isStandard ? 0.5 : 2;
                   }
               } else if (details.line === 'Concreto') {
-                  adhesivePerSheet = item.reference.includes('2.44 X 1.22') ? 3 : 1.8;
+                  adhesivePerSheet = isStandard ? 1.8 : 3;
               } else if (details.line === 'Metales') {
-                  adhesivePerSheet = item.reference.includes('2.44 X 1.22') ? 3 : 1.5;
+                  adhesivePerSheet = isMetalStandard ? 1.5 : 3;
               } else if (details.line === 'Madera') {
                   adhesivePerSheet = 0.5;
               } else if (details.line === 'Clay') {
-                  if (item.reference.includes('1,20*0,60')) adhesivePerSheet = 0.5;
-                  else if (item.reference.includes('2,95*1,20') || item.reference.includes('2,90*0,56')) adhesivePerSheet = 2;
+                  if (item.reference.includes('2,95*1,20')) adhesivePerSheet = 2;
+                  else if (item.reference.includes('2,90*0,56')) adhesivePerSheet = 2;
+                  else adhesivePerSheet = 0.5;
               }
               totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           }
