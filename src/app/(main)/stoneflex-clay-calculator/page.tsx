@@ -382,7 +382,7 @@ export default function StoneflexCalculatorPage() {
           const sheetDimensions = getSheetDimensions(item.reference);
           const isStandardSize = sheetDimensions.includes('1.22 x 0.61');
           const isXLSize = sheetDimensions.includes('2.44 x 1.22');
-          const isMetalStandard = sheetDimensions.includes('2.44 X 0.61');
+          const isMetalStandard = sheetDimensions.includes('2.44 x 0.61');
 
           let adhesivePerSheet = 0;
 
@@ -391,15 +391,15 @@ export default function StoneflexCalculatorPage() {
               totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           } else {
               if (details.line === 'Concreto') {
-                  adhesivePerSheet = isStandardSize ? 1.8 : 3;
+                  adhesivePerSheet = isXLSize ? 3 : 1.8;
               } else if (details.line === 'Metales') {
-                  adhesivePerSheet = isMetalStandard ? 1.5 : 3;
+                  adhesivePerSheet = isXLSize ? 3 : 1.5;
               } else if (item.reference.includes('HIMALAYA')) {
-                  adhesivePerSheet = isStandardSize ? 1.5 : 3.5;
+                  adhesivePerSheet = isXLSize ? 3.5 : 1.5;
               } else if (details.line === 'Madera') {
                   adhesivePerSheet = 0.5;
               } else { // Default for Pizarra, Cuarcitas, other Marmol, Clay
-                  adhesivePerSheet = isStandardSize ? 0.5 : 2;
+                  adhesivePerSheet = isXLSize ? 2 : 0.5;
               }
               totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           }
