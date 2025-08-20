@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 
 const WhatsAppIcon = () => (
@@ -112,39 +113,62 @@ interface QuoteItem {
   pricePerSheet: number;
 }
 
-const adhesiveReferenceData = [
-    { 
-        line: 'Pizarra, Cuarcitas, Clay', 
-        standard: '0.5', 
-        xl: '2' 
-    },
-    { 
-        line: 'Mármol',
-        standard: '0.5',
-        xl: '2',
-        subrows: [
-            { line: '(Ref. Himalaya)', standard: '1.5', xl: '3.5' }
+const adhesiveReferenceByLine = [
+    {
+        line: 'Pizarra',
+        items: [
+            { size: '1.22 x 0.61', adhesive: '0.5' },
+            { size: '2.44 x 1.22', adhesive: '2' },
         ]
     },
-    { 
-        line: 'Concreto', 
-        standard: '1.8', 
-        xl: '3' 
+    {
+        line: 'Cuarcitas',
+        items: [
+            { size: '1.22 x 0.61', adhesive: '0.5' },
+            { size: '2.44 x 1.22', adhesive: '2' },
+        ]
     },
-    { 
-        line: 'Metales (2.44x0.61)', 
-        standard: '1.5', 
-        xl: '3' 
+    {
+        line: 'Clay',
+        items: [
+            { size: '1.20 x 0.60', adhesive: '0.5' },
+        ]
     },
-    { 
-        line: 'Madera', 
-        standard: '0.5', 
-        xl: 'N/A' 
+    {
+        line: 'Mármol',
+        items: [
+            { size: '1.22 x 0.61', adhesive: '0.5' },
+            { size: '2.44 x 1.22', adhesive: '2' },
+            { size: '1.22 x 0.61 (Himalaya)', adhesive: '1.5' },
+            { size: '2.44 x 1.22 (Himalaya)', adhesive: '3.5' },
+        ]
     },
-    { 
-        line: 'Translúcida', 
-        standard: '0.5 (Translúcido)', 
-        xl: '2 (Translúcido)' 
+    {
+        line: 'Concreto',
+        items: [
+            { size: '1.22 x 0.61', adhesive: '1.8' },
+            { size: '2.44 x 1.22', adhesive: '3' },
+        ]
+    },
+     {
+        line: 'Metales',
+        items: [
+            { size: '2.44 x 0.61', adhesive: '1.5' },
+            { size: '2.44 x 1.22', adhesive: '3' },
+        ]
+    },
+     {
+        line: 'Madera',
+        items: [
+            { size: '0.15 x 2.44', adhesive: '0.5' },
+        ]
+    },
+    {
+        line: 'Translúcida',
+        items: [
+            { size: '1.22 x 0.61', adhesive: '0.5 (Translúcido)' },
+            { size: '2.44 x 1.22', adhesive: '2 (Translúcido)' },
+        ]
     },
 ];
 
@@ -153,34 +177,33 @@ function AdhesiveReferenceTable() {
         <DialogContent className="max-w-2xl">
             <DialogHeader>
                 <DialogTitle>Tabla de Referencia de Rendimiento de Adhesivo</DialogTitle>
+                 <CardDescription>Unidades de adhesivo recomendadas por cada lámina.</CardDescription>
             </DialogHeader>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Línea de Producto</TableHead>
-                        <TableHead className="text-center">Adhesivo por Lámina Estándar (1.22x0.61)</TableHead>
-                        <TableHead className="text-center">Adhesivo por Lámina XL (2.44x1.22)</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {adhesiveReferenceData.map((item) => (
-                        <React.Fragment key={item.line}>
-                            <TableRow>
-                                <TableCell className="font-medium">{item.line}</TableCell>
-                                <TableCell className="text-center">{item.standard}</TableCell>
-                                <TableCell className="text-center">{item.xl}</TableCell>
-                            </TableRow>
-                            {item.subrows?.map(subrow => (
-                                <TableRow key={subrow.line} className="bg-muted/50">
-                                    <TableCell className="pl-8 text-sm text-muted-foreground">{subrow.line}</TableCell>
-                                    <TableCell className="text-center text-sm text-muted-foreground">{subrow.standard}</TableCell>
-                                    <TableCell className="text-center text-sm text-muted-foreground">{subrow.xl}</TableCell>
-                                </TableRow>
-                            ))}
-                        </React.Fragment>
-                    ))}
-                </TableBody>
-            </Table>
+            <Accordion type="multiple" className="w-full">
+                {adhesiveReferenceByLine.map((lineData) => (
+                    <AccordionItem value={lineData.line} key={lineData.line}>
+                        <AccordionTrigger>{lineData.line}</AccordionTrigger>
+                        <AccordionContent>
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Tamaño de Lámina</TableHead>
+                                        <TableHead className="text-right">Unidades de Adhesivo</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {lineData.items.map(item => (
+                                        <TableRow key={item.size}>
+                                            <TableCell>{item.size}</TableCell>
+                                            <TableCell className="text-right">{item.adhesive}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </AccordionContent>
+                    </AccordionItem>
+                ))}
+            </Accordion>
         </DialogContent>
     );
 }
@@ -416,7 +439,10 @@ export default function StoneflexCalculatorPage() {
 
       if (item.includeAdhesive && details.line !== '3D') {
         const isXL = item.reference.includes('2.44 X 1.22');
-        const isStandardMetal = details.line === 'Metales' && item.reference.includes('2.44 X 0.61');
+        const isStandard = item.reference.includes('1.22 X 0.61');
+        const isClay = item.reference.includes('120 X 60');
+        const isStandardMetal = item.reference.includes('2.44 X 0.61');
+        const isWood = item.reference.includes('0.15 X 2.44');
         let adhesivePerSheet = 0;
 
         if (details.line === 'Translucida') {
@@ -425,10 +451,8 @@ export default function StoneflexCalculatorPage() {
         } else {
             if (details.line === 'Concreto') {
                 adhesivePerSheet = isXL ? 3 : 1.8;
-            } else if (isStandardMetal) { // Metal standard size
-                adhesivePerSheet = 1.5;
-            } else if (details.line === 'Metales' && isXL) { // Metal XL size
-                adhesivePerSheet = 3;
+            } else if (details.line === 'Metales') {
+                adhesivePerSheet = isXL ? 3 : 1.5;
             } else if (item.reference.includes('HIMALAYA')) {
                 adhesivePerSheet = isXL ? 3.5 : 1.5;
             } else if (details.line === 'Madera') {
@@ -979,4 +1003,3 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
-
