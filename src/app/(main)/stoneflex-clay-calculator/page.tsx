@@ -113,12 +113,39 @@ interface QuoteItem {
 }
 
 const adhesiveReferenceData = [
-    { line: 'Concreto', standard: 1.8, xl: 3 },
-    { line: 'Metales', standard: 1.5, xl: 3 },
-    { line: 'Himalaya (Mármol)', standard: 1.5, xl: 3.5 },
-    { line: 'Madera', standard: 0.5, xl: 'N/A' },
-    { line: 'Translúcida', standard: '0.5 (Translúcido)', xl: '2 (Translúcido)' },
-    { line: 'Otras (Pizarra, Cuarcitas, Mármol, Clay)', standard: 0.5, xl: 2 },
+    { 
+        line: 'Pizarra, Cuarcitas, Clay', 
+        standard: '0.5', 
+        xl: '2' 
+    },
+    { 
+        line: 'Mármol',
+        standard: '0.5',
+        xl: '2',
+        subrows: [
+            { line: '(Ref. Himalaya)', standard: '1.5', xl: '3.5' }
+        ]
+    },
+    { 
+        line: 'Concreto', 
+        standard: '1.8', 
+        xl: '3' 
+    },
+    { 
+        line: 'Metales', 
+        standard: '1.5', 
+        xl: '3' 
+    },
+    { 
+        line: 'Madera', 
+        standard: '0.5', 
+        xl: 'N/A' 
+    },
+    { 
+        line: 'Translúcida', 
+        standard: '0.5 (Adh. Translúcido)', 
+        xl: '2 (Adh. Translúcido)' 
+    },
 ];
 
 function AdhesiveReferenceTable() {
@@ -131,17 +158,26 @@ function AdhesiveReferenceTable() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>Línea de Producto</TableHead>
-                        <TableHead className="text-center">Adhesivo por Lámina Estándar</TableHead>
-                        <TableHead className="text-center">Adhesivo por Lámina XL</TableHead>
+                        <TableHead className="text-center">Adhesivo por Lámina Estándar (1.22x0.61)</TableHead>
+                        <TableHead className="text-center">Adhesivo por Lámina XL (2.44x1.22)</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {adhesiveReferenceData.map((item) => (
-                        <TableRow key={item.line}>
-                            <TableCell className="font-medium">{item.line}</TableCell>
-                            <TableCell className="text-center">{item.standard}</TableCell>
-                            <TableCell className="text-center">{item.xl}</TableCell>
-                        </TableRow>
+                        <React.Fragment key={item.line}>
+                            <TableRow>
+                                <TableCell className="font-medium">{item.line}</TableCell>
+                                <TableCell className="text-center">{item.standard}</TableCell>
+                                <TableCell className="text-center">{item.xl}</TableCell>
+                            </TableRow>
+                            {item.subrows?.map(subrow => (
+                                <TableRow key={subrow.line} className="bg-muted/50">
+                                    <TableCell className="pl-8 text-sm text-muted-foreground">{subrow.line}</TableCell>
+                                    <TableCell className="text-center text-sm text-muted-foreground">{subrow.standard}</TableCell>
+                                    <TableCell className="text-center text-sm text-muted-foreground">{subrow.xl}</TableCell>
+                                </TableRow>
+                            ))}
+                        </React.Fragment>
                     ))}
                 </TableBody>
             </Table>
@@ -379,30 +415,26 @@ export default function StoneflexCalculatorPage() {
       }
 
       if (item.includeAdhesive && details.line !== '3D') {
-          const sheetDimensions = getSheetDimensions(item.reference);
-          const isStandardSize = sheetDimensions.includes('1.22 x 0.61');
-          const isXLSize = sheetDimensions.includes('2.44 x 1.22');
-          const isMetalStandard = sheetDimensions.includes('2.44 x 0.61');
+        const isXL = item.reference.includes('2.44 X 1.22');
+        let adhesivePerSheet = 0;
 
-          let adhesivePerSheet = 0;
-
-          if (details.line === 'Translucida') {
-              adhesivePerSheet = isStandardSize ? 0.5 : 2;
-              totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
-          } else {
-              if (details.line === 'Concreto') {
-                  adhesivePerSheet = isXLSize ? 3 : 1.8;
-              } else if (details.line === 'Metales') {
-                  adhesivePerSheet = isXLSize ? 3 : 1.5;
-              } else if (item.reference.includes('HIMALAYA')) {
-                  adhesivePerSheet = isXLSize ? 3.5 : 1.5;
-              } else if (details.line === 'Madera') {
-                  adhesivePerSheet = 0.5;
-              } else { // Default for Pizarra, Cuarcitas, other Marmol, Clay
-                  adhesivePerSheet = isXLSize ? 2 : 0.5;
-              }
-              totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
-          }
+        if (details.line === 'Translucida') {
+            adhesivePerSheet = isXL ? 2 : 0.5;
+            totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
+        } else {
+            if (details.line === 'Concreto') {
+                adhesivePerSheet = isXL ? 3 : 1.8;
+            } else if (details.line === 'Metales') {
+                adhesivePerSheet = isXL ? 3 : 1.5;
+            } else if (item.reference.includes('HIMALAYA')) {
+                adhesivePerSheet = isXL ? 3.5 : 1.5;
+            } else if (details.line === 'Madera') {
+                adhesivePerSheet = 0.5;
+            } else { // Pizarra, Cuarcitas, Clay, Other Mármol
+                adhesivePerSheet = isXL ? 2 : 0.5;
+            }
+            totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
+        }
       }
       
       if (!item.includeSealant || !item.includeAdhesive) {
@@ -944,3 +976,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
