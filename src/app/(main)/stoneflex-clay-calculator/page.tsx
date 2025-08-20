@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const WhatsAppIcon = () => (
@@ -147,7 +147,7 @@ const adhesiveReferenceByLine: {
     ]
   },
   {
-    line: 'Metales',
+    line: 'Metales (2.44x0.61)',
     items: [
       { reference: 'Metales', standard: '2.44x0.61 - 1.5u', xl: '2.44x1.22 - 3u' },
     ]
@@ -167,47 +167,52 @@ const adhesiveReferenceByLine: {
   {
     line: 'Clay',
     items: [
-      { reference: 'Clay', standard: '1.20x0.60 - 0.5u', xl: '2.95x1.20 - 2u' },
-      { reference: '', standard: '2.90x0.56 - 2u', xl: '' },
+      { reference: 'CLAY CUT STONE / TRAVERTINO', standard: '1.20x0.60 - 0.5u', xl: '' },
+      { reference: 'CLAY TAPIA NEGRA', standard: '', xl: '2.95x1.20 - 2u' },
+      { reference: 'CONCRETO ENCOFRADO', standard: '', xl: '2.90x0.56 - 2u' },
     ]
   }
 ];
 
 
 function AdhesiveReferenceTable() {
+    const [activeTab, setActiveTab] = useState(adhesiveReferenceByLine[0].line);
+
     return (
         <DialogContent className="max-w-3xl">
             <DialogHeader>
                 <DialogTitle>Tabla de Referencia de Rendimiento de Adhesivo</DialogTitle>
-                 <CardDescription>Unidades de adhesivo recomendadas por cada lámina.</CardDescription>
+                <CardDescription>Unidades de adhesivo recomendadas por cada lámina.</CardDescription>
             </DialogHeader>
-            <Accordion type="multiple" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList>
+                    {adhesiveReferenceByLine.map((lineData) => (
+                        <TabsTrigger value={lineData.line} key={lineData.line}>{lineData.line}</TabsTrigger>
+                    ))}
+                </TabsList>
                 {adhesiveReferenceByLine.map((lineData) => (
-                    <AccordionItem value={lineData.line} key={lineData.line}>
-                        <AccordionTrigger>{lineData.line}</AccordionTrigger>
-                        <AccordionContent>
-                             <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Referencias</TableHead>
-                                        <TableHead>Medida y Rendimiento Estándar</TableHead>
-                                        <TableHead>Medida y Rendimiento XL</TableHead>
+                    <TabsContent value={lineData.line} key={lineData.line}>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Referencias</TableHead>
+                                    <TableHead>Medida y Rendimiento Estándar</TableHead>
+                                    <TableHead>Medida y Rendimiento XL</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {lineData.items.map(item => (
+                                    <TableRow key={item.reference}>
+                                        <TableCell className="font-medium">{item.reference}</TableCell>
+                                        <TableCell>{item.standard}</TableCell>
+                                        <TableCell>{item.xl}</TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {lineData.items.map(item => (
-                                        <TableRow key={item.reference}>
-                                            <TableCell className="font-medium">{item.reference}</TableCell>
-                                            <TableCell>{item.standard}</TableCell>
-                                            <TableCell>{item.xl}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </AccordionContent>
-                    </AccordionItem>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TabsContent>
                 ))}
-            </Accordion>
+            </Tabs>
         </DialogContent>
     );
 }
@@ -435,33 +440,36 @@ export default function StoneflexCalculatorPage() {
         totalSqMetersForSealant += item.sqMeters;
       }
 
-      if (item.includeAdhesive && details.line !== '3D') {
+       if (item.includeAdhesive && details.line !== '3D') {
           let adhesivePerSheet = 0;
-          const isStandard = !item.reference.includes('2.44 X 1.22');
+          const isStandardSize = item.reference.includes('1.22 X 0.61') || item.reference.includes('1,20*0,60') || item.reference.includes('0.15 X 2.44');
+          const isXLSize = item.reference.includes('2.44 X 1.22') || item.reference.includes('2,95*1,20') || item.reference.includes('2,90*0,56');
           const isMetalStandard = item.reference.includes('2.44 X 0.61');
 
           if (details.line === 'Translúcida') {
-              adhesivePerSheet = isStandard ? 0.5 : 2;
+              adhesivePerSheet = isStandardSize ? 0.5 : 2;
               totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           } else {
-              if (details.line === 'Pizarra' || details.line === 'Cuarcitas') {
-                  adhesivePerSheet = isStandard ? 0.5 : 2;
+              if (['Pizarra', 'Cuarcitas'].includes(details.line)) {
+                  adhesivePerSheet = isStandardSize ? 0.5 : 2;
               } else if (details.line === 'Mármol') {
                   if (item.reference.includes('HIMALAYA')) {
-                      adhesivePerSheet = isStandard ? 1.5 : 3.5;
+                      adhesivePerSheet = isStandardSize ? 1.5 : 3.5;
                   } else {
-                      adhesivePerSheet = isStandard ? 0.5 : 2;
+                      adhesivePerSheet = isStandardSize ? 0.5 : 2;
                   }
               } else if (details.line === 'Concreto') {
-                  adhesivePerSheet = isStandard ? 1.8 : 3;
+                  adhesivePerSheet = isStandardSize ? 1.8 : 3;
               } else if (details.line === 'Metales') {
                   adhesivePerSheet = isMetalStandard ? 1.5 : 3;
               } else if (details.line === 'Madera') {
                   adhesivePerSheet = 0.5;
               } else if (details.line === 'Clay') {
-                  if (item.reference.includes('2,95*1,20')) adhesivePerSheet = 2;
-                  else if (item.reference.includes('2,90*0,56')) adhesivePerSheet = 2;
-                  else adhesivePerSheet = 0.5;
+                  if (item.reference.includes('2,95*1,20') || item.reference.includes('2,90*0,56')) {
+                      adhesivePerSheet = 2;
+                  } else {
+                      adhesivePerSheet = 0.5;
+                  }
               }
               totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           }
@@ -1006,3 +1014,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
