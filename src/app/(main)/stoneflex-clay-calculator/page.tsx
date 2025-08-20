@@ -393,11 +393,7 @@ export default function StoneflexCalculatorPage() {
               if (details.line === 'Concreto') {
                   adhesivePerSheet = isStandardSize ? 1.8 : 3;
               } else if (details.line === 'Metales') {
-                  if (isMetalStandard) {
-                      adhesivePerSheet = 1.5;
-                  } else if (isXLSize) {
-                      adhesivePerSheet = 3;
-                  }
+                  adhesivePerSheet = isMetalStandard ? 1.5 : 3;
               } else if (item.reference.includes('HIMALAYA')) {
                   adhesivePerSheet = isStandardSize ? 1.5 : 3.5;
               } else if (details.line === 'Madera') {
