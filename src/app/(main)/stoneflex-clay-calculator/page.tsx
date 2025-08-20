@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2 } from 'lucide-react';
+import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,8 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 
 const WhatsAppIcon = () => (
@@ -108,6 +110,43 @@ interface QuoteItem {
   includeAdhesive: boolean;
   calculationMode: 'sqm' | 'sheets' | 'units';
   pricePerSheet: number;
+}
+
+const adhesiveReferenceData = [
+    { line: 'Concreto', standard: 1.8, xl: 3 },
+    { line: 'Metales', standard: 1.5, xl: 3 },
+    { line: 'Himalaya (Mármol)', standard: 1.5, xl: 3.5 },
+    { line: 'Madera', standard: 0.5, xl: 'N/A' },
+    { line: 'Translúcida', standard: '0.5 (Translúcido)', xl: '2 (Translúcido)' },
+    { line: 'Otras (Pizarra, Cuarcitas, Mármol, Clay)', standard: 0.5, xl: 2 },
+];
+
+function AdhesiveReferenceTable() {
+    return (
+        <DialogContent className="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>Tabla de Referencia de Rendimiento de Adhesivo</DialogTitle>
+            </DialogHeader>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Línea de Producto</TableHead>
+                        <TableHead className="text-center">Adhesivo por Lámina Estándar</TableHead>
+                        <TableHead className="text-center">Adhesivo por Lámina XL</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {adhesiveReferenceData.map((item) => (
+                        <TableRow key={item.line}>
+                            <TableCell className="font-medium">{item.line}</TableCell>
+                            <TableCell className="text-center">{item.standard}</TableCell>
+                            <TableCell className="text-center">{item.xl}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </DialogContent>
+    );
 }
 
 export default function StoneflexCalculatorPage() {
@@ -347,15 +386,14 @@ export default function StoneflexCalculatorPage() {
           let adhesivePerSheet = 0;
 
           if (details.line === 'Translucida') {
-              if (isStandardSize) adhesivePerSheet = 0.5; // 1 per 2 sheets
-              else if (isXLSize) adhesivePerSheet = 2;
+              adhesivePerSheet = isStandardSize ? 0.5 : 2;
               totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           } else {
               if (details.line === 'Concreto') {
                   adhesivePerSheet = isStandardSize ? 1.8 : 3;
               } else if (details.line === 'Metales') {
                   adhesivePerSheet = isStandardSize ? 1.5 : 3;
-              } else if (item.reference.includes('HIMALAYA')) { // Special case for Himalaya
+              } else if (item.reference.includes('HIMALAYA')) {
                   adhesivePerSheet = isStandardSize ? 1.5 : 3.5;
               } else if (details.line === 'Madera') {
                   adhesivePerSheet = 0.5;
@@ -671,6 +709,15 @@ export default function StoneflexCalculatorPage() {
                        </Select>
                     </div>
                   )}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="ml-auto">
+                            <HelpCircle className="mr-2 h-4 w-4" />
+                            Ver Tabla de Rendimiento de Adhesivo
+                        </Button>
+                    </DialogTrigger>
+                    <AdhesiveReferenceTable />
+                  </Dialog>
               </div>
               <div className="flex justify-end">
                   <Button onClick={handleAddProduct} className="mt-4" disabled={!reference}>
