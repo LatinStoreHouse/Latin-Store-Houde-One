@@ -115,6 +115,7 @@ export const roles: RoleConfig[] = [
         name: 'Contador',
         permissions: [
             'dashboard:view',
+            'inventory:view',
             'inventory:transit',
             'orders:view',
             'invoices:view',
