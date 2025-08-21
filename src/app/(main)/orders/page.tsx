@@ -138,10 +138,11 @@ export default function DispatchPage() {
   const canCreateDispatch = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
   useEffect(() => {
-    if (searchParams.get('action') === 'create') {
-        const cliente = searchParams.get('cliente') || '';
-        const vendedor = searchParams.get('vendedor') || '';
-        const direccion = searchParams.get('direccion') || '';
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action') === 'create') {
+        const cliente = params.get('cliente') || '';
+        const vendedor = params.get('vendedor') || '';
+        const direccion = params.get('direccion') || '';
 
         setEditingDispatch({
             id: 0, // temp id
@@ -457,7 +458,6 @@ export default function DispatchPage() {
               {filteredData.map((item) => {
                 const validation = getValidationStatus(item.cotizacion);
                 const isReadOnly = validation.status !== 'Pendiente';
-                const canPerformActions = currentUser.roles.includes('Administrador') || (currentUser.name === item.vendedor);
                 
                 return (
                 <TableRow key={item.id} className={cn("h-auto", getConventionClasses(item.convencion))}>
@@ -525,37 +525,33 @@ export default function DispatchPage() {
                   </TableCell>
                   <TableCell className="text-right p-0">
                     <div className="flex items-center justify-end h-full">
-                      {canPerformActions && (
-                        <>
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none" disabled={isReadOnly}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                               <Button variant="ghost" size="icon" className="h-full rounded-none" disabled={isReadOnly}>
-                                 <Trash2 className="h-4 w-4 text-destructive" />
-                               </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
-                                  Eliminar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </>
-                      )}
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none" disabled={isReadOnly}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-full rounded-none" disabled={isReadOnly}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
+                              Eliminar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </TableCell>
                 </TableRow>
