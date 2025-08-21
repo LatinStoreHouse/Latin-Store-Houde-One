@@ -97,7 +97,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                              </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                             <p className="font-bold mb-2">Total Separado: {item.separadasBodega + item.separadasZonaFranca}</p>
+                             <p className="font-bold mb-2">Asesores que tienen separado:</p>
                               {reservations.length > 0 ? (
                                 <ul className="list-disc pl-4">
                                   {reservations.map(r => (
