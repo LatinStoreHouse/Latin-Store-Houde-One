@@ -5,6 +5,7 @@ import React, { createContext, useState, ReactNode } from 'react';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { initialContainers as initialContainerData } from '@/lib/initial-containers';
 import { initialReservations } from '@/lib/sales-history';
+import { TransferItem } from '@/components/transfer-inventory-form';
 
 export interface Product {
   name: string;
@@ -52,7 +53,7 @@ interface InventoryContextType {
   setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
   notifications: AppNotification[];
   dismissNotification: (id: number) => void;
-  transferFromFreeZone: (productName: string, quantity: number, reservationsToTransfer: Reservation[]) => void;
+  transferFromFreeZone: (items: TransferItem[]) => void;
   receiveContainer: (containerId: string, reservations: Reservation[]) => void;
   dispatchReservation: (quoteNumber: string) => void;
   addContainer: (container: Container) => void;
@@ -79,50 +80,54 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     return null;
   };
 
-  const transferFromFreeZone = (productName: string, quantity: number, reservationsToTransfer: Reservation[]) => {
+  const transferFromFreeZone = (items: TransferItem[]) => {
     setInventoryData(prevData => {
-      const location = findProductLocation(productName);
-      if (!location) {
-        throw new Error('Producto no encontrado en el inventario.');
-      }
-      
-      const { brand, subCategory } = location;
-      const product = prevData[brand as keyof typeof prevData][subCategory][productName];
-      
-      if (quantity > product.zonaFranca) {
-        throw new Error(`La cantidad total a trasladar (${quantity}) excede el stock total en Zona Franca (${product.zonaFranca}).`);
-      }
+        const newData = JSON.parse(JSON.stringify(prevData));
 
-      const newData = JSON.parse(JSON.stringify(prevData));
-      const p = newData[brand as keyof typeof prevData][subCategory][productName];
-      
-      // Move total stock
-      p.zonaFranca -= quantity;
-      p.bodega += quantity;
+        for (const item of items) {
+            const { productName, quantity, reservationsToTransfer } = item;
+            const location = findProductLocation(productName);
+            if (!location) {
+                throw new Error(`Producto ${productName} no encontrado en el inventario.`);
+            }
 
-      // Move selected reservations
-      const totalReservedToTransfer = reservationsToTransfer.reduce((acc, r) => acc + r.quantity, 0);
+            const { brand, subCategory } = location;
+            const product = newData[brand as keyof typeof newData][subCategory][productName];
+            
+            if (quantity > product.zonaFranca) {
+                throw new Error(`La cantidad a trasladar para ${productName} (${quantity}) excede el stock total en Zona Franca (${product.zonaFranca}).`);
+            }
 
-      if (totalReservedToTransfer > p.separadasZonaFranca) {
-          throw new Error(`Las separaciones a mover (${totalReservedToTransfer}) exceden las disponibles en Zona Franca (${p.separadasZonaFranca}).`);
-      }
-      
-      p.separadasZonaFranca -= totalReservedToTransfer;
-      p.separadasBodega += totalReservedToTransfer;
-      
-      return newData;
+            // Move total stock
+            product.zonaFranca -= quantity;
+            product.bodega += quantity;
+
+            // Move selected reservations
+            const totalReservedToTransfer = reservationsToTransfer.reduce((acc, r) => acc + r.quantity, 0);
+
+            if (totalReservedToTransfer > product.separadasZonaFranca) {
+                throw new Error(`Las separaciones a mover para ${productName} (${totalReservedToTransfer}) exceden las disponibles en Zona Franca (${product.separadasZonaFranca}).`);
+            }
+            
+            product.separadasZonaFranca -= totalReservedToTransfer;
+            product.separadasBodega += totalReservedToTransfer;
+        }
+
+        return newData;
     });
 
-    // Update the source of the transferred reservations
-    setReservations(prevRes => {
-        const idsToTransfer = new Set(reservationsToTransfer.map(r => r.id));
-        return prevRes.map(r => {
+    // Update the source of all transferred reservations from all items
+    const allReservationsToTransfer = items.flatMap(item => item.reservationsToTransfer);
+    const idsToTransfer = new Set(allReservationsToTransfer.map(r => r.id));
+    
+    setReservations(prevRes => 
+        prevRes.map(r => {
             if (idsToTransfer.has(r.id)) {
                 return { ...r, source: 'Bodega', sourceId: 'Bodega' };
             }
             return r;
-        });
-    });
+        })
+    );
   };
 
   const receiveContainer = (containerId: string, validatedReservations: Reservation[]) => {

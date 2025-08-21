@@ -26,7 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { TransferInventoryForm } from '@/components/transfer-inventory-form';
+import { TransferInventoryForm, type TransferItem } from '@/components/transfer-inventory-form';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -59,7 +59,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
   
   const getStockColorClass = (stock: number) => {
     if (stock <= 0) return 'text-red-600';
-    if (stock > 0 && stock <= 19) return 'text-yellow-600';
+    if (stock > 0 && stock <= 20) return 'text-yellow-600';
     return 'text-green-600';
   };
 
@@ -215,6 +215,7 @@ export default function InventoryPage() {
   const { currentUser } = useUser();
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   
   const currentUserRole = currentUser.roles[0];
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
@@ -415,12 +416,21 @@ export default function InventoryPage() {
     }));
   }
 
-   const handleTransfer = ({ product, quantity, reservationsToTransfer }: { product: string; quantity: number, reservationsToTransfer: Reservation[] }) => {
+   const handleTransfer = (items: TransferItem[]) => {
      try {
-       transferFromFreeZone(product, quantity, reservationsToTransfer);
-       toast({ title: 'Traslado Exitoso', description: `${quantity} unidades de ${product} movidas de Zona Franca a Bodega.` });
+       transferFromFreeZone(items);
+       setIsTransferDialogOpen(false);
+       toast({ 
+            title: 'Traslado Exitoso', 
+            description: `${items.length} tipo(s) de producto movido(s) de Zona Franca a Bodega.` 
+       });
      } catch (error: any) {
-       toast({ variant: 'destructive', title: 'Error', description: error.message });
+       toast({ 
+            variant: 'destructive', 
+            title: 'Error en el Traslado', 
+            description: error.message,
+            duration: 5000,
+        });
      }
   };
   
@@ -442,16 +452,17 @@ export default function InventoryPage() {
                     <Save className="mr-2 h-4 w-4" />
                     Guardar Cambios
                 </Button>
-                <Dialog>
+                <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
                     <DialogTrigger asChild>
                         <Button variant="outline" size="sm">
                             <Truck className="mr-2 h-4 w-4" />
                             Trasladar de ZF a Bodega
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-4xl">
                         <DialogHeader>
-                            <DialogTitle>Trasladar Inventario</DialogTitle>
+                            <DialogTitle>Trasladar Inventario por Lote</DialogTitle>
+                            <DialogDescription>Construya un lote de productos para mover de Zona Franca a la bodega principal.</DialogDescription>
                         </DialogHeader>
                         <TransferInventoryForm onTransfer={handleTransfer} />
                     </DialogContent>
