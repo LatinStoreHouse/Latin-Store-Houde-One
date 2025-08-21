@@ -3,10 +3,11 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
+import * as XLSX from 'xlsx';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle } from 'lucide-react';
+import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -23,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 const WhatsAppIcon = () => (
@@ -146,13 +148,13 @@ function AdhesiveReferenceTable() {
                     </TableRow>
                      <TableRow>
                         <TableCell>Brillante (Galón)</TableCell>
-                        <TableCell>60 M²</TableCell>
-                         <TableCell>40 M²</TableCell>
+                        <TableCell>40 M²</TableCell>
+                         <TableCell>60 M²</TableCell>
                     </TableRow>
                      <TableRow>
                         <TableCell>Brillante (1/4 Galón)</TableCell>
-                        <TableCell>18 M²</TableCell>
-                         <TableCell>10 M²</TableCell>
+                        <TableCell>10 M²</TableCell>
+                         <TableCell>18 M²</TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
@@ -422,8 +424,10 @@ export default function StoneflexCalculatorPage() {
     if (includeSealant) {
         sealantPriceCOP = productPrices[sealantType] || 0;
         const perf = sealantPerformance[sealantType];
-        const unitsForClay = Math.ceil(totalSqMetersForSealantClay / perf.clay);
-        const unitsForOther = Math.ceil(totalSqMetersForSealantOther / perf.other);
+        
+        const unitsForClay = totalSqMetersForSealantClay > 0 ? Math.ceil(totalSqMetersForSealantClay / perf.clay) : 0;
+        const unitsForOther = totalSqMetersForSealantOther > 0 ? Math.ceil(totalSqMetersForSealantOther / perf.other) : 0;
+
         totalSealantUnits = unitsForClay + unitsForOther;
         totalSealantCost = convert(totalSealantUnits * sealantPriceCOP);
     }
@@ -485,6 +489,46 @@ export default function StoneflexCalculatorPage() {
     // ... rest of PDF generation ...
   };
 
+  const handleExportXLSX = () => {
+    if (!quote) return;
+
+    const dataToExport = quote.items.map(item => ({
+        'Referencia': item.reference,
+        'Modo Cálculo': item.calculationMode,
+        'M²': item.sqMeters > 0 ? item.sqMeters.toFixed(2) : '',
+        'Láminas/Unidades': item.sheets,
+        'Precio Unitario': formatCurrency(item.pricePerSheet),
+        'Costo Total': formatCurrency(item.itemTotal)
+    }));
+
+    // Add supplies to the export
+    if (quote.totalStandardAdhesiveCost > 0) {
+        dataToExport.push({ 'Referencia': 'Adhesivo (Estándar)', 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.totalStandardAdhesiveUnits, 'Precio Unitario': formatCurrency(quote.adhesivePrice), 'Costo Total': formatCurrency(quote.totalStandardAdhesiveCost) });
+    }
+     if (quote.totalTranslucentAdhesiveCost > 0) {
+        dataToExport.push({ 'Referencia': 'Adhesivo (Translúcido)', 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.totalTranslucentAdhesiveUnits, 'Precio Unitario': formatCurrency(quote.translucentAdhesivePrice), 'Costo Total': formatCurrency(quote.totalTranslucentAdhesiveCost) });
+    }
+     if (quote.totalSealantCost > 0) {
+        dataToExport.push({ 'Referencia': `Sellante (${sealantType.split('SELLANTE ')[1]})`, 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.totalSealantUnits, 'Precio Unitario': formatCurrency(quote.sealantPrice), 'Costo Total': formatCurrency(quote.totalSealantCost) });
+    }
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+
+    // Add summary
+    const finalRow = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']).e.r + 3 : dataToExport.length + 2;
+    XLSX.utils.sheet_add_aoa(ws, [['Subtotal', formatCurrency(quote.subtotal)]], { origin: `E${finalRow}` });
+    XLSX.utils.sheet_add_aoa(ws, [['IVA (19%)', formatCurrency(quote.ivaAmount)]], { origin: `E${finalRow + 1}` });
+    XLSX.utils.sheet_add_aoa(ws, [['Mano de Obra', formatCurrency(quote.laborCost)]], { origin: `E${finalRow + 2}` });
+    XLSX.utils.sheet_add_aoa(ws, [['Transporte', formatCurrency(quote.transportationCost)]], { origin: `E${finalRow + 3}` });
+    XLSX.utils.sheet_add_aoa(ws, [['TOTAL', formatCurrency(quote.totalCost)]], { origin: `E${finalRow + 4}` });
+
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Cotizacion StoneFlex");
+    XLSX.writeFile(wb, "Cotizacion_StoneFlex.xlsx");
+    toast({ title: 'Éxito', description: 'Cotización exportada a Excel.' });
+  };
+  
   const handleShareOnWhatsApp = () => {
     if (!quote) return;
 
@@ -541,7 +585,7 @@ export default function StoneflexCalculatorPage() {
     if (quote.isWarrantyVoid) {
         message += `*Nota Importante:* La no inclusión de adhesivo puede anular la garantía del producto.\n`;
     }
-    message += `_Esta es una cotización preliminar y no incluye costos de instalación si no se especifica._`;
+    message += `_Esta es una cotización preliminar realizada sin confirmación de medidas y el costo final puede variar. No incluye costos de instalación si no se especifica._`;
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
@@ -730,7 +774,7 @@ export default function StoneflexCalculatorPage() {
                 </div>
             )}
              <Separator className="my-6" />
-             <h4 className="text-md font-medium mb-4">Insumos Manuales</h4>
+             <h4 className="text-md font-medium mb-4">Insumos y Accesorios Adicionales</h4>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_auto] gap-4 items-end">
                 <div className="space-y-2">
                    <Label>Insumo</Label>
@@ -909,10 +953,19 @@ export default function StoneflexCalculatorPage() {
               
               <div className="flex justify-between items-center pt-2">
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleDownloadPdf}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Descargar
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Descargar
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={handleDownloadPdf}>Descargar como PDF</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportXLSX}>Descargar como XLSX</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button variant="outline" onClick={handleShareOnWhatsApp}>
                         <WhatsAppIcon />
                         <span className="ml-2">Compartir</span>
@@ -944,3 +997,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
