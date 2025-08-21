@@ -264,12 +264,17 @@ export default function TransitPage() {
   }
 
 
-  const handleAddProductToContainer = () => {
+  const handleAddProductToContainer = (isEditing: boolean) => {
     if (!brand || !line || !productName || Number(quantity) <= 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos del producto.' });
         return;
     }
-    setNewContainerProducts(prev => {
+
+    const productListSetter = isEditing 
+        ? (updater: (prev: Product[]) => Product[]) => setEditingContainer(c => c ? {...c, products: updater(c.products)} : null)
+        : setNewContainerProducts;
+    
+    productListSetter(prev => {
         const existingProductIndex = prev.findIndex(p => p.name === productName);
         if (existingProductIndex !== -1) {
             const updatedProducts = [...prev];
@@ -279,12 +284,17 @@ export default function TransitPage() {
             return [...prev, { name: productName, quantity: Number(quantity), brand, line }];
         }
     });
+
     setProductName('');
     setQuantity('');
   };
   
-  const handleRemoveProductFromList = (productName: string) => {
-    setNewContainerProducts(prev => prev.filter(p => p.name !== productName));
+  const handleRemoveProductFromList = (productName: string, isEditing: boolean) => {
+     const productListSetter = isEditing 
+        ? (updater: (prev: Product[]) => Product[]) => setEditingContainer(c => c ? {...c, products: updater(c.products)} : null)
+        : setNewContainerProducts;
+    
+    productListSetter(prev => prev.filter(p => p.name !== productName));
   }
   
   const handleExportOptionChange = (key: string, value: boolean) => {
@@ -447,6 +457,89 @@ export default function TransitPage() {
   
   const containersForExportDialog = activeTab === 'historial' ? historyContainers : activeContainers;
 
+  const ProductForm = ({ isEditing }: { isEditing: boolean }) => (
+    <div className="space-y-2 p-4 border rounded-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+            <Label>Marca</Label>
+            <Select value={brand} onValueChange={(v) => {setBrand(v); setLine('');}}>
+                <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
+                <SelectContent>
+                    {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            </div>
+            <div className="space-y-2">
+            <Label>Línea</Label>
+            <Select value={line} onValueChange={setLine} disabled={!brand}>
+                <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
+                <SelectContent>
+                    {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_100px_auto] gap-2 items-end pt-2">
+            <div className="space-y-2">
+                <Label>Nombre del Producto</Label>
+                <Input
+                placeholder="Ingrese el nombre del nuevo producto"
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                />
+            </div>
+            <div className="space-y-2">
+                <Label>Cantidad</Label>
+                <Input
+                type="number"
+                placeholder="Cant."
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+            />
+            </div>
+            <Button onClick={() => handleAddProductToContainer(isEditing)} className="self-end">Agregar</Button>
+        </div>
+    </div>
+  );
+
+ const ProductList = ({ products, isEditing }: { products: Product[], isEditing: boolean }) => (
+    <div className="rounded-md border max-h-48 overflow-y-auto">
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead className="text-right">Cantidad</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {products.map(p => (
+                    <TableRow key={p.name}>
+                        <TableCell>
+                            <div>{p.name}</div>
+                            <div className="text-xs text-muted-foreground">{p.brand} &gt; {p.line}</div>
+                        </TableCell>
+                        <TableCell className="text-right">{p.quantity}</TableCell>
+                        <TableCell>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveProductFromList(p.name, isEditing)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                ))}
+                {products.length === 0 && (
+                    <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground h-24">
+                            No hay productos agregados.
+                        </TableCell>
+                    </TableRow>
+                )}
+            </TableBody>
+        </Table>
+    </div>
+ );
+
+
   return (
     <div>
       <Card className="mb-6">
@@ -548,84 +641,8 @@ export default function TransitPage() {
               </div>
               <Separator />
                <h4 className="font-medium text-center">Productos del Contenedor</h4>
-              <div className="space-y-2 p-4 border rounded-md">
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <div className="space-y-2">
-                        <Label>Marca</Label>
-                        <Select value={brand} onValueChange={(v) => {setBrand(v); setLine('');}}>
-                            <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
-                            <SelectContent>
-                                {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                     </div>
-                      <div className="space-y-2">
-                        <Label>Línea</Label>
-                        <Select value={line} onValueChange={setLine} disabled={!brand}>
-                            <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
-                            <SelectContent>
-                                {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                     </div>
-                   </div>
-                   <div className="grid grid-cols-1 sm:grid-cols-[1fr_100px_auto] gap-2 items-end pt-2">
-                      <div className="space-y-2">
-                         <Label>Nombre del Producto</Label>
-                         <Input
-                            placeholder="Ingrese el nombre del nuevo producto"
-                            value={productName}
-                            onChange={(e) => setProductName(e.target.value)}
-                         />
-                      </div>
-                       <div className="space-y-2">
-                          <Label>Cantidad</Label>
-                          <Input
-                            type="number"
-                            placeholder="Cant."
-                            value={quantity}
-                            onChange={(e) => setQuantity(e.target.value)}
-                        />
-                       </div>
-                        <Button onClick={handleAddProductToContainer} className="self-end">Agregar</Button>
-                  </div>
-              </div>
-              
-              <div className="rounded-md border max-h-48 overflow-y-auto">
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Producto</TableHead>
-                            <TableHead className="text-right">Cantidad</TableHead>
-                            <TableHead className="w-[50px]"></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {newContainerProducts.map(p => (
-                            <TableRow key={p.name}>
-                                <TableCell>
-                                    <div>{p.name}</div>
-                                    <div className="text-xs text-muted-foreground">{p.brand} &gt; {p.line}</div>
-                                </TableCell>
-                                <TableCell className="text-right">{p.quantity}</TableCell>
-                                <TableCell>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveProductFromList(p.name)}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        {newContainerProducts.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={3} className="text-center text-muted-foreground h-24">
-                                    No hay productos agregados.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                 </Table>
-              </div>
-
+              <ProductForm isEditing={false} />
+              <ProductList products={newContainerProducts} isEditing={false} />
           </div>
           <DialogFooter>
               <DialogClose asChild>
@@ -639,24 +656,26 @@ export default function TransitPage() {
       {/* Edit Container Dialog */}
       {editingContainer && (
         <Dialog open={isEditContainerDialogOpen} onOpenChange={setIsEditContainerDialogOpen}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle>Editar Contenedor {editingContainer.id}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="edit-container-id">ID del Contenedor</Label>
-                        <Input id="edit-container-id" value={editingContainer.id} onChange={(e) => setEditingContainer({...editingContainer, id: e.target.value.toUpperCase()})} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="edit-container-eta">Llegada a Puerto</Label>
-                        <Input id="edit-container-eta" type="date" value={editingContainer.eta} onChange={(e) => setEditingContainer({...editingContainer, eta: e.target.value})} />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-container-id">ID del Contenedor</Label>
+                            <Input id="edit-container-id" value={editingContainer.id} onChange={(e) => setEditingContainer({...editingContainer, id: e.target.value.toUpperCase()})} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-container-eta">Llegada a Puerto</Label>
+                            <Input id="edit-container-eta" type="date" value={editingContainer.eta} onChange={(e) => setEditingContainer({...editingContainer, eta: e.target.value})} />
+                        </div>
                     </div>
                      <div className="space-y-2">
                         <Label>Estado</Label>
                         <Select
                             value={editingContainer.status}
-                            onValueChange={(value) => setEditingContainer({...editingContainer, status: value as ContainerType['status']})}
+                            onValueChange={(value) => setEditingContainer(c => c ? {...c, status: value as ContainerType['status']} : null)}
                         >
                             <SelectTrigger>
                                 <SelectValue />
@@ -668,6 +687,10 @@ export default function TransitPage() {
                             </SelectContent>
                         </Select>
                     </div>
+                    <Separator />
+                    <h4 className="font-medium text-center">Productos del Contenedor</h4>
+                    <ProductForm isEditing={true} />
+                    <ProductList products={editingContainer.products} isEditing={true} />
                 </div>
                 <DialogFooter>
                     <DialogClose asChild><Button variant="ghost" onClick={() => setEditingContainer(null)}>Cancelar</Button></DialogClose>
