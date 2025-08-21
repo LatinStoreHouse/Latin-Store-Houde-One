@@ -150,13 +150,13 @@ function AdhesiveReferenceTable() {
                     </TableRow>
                      <TableRow>
                         <TableCell>Brillante (Galón)</TableCell>
-                        <TableCell>40 M²</TableCell>
-                         <TableCell>60 M²</TableCell>
+                        <TableCell>60 M²</TableCell>
+                         <TableCell>40 M²</TableCell>
                     </TableRow>
                      <TableRow>
                         <TableCell>Brillante (1/4 Galón)</TableCell>
-                        <TableCell>10 M²</TableCell>
-                         <TableCell>18 M²</TableCell>
+                        <TableCell>18 M²</TableCell>
+                         <TableCell>10 M²</TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
