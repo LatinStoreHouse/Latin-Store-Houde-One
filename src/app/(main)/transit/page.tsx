@@ -61,11 +61,12 @@ declare module 'jspdf' {
 
 const containerStatuses: ContainerStatus[] = ['En producción', 'En tránsito', 'En puerto', 'Atrasado', 'Llegado'];
 
-const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateReservation, onEdit, onStatusChange, onReceive, onReserve }: {
+const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateReservation, canReceiveContainer, onEdit, onStatusChange, onReceive, onReserve }: {
     container: ContainerType;
     canEditStatus: boolean;
     canEditContainer: boolean;
     canCreateReservation: boolean;
+    canReceiveContainer: boolean;
     onEdit: (container: ContainerType) => void;
     onStatusChange: (containerId: string, newStatus: ContainerStatus) => void;
     onReceive: (containerId: string, reservations: Reservation[]) => void;
@@ -194,39 +195,35 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
                     </Button>
                 )}
                 {canEditContainer && (
-                  <>
                     <Button variant="outline" size="sm" onClick={() => onEdit(container)}>
                         <Edit className="mr-2 h-4 w-4" />
                         Editar
                     </Button>
-                    {container.status !== 'Llegado' && (
-                       <>
-                         <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="outline">
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Marcar como Recibido
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmar Recepción</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        ¿Está seguro de que desea marcar este contenedor como recibido? El contenido se agregará al inventario de Zona Franca y esta acción no se puede deshacer.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => onReceive(container.id, reservations.filter(r => r.source === 'Contenedor' && r.sourceId === container.id && r.status === 'Validada'))}>
-                                        Confirmar Recepción
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                         </AlertDialog>
-                       </>
-                    )}
-                  </>
                 )}
+                 {canReceiveContainer && container.status !== 'Llegado' && (
+                   <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="outline">
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Marcar como Recibido
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar Recepción</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    ¿Está seguro de que desea marcar este contenedor como recibido? El contenido se agregará al inventario de Zona Franca y esta acción no se puede deshacer.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => onReceive(container.id, reservations.filter(r => r.source === 'Contenedor' && r.sourceId === container.id && r.status === 'Validada'))}>
+                                    Confirmar Recepción
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                 )}
             </CardFooter>
         </Card>
     );
@@ -264,6 +261,8 @@ export default function TransitPage() {
   const canEditContainer = currentUser.roles.includes('Administrador');
   const canEditStatus = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
   const canCreateReservation = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
+  const canReceiveContainer = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística');
+
 
   const { activeContainers, historyContainers } = useMemo(() => {
     const active = containers.filter(c => c.status !== 'Llegado');
@@ -510,6 +509,7 @@ export default function TransitPage() {
               canEditStatus={canEditStatus}
               canEditContainer={canEditContainer}
               canCreateReservation={canCreateReservation}
+              canReceiveContainer={canReceiveContainer}
               onEdit={handleOpenEditDialog}
               onStatusChange={handleStatusChange}
               onReceive={handleReceiveContainer}
@@ -780,3 +780,4 @@ export default function TransitPage() {
     </div>
   );
 }
+
