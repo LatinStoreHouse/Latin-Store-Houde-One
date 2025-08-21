@@ -115,8 +115,8 @@ interface QuoteItem {
 const sealantPerformance = {
     'SELLANTE SEMI - BRIGHT GALON': { clay: 40, other: 60 },
     'SELLANTE SEMI - BRIGTH 1/ 4 GALON': { clay: 10, other: 18 },
-    'SELLANTE SHYNY GALON': { clay: 40, other: 60 },
-    'SELLANTE SHYNY 1/4 GALON': { clay: 10, other: 18 },
+    'SELLANTE SHYNY GALON': { clay: 60, other: 40 },
+    'SELLANTE SHYNY 1/4 GALON': { clay: 18, other: 10 },
 };
 
 
@@ -485,8 +485,93 @@ export default function StoneflexCalculatorPage() {
     doc.setFontSize(10);
     doc.text(`Cliente: ${customerName || 'N/A'}`, 14, 40);
     doc.text(`Válida hasta: ${quote.expiryDate}`, 14, 45);
+    doc.text(`Moneda: ${currency}`, 14, 50);
+
+    const head = [['Item', 'Cantidad', 'Precio Unit.', 'Subtotal']];
+    const body: any[][] = [];
+
+    quote.items.forEach(item => {
+        const title = item.calculationMode === 'units' ? item.reference : `${item.reference} (${item.sqMeters.toFixed(2)} M²)`;
+        const qty = item.sheets;
+        const price = formatCurrency(item.pricePerSheet);
+        const total = formatCurrency(item.itemTotal);
+        body.push([title, qty, price, total]);
+    });
     
-    // ... rest of PDF generation ...
+    if (quote.totalStandardAdhesiveUnits > 0) {
+        body.push(['Adhesivo (Estándar)', quote.totalStandardAdhesiveUnits, formatCurrency(quote.adhesivePrice), formatCurrency(quote.totalStandardAdhesiveCost)]);
+    }
+    if (quote.totalTranslucentAdhesiveUnits > 0) {
+        body.push(['Adhesivo (Translúcido)', quote.totalTranslucentAdhesiveUnits, formatCurrency(quote.translucentAdhesivePrice), formatCurrency(quote.totalTranslucentAdhesiveCost)]);
+    }
+    if (quote.totalSealantUnits > 0) {
+        body.push([`Sellante (${sealantType.split('SELLANTE ')[1]})`, quote.totalSealantUnits, formatCurrency(quote.sealantPrice), formatCurrency(quote.totalSealantCost)]);
+    }
+    
+    doc.autoTable({
+        startY: 55,
+        head: head,
+        body: body,
+        theme: 'striped',
+        headStyles: { fillColor: [41, 171, 226] }
+    });
+    
+    let finalY = (doc as any).autoTable.previous.finalY;
+    
+    const summaryX = 14;
+    let summaryY = finalY + 10;
+    
+    doc.setFontSize(10);
+    if (quote.totalDiscountAmount > 0) {
+        doc.text(`Subtotal Antes Descuento:`, summaryX, summaryY);
+        doc.text(formatCurrency(quote.subtotal + quote.totalDiscountAmount), 200, summaryY, { align: 'right' });
+        summaryY += 7;
+        doc.text(`Descuento (${discount}%):`, summaryX, summaryY);
+        doc.text(`-${formatCurrency(quote.totalDiscountAmount)}`, 200, summaryY, { align: 'right' });
+        summaryY += 7;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Subtotal:`, summaryX, summaryY);
+    doc.text(formatCurrency(quote.subtotal), 200, summaryY, { align: 'right' });
+    summaryY += 7;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`IVA (19%):`, summaryX, summaryY);
+    doc.text(formatCurrency(quote.ivaAmount), 200, summaryY, { align: 'right' });
+    summaryY += 7;
+
+    if (quote.laborCost > 0) {
+        doc.text(`Costo Mano de Obra:`, summaryX, summaryY);
+        doc.text(formatCurrency(quote.laborCost), 200, summaryY, { align: 'right' });
+        summaryY += 7;
+    }
+    if (quote.transportationCost > 0) {
+        doc.text(`Costo Transporte:`, summaryX, summaryY);
+        doc.text(formatCurrency(quote.transportationCost), 200, summaryY, { align: 'right' });
+        summaryY += 7;
+    }
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`TOTAL A PAGAR (${currency}):`, summaryX, summaryY);
+    doc.text(formatCurrency(quote.totalCost), 200, summaryY, { align: 'right' });
+    summaryY += 10;
+
+    if (notes) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Notas Adicionales:', summaryX, summaryY);
+        summaryY += 5;
+        doc.setFont('helvetica', 'normal');
+        const noteLines = doc.splitTextToSize(notes, 180);
+        doc.text(noteLines, summaryX, summaryY);
+    }
+    
+
+    doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
   };
 
   const handleExportXLSX = () => {
@@ -997,4 +1082,3 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
-
