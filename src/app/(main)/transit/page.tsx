@@ -262,7 +262,7 @@ export default function TransitPage() {
   const { toast } = useToast();
   
   const canEditContainer = currentUser.roles.includes('Administrador');
-  const canEditStatus = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística') || currentUser.roles.includes('Contador');
+  const canEditStatus = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
   const canCreateReservation = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
   const { activeContainers, historyContainers } = useMemo(() => {
