@@ -6,12 +6,14 @@ import { initialInventoryData } from '@/lib/initial-inventory';
 import { initialContainers as initialContainerData } from '@/lib/initial-containers';
 import { initialReservations } from '@/lib/sales-history';
 import { TransferItem } from '@/components/transfer-inventory-form';
+import { productDimensions } from '@/lib/dimensions';
 
 export interface Product {
   name: string;
   quantity: number;
   brand?: string;
   line?: string;
+  size?: string;
 }
 
 export type ContainerStatus = 'En producción' | 'En tránsito' | 'En puerto' | 'Atrasado' | 'Llegado';
@@ -154,7 +156,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
           invProduct.separadasZonaFranca += reservedQuantity;
         } else if (productInContainer.brand && productInContainer.line) {
           // If product is new, create it in the specified brand and line
-          const { brand, line, name, quantity } = productInContainer;
+          const { brand, line, name, quantity, size } = productInContainer;
           
           if (!newInventory[brand]) {
             newInventory[brand] = {};
@@ -170,6 +172,13 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
             separadasZonaFranca: reservedQuantity,
             muestras: 0,
           };
+          
+          if (size) {
+            // This is a side-effect, ideally should be handled differently,
+            // but for this prototype structure it's the most direct way.
+            productDimensions[name] = size;
+          }
+
           console.log(`Producto nuevo "${name}" creado en ${brand} > ${line}.`);
 
         } else {

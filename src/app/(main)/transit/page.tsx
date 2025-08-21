@@ -246,6 +246,7 @@ export default function TransitPage() {
   const [brand, setBrand] = useState('');
   const [line, setLine] = useState('');
   const [productName, setProductName] = useState('');
+  const [size, setSize] = useState('');
   const [quantity, setQuantity] = useState<number | string>('');
 
   const [isAddContainerDialogOpen, setIsAddContainerDialogOpen] = useState(false);
@@ -351,17 +352,19 @@ export default function TransitPage() {
     
     productListSetter(prev => {
         const existingProductIndex = prev.findIndex(p => p.name === productName);
+        const newProduct = { name: productName, quantity: Number(quantity), brand, line, size };
         if (existingProductIndex !== -1) {
             const updatedProducts = [...prev];
             updatedProducts[existingProductIndex].quantity += Number(quantity);
             return updatedProducts;
         } else {
-            return [...prev, { name: productName, quantity: Number(quantity), brand, line }];
+            return [...prev, newProduct];
         }
     });
 
     setProductName('');
     setQuantity('');
+    setSize('');
   };
   
   const handleRemoveProductFromList = (productName: string, isEditing: boolean) => {
@@ -496,6 +499,7 @@ export default function TransitPage() {
     setBrand('');
     setLine('');
     setProductName('');
+    setSize('');
     setQuantity('');
     setIsAddContainerDialogOpen(true);
   }
@@ -536,7 +540,7 @@ export default function TransitPage() {
   const containersForExportDialog = activeTab === 'historial' ? historyContainers : activeContainers;
 
   const ProductForm = ({ isEditing }: { isEditing: boolean }) => (
-    <div className="space-y-2 p-4 border rounded-md">
+    <div className="space-y-4 p-4 border rounded-md">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
             <Label>Marca</Label>
@@ -557,7 +561,7 @@ export default function TransitPage() {
             </Select>
             </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_100px_auto] gap-2 items-end pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label>Nombre del Producto</Label>
                 <Input
@@ -565,6 +569,19 @@ export default function TransitPage() {
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
                 />
+            </div>
+             <div className="space-y-2">
+                <Label>Tamaño (opcional)</Label>
+                <Input
+                placeholder="Ej: 1.22x0.61 Mts"
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                />
+            </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_100px_auto] gap-2 items-end pt-2">
+            <div className="space-y-2 col-span-full sm:col-span-1">
+                {/* This empty div helps with layout, or you can place a message here */}
             </div>
             <div className="space-y-2">
                 <Label>Cantidad</Label>
@@ -780,4 +797,5 @@ export default function TransitPage() {
     </div>
   );
 }
+
 
