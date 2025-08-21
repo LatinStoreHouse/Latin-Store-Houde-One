@@ -66,7 +66,7 @@ export default function ValidationPage() {
     if (!context) {
         throw new Error('ValidationPage must be used within an InventoryProvider');
     }
-    const { reservations, setReservations, dispatchReservation } = context;
+    const { inventoryData, setInventoryData, reservations, setReservations, dispatchReservation } = context;
 
     const [pendingDispatches, setPendingDispatches] = useState(initialPendingDispatches);
     const [validationHistory, setValidationHistory] = useState<ValidatedItem[]>(initialHistory);
@@ -87,12 +87,47 @@ export default function ValidationPage() {
         setFacturaNumbers(prev => ({ ...prev, [id]: value }));
     };
 
+    const findProductLocation = (productName: string) => {
+        for (const brand in inventoryData) {
+            for (const subCategory in inventoryData[brand as keyof typeof inventoryData]) {
+                if (inventoryData[brand as keyof typeof inventoryData][subCategory][productName]) {
+                    return { brand, subCategory };
+                }
+            }
+        }
+        return null;
+    };
+
+
     const handleReservationValidation = (reservation: Reservation, newStatus: 'Validada' | 'Rechazada') => {
         const factura = facturaNumbers[reservation.id];
         if (!factura) {
             toast({ variant: 'destructive', title: 'Error', description: 'Se requiere un número de factura para validar.' });
             return;
         }
+
+        // If validated, update the inventory's "separadas" count
+        if (newStatus === 'Validada' && (reservation.source === 'Bodega' || reservation.source === 'Zona Franca')) {
+            const location = findProductLocation(reservation.product);
+            if(location) {
+                const { brand, subCategory } = location;
+                setInventoryData(prevData => {
+                    const newData = JSON.parse(JSON.stringify(prevData));
+                    const productToUpdate = newData[brand][subCategory][reservation.product];
+                    
+                    if (reservation.source === 'Bodega') {
+                        productToUpdate.separadasBodega += reservation.quantity;
+                    } else {
+                        productToUpdate.separadasZonaFranca += reservation.quantity;
+                    }
+                    return newData;
+                });
+            } else {
+                 toast({ variant: 'destructive', title: 'Error de Inventario', description: `No se pudo encontrar el producto "${reservation.product}" para actualizar el stock.` });
+                 return;
+            }
+        }
+
 
         // Update global reservation state
         setReservations(prev => 
