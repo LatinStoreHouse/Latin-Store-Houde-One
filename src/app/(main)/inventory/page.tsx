@@ -159,13 +159,13 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                 <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
               </TableCell>
               <TableCell className="text-right p-0">
-                <Input type="number" defaultValue={item.separadasBodega} onBlur={(e) => handleInputChange(name, 'separadasBodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
+                <Input type="number" defaultValue={item.separadasBodega} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-0" disabled readOnly />
               </TableCell>
               <TableCell className="text-right p-0">
                 <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
               </TableCell>
               <TableCell className="text-right p-0">
-                <Input type="number" defaultValue={item.separadasZonaFranca} onBlur={(e) => handleInputChange(name, 'separadasZonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
+                <Input type="number" defaultValue={item.separadasZonaFranca} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-0" disabled readOnly />
               </TableCell>
               <TableCell className="text-right p-0">
                  <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
