@@ -123,19 +123,26 @@ export default function ReservationsPage() {
     }
   }, [reservationSource, inventoryProducts, activeContainers, selectedContainerId]);
   
-  const pendingReservations = useMemo(() => reservations.filter(r => 
-    r.status === 'En espera de validación' &&
-    (r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredReservations = useMemo(() => reservations.filter(r => 
+    r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase()))
+    r.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase())
   ), [reservations, searchTerm]);
 
-  const historyReservations = useMemo(() => reservations.filter(r => 
-    r.status !== 'En espera de validación' &&
-    (r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase()))
-  ), [reservations, searchTerm]);
+  const pendingValidationReservations = useMemo(() => filteredReservations.filter(r => r.status === 'En espera de validación'), [filteredReservations]);
+  
+  const pendingArrivalReservations = useMemo(() => {
+    const validatedFromContainers = filteredReservations.filter(r => r.status === 'Validada' && r.source === 'Contenedor');
+    const activeContainerIds = new Set(activeContainers.map(c => c.id));
+    return validatedFromContainers.filter(r => activeContainerIds.has(r.sourceId));
+  }, [filteredReservations, activeContainers]);
+  
+  const pendingDispatchReservations = useMemo(() => {
+    return filteredReservations.filter(r => r.status === 'Validada' && (r.source === 'Bodega' || r.source === 'Zona Franca'));
+  }, [filteredReservations]);
+
+  const historyReservations = useMemo(() => filteredReservations.filter(r => r.status === 'Despachada' || r.status === 'Rechazada'), [filteredReservations]);
+
 
   const handleCreateReservation = () => {
     if (!customerName || !productName || quantity <= 0 || !quoteNumber) {
@@ -214,7 +221,9 @@ export default function ReservationsPage() {
   
   const renderOrigin = (reservation: Reservation) => {
     if (reservation.source === 'Contenedor') {
-      return `Contenedor (${reservation.sourceId})`;
+      const container = containers.find(c => c.id === reservation.sourceId);
+      const eta = container ? ` (Llega: ${container.eta})` : '';
+      return `Contenedor ${reservation.sourceId}${eta}`;
     }
     return reservation.source;
   }
@@ -362,15 +371,31 @@ export default function ReservationsPage() {
         </CardContent>
       </Card>
       
-      <Tabs defaultValue="pendientes" className="w-full">
-        <TabsList>
-            <TabsTrigger value="pendientes">Pendientes de Validación ({pendingReservations.length})</TabsTrigger>
+      <Tabs defaultValue="pendientes-validacion" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+            <TabsTrigger value="pendientes-validacion">Pendiente Validación ({pendingValidationReservations.length})</TabsTrigger>
+            <TabsTrigger value="pendientes-llegada">Pendiente Llegada ({pendingArrivalReservations.length})</TabsTrigger>
+            <TabsTrigger value="pendientes-despacho">Pendiente Despacho ({pendingDispatchReservations.length})</TabsTrigger>
             <TabsTrigger value="historial">Historial ({historyReservations.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value="pendientes" className="pt-4">
+        <TabsContent value="pendientes-validacion" className="pt-4">
            <Card>
             <CardContent className="p-0">
-              <ReservationsTable data={pendingReservations} />
+              <ReservationsTable data={pendingValidationReservations} />
+            </CardContent>
+           </Card>
+        </TabsContent>
+         <TabsContent value="pendientes-llegada" className="pt-4">
+           <Card>
+            <CardContent className="p-0">
+              <ReservationsTable data={pendingArrivalReservations} />
+            </CardContent>
+           </Card>
+        </TabsContent>
+         <TabsContent value="pendientes-despacho" className="pt-4">
+           <Card>
+            <CardContent className="p-0">
+              <ReservationsTable data={pendingDispatchReservations} />
             </CardContent>
            </Card>
         </TabsContent>
