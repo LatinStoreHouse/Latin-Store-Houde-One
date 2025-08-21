@@ -45,9 +45,12 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
     onDataChange(brand, subCategory, productName, field, isNumber ? Number(value) : value, isNameChange);
   };
 
-  const getReservationsForProduct = (productName: string) => {
+  const getReservationsForProduct = (productName: string): Reservation[] => {
     return initialReservations.filter(
-        (r) => r.product === productName && r.status === 'Validada'
+      (r) =>
+        r.product === productName &&
+        r.status === 'Validada' &&
+        (r.source === 'Bodega' || r.source === 'Zona Franca')
     );
   };
 
@@ -99,12 +102,12 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                                 <ul className="list-disc pl-4">
                                   {reservations.map(r => (
                                     <li key={r.id}>
-                                      {r.quantity} unid. por {r.advisor} ({r.sourceId})
+                                      {r.quantity} unid. por {r.advisor} ({r.source})
                                     </li>
                                   ))}
                                 </ul>
                               ) : (
-                                <p>No hay detalles de reserva.</p>
+                                <p>No hay detalles de reserva validadas.</p>
                               )}
                           </TooltipContent>
                        </Tooltip>
@@ -620,4 +623,6 @@ export default function InventoryPage() {
     </Card>
   );
 }
+    
+
     
