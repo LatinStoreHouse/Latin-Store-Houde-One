@@ -432,7 +432,7 @@ export default function CustomersPage() {
               <TableHead className="p-2">Asesor Asignado</TableHead>
               <TableHead className="p-2">Fecha Reg.</TableHead>
               <TableHead className="p-2">Estado</TableHead>
-              {canEditCustomers && <TableHead className="text-right p-2">Acciones</TableHead>}
+              {(canEditCustomers) && <TableHead className="text-right p-2">Acciones</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
