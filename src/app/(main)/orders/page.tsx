@@ -138,6 +138,7 @@ export default function DispatchPage() {
   const canCreateDispatch = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
   const canSeeActions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('action') === 'create') {
