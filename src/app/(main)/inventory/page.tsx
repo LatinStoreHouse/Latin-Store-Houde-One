@@ -49,9 +49,14 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
     return initialReservations.filter(
       (r) =>
         r.product === productName &&
-        r.status === 'Validada' &&
-        (r.source === 'Bodega' || r.source === 'Zona Franca')
+        r.status === 'Validada'
     );
+  };
+  
+  const getStockColorClass = (stock: number) => {
+    if (stock <= 0) return 'text-red-600';
+    if (stock > 0 && stock <= 19) return 'text-yellow-600';
+    return 'text-green-600';
   };
 
   if (Object.keys(products).length === 0) {
@@ -78,21 +83,22 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             const disponibleBodega = item.bodega - item.separadasBodega;
             const disponibleZonaFranca = item.zonaFranca - item.separadasZonaFranca;
             const totalDisponible = disponibleBodega + disponibleZonaFranca;
-            const hasReservations = item.separadasBodega > 0 || item.separadasZonaFranca > 0;
-            const highStock = totalDisponible > 500;
             const reservations = getReservationsForProduct(name);
+            const totalReserved = reservations.reduce((acc, r) => acc + r.quantity, 0);
+
+            const highStock = totalDisponible > 500;
 
             return (
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
-                <TableCell className="text-right p-2">{disponibleBodega}</TableCell>
-                <TableCell className="text-right p-2">{disponibleZonaFranca}</TableCell>
+                <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
+                <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
                 {!isPartner && !isMarketing && (
                   <TableCell className="text-right p-2">
-                    {hasReservations && (
+                    {totalReserved > 0 && (
                        <Tooltip>
                           <TooltipTrigger asChild>
-                             <div className="flex justify-end">
+                             <div className="flex justify-end cursor-help">
                                <BadgeCheck className="h-5 w-5 text-green-600" />
                              </div>
                           </TooltipTrigger>
@@ -623,6 +629,8 @@ export default function InventoryPage() {
     </Card>
   );
 }
+    
+
     
 
     
