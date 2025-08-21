@@ -52,7 +52,7 @@ interface InventoryContextType {
   setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
   notifications: AppNotification[];
   dismissNotification: (id: number) => void;
-  transferFromFreeZone: (productName: string, quantity: number) => void;
+  transferFromFreeZone: (productName: string, quantity: number, includeSeparadas: boolean) => void;
   receiveContainer: (containerId: string, reservations: Reservation[]) => void;
   dispatchReservation: (quoteNumber: string) => void;
   addContainer: (container: Container) => void;
@@ -79,7 +79,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     return null;
   };
 
-  const transferFromFreeZone = (productName: string, quantity: number) => {
+  const transferFromFreeZone = (productName: string, quantity: number, includeSeparadas: boolean) => {
     setInventoryData(prevData => {
       const location = findProductLocation(productName);
       if (!location) {
@@ -90,23 +90,31 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       const product = prevData[brand as keyof typeof prevData][subCategory][productName];
       const availableInZF = product.zonaFranca - product.separadasZonaFranca;
       
-      if (quantity > availableInZF) {
-        throw new Error(`La cantidad a trasladar (${quantity}) excede la disponible en Zona Franca (${availableInZF}).`);
+      if (quantity > product.zonaFranca) {
+        throw new Error(`La cantidad total a trasladar (${quantity}) excede el stock total en Zona Franca (${product.zonaFranca}).`);
       }
       
-      const reservedRatio = product.zonaFranca > 0 ? product.separadasZonaFranca / product.zonaFranca : 0;
-      const separadasToTransfer = Math.round(quantity * reservedRatio);
-
-      if (separadasToTransfer > product.separadasZonaFranca) {
-        throw new Error(`El cálculo de separadas a mover excede las disponibles.`);
+      if (!includeSeparadas && quantity > availableInZF) {
+         throw new Error(`La cantidad a trasladar (${quantity}) excede el stock libre disponible en Zona Franca (${availableInZF}).`);
       }
 
       const newData = JSON.parse(JSON.stringify(prevData));
       const p = newData[brand as keyof typeof prevData][subCategory][productName];
+      
       p.zonaFranca -= quantity;
       p.bodega += quantity;
-      p.separadasZonaFranca -= separadasToTransfer;
-      p.separadasBodega += separadasToTransfer;
+
+      if (includeSeparadas) {
+        const reservedRatio = product.zonaFranca > 0 ? product.separadasZonaFranca / product.zonaFranca : 0;
+        const separadasToTransfer = Math.round(quantity * reservedRatio);
+
+        if (separadasToTransfer > product.separadasZonaFranca) {
+           throw new Error(`El cálculo de separadas a mover (${separadasToTransfer}) excede las disponibles (${product.separadasZonaFranca}).`);
+        }
+        
+        p.separadasZonaFranca -= separadasToTransfer;
+        p.separadasBodega += separadasToTransfer;
+      }
       
       return newData;
     });

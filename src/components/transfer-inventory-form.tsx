@@ -7,9 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryContext } from '@/context/inventory-context';
+import { Checkbox } from './ui/checkbox';
 
 interface TransferInventoryFormProps {
-  onTransfer: (data: { product: string; quantity: number }) => void;
+  onTransfer: (data: { product: string; quantity: number, includeSeparadas: boolean }) => void;
 }
 
 export function TransferInventoryForm({ onTransfer }: TransferInventoryFormProps) {
@@ -21,6 +22,7 @@ export function TransferInventoryForm({ onTransfer }: TransferInventoryFormProps
 
   const [product, setProduct] = useState('');
   const [quantity, setQuantity] = useState<number | string>('');
+  const [includeSeparadas, setIncludeSeparadas] = useState(true);
   const { toast } = useToast();
 
   const productOptions = useMemo(() => {
@@ -49,7 +51,7 @@ export function TransferInventoryForm({ onTransfer }: TransferInventoryFormProps
       toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione un producto y una cantidad válida.' });
       return;
     }
-    onTransfer({ product, quantity: Number(quantity) });
+    onTransfer({ product, quantity: Number(quantity), includeSeparadas });
   };
   
   const selectedProductInfo = productOptions.find(p => p.value === product);
@@ -79,6 +81,14 @@ export function TransferInventoryForm({ onTransfer }: TransferInventoryFormProps
           required
         />
         {selectedProductInfo && <p className="text-sm text-muted-foreground">Máximo a trasladar: {selectedProductInfo.available}</p>}
+      </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+            id="include-separadas"
+            checked={includeSeparadas}
+            onCheckedChange={(checked) => setIncludeSeparadas(Boolean(checked))}
+        />
+        <Label htmlFor="include-separadas">Incluir unidades separadas en el traslado</Label>
       </div>
       <div className="flex justify-end pt-4">
         <Button type="submit">Trasladar Inventario</Button>

@@ -415,9 +415,9 @@ export default function InventoryPage() {
     }));
   }
 
-   const handleTransfer = ({ product, quantity }: { product: string; quantity: number }) => {
+   const handleTransfer = ({ product, quantity, includeSeparadas }: { product: string; quantity: number, includeSeparadas: boolean }) => {
      try {
-       transferFromFreeZone(product, quantity);
+       transferFromFreeZone(product, quantity, includeSeparadas);
        toast({ title: 'Traslado Exitoso', description: `${quantity} unidades de ${product} movidas de Zona Franca a Bodega.` });
      } catch (error: any) {
        toast({ variant: 'destructive', title: 'Error', description: error.message });
@@ -638,4 +638,3 @@ export default function InventoryPage() {
     
 
     
-
