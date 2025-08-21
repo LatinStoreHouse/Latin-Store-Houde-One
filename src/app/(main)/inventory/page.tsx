@@ -41,7 +41,11 @@ declare module 'jspdf' {
 }
 
 const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMarketing, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, isPartner: boolean, isMarketing: boolean, onDataChange: Function, inventoryData: any }) => {
-  const { reservations: allReservations } = useContext(InventoryContext)!;
+  const context = useContext(InventoryContext);
+  if (!context) {
+    throw new Error('ProductTable must be used within an InventoryProvider');
+  }
+  const { reservations: allReservations } = context;
   
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
     const isNumber = typeof inventoryData[brand][subCategory][productName][field] === 'number';
@@ -78,7 +82,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             <TableHead className="p-2">Nombre del Producto</TableHead>
             <TableHead className="text-right p-2">Disponible Bodega</TableHead>
             <TableHead className="text-right p-2">Disponible Zona Franca</TableHead>
-            {!isPartner && !isMarketing && <TableHead className="text-right p-2 w-[100px]">Reservas</TableHead>}
+            {!isPartner && <TableHead className="text-right p-2 w-[100px]">Reservas</TableHead>}
             {isMarketing && <TableHead className="text-right p-2">Oportunidad de Campaña</TableHead>}
           </TableRow>
         </TableHeader>
@@ -98,7 +102,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                 <TableCell className="font-medium p-2">{name}</TableCell>
                 <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
                 <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
-                {!isPartner && !isMarketing && (
+                {!isPartner && (
                   <TableCell className="text-right p-2">
                     {totalReserved > 0 && (
                        <Tooltip>
