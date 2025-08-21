@@ -140,11 +140,11 @@ export default function DispatchPage() {
 
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('action') === 'create') {
-        const cliente = params.get('cliente') || '';
-        const vendedor = params.get('vendedor') || '';
-        const direccion = params.get('direccion') || '';
+    const action = searchParams.get('action');
+    if (action === 'create') {
+        const cliente = searchParams.get('cliente') || '';
+        const vendedor = searchParams.get('vendedor') || '';
+        const direccion = searchParams.get('direccion') || '';
 
         setEditingDispatch({
             id: 0, // temp id
@@ -165,7 +165,7 @@ export default function DispatchPage() {
         // Clean up URL params
         router.replace('/orders', { scroll: false });
     }
-  }, [router]);
+  }, [searchParams, router]);
   
   const handleInputChange = (id: number, field: keyof DispatchData, value: string | boolean) => {
     setDispatchData(prevData =>
