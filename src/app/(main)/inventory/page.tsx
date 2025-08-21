@@ -30,7 +30,6 @@ import { TransferInventoryForm, type TransferItem } from '@/components/transfer-
 import { InventoryContext, Reservation } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { initialReservations } from '@/lib/sales-history';
 import { cn } from '@/lib/utils';
 
 
@@ -42,6 +41,8 @@ declare module 'jspdf' {
 }
 
 const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMarketing, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, isPartner: boolean, isMarketing: boolean, onDataChange: Function, inventoryData: any }) => {
+  const { reservations: allReservations } = useContext(InventoryContext)!;
+  
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
     const isNumber = typeof inventoryData[brand][subCategory][productName][field] === 'number';
     onDataChange(brand, subCategory, productName, field, isNumber ? Number(value) : value, isNameChange);
@@ -49,7 +50,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
 
   const getReservationsForProduct = (productName: string): Reservation[] => {
     // Only show reservations from warehouse or free zone, not from containers
-    return initialReservations.filter(
+    return allReservations.filter(
       (r) =>
         r.product === productName &&
         r.status === 'Validada' &&
@@ -459,7 +460,7 @@ export default function InventoryPage() {
                             Trasladar de ZF a Bodega
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl">
+                    <DialogContent className="max-w-2xl">
                         <DialogHeader>
                             <DialogTitle>Trasladar Inventario por Lote</DialogTitle>
                             <DialogDescription>Construya un lote de productos para mover de Zona Franca a la bodega principal.</DialogDescription>
