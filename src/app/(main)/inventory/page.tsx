@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useContext } from 'react';
 import jsPDF from 'jspdf';
@@ -30,6 +31,7 @@ import { InventoryContext, Reservation } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { initialReservations } from '@/lib/sales-history';
+import { cn } from '@/lib/utils';
 
 
 // Extend the jsPDF type to include the autoTable method
