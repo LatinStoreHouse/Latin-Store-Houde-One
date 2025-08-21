@@ -119,9 +119,6 @@ const sealantPerformance = {
     'SELLANTE SHYNY 1/4 GALON': { clay: 10, other: 18 },
 };
 
-// Base64 encoded logo image
-const logoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAASFBMVEX///8BAQEAAAACAgIDAwMMDAwNDQ0GBgb6+voUFBQICAgRERH29vYKCgrz8/M5OTkSEhJra2tra2uSkpKUlJRhYWFgYGC8vLzAwMA+Pj5BcknJAAABVElEQVR4nO3ciW7CMBAAUZIkIQuz+/9/b4w0KzQ0F2c6M+k0aPjOL0k2CTKyLAAAAAAAAAAAAAAAAMC/NRs68n4cW012s7G4ZJumtVp+tNVsS90rVlT3Kn+XJvQp/1T+LJ271C8tP6v8WVzTKn+Wzpyqf1k+3bT6z7LdNo/rb1bUN+vjW9b4R8c5r8s82Wj1j5n1/PjHh3l89a/n8R3rfzTGo/u87cCi/o8d8/jGx8eXv1/e3/37+4k/L/87v/rv8fM+b+fxz39e3vr7+vj6uTz+o8/jJ3z+eHzp98v7d/+/fh+/bPP3/P2/z1/8vX7/+/v43/L3y/8u/8/xL9t+sPZf+e/1v+S3/1p/+/u5PO+zx9u/d/3t+vv3/Pl3+/eX/z7//f36/c2/f5s/AAAAAAAAAAAAAADAx/0BNBbo1P8p0oEAAAAASUVORK5CYII=';
-
 function AdhesiveReferenceTable() {
     return (
         <DialogContent className="max-w-xl">
@@ -477,32 +474,14 @@ export default function StoneflexCalculatorPage() {
   const handleDownloadPdf = async () => {
     if (!quote) return;
     const doc = new jsPDF();
-    
-    const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
-    // Header
-    doc.addImage(logoBase64, 'PNG', 14, 15, 40, 20);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('LATIN STORE HOUSE S.A.S.', pageWidth - 14, 20, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.text('NIT.: 900493221-0', pageWidth - 14, 25, { align: 'right' });
-    doc.text('CRA 59D 131 38', pageWidth - 14, 30, { align: 'right' });
-    doc.text('BOGOTA D.C. - COLOMBIA', pageWidth - 14, 35, { align: 'right' });
+    doc.setFontSize(18);
+    doc.text('Cotización StoneFlex', pageWidth / 2, 22, { align: 'center' });
 
-    const dateText = `Bogota D.C., ${quote.creationDate.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`;
-    doc.text(dateText, 14, 45);
-
-    // Client and quote info
-    let startY = 60;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Cotización StoneFlex', 14, startY);
-    startY += 8;
+    let startY = 30;
     
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
     doc.text(`Cliente: ${customerName || 'N/A'}`, 14, startY);
     doc.text(`Válida hasta: ${quote.expiryDate}`, pageWidth - 14, startY, { align: 'right' });
     startY += 5;
@@ -988,8 +967,8 @@ export default function StoneflexCalculatorPage() {
                  )}
                  {quote.totalSealantCost > 0 && (
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Costo Sellante ({sealantType.split('SELLANTE ')[1]}) ({quote.totalSealantUnits} u. @ {formatCurrency(quote.sealantPrice)}/u.)</span>
-                        <span>{formatCurrency(quote.totalSealantCost)}</span>
+                        <span className="text-muted-foreground">Costo Sellante (${sealantType.split('SELLANTE ')[1]}) (${quote.totalSealantUnits} u. @ ${formatCurrency(quote.sealantPrice)}/u.)</span>
+                        <span>${formatCurrency(quote.totalSealantCost)}</span>
                     </div>
                  )}
                   {quote.manualSuppliesCost > 0 && (
