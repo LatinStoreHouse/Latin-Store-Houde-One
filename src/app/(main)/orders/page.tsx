@@ -458,7 +458,8 @@ export default function DispatchPage() {
             <TableBody>
               {filteredData.map((item) => {
                 const validation = getValidationStatus(item.cotizacion);
-                const isReadOnlyForAdvisor = (item.convencion === 'Despachado' || currentUser.name !== item.vendedor) && !currentUser.roles.includes('Administrador');
+                const isOwner = currentUser.name === item.vendedor;
+                const isAdmin = currentUser.roles.includes('Administrador');
 
                 return (
                 <TableRow key={item.id} className={cn("h-auto", getConventionClasses(item.convencion))}>
@@ -527,7 +528,7 @@ export default function DispatchPage() {
                   {canSeeActions && (
                       <TableCell className="text-right p-0">
                         <div className="flex items-center justify-end h-full">
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none" disabled={isReadOnlyForAdvisor}>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none" disabled={!isAdmin && !isOwner}>
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
@@ -535,7 +536,7 @@ export default function DispatchPage() {
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-full rounded-none" disabled={isReadOnlyForAdvisor}>
+                                <Button variant="ghost" size="icon" className="h-full rounded-none" disabled={!isAdmin && !isOwner}>
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                             </AlertDialogTrigger>
