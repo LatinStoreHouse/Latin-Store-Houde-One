@@ -134,7 +134,7 @@ export default function DispatchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  const canEditLogistica = currentUser.roles.includes('Administrador');
+  const canEditLogistica = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística');
   const canCreateDispatch = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
   const canSeeActions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
@@ -164,7 +164,7 @@ export default function DispatchPage() {
         // Clean up URL params
         router.replace('/orders', { scroll: false });
     }
-  }, [searchParams, router]);
+  }, [router]);
   
   const handleInputChange = (id: number, field: keyof DispatchData, value: string | boolean) => {
     setDispatchData(prevData =>
@@ -458,7 +458,7 @@ export default function DispatchPage() {
             <TableBody>
               {filteredData.map((item) => {
                 const validation = getValidationStatus(item.cotizacion);
-                const isReadOnly = validation.status !== 'Pendiente';
+                const isReadOnlyForAdvisor = validation.status !== 'Pendiente';
                 
                 return (
                 <TableRow key={item.id} className={cn("h-auto", getConventionClasses(item.convencion))}>
@@ -472,12 +472,12 @@ export default function DispatchPage() {
                   <TableCell className="p-2 align-middle text-sm text-muted-foreground whitespace-pre-wrap min-w-[200px]">{item.observacion}</TableCell>
                   
                   {/* Logística Fields */}
-                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditLogistica || isReadOnly} /></TableCell>
+                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditLogistica} /></TableCell>
                   <TableCell className="p-0 min-w-[200px]">
                      <Select
                         value={item.rutero}
                         onValueChange={(value) => handleInputChange(item.id, 'rutero', value)}
-                        disabled={!canEditLogistica || isReadOnly}
+                        disabled={!canEditLogistica}
                     >
                         <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
                            <SelectValue placeholder="Seleccionar rutero" />
@@ -491,13 +491,13 @@ export default function DispatchPage() {
                         </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica || isReadOnly} /></TableCell>
-                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica || isReadOnly} /></TableCell>
+                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
                   <TableCell className="p-0 min-w-[200px]">
                      <Select
                         value={item.convencion}
                         onValueChange={(value) => handleInputChange(item.id, 'convencion', value)}
-                        disabled={!canEditLogistica || isReadOnly}
+                        disabled={!canEditLogistica}
                     >
                         <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
                            <SelectValue placeholder="Seleccionar estado" />
@@ -527,7 +527,7 @@ export default function DispatchPage() {
                   {canSeeActions && (
                       <TableCell className="text-right p-0">
                         <div className="flex items-center justify-end h-full">
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none" disabled={isReadOnly}>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none" disabled={isReadOnlyForAdvisor}>
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
@@ -535,7 +535,7 @@ export default function DispatchPage() {
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-full rounded-none" disabled={isReadOnly}>
+                                <Button variant="ghost" size="icon" className="h-full rounded-none" disabled={isReadOnlyForAdvisor}>
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                             </AlertDialogTrigger>
