@@ -97,7 +97,6 @@ const supplies = [
   'SELLANTE SHYNY 1/4 GALON',
 ];
 
-
 const IVA_RATE = 0.19; // 19%
 
 type SealantType = 'SELLANTE SEMI - BRIGHT GALON' | 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' | 'SELLANTE SHYNY GALON' | 'SELLANTE SHYNY 1/4 GALON';
@@ -107,168 +106,57 @@ interface QuoteItem {
   reference: string;
   sqMeters: number;
   sheets: number;
-  includeAdhesive: boolean;
   calculationMode: 'sqm' | 'sheets' | 'units';
   pricePerSheet: number;
 }
 
-const adhesiveReferenceByLine: {
-  line: string;
-  items: {
-    reference: string;
-    standard: string;
-    xl: string;
-  }[];
-}[] = [
-  {
-    line: 'Pizarra',
-    items: [
-      { reference: 'BLACK', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: 'KUND MULTY', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: 'TAN', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: 'INDIAN AUTUMN', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-    ]
-  },
-   {
-    line: 'Cuarcitas',
-    items: [
-      { reference: 'BURNING FOREST', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: 'COPPER', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: 'JEERA GREEN', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: 'SILVER SHINE', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: 'SILVER SHINE GOLD', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: 'STEEL GRAY', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-    ]
-  },
-   {
-    line: 'Mármol',
-    items: [
-      { reference: 'CARRARA', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: 'CRYSTAL WHITE', standard: '1.22x0.61 - 0.5u', xl: '2.44x1.22 - 2u' },
-      { reference: 'MINT WHITE', standard: '1.22x0.61 - 0.5u', xl: 'N/A' },
-      { reference: 'HIMALAYA GOLD', standard: '1.22x0.61 - 1.5u', xl: '2.44x1.22 - 3.5u' },
-    ]
-  },
-  {
-    line: 'Concreto',
-    items: [
-      { reference: 'CONCRETO BLANCO', standard: '1.20x0.60 - 1.8u', xl: '2.44x1.22 - 3u' },
-      { reference: 'CONCRETO GRIS', standard: '1.20x0.60 - 1.8u', xl: '2.44x1.22 - 3u' },
-      { reference: 'CONCRETE WITH HOLES', standard: '1.20x0.60 - 1.8u', xl: '2.44x1.22 - 3u' },
-      { reference: 'CONCRETO GRIS MEDIUM', standard: '1.20x0.60 - 1.8u', xl: 'N/A' },
-    ]
-  },
-  {
-    line: 'Metales',
-    items: [
-       { reference: 'CORTEN STELL', standard: '2.44x0.61 - 1.5u', xl: '2.44x1.22 - 3u' },
-       { reference: 'MURAL BLUE PATINA WITH COPPER', standard: '2.44x0.61 - 1.5u', xl: 'N/A' },
-       { reference: 'MURAL WHITE WITH COPPER GOLD', standard: '2.44x0.61 - 1.5u', xl: 'N/A' },
-       { reference: 'GATE TURQUOISE PATINA COPPER', standard: '2.44x0.61 - 1.5u', xl: 'N/A' },
-    ]
-  },
-  {
-    line: 'Madera',
-    items: [
-       { reference: 'MADERA NOGAL', standard: '0.15x2.44 - 0.5u', xl: 'N/A' },
-       { reference: 'MADERA TEKA', standard: '0.15x2.44 - 0.5u', xl: 'N/A' },
-       { reference: 'MADERA ÉBANO', standard: '0.15x2.44 - 0.5u', xl: 'N/A' },
-    ]
-  },
-  {
-    line: 'Translúcida',
-    items: [
-      { reference: 'INDIAN AUTUMN', standard: '1.22x0.61 - 0.5u (T)', xl: '2.44x1.22 - 2u (T)' },
-    ]
-  },
-  {
-    line: 'Clay',
-    items: [
-      { reference: 'CLAY CUT STONE', standard: '1.20x0.60 - 0.5u', xl: '' },
-      { reference: 'CLAY TRAVERTINO', standard: '1.20x0.60 - 0.5u', xl: '' },
-      { reference: 'CLAY TAPIA NEGRA', standard: '', xl: '2.95x1.20 - 2u' },
-      { reference: 'CONCRETO ENCOFRADO', standard: '', xl: '2.90x0.56 - 2u' },
-    ]
-  }
-];
+const sealantPerformance = {
+    'SELLANTE SEMI - BRIGHT GALON': { clay: 40, other: 60 },
+    'SELLANTE SEMI - BRIGTH 1/ 4 GALON': { clay: 10, other: 18 },
+    // Assuming shiny has same performance, can be updated if needed.
+    'SELLANTE SHYNY GALON': { clay: 40, other: 60 },
+    'SELLANTE SHYNY 1/4 GALON': { clay: 10, other: 18 },
+};
 
 
 function AdhesiveReferenceTable() {
-    const [activeTab, setActiveTab] = useState(adhesiveReferenceByLine[0].line);
-
     return (
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-xl">
             <DialogHeader>
                 <DialogTitle>Tabla de Referencia de Insumos</DialogTitle>
-                <CardDescription>Unidades de adhesivo y rendimiento de sellante recomendadas por cada lámina.</CardDescription>
+                <CardDescription>Rendimiento de sellante por tipo de referencia y envase.</CardDescription>
             </DialogHeader>
-            
-            <div className="space-y-6">
-                <div>
-                    <h3 className="font-semibold mb-2">Rendimiento de Adhesivo por Lámina</h3>
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList>
-                            {adhesiveReferenceByLine.map((lineData) => (
-                                <TabsTrigger value={lineData.line} key={lineData.line}>{lineData.line}</TabsTrigger>
-                            ))}
-                        </TabsList>
-                        {adhesiveReferenceByLine.map((lineData) => (
-                            <TabsContent value={lineData.line} key={lineData.line}>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Referencias</TableHead>
-                                            <TableHead>Medida y Rendimiento Estándar</TableHead>
-                                            <TableHead>Medida y Rendimiento XL</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {lineData.items.map(item => (
-                                            <TableRow key={item.reference}>
-                                                <TableCell className="font-medium">{item.reference}</TableCell>
-                                                <TableCell>{item.standard}</TableCell>
-                                                <TableCell>{item.xl}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TabsContent>
-                        ))}
-                    </Tabs>
-                </div>
-                
-                <Separator />
-
-                <div>
-                    <h3 className="font-semibold mb-2">Rendimiento de Sellantes</h3>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Tipo de Sellante</TableHead>
-                                <TableHead>Rendimiento por M²</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                             <TableRow>
-                                <TableCell>Semi-Brillante (Galón)</TableCell>
-                                <TableCell>60 M²</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Semi-Brillante (1/4 Galón)</TableCell>
-                                <TableCell>18 M²</TableCell>
-                            </TableRow>
-                             <TableRow>
-                                <TableCell>Brillante (Galón)</TableCell>
-                                <TableCell>40 M²</TableCell>
-                            </TableRow>
-                             <TableRow>
-                                <TableCell>Brillante (1/4 Galón)</TableCell>
-                                <TableCell>10 M²</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Sellante</TableHead>
+                        <TableHead>Rendimiento (Otras Ref.)</TableHead>
+                        <TableHead>Rendimiento (Línea Clay)</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                     <TableRow>
+                        <TableCell>Semi-Brillante (Galón)</TableCell>
+                        <TableCell>60 M²</TableCell>
+                        <TableCell>40 M²</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>Semi-Brillante (1/4 Galón)</TableCell>
+                        <TableCell>18 M²</TableCell>
+                        <TableCell>10 M²</TableCell>
+                    </TableRow>
+                     <TableRow>
+                        <TableCell>Brillante (Galón)</TableCell>
+                        <TableCell>60 M²</TableCell>
+                        <TableCell>40 M²</TableCell>
+                    </TableRow>
+                     <TableRow>
+                        <TableCell>Brillante (1/4 Galón)</TableCell>
+                        <TableCell>18 M²</TableCell>
+                         <TableCell>10 M²</TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
         </DialogContent>
     );
 }
@@ -283,6 +171,8 @@ export default function StoneflexCalculatorPage() {
   const [discount, setDiscount] = useState<number | string>(0);
   const [wastePercentage, setWastePercentage] = useState<number | string>(0);
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
+  const [includeSealant, setIncludeSealant] = useState(true);
+  const [sealantType, setSealantType] = useState<SealantType>('SELLANTE SEMI - BRIGTH 1/ 4 GALON');
   const [calculationMode, setCalculationMode] = useState<'sqm' | 'sheets'>('sqm');
   const [laborCost, setLaborCost] = useState(0);
   const [transportationCost, setTransportationCost] = useState(0);
@@ -393,7 +283,6 @@ export default function StoneflexCalculatorPage() {
       reference,
       sqMeters: finalSqm,
       sheets: finalSheets,
-      includeAdhesive,
       calculationMode,
       pricePerSheet
     };
@@ -413,7 +302,6 @@ export default function StoneflexCalculatorPage() {
       reference: supplyReference,
       sqMeters: 0,
       sheets: units,
-      includeAdhesive: false,
       calculationMode: 'units',
       pricePerSheet: productPrices[supplyReference] || 0
     };
@@ -451,6 +339,8 @@ export default function StoneflexCalculatorPage() {
     let totalProductCost = 0;
     let totalStandardAdhesiveUnits = 0;
     let totalTranslucentAdhesiveUnits = 0;
+    let totalSqMetersForSealantClay = 0;
+    let totalSqMetersForSealantOther = 0;
     let isWarrantyVoid = false;
     let manualSuppliesCost = 0;
 
@@ -475,13 +365,19 @@ export default function StoneflexCalculatorPage() {
       if (!details) return {...item, itemTotal: 0, pricePerSheet: 0};
 
       const calculatedSheets = item.sheets;
-      
       const pricePerSheetCOP = item.pricePerSheet;
       const productCost = convert(pricePerSheetCOP * calculatedSheets);
       
       totalProductCost += productCost;
+
+      // Add SqMeters to correct sealant group
+      if (details.line === 'Clay') {
+          totalSqMetersForSealantClay += item.sqMeters;
+      } else {
+          totalSqMetersForSealantOther += item.sqMeters;
+      }
       
-      if (item.includeAdhesive && details.line !== '3D') {
+      if (includeAdhesive && details.line !== '3D') {
           let adhesivePerSheet = 0;
           const isStandardSize = item.reference.includes('1.22 X 0.61') || item.reference.includes('1.20*0.60');
           const isMetalStandardSize = item.reference.includes('2.44 X 0.61');
@@ -507,7 +403,7 @@ export default function StoneflexCalculatorPage() {
           }
       }
       
-      if (!item.includeAdhesive) {
+      if (!includeAdhesive) {
         isWarrantyVoid = true;
       }
       
@@ -520,8 +416,21 @@ export default function StoneflexCalculatorPage() {
     const totalStandardAdhesiveCost = convert(Math.ceil(totalStandardAdhesiveUnits) * adhesivePriceCOP);
     const totalTranslucentAdhesiveCost = convert(Math.ceil(totalTranslucentAdhesiveUnits) * translucentAdhesivePriceCOP);
 
+    // Sealant Cost Calculation
+    let totalSealantUnits = 0;
+    let totalSealantCost = 0;
+    let sealantPriceCOP = 0;
+    if (includeSealant) {
+        sealantPriceCOP = productPrices[sealantType] || 0;
+        const perf = sealantPerformance[sealantType];
+        const unitsForClay = Math.ceil(totalSqMetersForSealantClay / perf.clay);
+        const unitsForOther = Math.ceil(totalSqMetersForSealantOther / perf.other);
+        totalSealantUnits = unitsForClay + unitsForOther;
+        totalSealantCost = convert(totalSealantUnits * sealantPriceCOP);
+    }
 
-    const subtotalBeforeDiscount = totalProductCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost + manualSuppliesCost;
+
+    const subtotalBeforeDiscount = totalProductCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost + totalSealantCost + manualSuppliesCost;
     const totalDiscountAmount = subtotalBeforeDiscount * (discountValue / 100);
     const subtotalBeforeIva = subtotalBeforeDiscount - totalDiscountAmount;
     const ivaAmount = subtotalBeforeIva * IVA_RATE;
@@ -538,6 +447,9 @@ export default function StoneflexCalculatorPage() {
       totalProductCost,
       totalStandardAdhesiveCost,
       totalTranslucentAdhesiveCost,
+      totalSealantCost,
+      sealantPrice: convert(sealantPriceCOP),
+      totalSealantUnits,
       manualSuppliesCost,
       adhesivePrice: convert(adhesivePriceCOP),
       translucentAdhesivePrice: convert(translucentAdhesivePriceCOP),
@@ -602,6 +514,9 @@ export default function StoneflexCalculatorPage() {
     }
     if (quote.totalTranslucentAdhesiveCost > 0 && quote.totalTranslucentAdhesiveUnits > 0) {
         message += `- Adhesivo Translúcido (${quote.totalTranslucentAdhesiveUnits} u. @ ${formatCurrency(quote.translucentAdhesivePrice)}/u.): ${formatCurrency(quote.totalTranslucentAdhesiveCost)}\n`;
+    }
+    if (quote.totalSealantCost > 0 && quote.totalSealantUnits > 0) {
+        message += `- Sellante (${sealantType.split('SELLANTE ')[1]}) (${quote.totalSealantUnits} u. @ ${formatCurrency(quote.sealantPrice)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
      if (quote.manualSuppliesCost > 0) {
         message += `- Insumos Adicionales: ${formatCurrency(quote.manualSuppliesCost)}\n`;
@@ -767,21 +682,6 @@ export default function StoneflexCalculatorPage() {
                     />
                 </div>
               </div>
-              <div className="flex items-center gap-4 pt-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
-                    <Label htmlFor="include-adhesive">Incluir Adhesivo (Automático)</Label>
-                  </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="ml-auto">
-                            <HelpCircle className="mr-2 h-4 w-4" />
-                            Ver Tabla de Rendimiento
-                        </Button>
-                    </DialogTrigger>
-                    <AdhesiveReferenceTable />
-                  </Dialog>
-              </div>
               <div className="flex justify-end">
                   <Button onClick={handleAddProduct} className="mt-4" disabled={!reference}>
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -792,7 +692,46 @@ export default function StoneflexCalculatorPage() {
 
          <Separator />
           <div>
-            <h3 className="text-lg font-medium mb-4">Insumos y Accesorios Adicionales</h3>
+            <h3 className="text-lg font-medium mb-4">Insumos y Accesorios</h3>
+            <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex items-center space-x-2 flex-1">
+                    <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
+                    <Label htmlFor="include-adhesive">Incluir Adhesivo (Automático)</Label>
+                </div>
+                <div className="flex items-center space-x-2 flex-1">
+                    <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
+                    <Label htmlFor="include-sealant">Incluir Sellante (Automático)</Label>
+                </div>
+            </div>
+            {includeSealant && (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 items-end">
+                    <div className="space-y-2">
+                        <Label htmlFor="sealant-type">Tipo de Sellante</Label>
+                        <Select value={sealantType} onValueChange={(value) => setSealantType(value as SealantType)}>
+                            <SelectTrigger id="sealant-type">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="SELLANTE SEMI - BRIGTH 1/ 4 GALON">Semi-Brillante (1/4 Galón)</SelectItem>
+                                <SelectItem value="SELLANTE SEMI - BRIGHT GALON">Semi-Brillante (Galón)</SelectItem>
+                                <SelectItem value="SELLANTE SHYNY 1/4 GALON">Brillante (1/4 Galón)</SelectItem>
+                                <SelectItem value="SELLANTE SHYNY GALON">Brillante (Galón)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <HelpCircle className="mr-2 h-4 w-4" />
+                                Ver Tabla de Rendimiento
+                            </Button>
+                        </DialogTrigger>
+                        <AdhesiveReferenceTable />
+                    </Dialog>
+                </div>
+            )}
+             <Separator className="my-6" />
+             <h4 className="text-md font-medium mb-4">Insumos Manuales</h4>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_auto] gap-4 items-end">
                 <div className="space-y-2">
                    <Label>Insumo</Label>
@@ -896,6 +835,12 @@ export default function StoneflexCalculatorPage() {
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Costo Adhesivo (Translúcido) ({quote.totalTranslucentAdhesiveUnits} u. @ {formatCurrency(quote.translucentAdhesivePrice)}/u.)</span>
                         <span>{formatCurrency(quote.totalTranslucentAdhesiveCost)}</span>
+                    </div>
+                 )}
+                 {quote.totalSealantCost > 0 && (
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Costo Sellante ({sealantType.split('SELLANTE ')[1]}) ({quote.totalSealantUnits} u. @ {formatCurrency(quote.sealantPrice)}/u.)</span>
+                        <span>{formatCurrency(quote.totalSealantCost)}</span>
                     </div>
                  )}
                   {quote.manualSuppliesCost > 0 && (
