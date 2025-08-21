@@ -115,10 +115,12 @@ interface QuoteItem {
 const sealantPerformance = {
     'SELLANTE SEMI - BRIGHT GALON': { clay: 40, other: 60 },
     'SELLANTE SEMI - BRIGTH 1/ 4 GALON': { clay: 10, other: 18 },
-    'SELLANTE SHYNY GALON': { clay: 60, other: 40 },
-    'SELLANTE SHYNY 1/4 GALON': { clay: 18, other: 10 },
+    'SELLANTE SHYNY GALON': { clay: 40, other: 60 },
+    'SELLANTE SHYNY 1/4 GALON': { clay: 10, other: 18 },
 };
 
+// Base64 encoded logo image
+const logoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAASFBMVEX///8BAQEAAAACAgIDAwMMDAwNDQ0GBgb6+voUFBQICAgRERH29vYKCgrz8/M5OTkSEhJra2tra2uSkpKUlJRhYWFgYGC8vLzAwMA+Pj5BcknJAAABVElEQVR4nO3ciW7CMBAAUZIkIQuz+/9/b4w0KzQ0F2c6M+k0aPjOL0k2CTKyLAAAAAAAAAAAAAAAAMC/NRs68n4cW012s7G4ZJumtVp+tNVsS90rVlT3Kn+XJvQp/1T+LJ271C8tP6v8WVzTKn+Wzpyqf1k+3bT6z7LdNo/rb1bUN+vjW9b4R8c5r8s82Wj1j5n1/PjHh3l89a/n8R3rfzTGo/u87cCi/o8d8/jGx8eXv1/e3/37+4k/L/87v/rv8fM+b+fxz39e3vr7+vj6uTz+o8/jJ3z+eHzp98v7d/+/fh+/bPP3/P2/z1/8vX7/+/v43/L3y/8u/8/xL9t+sPZf+e/1v+S3/1p/+/u5PO+zx9u/d/3t+vv3/Pl3+/eX/z7//f36/c2/f5s/AAAAAAAAAAAAAADAx/0BNBbo1P8p0oEAAAAASUVORK5CYII=';
 
 function AdhesiveReferenceTable() {
     return (
@@ -465,7 +467,7 @@ export default function StoneflexCalculatorPage() {
       totalCost,
       laborCost: finalLaborCost,
       transportationCost: finalTransportationCost,
-      creationDate: creationDate.toLocaleDateString('es-CO'),
+      creationDate: creationDate,
       expiryDate: expiryDate.toLocaleDateString('es-CO'),
     };
   };
@@ -476,16 +478,35 @@ export default function StoneflexCalculatorPage() {
     if (!quote) return;
     const doc = new jsPDF();
     
-    doc.setFontSize(18);
-    doc.text('Latin Store House', 14, 22);
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text('Cotización StoneFlex', 14, 30);
+    const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
+    // Header
+    doc.addImage(logoBase64, 'PNG', 14, 15, 40, 20);
     doc.setFontSize(10);
-    doc.text(`Cliente: ${customerName || 'N/A'}`, 14, 40);
-    doc.text(`Válida hasta: ${quote.expiryDate}`, 14, 45);
-    doc.text(`Moneda: ${currency}`, 14, 50);
+    doc.setFont('helvetica', 'bold');
+    doc.text('LATIN STORE HOUSE S.A.S.', pageWidth - 14, 20, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('NIT.: 900493221-0', pageWidth - 14, 25, { align: 'right' });
+    doc.text('CRA 59D 131 38', pageWidth - 14, 30, { align: 'right' });
+    doc.text('BOGOTA D.C. - COLOMBIA', pageWidth - 14, 35, { align: 'right' });
+
+    const dateText = `Bogota D.C., ${quote.creationDate.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    doc.text(dateText, 14, 45);
+
+    // Client and quote info
+    let startY = 60;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Cotización StoneFlex', 14, startY);
+    startY += 8;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Cliente: ${customerName || 'N/A'}`, 14, startY);
+    doc.text(`Válida hasta: ${quote.expiryDate}`, pageWidth - 14, startY, { align: 'right' });
+    startY += 5;
+    doc.text(`Moneda: ${currency}`, 14, startY);
 
     const head = [['Item', 'Cantidad', 'Precio Unit.', 'Subtotal']];
     const body: any[][] = [];
@@ -498,18 +519,18 @@ export default function StoneflexCalculatorPage() {
         body.push([title, qty, price, total]);
     });
     
-    if (quote.totalStandardAdhesiveUnits > 0) {
+    if (quote.totalStandardAdhesiveCost > 0) {
         body.push(['Adhesivo (Estándar)', quote.totalStandardAdhesiveUnits, formatCurrency(quote.adhesivePrice), formatCurrency(quote.totalStandardAdhesiveCost)]);
     }
-    if (quote.totalTranslucentAdhesiveUnits > 0) {
+    if (quote.totalTranslucentAdhesiveCost > 0) {
         body.push(['Adhesivo (Translúcido)', quote.totalTranslucentAdhesiveUnits, formatCurrency(quote.translucentAdhesivePrice), formatCurrency(quote.totalTranslucentAdhesiveCost)]);
     }
-    if (quote.totalSealantUnits > 0) {
+    if (quote.totalSealantCost > 0) {
         body.push([`Sellante (${sealantType.split('SELLANTE ')[1]})`, quote.totalSealantUnits, formatCurrency(quote.sealantPrice), formatCurrency(quote.totalSealantCost)]);
     }
     
     doc.autoTable({
-        startY: 55,
+        startY: startY + 5,
         head: head,
         body: body,
         theme: 'striped',
@@ -524,40 +545,40 @@ export default function StoneflexCalculatorPage() {
     doc.setFontSize(10);
     if (quote.totalDiscountAmount > 0) {
         doc.text(`Subtotal Antes Descuento:`, summaryX, summaryY);
-        doc.text(formatCurrency(quote.subtotal + quote.totalDiscountAmount), 200, summaryY, { align: 'right' });
+        doc.text(formatCurrency(quote.subtotal + quote.totalDiscountAmount), pageWidth - 14, summaryY, { align: 'right' });
         summaryY += 7;
         doc.text(`Descuento (${discount}%):`, summaryX, summaryY);
-        doc.text(`-${formatCurrency(quote.totalDiscountAmount)}`, 200, summaryY, { align: 'right' });
+        doc.text(`-${formatCurrency(quote.totalDiscountAmount)}`, pageWidth - 14, summaryY, { align: 'right' });
         summaryY += 7;
     }
     
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text(`Subtotal:`, summaryX, summaryY);
-    doc.text(formatCurrency(quote.subtotal), 200, summaryY, { align: 'right' });
+    doc.text(formatCurrency(quote.subtotal), pageWidth - 14, summaryY, { align: 'right' });
     summaryY += 7;
     
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.text(`IVA (19%):`, summaryX, summaryY);
-    doc.text(formatCurrency(quote.ivaAmount), 200, summaryY, { align: 'right' });
+    doc.text(formatCurrency(quote.ivaAmount), pageWidth - 14, summaryY, { align: 'right' });
     summaryY += 7;
 
     if (quote.laborCost > 0) {
         doc.text(`Costo Mano de Obra:`, summaryX, summaryY);
-        doc.text(formatCurrency(quote.laborCost), 200, summaryY, { align: 'right' });
+        doc.text(formatCurrency(quote.laborCost), pageWidth - 14, summaryY, { align: 'right' });
         summaryY += 7;
     }
     if (quote.transportationCost > 0) {
         doc.text(`Costo Transporte:`, summaryX, summaryY);
-        doc.text(formatCurrency(quote.transportationCost), 200, summaryY, { align: 'right' });
+        doc.text(formatCurrency(quote.transportationCost), pageWidth - 14, summaryY, { align: 'right' });
         summaryY += 7;
     }
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text(`TOTAL A PAGAR (${currency}):`, summaryX, summaryY);
-    doc.text(formatCurrency(quote.totalCost), 200, summaryY, { align: 'right' });
+    doc.text(formatCurrency(quote.totalCost), pageWidth - 14, summaryY, { align: 'right' });
     summaryY += 10;
 
     if (notes) {
@@ -623,7 +644,7 @@ export default function StoneflexCalculatorPage() {
     if (currency === 'USD') {
         message += `*TRM usada:* ${formatCurrency(parseDecimal(trm))}\n`;
     }
-    message += `*Fecha de Cotización:* ${quote.creationDate}\n`;
+    message += `*Fecha de Cotización:* ${quote.creationDate.toLocaleDateString('es-CO')}\n`;
     message += `*Válida hasta:* ${quote.expiryDate}\n\n`;
     
     message += `*Resumen de Productos:*\n`;
@@ -902,7 +923,7 @@ export default function StoneflexCalculatorPage() {
                   </div>
                   <div className="text-right">
                       <div className="relative h-10 w-32 mb-2">
-                          <Image src="https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp" alt="Latin Store House" fill style={{ objectFit: 'contain' }} />
+                          <Image src="https://www.latinstorehouse.com/wp-content/uploads/2021/02/LATIN-STORE-HOUSE.png" alt="Latin Store House" fill style={{ objectFit: 'contain' }} />
                       </div>
                       <p className="text-sm font-semibold">Asesor: Usuario Admin</p>
                   </div>
