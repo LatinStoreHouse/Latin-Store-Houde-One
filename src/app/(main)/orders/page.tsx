@@ -138,8 +138,7 @@ export default function DispatchPage() {
   const canCreateDispatch = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
   useEffect(() => {
-    const action = searchParams.get('action');
-    if (action === 'create') {
+    if (searchParams.has('action') && searchParams.get('action') === 'create') {
       const cliente = searchParams.get('cliente') || '';
       const vendedor = searchParams.get('vendedor') || '';
       const direccion = searchParams.get('direccion') || '';
@@ -161,7 +160,7 @@ export default function DispatchPage() {
       });
       setIsFormOpen(true);
       // Clean up URL params
-      router.replace('/orders', undefined);
+      router.replace('/orders', { scroll: false });
     }
   }, [searchParams, router]);
   
