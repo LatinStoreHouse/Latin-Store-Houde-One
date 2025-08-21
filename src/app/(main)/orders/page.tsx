@@ -136,6 +136,7 @@ export default function DispatchPage() {
   
   const canEditLogistica = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística');
   const canCreateDispatch = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
+  const canSeeActions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -451,7 +452,7 @@ export default function DispatchPage() {
                 {/* Contador (Read-only from validation) */}
                 <TableHead className="p-2">Factura #</TableHead>
                 <TableHead className="p-2 text-center">Estado Validación</TableHead>
-                <TableHead className="text-right p-2">Acciones</TableHead>
+                {canSeeActions && <TableHead className="text-right p-2">Acciones</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -523,37 +524,39 @@ export default function DispatchPage() {
                       {validation.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right p-0">
-                    <div className="flex items-center justify-end h-full">
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none" disabled={isReadOnly}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-full rounded-none" disabled={isReadOnly}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
-                              Eliminar
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
+                  {canSeeActions && (
+                      <TableCell className="text-right p-0">
+                        <div className="flex items-center justify-end h-full">
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none" disabled={isReadOnly}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-full rounded-none" disabled={isReadOnly}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta acción no se puede deshacer. Esto eliminará permanentemente la solicitud de despacho.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteDispatch(item.id)} className="bg-destructive hover:bg-destructive/90">
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                  )}
                 </TableRow>
               )})}
             </TableBody>
