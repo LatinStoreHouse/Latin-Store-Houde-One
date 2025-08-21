@@ -113,7 +113,6 @@ interface QuoteItem {
 const sealantPerformance = {
     'SELLANTE SEMI - BRIGHT GALON': { clay: 40, other: 60 },
     'SELLANTE SEMI - BRIGTH 1/ 4 GALON': { clay: 10, other: 18 },
-    // Assuming shiny has same performance, can be updated if needed.
     'SELLANTE SHYNY GALON': { clay: 40, other: 60 },
     'SELLANTE SHYNY 1/4 GALON': { clay: 10, other: 18 },
 };
@@ -148,7 +147,7 @@ function AdhesiveReferenceTable() {
                      <TableRow>
                         <TableCell>Brillante (Galón)</TableCell>
                         <TableCell>60 M²</TableCell>
-                        <TableCell>40 M²</TableCell>
+                         <TableCell>40 M²</TableCell>
                     </TableRow>
                      <TableRow>
                         <TableCell>Brillante (1/4 Galón)</TableCell>
@@ -925,7 +924,7 @@ export default function StoneflexCalculatorPage() {
               </div>
               <div className="text-xs text-muted-foreground pt-2 space-y-1 text-center">
                   <p>
-                    Esta es una cotización preliminar y no incluye costos de instalación si no se especifica.
+                    Esta es una cotización preliminar realizada sin confirmación de medidas y el costo final puede variar. No incluye costos de instalación si no se especifica.
                   </p>
                   {currency === 'USD' && (
                     <p className="font-semibold">
