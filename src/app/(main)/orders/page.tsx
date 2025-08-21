@@ -134,7 +134,7 @@ export default function DispatchPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  const canEditLogistica = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística');
+  const canEditLogistica = currentUser.roles.includes('Administrador');
   const canCreateDispatch = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
   const canSeeActions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
