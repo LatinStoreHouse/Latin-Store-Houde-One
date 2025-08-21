@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Container, Ship, CalendarIcon, FileDown, Edit, CheckCircle, FileUp, FileType, X, ChevronDown, Trash2 } from 'lucide-react';
+import { PlusCircle, Container, Ship, CalendarIcon, FileDown, Edit, CheckCircle, FileUp, FileType, X, ChevronDown, Trash2, BookUser } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +47,7 @@ import { InventoryContext, Product, Reservation } from '@/context/inventory-cont
 import { Container as ContainerType } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { initialReservations } from '@/lib/sales-history';
+import { useRouter } from 'next/navigation';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -56,11 +57,13 @@ declare module 'jspdf' {
   }
 }
 
-const ContainerCard = ({ container, canEdit, onEdit, onReceive }: {
+const ContainerCard = ({ container, canEdit, canCreateReservation, onEdit, onReceive, onReserve }: {
     container: ContainerType;
     canEdit: boolean;
+    canCreateReservation: boolean;
     onEdit: (container: ContainerType) => void;
     onReceive: (containerId: string, reservations: Reservation[]) => void;
+    onReserve: (containerId: string) => void;
 }) => {
     const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
         return initialReservations
@@ -127,8 +130,15 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive }: {
                     </TableBody>
                 </Table>
             </CardContent>
-            {canEdit && (
-                <CardFooter className="flex justify-end p-4 gap-2">
+             <CardFooter className="flex justify-end p-4 gap-2">
+                {canCreateReservation && container.status !== 'Llegado' && (
+                     <Button variant="default" size="sm" onClick={() => onReserve(container.id)}>
+                        <BookUser className="mr-2 h-4 w-4" />
+                        Crear Reserva
+                    </Button>
+                )}
+                {canEdit && (
+                  <>
                     <Button variant="outline" size="sm" onClick={() => onEdit(container)}>
                         <Edit className="mr-2 h-4 w-4" />
                         Editar
@@ -137,7 +147,7 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive }: {
                        <>
                          <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button size="sm">
+                                <Button size="sm" variant="outline">
                                     <CheckCircle className="mr-2 h-4 w-4" />
                                     Marcar como Recibido
                                 </Button>
@@ -159,8 +169,9 @@ const ContainerCard = ({ container, canEdit, onEdit, onReceive }: {
                          </AlertDialog>
                        </>
                     )}
-                </CardFooter>
-            )}
+                  </>
+                )}
+            </CardFooter>
         </Card>
     );
 };
@@ -172,6 +183,7 @@ export default function TransitPage() {
   }
   const { inventoryData, containers, addContainer, editContainer, receiveContainer } = context;
   const { currentUser } = useUser();
+  const router = useRouter();
 
   const [newContainerId, setNewContainerId] = useState('');
   const [newContainerEta, setNewContainerEta] = useState('');
@@ -194,6 +206,7 @@ export default function TransitPage() {
   const { toast } = useToast();
   
   const canEdit = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística') || currentUser.roles.includes('Contador');
+  const canCreateReservation = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
   const { activeContainers, historyContainers } = useMemo(() => {
     const active = containers.filter(c => c.status !== 'Llegado');
@@ -241,6 +254,14 @@ export default function TransitPage() {
     setEditingContainer(null);
     toast({ title: 'Éxito', description: 'Contenedor actualizado correctamente.' });
   };
+
+  const handleCreateReservationFromContainer = (containerId: string) => {
+    const params = new URLSearchParams();
+    params.set('action', 'create');
+    params.set('source', 'Contenedor');
+    params.set('containerId', containerId);
+    router.push(`/reservations?${params.toString()}`);
+  }
 
 
   const handleAddProductToContainer = () => {
@@ -401,8 +422,10 @@ export default function TransitPage() {
               key={container.id}
               container={container}
               canEdit={canEdit}
+              canCreateReservation={canCreateReservation}
               onEdit={handleOpenEditDialog}
               onReceive={handleReceiveContainer}
+              onReserve={handleCreateReservationFromContainer}
             />
           ))}
           {list.length === 0 && (

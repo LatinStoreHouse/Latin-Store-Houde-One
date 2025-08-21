@@ -68,11 +68,18 @@ export default function ReservationsPage() {
     if (action === 'create') {
       const cliente = searchParams.get('cliente') || '';
       const asesor = searchParams.get('asesor') || '';
+      const source = searchParams.get('source');
+      const containerId = searchParams.get('containerId');
+      
+      if (source === 'Contenedor' && containerId) {
+          setReservationSource('Contenedor');
+          setSelectedContainerId(containerId);
+      }
 
       setCustomerName(cliente);
       setAdvisorName(asesor);
       setIsNewReservationDialogOpen(true);
-      // Clean up URL params
+      // Clean up URL params, keeping the main path
       router.replace('/reservations', undefined);
     }
   }, [searchParams, router]);
