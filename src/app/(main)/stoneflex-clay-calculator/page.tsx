@@ -26,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const WhatsAppIcon = () => (
-    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 fill-current"><title>WhatsApp</title><path d="M12.04 2.018c-5.523 0-10 4.477-10 10s4.477 10 10 10c1.573 0 3.09-.37 4.49-1.035l3.493 1.032-1.06-3.39c.734-1.424 1.145-3.01 1.145-4.688.002-5.522-4.476-9.92-9.998-9.92zm3.328 12.353c-.15.27-.547.433-.945.513-.378.075-.826.104-1.312-.054-.933-.3-1.854-.9-2.61-1.68-.89-.897-1.472-1.95-1.63-2.93-.05-.293.003-.593.05-.86.06-.29.117-.582.26-.78.23-.32.512-.423.703-.408.19.012.36.003.504.003.144 0 .317.006.46.33.175.39.593 1.45.64 1.55.05.1.085.225.01.375-.074.15-.15.255-.255.36-.105.105-.204.224-.29.33-.085.105-.18.21-.074.405.23.45.983 1.416 1.95 2.13.772.58 1.48.74 1.83.656.35-.086.58-.33.725-.63.144-.3.11-.555.07-.643-.04-.09-.436-.51-.58-.68-.144-.17-.29-.26-.404-.16-.115.1-.26.15-.375.12-.114-.03-.26-.06-.375-.11-.116-.05-.17-.06-.24-.01-.07.05-.16.21-.21.28-.05.07-.1.08-.15.05-.05-.03-.21-.07-.36-.13-.15-.06-.8-.38-1.52-.98-.98-.82-1.65-1.85-1.72-2.02-.07-.17.08-1.3 1.3-1.3h.2c.114 0 .22.05.29.13.07.08.1.18.1.28l.02 1.35c0 .11-.05.22-.13.29-.08.07-.18-.1-.28-.1H9.98c-.11 0-.22-.05-.29-.13-.07-.08-.1-.18-.1-.28v-.15c0-.11.05-.22.13-.29-.08-.07-.18.1-.28.1h.02c.11 0 .22.05.29.13.07.08.1.18.1.28l.01.12c0 .11-.05.22-.13-.29-.08.07-.18-.1-.28-.1h-.03c-.11 0-.22-.05-.29-.13-.07-.08-.1-.18-.1-.28v-.02c0-.11.05-.22.13-.29.08-.07-.18.1.28.1h.01c.11 0 .22-.05.29.13.07.08.1.18.1.28a.38.38 0 0 0-.13-.29c-.08-.07-.18-.1-.28-.1z"/></svg>
+    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 fill-current"><title>WhatsApp</title><path d="M12.04 2.018c-5.523 0-10 4.477-10 10s4.477 10 10 10c1.573 0 3.09-.37 4.49-1.035l3.493 1.032-1.06-3.39c.734-1.424 1.145-3.01 1.145-4.688.002-5.522-4.476-9.92-9.998-9.92zm3.328 12.353c-.15.27-.547.433-.945.513-.378.075-.826.104-1.312-.054-.933-.3-1.854-.9-2.61-1.68-.89-.897-1.472-1.95-1.63-2.93-.05-.293.003-.593.05-.86.06-.29.117-.582.26-.78.23-.32.512-.423.703-.408.19.012.36.003.504.003.144 0 .317.006.46.33.175.39.593 1.45.64 1.55.05.1.085.225.01.375-.074.15-.15.255-.255.36-.105.105-.204.224-.29.33-.085.105-.18.21-.074.405.23.45.983 1.416 1.95 2.13.772.58 1.48.74 1.83.656.35-.086.58-.33.725-.63.144-.3.11-.555.07-.643-.04-.09-.436-.51-.58-.68-.144-.17-.29-.26-.404-.16-.115.1-.26.15-.375.12-.114-.03-.26-.06-.375-.11-.116-.05-.17-.06-.24-.01-.07.05-.16.21-.21.28-.05.07-.1.08-.15.05-.05-.03-.21-.07-.36-.13-.15-.06-.8-.38-1.52-.98-.98-.82-1.65-1.85-1.72-2.02-.07-.17.08-1.3 1.3-1.3h.2c.114 0 .22.05.29.13.07.08.1.18.1.28l.02 1.35c0 .11-.05.22-.13.29-.08.07-.18-.1-.28-.1H9.98c-.11 0-.22-.05-.29-.13-.07-.08-.1-.18-.1-.28v-.15c0-.11.05-.22.13-.29-.08-.07-.18.1-.28.1h.02c.11 0 .22.05.29.13.07.08.1.18.1.28l.01.12c0 .11-.05.22-.13.29-.08.07-.18-.1-.28-.1h-.03c-.11 0-.22-.05-.29-.13-.07-.08-.1-.18-.1-.28v-.02c0-.11.05-.22.13-.29.08-.07-.18.1.28.1h.01c.11 0 .22-.05.29.13.07.08.1.18.1.28a.38.38 0 0 0-.13-.29c-.08-.07-.18-.1-.28-.1z"/></svg>
 );
 
 
@@ -107,7 +107,6 @@ interface QuoteItem {
   reference: string;
   sqMeters: number;
   sheets: number;
-  includeSealant: boolean;
   includeAdhesive: boolean;
   calculationMode: 'sqm' | 'sheets' | 'units';
   pricePerSheet: number;
@@ -283,8 +282,6 @@ export default function StoneflexCalculatorPage() {
   const [sheets, setSheets] = useState<number | string>(1);
   const [discount, setDiscount] = useState<number | string>(0);
   const [wastePercentage, setWastePercentage] = useState<number | string>(0);
-  const [includeSealant, setIncludeSealant] = useState(true);
-  const [sealantType, setSealantType] = useState<SealantType>('SELLANTE SEMI - BRIGTH 1/ 4 GALON');
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
   const [calculationMode, setCalculationMode] = useState<'sqm' | 'sheets'>('sqm');
   const [laborCost, setLaborCost] = useState(0);
@@ -396,7 +393,6 @@ export default function StoneflexCalculatorPage() {
       reference,
       sqMeters: finalSqm,
       sheets: finalSheets,
-      includeSealant,
       includeAdhesive,
       calculationMode,
       pricePerSheet
@@ -417,7 +413,6 @@ export default function StoneflexCalculatorPage() {
       reference: supplyReference,
       sqMeters: 0,
       sheets: units,
-      includeSealant: false,
       includeAdhesive: false,
       calculationMode: 'units',
       pricePerSheet: productPrices[supplyReference] || 0
@@ -454,7 +449,6 @@ export default function StoneflexCalculatorPage() {
 
   const calculateQuote = () => {
     let totalProductCost = 0;
-    let totalSqMetersForSealant = 0;
     let totalStandardAdhesiveUnits = 0;
     let totalTranslucentAdhesiveUnits = 0;
     let isWarrantyVoid = false;
@@ -466,12 +460,6 @@ export default function StoneflexCalculatorPage() {
     const convert = (value: number) => currency === 'USD' ? value / trmValue : value;
     const discountValue = parseDecimal(discount);
     
-    const sealantPricesCOP: Record<SealantType, number> = {
-        'SELLANTE SEMI - BRIGHT GALON': productPrices['SELLANTE SEMI - BRIGHT GALON'] || 0,
-        'SELLANTE SEMI - BRIGTH 1/ 4 GALON': productPrices['SELLANTE SEMI - BRIGTH 1/ 4 GALON'] || 0,
-        'SELLANTE SHYNY GALON': productPrices['SELLANTE SHYNY GALON'] || 0,
-        'SELLANTE SHYNY 1/4 GALON': productPrices['SELLANTE SHYNY 1/4 GALON'] || 0,
-    };
     const adhesivePriceCOP = productPrices['Adhesivo'] || 0;
     const translucentAdhesivePriceCOP = productPrices['ADHESIVO TRASLUCIDO'] || 0;
 
@@ -493,10 +481,6 @@ export default function StoneflexCalculatorPage() {
       
       totalProductCost += productCost;
       
-      if (item.includeSealant) {
-        totalSqMetersForSealant += item.sqMeters;
-      }
-
       if (item.includeAdhesive && details.line !== '3D') {
           let adhesivePerSheet = 0;
           const isStandardSize = item.reference.includes('1.22 X 0.61') || item.reference.includes('1.20*0.60');
@@ -523,7 +507,7 @@ export default function StoneflexCalculatorPage() {
           }
       }
       
-      if (!item.includeSealant || !item.includeAdhesive) {
+      if (!item.includeAdhesive) {
         isWarrantyVoid = true;
       }
       
@@ -532,26 +516,12 @@ export default function StoneflexCalculatorPage() {
       return {...item, itemTotal: itemSubtotal, pricePerSheet: convert(pricePerSheetCOP)};
     });
     
-    // Unified Sealant Calculation
-    let totalSealantCost = 0;
-    let totalSealantUnits = 0;
-    if (includeSealant && totalSqMetersForSealant > 0) {
-        let sealantYield = 18; // default for 1/4 gal semi-bright
-        if (sealantType.includes('GALON') && sealantType.includes('SHYNY')) sealantYield = 40;
-        else if (sealantType.includes('GALON') && sealantType.includes('SEMI')) sealantYield = 60;
-        else if (sealantType.includes('1/ 4') && sealantType.includes('SHYNY')) sealantYield = 10;
-        else if (sealantType.includes('1/ 4') && sealantType.includes('SEMI')) sealantYield = 18;
-
-        totalSealantUnits = Math.ceil(totalSqMetersForSealant / sealantYield);
-        totalSealantCost = convert(totalSealantUnits * sealantPricesCOP[sealantType]);
-    }
-    
     // Adhesive Cost Calculation
     const totalStandardAdhesiveCost = convert(Math.ceil(totalStandardAdhesiveUnits) * adhesivePriceCOP);
     const totalTranslucentAdhesiveCost = convert(Math.ceil(totalTranslucentAdhesiveUnits) * translucentAdhesivePriceCOP);
 
 
-    const subtotalBeforeDiscount = totalProductCost + totalSealantCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost + manualSuppliesCost;
+    const subtotalBeforeDiscount = totalProductCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost + manualSuppliesCost;
     const totalDiscountAmount = subtotalBeforeDiscount * (discountValue / 100);
     const subtotalBeforeIva = subtotalBeforeDiscount - totalDiscountAmount;
     const ivaAmount = subtotalBeforeIva * IVA_RATE;
@@ -566,15 +536,12 @@ export default function StoneflexCalculatorPage() {
     return {
       items: detailedItems,
       totalProductCost,
-      totalSealantCost,
       totalStandardAdhesiveCost,
       totalTranslucentAdhesiveCost,
       manualSuppliesCost,
-      sealantPrice: convert(sealantPricesCOP[sealantType]),
       adhesivePrice: convert(adhesivePriceCOP),
       translucentAdhesivePrice: convert(translucentAdhesivePriceCOP),
       totalDiscountAmount,
-      totalSealantUnits,
       totalStandardAdhesiveUnits: Math.ceil(totalStandardAdhesiveUnits),
       totalTranslucentAdhesiveUnits: Math.ceil(totalTranslucentAdhesiveUnits),
       isWarrantyVoid,
@@ -630,10 +597,6 @@ export default function StoneflexCalculatorPage() {
     
     message += `\n*Desglose de Costos (${currency}):*\n`;
     message += `- Subtotal Productos: ${formatCurrency(quote.totalProductCost)}\n`;
-    if(quote.totalSealantCost > 0 && quote.totalSealantUnits > 0) {
-      const sealantUnitCost = quote.sealantPrice;
-      message += `- Costo Sellante (${quote.totalSealantUnits} u. @ ${formatCurrency(sealantUnitCost)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
-    }
     if (quote.totalStandardAdhesiveCost > 0 && quote.totalStandardAdhesiveUnits > 0) {
         message += `- Costo Adhesivo (Estándar) (${quote.totalStandardAdhesiveUnits} u. @ ${formatCurrency(quote.adhesivePrice)}/u.): ${formatCurrency(quote.totalStandardAdhesiveCost)}\n`;
     }
@@ -662,7 +625,7 @@ export default function StoneflexCalculatorPage() {
     }
 
     if (quote.isWarrantyVoid) {
-        message += `*Nota Importante:* La no inclusión de sellante o adhesivo puede anular la garantía del producto.\n`;
+        message += `*Nota Importante:* La no inclusión de adhesivo puede anular la garantía del producto.\n`;
     }
     message += `_Esta es una cotización preliminar y no incluye costos de instalación si no se especifica._`;
 
@@ -809,25 +772,6 @@ export default function StoneflexCalculatorPage() {
                     <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
                     <Label htmlFor="include-adhesive">Incluir Adhesivo (Automático)</Label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
-                    <Label htmlFor="include-sealant">Incluir Sellante (Automático)</Label>
-                  </div>
-                  {includeSealant && (
-                    <div className="w-64">
-                       <Select value={sealantType} onValueChange={(value) => setSealantType(value as SealantType)}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Tipo de sellante" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="SELLANTE SEMI - BRIGTH 1/ 4 GALON">Semi-Brillante (1/4 Gal)</SelectItem>
-                            <SelectItem value="SELLANTE SEMI - BRIGHT GALON">Semi-Brillante (Galón)</SelectItem>
-                            <SelectItem value="SELLANTE SHYNY 1/4 GALON">Brillante (1/4 Gal)</SelectItem>
-                            <SelectItem value="SELLANTE SHYNY GALON">Brillante (Galón)</SelectItem>
-                        </SelectContent>
-                       </Select>
-                    </div>
-                  )}
                   <Dialog>
                     <DialogTrigger asChild>
                         <Button variant="outline" size="sm" className="ml-auto">
@@ -942,12 +886,6 @@ export default function StoneflexCalculatorPage() {
                   <span className="text-muted-foreground">Subtotal Productos</span>
                   <span>{formatCurrency(quote.totalProductCost)}</span>
                 </div>
-                 {quote.totalSealantCost > 0 && quote.totalSealantUnits > 0 && (
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Costo Sellante ({quote.totalSealantUnits} u. @ {formatCurrency(quote.sealantPrice)}/u.)</span>
-                        <span>{formatCurrency(quote.totalSealantCost)}</span>
-                    </div>
-                )}
                  {quote.totalStandardAdhesiveCost > 0 && (
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Costo Adhesivo (Estándar) ({quote.totalStandardAdhesiveUnits} u. @ {formatCurrency(quote.adhesivePrice)}/u.)</span>
@@ -1051,7 +989,7 @@ export default function StoneflexCalculatorPage() {
                   )}
                   {quote.isWarrantyVoid && (
                     <p className="font-semibold text-destructive">
-                      La no inclusión de sellante o adhesivo puede anular la garantía del producto.
+                      La no inclusión de adhesivo puede anular la garantía del producto.
                     </p>
                   )}
               </div>
