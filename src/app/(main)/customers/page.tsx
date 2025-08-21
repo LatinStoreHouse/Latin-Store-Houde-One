@@ -119,6 +119,7 @@ export default function CustomersPage() {
   const canUseCalculators = userPermissions.includes('calculators:use');
   const canEditNotes = currentUserRole === 'Administrador' || currentUserRole === 'Marketing';
   const isAdvisor = currentUserRole === 'Asesor de Ventas';
+  const isLogistica = currentUserRole === 'Logística';
 
   const advisorStats = useMemo(() => {
     if (!isAdvisor) return null;
@@ -430,7 +431,7 @@ export default function CustomersPage() {
               <TableHead className="p-2">Asesor Asignado</TableHead>
               <TableHead className="p-2">Fecha Reg.</TableHead>
               <TableHead className="p-2">Estado</TableHead>
-              <TableHead className="text-right p-2">Acciones</TableHead>
+              {!isLogistica && <TableHead className="text-right p-2">Acciones</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -481,53 +482,55 @@ export default function CustomersPage() {
                     {customer.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right p-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => handleOpenModal(customer)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Editar
-                      </DropdownMenuItem>
-                       {canCreateDispatch && (
-                        <DropdownMenuItem onClick={() => handleCreateDispatch(customer)}>
-                          <Truck className="mr-2 h-4 w-4" />
-                          Crear Despacho
+                {!isLogistica && (
+                    <TableCell className="text-right p-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleOpenModal(customer)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
                         </DropdownMenuItem>
-                      )}
-                      {canCreateReservation && (
-                        <DropdownMenuItem onClick={() => handleCreateReservation(customer)}>
-                            <BookUser className="mr-2 h-4 w-4" />
-                            Crear Reserva
+                        {canCreateDispatch && (
+                            <DropdownMenuItem onClick={() => handleCreateDispatch(customer)}>
+                            <Truck className="mr-2 h-4 w-4" />
+                            Crear Despacho
+                            </DropdownMenuItem>
+                        )}
+                        {canCreateReservation && (
+                            <DropdownMenuItem onClick={() => handleCreateReservation(customer)}>
+                                <BookUser className="mr-2 h-4 w-4" />
+                                Crear Reserva
+                            </DropdownMenuItem>
+                        )}
+                        {canUseCalculators && (
+                            <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <Calculator className="mr-2 h-4 w-4" />
+                                Crear Cotización
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem onClick={() => handleCreateQuote(customer, 'stoneflex')}>
+                                Cotización StoneFlex
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleCreateQuote(customer, 'starwood')}>
+                                Cotización Starwood
+                                </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                        )}
+                        <DropdownMenuItem onClick={() => handleDeleteCustomer(customer.id)} className="text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar
                         </DropdownMenuItem>
-                      )}
-                       {canUseCalculators && (
-                        <DropdownMenuSub>
-                          <DropdownMenuSubTrigger>
-                            <Calculator className="mr-2 h-4 w-4" />
-                            Crear Cotización
-                          </DropdownMenuSubTrigger>
-                          <DropdownMenuSubContent>
-                            <DropdownMenuItem onClick={() => handleCreateQuote(customer, 'stoneflex')}>
-                              Cotización StoneFlex
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleCreateQuote(customer, 'starwood')}>
-                              Cotización Starwood
-                            </DropdownMenuItem>
-                          </DropdownMenuSubContent>
-                        </DropdownMenuSub>
-                      )}
-                      <DropdownMenuItem onClick={() => handleDeleteCustomer(customer.id)} className="text-destructive">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
