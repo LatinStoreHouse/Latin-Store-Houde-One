@@ -31,6 +31,7 @@ import { InventoryContext, Reservation } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { productDimensions } from '@/lib/dimensions';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -80,6 +81,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
         <TableHeader>
           <TableRow>
             <TableHead className="p-2">Nombre del Producto</TableHead>
+            <TableHead className="p-2">Medidas</TableHead>
             <TableHead className="text-right p-2">Disponible Bodega</TableHead>
             <TableHead className="text-right p-2">Disponible Zona Franca</TableHead>
             {!isPartner && <TableHead className="text-right p-2 w-[100px]">Reservas</TableHead>}
@@ -100,6 +102,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             return (
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
+                <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name] || 'N/A'}</TableCell>
                 <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
                 <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
                 {!isPartner && (
@@ -151,6 +154,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
       <TableHeader>
         <TableRow>
           <TableHead className="p-2">Nombre del Producto</TableHead>
+          <TableHead className="p-2">Medidas</TableHead>
           <TableHead className="text-right p-2">Bodega</TableHead>
           <TableHead className="text-right p-2">Separadas Bodega</TableHead>
           <TableHead className="text-right p-2">Zona Franca</TableHead>
@@ -170,6 +174,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                     className="h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0"
                 />
               </TableCell>
+              <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name] || 'N/A'}</TableCell>
               <TableCell className="text-right p-0">
                 <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
               </TableCell>
@@ -654,4 +659,3 @@ export default function InventoryPage() {
     
 
     
-

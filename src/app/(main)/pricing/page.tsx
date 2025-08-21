@@ -19,116 +19,96 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Combobox } from '@/components/ui/combobox';
+import { productDimensions } from '@/lib/dimensions';
 
 
 const productStructure: { [key: string]: { [line: string]: string[] } } = {
   'StoneFlex': {
     'Clay': [
-      'CUT STONE 120 X 60',
-      'TRAVERTINO',
-      'CONCRETO ENCOFRADO',
-      'TAPIA NEGRA',
+      'Cut stone',
+      'Travertino',
+      'Concreto encofrado',
+      'Tapia negra',
     ],
     'Pizarra': [
-      'BLACK 1.22 X 0.61',
-      'KUND MULTY 1.22 X 0.61',
-      'TAN 1.22 X 0.61',
-      'INDIAN AUTUMN 1.22 X 0.61',
-      'BLACK 2.44 X 1.22',
-      'TAN 2.44 X 1.22',
-      'kUND MULTY 2.44 X 1.22',
-      'INDIAN AUTUMN 2.44 X 1.22',
+      'Black',
+      'Kund multy',
+      'Tan',
+      'Indian autumn',
     ],
     'Cuarcitas': [
-      'BURNING FOREST 1.22 X 0.61',
-      'COPPER 1.22 X 0.61',
-      'JEERA GREEN 1.22 X 0.61',
-      'SILVER SHINE 1.22 X 0.61',
-      'SILVER SHINE GOLD 1.22 X 0.61',
-      'STEEL GRAY 1.22 X 0.61',
-      'COPPER 2.44 X 1.22',
-      'BURNING FOREST 2.44 X 1.22',
-      'JEERA GREEN 2.44 X 1.22',
-      'SILVER SHINE 2.44 X 1.22',
-      'SILVER SHINE GOLD 2.44 X 1.22',
-      'STEEL GREY 2.44 X 1.22',
+      'Burning forest',
+      'Copper',
+      'Jeera green',
+      'Silver shine',
+      'Silver shine gold',
+      'Steel gray',
+      'Steel grey',
     ],
     'Concreto': [
-      'CONCRETO BLANCO 1.22 X 0.61',
-      'CONCRETO GRIS 1.22 X 0.61',
-      'CONCRETE WITH HOLES 1.22 X 0.61',
-      'CONCRETO GRIS MEDIUM 1.22 X 0.61',
-      'CONCRETO BLANCO 2.44 X 1.22',
-      'CONCRETO GRIS 2.44 X 1.22',
-      'CONCRETO MEDIO 2.44 X 1.22',
-      'CONCRETO WITH HOLES 2.44 X 1.22',
+      'Concreto blanco',
+      'Concreto gris',
+      'Concrete with holes',
+      'Concreto gris medium',
+      'Concreto medio',
     ],
     'Mármol': [
-      'CARRARA 1.22 X 0.61',
-      'CRYSTAL WHITE 1.22 X 0.61',
-      'HIMALAYA GOLD 1.22X0.61 MTS',
-      'MINT WHITE 1.22 X 0.61',
-      'CARRARA 2.44 X 1.22',
-      'CRYSTAL WHITE 2.44 X 1.22',
-      'HIMALAYA GOLD 2.44 X 1.22',
+      'Carrara',
+      'Crystal white',
+      'Himalaya gold',
+      'Mint white',
     ],
     'Translucida': [
-      'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61',
-      'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22',
+      'Indian autumn translucido',
     ],
     'Madera': [
-      'MADERA NOGAL 0.15 X 2.44 MTS',
-      'MADERA TEKA 0.15 X 2.44 MTS',
-      'MADERA ÉBANO 0.15 X 2.44 MTS',
+      'Madera nogal',
+      'Madera teka',
+      'Madera ébano',
     ],
     'Metales': [
-      'CORTEN STELL - 2.44 X 0.61',
-      'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61',
-      'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61',
-      'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61',
-      'CORTEN STEEL 2.44 X 1.22',
+      'Corten stell',
+      'Mural blue patina with copper',
+      'Mural white with copper gold',
+      'Gate turquoise patina copper',
+      'Corten steel',
     ],
     '3D autoadhesiva': [
-      '3D ADHESIVO - 0,90 M2 - BLACK',
-      '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC',
-      '3D ADHESIVO - 0,90 M2 - TAN',
+      '3d adhesivo - black',
+      '3d adhesivo - indian rustic',
+      '3d adhesivo - tan',
     ],
     'Insumos': [
       'Adhesivo',
-      'ADHESIVO TRASLUCIDO',
-      'SELLANTE SEMI - BRIGHT GALON',
-      'SELLANTE SEMI - BRIGTH 1/ 4 GALON',
-      'SELLANTE SHYNY GALON',
-      'SELLANTE SHYNY 1/4 GALON',
+      'Adhesivo translucido',
+      'Sellante semi - bright galon',
+      'Sellante semi - brigth 1/ 4 galon',
+      'Sellante shyny galon',
+      'Sellante shyny 1/4 galon',
     ],
   },
   'Starwood': {
       'Productos': [
-        'PERGOLA 9x4 - 3 MTS COFFEE',
-        'PERGOLA 9x4 - 3 MTS CHOCOLATE',
-        'PERGOLA 10x5 - 3 COFFEE',
-        'PERGOLA 10x5 - 3 MTS CHOCOLATE',
-        'DECK ESTANDAR 14.5 CM X 2.2 CM X 2.21 MTS COFFEE',
-        'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR CF - WN',
-        'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR EB - LG',
-        'LISTON 6.8x2.5 - 3 MTS CAMEL',
-        'LISTON 6.8x2.5 - 3 MTS COFFEE',
-        'LISTON 6.8x2.5 - 3 MTS CHOCOLATE',
+        'Pergola 9x4',
+        'Pergola 10x5',
+        'Deck estandar',
+        'Deck co-extrusion',
+        'Liston 6.8x2.5',
       ],
       'Insumos': [
-        'CLIP PLASTICO PARA DECK WPC',
-        'DURMIENTE PLASTICO 3x3 - 2.90 MTS',
-        'DURMIENTE PLASTICO 6 X 6 - 1 MTS',
-        'DAILY CLEAN',
-        'INTENSIVE CLEAN',
-        'SELLANTE WPC 1 GALON',
-        'SELLANTE WPC 1/4 GALON',
-        'DAILY CLEAN GALON',
-        'REMATE WALL PANEL ROBLE',
-        'REMATE WALL PANEL MAPLE',
-        'REMATE WALL PANEL NEGRO',
-        'REMATE WALL PANEL GRIS',
-        'BOCEL DECORATIVO BLANCO',
+        'Clip plastico para deck wpc',
+        'Durmiente plastico 3x3',
+        'Durmiente plastico 6 x 6',
+        'Daily clean',
+        'Intensive clean',
+        'Sellante wpc 1 galon',
+        'Sellante wpc 1/4 galon',
+        'Daily clean galon',
+        'Remate wall panel roble',
+        'Remate wall panel maple',
+        'Remate wall panel negro',
+        'Remate wall panel gris',
+        'Bocel decorativo blanco',
       ]
   }
 };
@@ -241,9 +221,9 @@ export default function PricingPage() {
     let productsInLine = localProductStructure[brand as keyof typeof localProductStructure][line];
     
     if (sizeFilter === 'estandar') {
-        productsInLine = productsInLine.filter(p => p.includes('1.22 X 0.61'));
+        productsInLine = productsInLine.filter(p => (productDimensions[p] || '').includes('1.22 x 0.61'));
     } else if (sizeFilter === 'xl') {
-        productsInLine = productsInLine.filter(p => p.includes('2.44 X 1.22'));
+        productsInLine = productsInLine.filter(p => (productDimensions[p] || '').includes('2.44 x 1.22'));
     }
 
     const updatedPrices = { ...prices };
@@ -277,8 +257,8 @@ export default function PricingPage() {
   
   const lineHasMultipleSizes = (brand: string, line: string) => {
     const products = localProductStructure[brand as keyof typeof localProductStructure][line];
-    const hasEstandar = products.some(p => p.includes('1.22 X 0.61'));
-    const hasXL = products.some(p => p.includes('2.44 X 1.22'));
+    const hasEstandar = products.some(p => (productDimensions[p] || '').includes('1.22 x 0.61'));
+    const hasXL = products.some(p => (productDimensions[p] || '').includes('2.44 x 1.22'));
     return hasEstandar && hasXL;
   };
 
