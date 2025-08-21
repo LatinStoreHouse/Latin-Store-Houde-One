@@ -1,101 +1,101 @@
 
 export const initialProductPrices: { [key: string]: number } = {
     // Pizarra Estándar
-    'BLACK 1.22 X 0.61': 131100,
-    'KUND MULTY 1.22 X 0.61': 131100,
-    'TAN 1.22 X 0.61': 131100,
-    'INDIAN AUTUMN 1.22 X 0.61': 131100,
+    'Black 1.22 x 0.61': 131100,
+    'Kund multy 1.22 x 0.61': 131100,
+    'Tan 1.22 x 0.61': 131100,
+    'Indian autumn 1.22 x 0.61': 131100,
 
     // Pizarra XL
-    'BLACK 2.44 X 1.22': 550620,
-    'TAN 2.44 X 1.22': 550620,
-    'kUND MULTY 2.44 X 1.22': 550620,
-    'INDIAN AUTUMN 2.44 X 1.22': 550620,
+    'Black 2.44 x 1.22': 550620,
+    'Tan 2.44 x 1.22': 550620,
+    'Kund multy 2.44 x 1.22': 550620,
+    'Indian autumn 2.44 x 1.22': 550620,
 
     // Cuarcita Estándar
-    'BURNING FOREST 1.22 X 0.61': 131100,
-    'COPPER 1.22 X 0.61': 131100,
-    'JEERA GREEN 1.22 X 0.61': 131100,
-    'SILVER SHINE 1.22 X 0.61': 131100,
-    'SILVER SHINE GOLD 1.22 X 0.61': 131100,
-    'STEEL GRAY 1.22 X 0.61': 131100,
+    'Burning forest 1.22 x 0.61': 131100,
+    'Copper 1.22 x 0.61': 131100,
+    'Jeera green 1.22 x 0.61': 131100,
+    'Silver shine 1.22 x 0.61': 131100,
+    'Silver shine gold 1.22 x 0.61': 131100,
+    'Steel gray 1.22 x 0.61': 131100,
     
     // Cuarcita XL
-    'COPPER 2.44 X 1.22': 550620,
-    'BURNING FOREST 2.44 X 1.22': 550620,
-    'JEERA GREEN 2.44 X 1.22': 550620,
-    'SILVER SHINE 2.44 X 1.22': 550620,
-    'SILVER SHINE GOLD 2.44 X 1.22': 550620,
-    'STEEL GREY 2.44 X 1.22': 550620,
+    'Copper 2.44 x 1.22': 550620,
+    'Burning forest 2.44 x 1.22': 550620,
+    'Jeera green 2.44 x 1.22': 550620,
+    'Silver shine 2.44 x 1.22': 550620,
+    'Silver shine gold 2.44 x 1.22': 550620,
+    'Steel grey 2.44 x 1.22': 550620,
 
     // Concreto Estándar
-    'CONCRETO BLANCO 1.22 X 0.61': 131100,
-    'CONCRETO GRIS 1.22 X 0.61': 131100,
-    'CONCRETE WITH HOLES 1.22 X 0.61': 131100,
-    'CONCRETO GRIS MEDIUM 1.22 X 0.61': 131100,
+    'Concreto blanco 1.22 x 0.61': 131100,
+    'Concreto gris 1.22 x 0.61': 131100,
+    'Concrete with holes 1.22 x 0.61': 131100,
+    'Concreto gris medium 1.22 x 0.61': 131100,
     
     // Concreto XL
-    'CONCRETO BLANCO 2.44 X 1.22': 576840,
-    'CONCRETO GRIS 2.44 X 1.22': 576840,
-    'CONCRETO MEDIO 2.44 X 1.22': 576840,
-    'CONCRETO WITH HOLES 2.44 X 1.22': 576840,
+    'Concreto blanco 2.44 x 1.22': 576840,
+    'Concreto gris 2.44 x 1.22': 576840,
+    'Concreto medio 2.44 x 1.22': 576840,
+    'Concreto with holes 2.44 x 1.22': 576840,
 
     // Mármol Estándar
-    'CARRARA 1.22 X 0.61': 177043,
-    'CRYSTAL WHITE 1.22 X 0.61': 177043,
-    'HIMALAYA GOLD 1.22X0.61 MTS': 177043,
-    'MINT WHITE 1.22 X 0.61': 177043,
+    'Carrara 1.22 x 0.61': 177043,
+    'Crystal white 1.22 x 0.61': 177043,
+    'Himalaya gold 1.22x0.61 mts': 177043,
+    'Mint white 1.22 x 0.61': 177043,
     
     // Mármol XL
-    'CARRARA 2.44 X 1.22': 743581,
-    'CRYSTAL WHITE 2.44 X 1.22': 743581,
-    'HIMALAYA GOLD 2.44 X 1.22': 743581,
+    'Carrara 2.44 x 1.22': 743581,
+    'Crystal white 2.44 x 1.22': 743581,
+    'Himalaya gold 2.44 x 1.22': 743581,
     
     // Traslúcida Estándar
-    'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61': 186990,
+    'Indian autumn translucido 1.22 x 0.61': 186990,
     
     // Traslúcida XL
-    'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22': 785358,
+    'Indian autumn translucida 2.44 x 1.22': 785358,
     
     // Madera
-    'MADERA NOGAL 0.15 X 2.44 MTS': 81512,
-    'MADERA TEKA 0.15 X 2.44 MTS': 81512,
-    'MADERA ÉBANO 0.15 X 2.44 MTS': 81512,
+    'Madera nogal 0.15 x 2.44 mts': 81512,
+    'Madera teka 0.15 x 2.44 mts': 81512,
+    'Madera ébano 0.15 x 2.44 mts': 81512,
     
     // Metálicas 244x61
-    'CORTEN STELL - 2.44 X 0.61': 399050,
-    'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61': 399050,
-    'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61': 399050,
-    'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61': 399050,
+    'Corten stell - 2.44 x 0.61': 399050,
+    'Mural blue patina with copper - 2.44 x 0.61': 399050,
+    'Mural white with copper gold - 2.44 x 0.61': 399050,
+    'Gate turquoise patina copper - 2.44 x 0.61': 399050,
 
     // Metálicas Gran Formato (244x122)
-    'CORTEN STEEL 2.44 X 1.22': 798100,
+    'Corten steel 2.44 x 1.22': 798100,
 
     // Clay
-    'CLAY CUT STONE 1,20*0,60': 176000,
-    'CLAY TRAVERTINO 1,20*0,60': 176000,
-    'CONCRETO ENCOFRADO 2,90*0,56': 176000,
-    'CLAY TAPIA NEGRA 2,95*1,20': 176000,
+    'Clay cut stone 1,20*0,60': 176000,
+    'Clay travertino 1,20*0,60': 176000,
+    'Concreto encofrado 2,90*0,56': 176000,
+    'Clay tapia negra 2,95*1,20': 176000,
 
     // 3D (sin precio en la imagen, se mantiene el anterior)
-    '3D ADHESIVO - 0,90 M2 - BLACK': 207072,
-    '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC': 207072,
-    '3D ADHESIVO - 0,90 M2 - TAN': 207072,
+    '3d adhesivo - 0,90 m2 - black': 207072,
+    '3d adhesivo - 0,90 m2 - indian rustic': 207072,
+    '3d adhesivo - 0,90 m2 - tan': 207072,
     
     // Insumos Starwood (sin cambios)
-    'PERGOLA 9x4 - 3 MTS COFFEE': 126788,
-    'PERGOLA 9x4 - 3 MTS CHOCOLATE': 126788,
-    'PERGOLA 10x5 - 3 COFFEE': 165456,
-    'PERGOLA 10x5 - 3 MTS CHOCOLATE': 165456,
-    'DECK ESTANDAR 14.5 CM X 2.2 CM X 2.21 MTS COFFEE': 127000,
-    'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR CF - WN': 127000,
-    'DECK CO-EXTRUSION 13.8 X 2.3 3 MTS COLOR EB - LG': 127000,
-    'LISTON 6.8x2.5 - 3 MTS CAMEL': 64400,
-    'LISTON 6.8x2.5 - 3 MTS COFFEE': 64400,
-    'LISTON 6.8x2.5 - 3 MTS CHOCOLATE': 64400,
-    'CLIP PLASTICO PARA DECK WPC': 1500,
-    'DURMIENTE PLASTICO 3x3 - 2.90 MTS': 25000,
-    'SELLANTE WPC 1 GALON': 60000,
+    'Pergola 9x4 - 3 mts coffee': 126788,
+    'Pergola 9x4 - 3 mts chocolate': 126788,
+    'Pergola 10x5 - 3 coffee': 165456,
+    'Pergola 10x5 - 3 mts chocolate': 165456,
+    'Deck estandar 14.5 cm x 2.2 cm x 2.21 mts coffee': 127000,
+    'Deck co-extrusion 13.8 x 2.3 3 mts color cf - wn': 127000,
+    'Deck co-extrusion 13.8 x 2.3 3 mts color eb - lg': 127000,
+    'Liston 6.8x2.5 - 3 mts camel': 64400,
+    'Liston 6.8x2.5 - 3 mts coffee': 64400,
+    'Liston 6.8x2.5 - 3 mts chocolate': 64400,
+    'Clip plastico para deck wpc': 1500,
+    'Durmiente plastico 3x3 - 2.90 mts': 25000,
+    'Sellante wpc 1 galon': 60000,
 
     // Insumos StoneFlex
     'Adhesivo': 28039, // Poliuretano

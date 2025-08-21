@@ -33,58 +33,58 @@ const WhatsAppIcon = () => (
 
 
 const referenceDetails: { [key: string]: { brand: string, line: string } } = {
-  'CLAY CUT STONE 1.20*0.60': { brand: 'StoneFlex', line: 'Clay' },
-  'CLAY TRAVERTINO 1.20*0.60': { brand: 'StoneFlex', line: 'Clay' },
-  'CONCRETO ENCOFRADO 2.90*0.56': { brand: 'StoneFlex', line: 'Clay' },
-  'CLAY TAPIA NEGRA 2.95*1.20': { brand: 'StoneFlex', line: 'Clay' },
-  'BLACK 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
-  'KUND MULTY 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
-  'TAN 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
-  'INDIAN AUTUMN 1.22 X 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
-  'INDIAN AUTUMN TRANSLUCIDO 1.22 X 0.61': { brand: 'StoneFlex', line: 'Translucida' },
-  'BURNING FOREST 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'COPPER 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'JEERA GREEN 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'SILVER SHINE 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'SILVER SHINE GOLD 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'STEEL GRAY 1.22 X 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'CARRARA 1.22 X 0.61': { brand: 'StoneFlex', line: 'Mármol' },
-  'CRYSTAL WHITE 1.22 X 0.61': { brand: 'StoneFlex', line: 'Mármol' },
-  'HIMALAYA GOLD 1.22X0.61 MTS': { brand: 'StoneFlex', line: 'Mármol' },
-  'MINT WHITE 1.22 X 0.61': { brand: 'StoneFlex', line: 'Mármol' },
-  'CONCRETO BLANCO 1.22 X 0.61': { brand: 'StoneFlex', line: 'Concreto' },
-  'CONCRETO GRIS 1.22 X 0.61': { brand: 'StoneFlex', line: 'Concreto' },
-  'CONCRETE WITH HOLES 1.22 X 0.61': { brand: 'StoneFlex', line: 'Concreto' },
-  'CONCRETO GRIS MEDIUM 1.22 X 0.61': { brand: 'StoneFlex', line: 'Concreto' },
-  'CORTEN STELL - 2.44 X 0.61': { brand: 'StoneFlex', line: 'Metales' },
-  'MURAL BLUE PATINA WITH COPPER - 2.44 X 0.61': { brand: 'StoneFlex', line: 'Metales' },
-  'MURAL WHITE WITH COPPER GOLD - 2.44 X 0.61': { brand: 'StoneFlex', line: 'Metales' },
-  'GATE TURQUOISE PATINA COPPER - 2.44 X 0.61': { brand: 'StoneFlex', line: 'Metales' },
-  'MADERA NOGAL 0.15 X 2.44 MTS': { brand: 'StoneFlex', line: 'Madera' },
-  'MADERA TEKA 0.15 X 2.44 MTS': { brand: 'StoneFlex', line: 'Madera' },
-  'MADERA ÉBANO 0.15 X 2.44 MTS': { brand: 'StoneFlex', line: 'Madera' },
-  '3D ADHESIVO - 0,90 M2 - BLACK': { brand: 'StoneFlex', line: '3D' },
-  '3D ADHESIVO - 0,90 M2 - INDIAN RUSTIC': { brand: 'StoneFlex', line: '3D' },
-  '3D ADHESIVO - 0,90 M2 - TAN': { brand: 'StoneFlex', line: '3D' },
-  'BLACK 2.44 X 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
-  'TAN 2.44 X 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
-  'kUND MULTY 2.44 X 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
-  'INDIAN AUTUMN 2.44 X 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
-  'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22': { brand: 'StoneFlex', line: 'Translucida' },
-  'COPPER 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'BURNING FOREST 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'JEERA GREEN 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'SILVER SHINE 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'SILVER SHINE GOLD 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'STEEL GREY 2.44 X 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'CONCRETO BLANCO 2.44 X 1.22': { brand: 'StoneFlex', line: 'Concreto' },
-  'CONCRETO GRIS 2.44 X 1.22': { brand: 'StoneFlex', line: 'Concreto' },
-  'CONCRETO MEDIO 2.44 X 1.22': { brand: 'StoneFlex', line: 'Concreto' },
-  'CONCRETO WITH HOLES 2.44 X 1.22': { brand: 'StoneFlex', line: 'Concreto' },
-  'CARRARA 2.44 X 1.22': { brand: 'StoneFlex', line: 'Mármol' },
-  'CRYSTAL WHITE 2.44 X 1.22': { brand: 'StoneFlex', line: 'Mármol' },
-  'HIMALAYA GOLD 2.44 X 1.22': { brand: 'StoneFlex', line: 'Mármol' },
-  'CORTEN STEEL 2.44 X 1.22': { brand: 'StoneFlex', line: 'Metales' },
+  'Clay cut stone 1,20*0,60': { brand: 'StoneFlex', line: 'Clay' },
+  'Clay travertino 1,20*0,60': { brand: 'StoneFlex', line: 'Clay' },
+  'Concreto encofrado 2,90*0,56': { brand: 'StoneFlex', line: 'Clay' },
+  'Clay tapia negra 2,95*1,20': { brand: 'StoneFlex', line: 'Clay' },
+  'Black 1.22 x 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
+  'Kund multy 1.22 x 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
+  'Tan 1.22 x 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
+  'Indian autumn 1.22 x 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
+  'Indian autumn translucido 1.22 x 0.61': { brand: 'StoneFlex', line: 'Translucida' },
+  'Burning forest 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Copper 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Jeera green 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Silver shine 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Silver shine gold 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Steel gray 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Carrara 1.22 x 0.61': { brand: 'StoneFlex', line: 'Mármol' },
+  'Crystal white 1.22 x 0.61': { brand: 'StoneFlex', line: 'Mármol' },
+  'Himalaya gold 1.22x0.61 mts': { brand: 'StoneFlex', line: 'Mármol' },
+  'Mint white 1.22 x 0.61': { brand: 'StoneFlex', line: 'Mármol' },
+  'Concreto blanco 1.22 x 0.61': { brand: 'StoneFlex', line: 'Concreto' },
+  'Concreto gris 1.22 x 0.61': { brand: 'StoneFlex', line: 'Concreto' },
+  'Concrete with holes 1.22 x 0.61': { brand: 'StoneFlex', line: 'Concreto' },
+  'Concreto gris medium 1.22 x 0.61': { brand: 'StoneFlex', line: 'Concreto' },
+  'Corten stell - 2.44 x 0.61': { brand: 'StoneFlex', line: 'Metales' },
+  'Mural blue patina with copper - 2.44 x 0.61': { brand: 'StoneFlex', line: 'Metales' },
+  'Mural white with copper gold - 2.44 x 0.61': { brand: 'StoneFlex', line: 'Metales' },
+  'Gate turquoise patina copper - 2.44 x 0.61': { brand: 'StoneFlex', line: 'Metales' },
+  'Madera nogal 0.15 x 2.44 mts': { brand: 'StoneFlex', line: 'Madera' },
+  'Madera teka 0.15 x 2.44 mts': { brand: 'StoneFlex', line: 'Madera' },
+  'Madera ébano 0.15 x 2.44 mts': { brand: 'StoneFlex', line: 'Madera' },
+  '3d adhesivo - 0,90 m2 - black': { brand: 'StoneFlex', line: '3D' },
+  '3d adhesivo - 0,90 m2 - indian rustic': { brand: 'StoneFlex', line: '3D' },
+  '3d adhesivo - 0,90 m2 - tan': { brand: 'StoneFlex', line: '3D' },
+  'Black 2.44 x 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
+  'Tan 2.44 x 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
+  'Kund multy 2.44 x 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
+  'Indian autumn 2.44 x 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
+  'Indian autumn translucida 2.44 x 1.22': { brand: 'StoneFlex', line: 'Translucida' },
+  'Copper 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Burning forest 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Jeera green 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Silver shine 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Silver shine gold 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Steel grey 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
+  'Concreto blanco 2.44 x 1.22': { brand: 'StoneFlex', line: 'Concreto' },
+  'Concreto gris 2.44 x 1.22': { brand: 'StoneFlex', line: 'Concreto' },
+  'Concreto medio 2.44 x 1.22': { brand: 'StoneFlex', line: 'Concreto' },
+  'Concreto with holes 2.44 x 1.22': { brand: 'StoneFlex', line: 'Concreto' },
+  'Carrara 2.44 x 1.22': { brand: 'StoneFlex', line: 'Mármol' },
+  'Crystal white 2.44 x 1.22': { brand: 'StoneFlex', line: 'Mármol' },
+  'Himalaya gold 2.44 x 1.22': { brand: 'StoneFlex', line: 'Mármol' },
+  'Corten steel 2.44 x 1.22': { brand: 'StoneFlex', line: 'Metales' },
 };
 
 
@@ -171,8 +171,6 @@ export default function StoneflexCalculatorPage() {
   const [discount, setDiscount] = useState<number | string>(0);
   const [wastePercentage, setWastePercentage] = useState<number | string>(0);
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
-  const [includeSealant, setIncludeSealant] = useState(true);
-  const [sealantType, setSealantType] = useState<SealantType>('SELLANTE SEMI - BRIGTH 1/ 4 GALON');
   const [calculationMode, setCalculationMode] = useState<'sqm' | 'sheets'>('sqm');
   const [laborCost, setLaborCost] = useState(0);
   const [transportationCost, setTransportationCost] = useState(0);
@@ -339,8 +337,6 @@ export default function StoneflexCalculatorPage() {
     let totalProductCost = 0;
     let totalStandardAdhesiveUnits = 0;
     let totalTranslucentAdhesiveUnits = 0;
-    let totalSqMetersForSealantClay = 0;
-    let totalSqMetersForSealantOther = 0;
     let isWarrantyVoid = false;
     let manualSuppliesCost = 0;
 
@@ -369,13 +365,6 @@ export default function StoneflexCalculatorPage() {
       const productCost = convert(pricePerSheetCOP * calculatedSheets);
       
       totalProductCost += productCost;
-
-      // Add SqMeters to correct sealant group
-      if (details.line === 'Clay') {
-          totalSqMetersForSealantClay += item.sqMeters;
-      } else {
-          totalSqMetersForSealantOther += item.sqMeters;
-      }
       
       if (includeAdhesive && details.line !== '3D') {
           let adhesivePerSheet = 0;
@@ -416,23 +405,7 @@ export default function StoneflexCalculatorPage() {
     const totalStandardAdhesiveCost = convert(Math.ceil(totalStandardAdhesiveUnits) * adhesivePriceCOP);
     const totalTranslucentAdhesiveCost = convert(Math.ceil(totalTranslucentAdhesiveUnits) * translucentAdhesivePriceCOP);
 
-    // Sealant Cost Calculation
-    let totalSealantUnits = 0;
-    let totalSealantCost = 0;
-    let sealantPriceCOP = 0;
-    if (includeSealant) {
-        sealantPriceCOP = productPrices[sealantType] || 0;
-        const perf = sealantPerformance[sealantType];
-        
-        const unitsForClay = totalSqMetersForSealantClay > 0 ? Math.ceil(totalSqMetersForSealantClay / perf.clay) : 0;
-        const unitsForOther = totalSqMetersForSealantOther > 0 ? Math.ceil(totalSqMetersForSealantOther / perf.other) : 0;
-
-        totalSealantUnits = unitsForClay + unitsForOther;
-        totalSealantCost = convert(totalSealantUnits * sealantPriceCOP);
-    }
-
-
-    const subtotalBeforeDiscount = totalProductCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost + totalSealantCost + manualSuppliesCost;
+    const subtotalBeforeDiscount = totalProductCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost + manualSuppliesCost;
     const totalDiscountAmount = subtotalBeforeDiscount * (discountValue / 100);
     const subtotalBeforeIva = subtotalBeforeDiscount - totalDiscountAmount;
     const ivaAmount = subtotalBeforeIva * IVA_RATE;
@@ -449,9 +422,6 @@ export default function StoneflexCalculatorPage() {
       totalProductCost,
       totalStandardAdhesiveCost,
       totalTranslucentAdhesiveCost,
-      totalSealantCost,
-      sealantPrice: convert(sealantPriceCOP),
-      totalSealantUnits,
       manualSuppliesCost,
       adhesivePrice: convert(adhesivePriceCOP),
       translucentAdhesivePrice: convert(translucentAdhesivePriceCOP),
@@ -477,7 +447,7 @@ export default function StoneflexCalculatorPage() {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
     doc.setFontSize(18);
-    doc.text('Cotización StoneFlex', pageWidth / 2, 22, { align: 'center' });
+    doc.text('Cotización StoneFlex', 14, 22);
 
     let startY = 30;
     
@@ -503,9 +473,6 @@ export default function StoneflexCalculatorPage() {
     }
     if (quote.totalTranslucentAdhesiveCost > 0) {
         body.push(['Adhesivo (Translúcido)', quote.totalTranslucentAdhesiveUnits, formatCurrency(quote.translucentAdhesivePrice), formatCurrency(quote.totalTranslucentAdhesiveCost)]);
-    }
-    if (quote.totalSealantCost > 0) {
-        body.push([`Sellante (${sealantType.split('SELLANTE ')[1]})`, quote.totalSealantUnits, formatCurrency(quote.sealantPrice), formatCurrency(quote.totalSealantCost)]);
     }
     
     doc.autoTable({
@@ -593,9 +560,6 @@ export default function StoneflexCalculatorPage() {
      if (quote.totalTranslucentAdhesiveCost > 0) {
         dataToExport.push({ 'Referencia': 'Adhesivo (Translúcido)', 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.totalTranslucentAdhesiveUnits, 'Precio Unitario': formatCurrency(quote.translucentAdhesivePrice), 'Costo Total': formatCurrency(quote.totalTranslucentAdhesiveCost) });
     }
-     if (quote.totalSealantCost > 0) {
-        dataToExport.push({ 'Referencia': `Sellante (${sealantType.split('SELLANTE ')[1]})`, 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.totalSealantUnits, 'Precio Unitario': formatCurrency(quote.sealantPrice), 'Costo Total': formatCurrency(quote.totalSealantCost) });
-    }
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
 
@@ -642,9 +606,6 @@ export default function StoneflexCalculatorPage() {
     }
     if (quote.totalTranslucentAdhesiveCost > 0 && quote.totalTranslucentAdhesiveUnits > 0) {
         message += `- Adhesivo Translúcido (${quote.totalTranslucentAdhesiveUnits} u. @ ${formatCurrency(quote.translucentAdhesivePrice)}/u.): ${formatCurrency(quote.totalTranslucentAdhesiveCost)}\n`;
-    }
-    if (quote.totalSealantCost > 0 && quote.totalSealantUnits > 0) {
-        message += `- Sellante (${sealantType.split('SELLANTE ')[1]}) (${quote.totalSealantUnits} u. @ ${formatCurrency(quote.sealantPrice)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
      if (quote.manualSuppliesCost > 0) {
         message += `- Insumos Adicionales: ${formatCurrency(quote.manualSuppliesCost)}\n`;
@@ -826,38 +787,7 @@ export default function StoneflexCalculatorPage() {
                     <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
                     <Label htmlFor="include-adhesive">Incluir Adhesivo (Automático)</Label>
                 </div>
-                <div className="flex items-center space-x-2 flex-1">
-                    <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
-                    <Label htmlFor="include-sealant">Incluir Sellante (Automático)</Label>
-                </div>
             </div>
-            {includeSealant && (
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 items-end">
-                    <div className="space-y-2">
-                        <Label htmlFor="sealant-type">Tipo de Sellante</Label>
-                        <Select value={sealantType} onValueChange={(value) => setSealantType(value as SealantType)}>
-                            <SelectTrigger id="sealant-type">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="SELLANTE SEMI - BRIGTH 1/ 4 GALON">Semi-Brillante (1/4 Galón)</SelectItem>
-                                <SelectItem value="SELLANTE SEMI - BRIGHT GALON">Semi-Brillante (Galón)</SelectItem>
-                                <SelectItem value="SELLANTE SHYNY 1/4 GALON">Brillante (1/4 Galón)</SelectItem>
-                                <SelectItem value="SELLANTE SHYNY GALON">Brillante (Galón)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <Dialog>
-                        <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                                <HelpCircle className="mr-2 h-4 w-4" />
-                                Ver Tabla de Rendimiento
-                            </Button>
-                        </DialogTrigger>
-                        <AdhesiveReferenceTable />
-                    </Dialog>
-                </div>
-            )}
              <Separator className="my-6" />
              <h4 className="text-md font-medium mb-4">Insumos y Accesorios Adicionales</h4>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_auto] gap-4 items-end">
@@ -963,12 +893,6 @@ export default function StoneflexCalculatorPage() {
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Costo Adhesivo (Translúcido) ({quote.totalTranslucentAdhesiveUnits} u. @ {formatCurrency(quote.translucentAdhesivePrice)}/u.)</span>
                         <span>{formatCurrency(quote.totalTranslucentAdhesiveCost)}</span>
-                    </div>
-                 )}
-                 {quote.totalSealantCost > 0 && (
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Costo Sellante (${sealantType.split('SELLANTE ')[1]}) (${quote.totalSealantUnits} u. @ ${formatCurrency(quote.sealantPrice)}/u.)</span>
-                        <span>${formatCurrency(quote.totalSealantCost)}</span>
                     </div>
                  )}
                   {quote.manualSuppliesCost > 0 && (
