@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { createContext, useState, ReactNode } from 'react';
 import { initialInventoryData } from '@/lib/initial-inventory';
@@ -111,7 +112,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const receiveContainer = (containerId: string, reservationsToProcess: Reservation[]) => {
+  const receiveContainer = (containerId: string, validatedReservations: Reservation[]) => {
     const container = containers.find(c => c.id === containerId);
     if (!container) return;
 
@@ -119,12 +120,13 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       const newInventory = JSON.parse(JSON.stringify(prevInventory));
       
       for (const productInContainer of container.products) {
-        const location = findProductLocation(productInContainer.name);
-        
-        const reservedQuantity = reservationsToProcess
-            .filter(r => r.product === productInContainer.name && r.status === 'Validada')
+        // Find the quantity reserved for this specific product in this container
+        const reservedQuantity = validatedReservations
+            .filter(r => r.product === productInContainer.name)
             .reduce((sum, r) => sum + r.quantity, 0);
 
+        const location = findProductLocation(productInContainer.name);
+        
         if (location) {
           const { brand, subCategory } = location;
           const invProduct = newInventory[brand as keyof typeof newInventory][subCategory][productInContainer.name];
@@ -156,6 +158,16 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       }
       return newInventory;
     });
+    
+    // Change reservation source from 'Container' to 'Zona Franca'
+    setReservations(prevReservations =>
+      prevReservations.map(r => {
+        if (r.sourceId === containerId && r.status === 'Validada') {
+          return { ...r, source: 'Zona Franca', sourceId: 'Zona Franca' };
+        }
+        return r;
+      })
+    );
 
     setContainers(prevContainers =>
       prevContainers.map(c =>

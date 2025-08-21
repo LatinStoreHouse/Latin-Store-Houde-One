@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useMemo, useContext } from 'react';
 import jsPDF from 'jspdf';
@@ -191,7 +192,7 @@ const ContainerCard = ({ container, canEdit, canCreateReservation, onEdit, onRec
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => onReceive(container.id, initialReservations.filter(r => r.source === 'Contenedor' && r.sourceId === container.id))}>
+                                    <AlertDialogAction onClick={() => onReceive(container.id, initialReservations.filter(r => r.source === 'Contenedor' && r.sourceId === container.id && r.status === 'Validada'))}>
                                         Confirmar Recepción
                                     </AlertDialogAction>
                                 </AlertDialogFooter>

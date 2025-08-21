@@ -48,10 +48,12 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
   };
 
   const getReservationsForProduct = (productName: string): Reservation[] => {
+    // Only show reservations from warehouse or free zone, not from containers
     return initialReservations.filter(
       (r) =>
         r.product === productName &&
-        r.status === 'Validada'
+        r.status === 'Validada' &&
+        (r.source === 'Bodega' || r.source === 'Zona Franca')
     );
   };
   
@@ -636,3 +638,4 @@ export default function InventoryPage() {
     
 
     
+
