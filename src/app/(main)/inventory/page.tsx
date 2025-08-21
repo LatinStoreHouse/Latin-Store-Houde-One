@@ -415,9 +415,9 @@ export default function InventoryPage() {
     }));
   }
 
-   const handleTransfer = ({ product, quantity, includeSeparadas }: { product: string; quantity: number, includeSeparadas: boolean }) => {
+   const handleTransfer = ({ product, quantity, reservationsToTransfer }: { product: string; quantity: number, reservationsToTransfer: Reservation[] }) => {
      try {
-       transferFromFreeZone(product, quantity, includeSeparadas);
+       transferFromFreeZone(product, quantity, reservationsToTransfer);
        toast({ title: 'Traslado Exitoso', description: `${quantity} unidades de ${product} movidas de Zona Franca a Bodega.` });
      } catch (error: any) {
        toast({ variant: 'destructive', title: 'Error', description: error.message });
@@ -449,7 +449,7 @@ export default function InventoryPage() {
                             Trasladar de ZF a Bodega
                         </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-2xl">
                         <DialogHeader>
                             <DialogTitle>Trasladar Inventario</DialogTitle>
                         </DialogHeader>

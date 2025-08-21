@@ -52,7 +52,7 @@ interface InventoryContextType {
   setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
   notifications: AppNotification[];
   dismissNotification: (id: number) => void;
-  transferFromFreeZone: (productName: string, quantity: number, includeSeparadas: boolean) => void;
+  transferFromFreeZone: (productName: string, quantity: number, reservationsToTransfer: Reservation[]) => void;
   receiveContainer: (containerId: string, reservations: Reservation[]) => void;
   dispatchReservation: (quoteNumber: string) => void;
   addContainer: (container: Container) => void;
@@ -79,7 +79,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     return null;
   };
 
-  const transferFromFreeZone = (productName: string, quantity: number, includeSeparadas: boolean) => {
+  const transferFromFreeZone = (productName: string, quantity: number, reservationsToTransfer: Reservation[]) => {
     setInventoryData(prevData => {
       const location = findProductLocation(productName);
       if (!location) {
@@ -88,35 +88,40 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       
       const { brand, subCategory } = location;
       const product = prevData[brand as keyof typeof prevData][subCategory][productName];
-      const availableInZF = product.zonaFranca - product.separadasZonaFranca;
       
       if (quantity > product.zonaFranca) {
         throw new Error(`La cantidad total a trasladar (${quantity}) excede el stock total en Zona Franca (${product.zonaFranca}).`);
-      }
-      
-      if (!includeSeparadas && quantity > availableInZF) {
-         throw new Error(`La cantidad a trasladar (${quantity}) excede el stock libre disponible en Zona Franca (${availableInZF}).`);
       }
 
       const newData = JSON.parse(JSON.stringify(prevData));
       const p = newData[brand as keyof typeof prevData][subCategory][productName];
       
+      // Move total stock
       p.zonaFranca -= quantity;
       p.bodega += quantity;
 
-      if (includeSeparadas) {
-        const reservedRatio = product.zonaFranca > 0 ? product.separadasZonaFranca / product.zonaFranca : 0;
-        const separadasToTransfer = Math.round(quantity * reservedRatio);
+      // Move selected reservations
+      const totalReservedToTransfer = reservationsToTransfer.reduce((acc, r) => acc + r.quantity, 0);
 
-        if (separadasToTransfer > product.separadasZonaFranca) {
-           throw new Error(`El cálculo de separadas a mover (${separadasToTransfer}) excede las disponibles (${product.separadasZonaFranca}).`);
-        }
-        
-        p.separadasZonaFranca -= separadasToTransfer;
-        p.separadasBodega += separadasToTransfer;
+      if (totalReservedToTransfer > p.separadasZonaFranca) {
+          throw new Error(`Las separaciones a mover (${totalReservedToTransfer}) exceden las disponibles en Zona Franca (${p.separadasZonaFranca}).`);
       }
       
+      p.separadasZonaFranca -= totalReservedToTransfer;
+      p.separadasBodega += totalReservedToTransfer;
+      
       return newData;
+    });
+
+    // Update the source of the transferred reservations
+    setReservations(prevRes => {
+        const idsToTransfer = new Set(reservationsToTransfer.map(r => r.id));
+        return prevRes.map(r => {
+            if (idsToTransfer.has(r.id)) {
+                return { ...r, source: 'Bodega', sourceId: 'Bodega' };
+            }
+            return r;
+        });
     });
   };
 
