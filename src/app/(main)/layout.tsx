@@ -89,9 +89,9 @@ export const navItems = [
     icon: Warehouse,
     subItems: [
       { href: '/transit', label: 'Contenedores', permission: 'inventory:transit' },
-      { href: '/orders', label: 'Despachos', permission: 'orders:view' },
       { href: '/inventory', label: 'Inventario', permission: 'inventory:view' },
       { href: '/reservations', label: 'Reservas', permission: 'reservations:view' },
+      { href: '/orders', label: 'Despachos', permission: 'orders:view' },
     ],
   },
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
