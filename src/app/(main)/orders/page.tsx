@@ -138,30 +138,29 @@ export default function DispatchPage() {
   const canCreateDispatch = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
   useEffect(() => {
-    const action = searchParams.get('action');
-    if (action === 'create') {
-      const cliente = searchParams.get('cliente') || '';
-      const vendedor = searchParams.get('vendedor') || '';
-      const direccion = searchParams.get('direccion') || '';
+    if (searchParams.get('action') === 'create') {
+        const cliente = searchParams.get('cliente') || '';
+        const vendedor = searchParams.get('vendedor') || '';
+        const direccion = searchParams.get('direccion') || '';
 
-      setEditingDispatch({
-        id: 0, // temp id
-        cliente,
-        vendedor,
-        direccion,
-        ciudad: '',
-        cotizacion: '',
-        fechaSolicitud: '',
-        remision: '',
-        observacion: '',
-        rutero: 'none',
-        fechaDespacho: '',
-        guia: '',
-        convencion: 'Prealistamiento de pedido'
-      });
-      setIsFormOpen(true);
-      // Clean up URL params
-      router.replace('/orders', { scroll: false });
+        setEditingDispatch({
+            id: 0, // temp id
+            cliente,
+            vendedor,
+            direccion,
+            ciudad: '',
+            cotizacion: '',
+            fechaSolicitud: '',
+            remision: '',
+            observacion: '',
+            rutero: 'none',
+            fechaDespacho: '',
+            guia: '',
+            convencion: 'Prealistamiento de pedido'
+        });
+        setIsFormOpen(true);
+        // Clean up URL params
+        router.replace('/orders', { scroll: false });
     }
   }, [searchParams, router]);
   
@@ -458,7 +457,7 @@ export default function DispatchPage() {
               {filteredData.map((item) => {
                 const validation = getValidationStatus(item.cotizacion);
                 const isReadOnly = validation.status !== 'Pendiente';
-                const canPerformActions = currentUser.roles.includes('Administrador') || (currentUser.name === item.vendedor && !isReadOnly);
+                const canPerformActions = currentUser.roles.includes('Administrador') || (currentUser.name === item.vendedor);
                 
                 return (
                 <TableRow key={item.id} className={cn("h-auto", getConventionClasses(item.convencion))}>
@@ -472,12 +471,12 @@ export default function DispatchPage() {
                   <TableCell className="p-2 align-middle text-sm text-muted-foreground whitespace-pre-wrap min-w-[200px]">{item.observacion}</TableCell>
                   
                   {/* Logística Fields */}
-                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.remision} onChange={e => handleInputChange(item.id, 'remision', e.target.value)} disabled={!canEditLogistica || isReadOnly} /></TableCell>
                   <TableCell className="p-0 min-w-[200px]">
                      <Select
                         value={item.rutero}
                         onValueChange={(value) => handleInputChange(item.id, 'rutero', value)}
-                        disabled={!canEditLogistica}
+                        disabled={!canEditLogistica || isReadOnly}
                     >
                         <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
                            <SelectValue placeholder="Seleccionar rutero" />
@@ -491,13 +490,13 @@ export default function DispatchPage() {
                         </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica} /></TableCell>
-                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica} /></TableCell>
+                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" type="date" value={item.fechaDespacho} onChange={e => handleInputChange(item.id, 'fechaDespacho', e.target.value)} disabled={!canEditLogistica || isReadOnly} /></TableCell>
+                  <TableCell className="p-0"><Input className="h-full bg-transparent border-0 rounded-none focus-visible:ring-0" value={item.guia} onChange={e => handleInputChange(item.id, 'guia', e.target.value)} disabled={!canEditLogistica || isReadOnly} /></TableCell>
                   <TableCell className="p-0 min-w-[200px]">
                      <Select
                         value={item.convencion}
                         onValueChange={(value) => handleInputChange(item.id, 'convencion', value)}
-                        disabled={!canEditLogistica}
+                        disabled={!canEditLogistica || isReadOnly}
                     >
                         <SelectTrigger className="h-full bg-transparent border-0 rounded-none focus:ring-0">
                            <SelectValue placeholder="Seleccionar estado" />
@@ -528,7 +527,7 @@ export default function DispatchPage() {
                     <div className="flex items-center justify-end h-full">
                       {canPerformActions && (
                         <>
-                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none">
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none" disabled={isReadOnly}>
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => handleDuplicateDispatch(item.id)} className="h-full rounded-none">
@@ -536,7 +535,7 @@ export default function DispatchPage() {
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                               <Button variant="ghost" size="icon" className="h-full rounded-none">
+                               <Button variant="ghost" size="icon" className="h-full rounded-none" disabled={isReadOnly}>
                                  <Trash2 className="h-4 w-4 text-destructive" />
                                </Button>
                             </AlertDialogTrigger>
