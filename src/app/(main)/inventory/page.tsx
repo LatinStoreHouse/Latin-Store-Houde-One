@@ -88,7 +88,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             const disponibleZonaFranca = item.zonaFranca - item.separadasZonaFranca;
             const totalDisponible = disponibleBodega + disponibleZonaFranca;
             const reservations = getReservationsForProduct(name);
-            const totalReserved = reservations.reduce((acc, r) => acc + r.quantity, 0);
+            const totalReserved = item.separadasBodega + item.separadasZonaFranca;
 
             const highStock = totalDisponible > 500;
 
