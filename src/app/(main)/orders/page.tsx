@@ -458,8 +458,8 @@ export default function DispatchPage() {
             <TableBody>
               {filteredData.map((item) => {
                 const validation = getValidationStatus(item.cotizacion);
-                const isReadOnlyForAdvisor = validation.status !== 'Pendiente';
-                
+                const isReadOnlyForAdvisor = (item.convencion === 'Despachado' || currentUser.name !== item.vendedor) && !currentUser.roles.includes('Administrador');
+
                 return (
                 <TableRow key={item.id} className={cn("h-auto", getConventionClasses(item.convencion))}>
                   {/* Asesor Fields */}
