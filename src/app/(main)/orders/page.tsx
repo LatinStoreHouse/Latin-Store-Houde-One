@@ -32,6 +32,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { useUser } from '@/app/(main)/layout';
+import { initialCustomerData } from '@/lib/customers';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -144,15 +145,16 @@ export default function DispatchPage() {
     if (action === 'create') {
         const cliente = searchParams.get('cliente') || '';
         const vendedor = searchParams.get('vendedor') || '';
-        const direccion = searchParams.get('direccion') || '';
+        const cotizacion = searchParams.get('cotizacion') || '';
+        const customerData = initialCustomerData.find(c => c.name === cliente);
 
         setEditingDispatch({
             id: 0, // temp id
             cliente,
             vendedor,
-            direccion,
-            ciudad: '',
-            cotizacion: '',
+            cotizacion,
+            direccion: customerData?.address || '',
+            ciudad: customerData?.city || '',
             fechaSolicitud: '',
             remision: '',
             observacion: '',

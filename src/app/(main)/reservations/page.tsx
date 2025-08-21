@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Truck } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
+import { useUser } from '@/app/(main)/layout';
 
 
 const getAllInventoryProducts = () => {
@@ -48,6 +49,7 @@ export default function ReservationsPage() {
     throw new Error('ReservationsPage must be used within an InventoryProvider');
   }
   const { containers, reservations, setReservations } = context;
+  const { currentUser } = useUser();
 
   const [isNewReservationDialogOpen, setIsNewReservationDialogOpen] = useState(false);
   const [customerName, setCustomerName] = useState('');
@@ -67,7 +69,7 @@ export default function ReservationsPage() {
     const action = searchParams.get('action');
     if (action === 'create') {
       const cliente = searchParams.get('cliente') || '';
-      const asesor = searchParams.get('asesor') || '';
+      const asesor = searchParams.get('asesor') || (currentUser?.name || '');
       const source = searchParams.get('source');
       const containerId = searchParams.get('containerId');
       
@@ -80,9 +82,9 @@ export default function ReservationsPage() {
       setAdvisorName(asesor);
       setIsNewReservationDialogOpen(true);
       // Clean up URL params, keeping the main path
-      router.replace('/reservations', undefined);
+      router.replace('/reservations', {scroll: false});
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, currentUser]);
 
   const inventoryProducts = useMemo(() => getAllInventoryProducts(), []);
   
@@ -227,8 +229,17 @@ export default function ReservationsPage() {
     }
     return reservation.source;
   }
+
+  const handleCreateDispatch = (reservation: Reservation) => {
+    const params = new URLSearchParams();
+    params.set('action', 'create');
+    params.set('cliente', reservation.customer);
+    params.set('vendedor', reservation.advisor);
+    params.set('cotizacion', reservation.quoteNumber);
+    router.push(`/orders?${params.toString()}`);
+  }
   
-  const ReservationsTable = ({ data }: { data: Reservation[] }) => (
+  const ReservationsTable = ({ data, showActions = false }: { data: Reservation[], showActions?: boolean }) => (
      <Table>
         <TableHeader>
           <TableRow>
@@ -239,6 +250,7 @@ export default function ReservationsPage() {
             <TableHead>Origen</TableHead>
             <TableHead>Asesor</TableHead>
             <TableHead>Estado</TableHead>
+            {showActions && <TableHead className="text-right">Acciones</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -255,11 +267,19 @@ export default function ReservationsPage() {
                     {reservation.status}
                 </Badge>
               </TableCell>
+              {showActions && (
+                <TableCell className="text-right">
+                    <Button variant="outline" size="sm" onClick={() => handleCreateDispatch(reservation)}>
+                        <Truck className="mr-2 h-4 w-4" />
+                        Crear Despacho
+                    </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
           {data.length === 0 && (
             <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={showActions ? 8 : 7} className="text-center text-muted-foreground">
                     No se encontraron reservas.
                 </TableCell>
             </TableRow>
@@ -308,7 +328,7 @@ export default function ReservationsPage() {
                         </RadioGroup>
                     </div>
                     <div className="space-y-2">
-                        <Label>cotizacion hecha por sigo</Label>
+                        <Label># Cotización</Label>
                         <Input value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" />
                     </div>
                     <div className="space-y-2">
@@ -395,7 +415,7 @@ export default function ReservationsPage() {
          <TabsContent value="pendientes-despacho" className="pt-4">
            <Card>
             <CardContent className="p-0">
-              <ReservationsTable data={pendingDispatchReservations} />
+              <ReservationsTable data={pendingDispatchReservations} showActions={true} />
             </CardContent>
            </Card>
         </TabsContent>
