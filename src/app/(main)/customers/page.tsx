@@ -82,6 +82,16 @@ export default function CustomersPage() {
 
   const { currentUser } = useUser();
   const currentUserRole = currentUser.roles[0];
+  const userPermissions = useMemo(() => {
+    const permissions = new Set<string>();
+    currentUser.roles.forEach(userRole => {
+      const roleConfig = roles.find(r => r.name === userRole);
+      if (roleConfig) {
+        roleConfig.permissions.forEach(p => permissions.add(p));
+      }
+    });
+    return Array.from(permissions);
+  }, [currentUser.roles]);
 
   const filteredCustomers = useMemo(() => {
     return customers.filter(customer => {
@@ -113,13 +123,12 @@ export default function CustomersPage() {
     });
   }, [customers, searchTerm, sourceFilter, advisorFilter, statusFilter, date]);
   
-  const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
   const canCreateCampaign = userPermissions.includes('marketing:create');
   const canCreateDispatch = userPermissions.includes('orders:create');
   const canCreateReservation = userPermissions.includes('reservations:create');
   const canUseCalculators = userPermissions.includes('calculators:use');
   const canEditCustomers = userPermissions.includes('customers:edit');
-  const canEditNotes = currentUserRole === 'Administrador' || currentUserRole === 'Marketing';
+  const canEditNotes = userPermissions.includes('customers:edit') || userPermissions.includes('marketing:view');
   const isAdvisor = currentUserRole === 'Asesor de Ventas';
   
   const advisorStats = useMemo(() => {
@@ -432,7 +441,7 @@ export default function CustomersPage() {
               <TableHead className="p-2">Asesor Asignado</TableHead>
               <TableHead className="p-2">Fecha Reg.</TableHead>
               <TableHead className="p-2">Estado</TableHead>
-              {(canEditCustomers) && <TableHead className="text-right p-2">Acciones</TableHead>}
+              {canEditCustomers && <TableHead className="text-right p-2">Acciones</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -638,4 +647,6 @@ export default function CustomersPage() {
     </>
   );
 }
+    
+
     
