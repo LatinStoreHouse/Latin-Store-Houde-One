@@ -45,7 +45,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InventoryContext, Product, Reservation } from '@/context/inventory-context';
-import { Container as ContainerType } from '@/context/inventory-context';
+import { Container as ContainerType, ContainerStatus } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { initialReservations } from '@/lib/sales-history';
 import { useRouter } from 'next/navigation';
@@ -59,32 +59,44 @@ declare module 'jspdf' {
   }
 }
 
-const ContainerCard = ({ container, canEdit, canCreateReservation, onEdit, onReceive, onReserve }: {
+const containerStatuses: ContainerStatus[] = ['En producción', 'En tránsito', 'En puerto', 'Atrasado', 'Llegado'];
+
+const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateReservation, onEdit, onStatusChange, onReceive, onReserve }: {
     container: ContainerType;
-    canEdit: boolean;
+    canEditStatus: boolean;
+    canEditContainer: boolean;
     canCreateReservation: boolean;
     onEdit: (container: ContainerType) => void;
+    onStatusChange: (containerId: string, newStatus: ContainerStatus) => void;
     onReceive: (containerId: string, reservations: Reservation[]) => void;
     onReserve: (containerId: string) => void;
 }) => {
+    const context = useContext(InventoryContext);
+    if (!context) throw new Error("Context not found");
+    const { reservations } = context;
+
+
     const getReservationsForProduct = (containerId: string, productName: string): Reservation[] => {
-        return initialReservations.filter(
+        return reservations.filter(
             (r) => r.sourceId === containerId && r.product === productName && r.status === 'Validada'
         );
     };
 
-    const getValidatedReservedQuantity = (reservations: Reservation[]): number => {
-        return reservations.reduce((sum, r) => sum + r.quantity, 0);
+    const getValidatedReservedQuantity = (productReservations: Reservation[]): number => {
+        return productReservations.reduce((sum, r) => sum + r.quantity, 0);
     };
 
-    const getStatusBadge = (status: ContainerType['status']) => {
+    const getStatusBadgeColor = (status: ContainerType['status']) => {
         switch (status) {
-            case 'En tránsito': return 'secondary';
-            case 'Atrasado': return 'destructive';
-            case 'Llegado': return 'success';
-            default: return 'outline';
+            case 'En producción': return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'En tránsito': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            case 'En puerto': return 'bg-purple-100 text-purple-800 border-purple-200';
+            case 'Atrasado': return 'bg-red-100 text-red-800 border-red-200';
+            case 'Llegado': return 'bg-green-100 text-green-800 border-green-200';
+            default: return 'bg-gray-100 text-gray-800 border-gray-200';
         }
     }
+
 
     return (
         <Card>
@@ -100,7 +112,20 @@ const ContainerCard = ({ container, canEdit, canCreateReservation, onEdit, onRec
                             </CardDescription>
                         </div>
                     </div>
-                    <Badge variant={getStatusBadge(container.status)}>{container.status}</Badge>
+                     {canEditStatus ? (
+                        <Select value={container.status} onValueChange={(value) => onStatusChange(container.id, value as ContainerStatus)}>
+                            <SelectTrigger className={cn("w-[180px]", getStatusBadgeColor(container.status))}>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {containerStatuses.map(status => (
+                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                     ) : (
+                        <Badge className={cn("text-base", getStatusBadgeColor(container.status))}>{container.status}</Badge>
+                     )}
                 </div>
             </CardHeader>
             <CardContent>
@@ -168,7 +193,7 @@ const ContainerCard = ({ container, canEdit, canCreateReservation, onEdit, onRec
                         Crear Reserva
                     </Button>
                 )}
-                {canEdit && (
+                {canEditContainer && (
                   <>
                     <Button variant="outline" size="sm" onClick={() => onEdit(container)}>
                         <Edit className="mr-2 h-4 w-4" />
@@ -192,7 +217,7 @@ const ContainerCard = ({ container, canEdit, canCreateReservation, onEdit, onRec
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => onReceive(container.id, initialReservations.filter(r => r.source === 'Contenedor' && r.sourceId === container.id && r.status === 'Validada'))}>
+                                    <AlertDialogAction onClick={() => onReceive(container.id, reservations.filter(r => r.source === 'Contenedor' && r.sourceId === container.id && r.status === 'Validada'))}>
                                         Confirmar Recepción
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
@@ -236,7 +261,8 @@ export default function TransitPage() {
   const [activeTab, setActiveTab] = useState('en-transito');
   const { toast } = useToast();
   
-  const canEdit = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística') || currentUser.roles.includes('Contador');
+  const canEditContainer = currentUser.roles.includes('Administrador');
+  const canEditStatus = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística') || currentUser.roles.includes('Contador');
   const canCreateReservation = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
   const { activeContainers, historyContainers } = useMemo(() => {
@@ -262,7 +288,7 @@ export default function TransitPage() {
       eta: newContainerEta,
       carrier: '', // Carrier removed from form
       products: newContainerProducts,
-      status: 'En tránsito',
+      status: 'En producción',
       creationDate: new Date().toISOString().split('T')[0],
     };
     addContainer(newContainer);
@@ -285,6 +311,25 @@ export default function TransitPage() {
     setEditingContainer(null);
     toast({ title: 'Éxito', description: 'Contenedor actualizado correctamente.' });
   };
+  
+  const handleStatusChange = (containerId: string, newStatus: ContainerStatus) => {
+    const container = containers.find(c => c.id === containerId);
+    if (!container) return;
+    
+    // If status is "Llegado", trigger the receive confirmation dialog
+    if (newStatus === 'Llegado') {
+        const reservations = context.reservations.filter(r => r.source === 'Contenedor' && r.sourceId === containerId && r.status === 'Validada');
+        receiveContainer(containerId, reservations);
+        toast({
+          title: `Contenedor ${containerId} Recibido`,
+          description: "El contenido ha sido agregado al inventario de Zona Franca.",
+        });
+    } else {
+        editContainer(containerId, { ...container, status: newStatus });
+        toast({ title: 'Estado Actualizado', description: `El estado del contenedor ${containerId} ha sido actualizado a "${newStatus}".`});
+    }
+  };
+
 
   const handleCreateReservationFromContainer = (containerId: string) => {
     const params = new URLSearchParams();
@@ -462,9 +507,11 @@ export default function TransitPage() {
             <ContainerCard
               key={container.id}
               container={container}
-              canEdit={canEdit}
+              canEditStatus={canEditStatus}
+              canEditContainer={canEditContainer}
               canCreateReservation={canCreateReservation}
               onEdit={handleOpenEditDialog}
+              onStatusChange={handleStatusChange}
               onReceive={handleReceiveContainer}
               onReserve={handleCreateReservationFromContainer}
             />
@@ -580,7 +627,7 @@ export default function TransitPage() {
             <CardDescription>Agregue, edite y gestione los contenedores y sus productos.</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            {canEdit && (
+            {canEditContainer && (
                 <Button onClick={handleOpenAddContainerDialog}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Agregar Contenedor
@@ -712,9 +759,9 @@ export default function TransitPage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="En tránsito">En tránsito</SelectItem>
-                                <SelectItem value="Atrasado">Atrasado</SelectItem>
-                                <SelectItem value="Llegado">Llegado</SelectItem>
+                                {containerStatuses.map(status => (
+                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>

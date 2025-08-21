@@ -14,12 +14,14 @@ export interface Product {
   line?: string;
 }
 
+export type ContainerStatus = 'En producción' | 'En tránsito' | 'En puerto' | 'Atrasado' | 'Llegado';
+
 export interface Container {
   id: string;
   eta: string;
   carrier: string;
   products: Product[];
-  status: 'En tránsito' | 'Atrasado' | 'Llegado';
+  status: ContainerStatus;
   creationDate: string;
 }
 
