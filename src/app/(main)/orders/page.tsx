@@ -138,7 +138,8 @@ export default function DispatchPage() {
   const canCreateDispatch = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
   useEffect(() => {
-    if (searchParams.has('action') && searchParams.get('action') === 'create') {
+    const action = searchParams.get('action');
+    if (action === 'create') {
       const cliente = searchParams.get('cliente') || '';
       const vendedor = searchParams.get('vendedor') || '';
       const direccion = searchParams.get('direccion') || '';
@@ -457,7 +458,8 @@ export default function DispatchPage() {
               {filteredData.map((item) => {
                 const validation = getValidationStatus(item.cotizacion);
                 const isReadOnly = validation.status !== 'Pendiente';
-
+                const canPerformActions = currentUser.roles.includes('Administrador') || (currentUser.name === item.vendedor && !isReadOnly);
+                
                 return (
                 <TableRow key={item.id} className={cn("h-auto", getConventionClasses(item.convencion))}>
                   {/* Asesor Fields */}
@@ -524,7 +526,7 @@ export default function DispatchPage() {
                   </TableCell>
                   <TableCell className="text-right p-0">
                     <div className="flex items-center justify-end h-full">
-                      {(currentUser.roles.includes('Administrador') || (currentUser.name === item.vendedor && !isReadOnly)) && (
+                      {canPerformActions && (
                         <>
                           <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(item)} className="h-full rounded-none">
                             <Edit className="h-4 w-4" />
