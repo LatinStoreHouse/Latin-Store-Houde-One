@@ -48,6 +48,7 @@ import { Container as ContainerType } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { initialReservations } from '@/lib/sales-history';
 import { useRouter } from 'next/navigation';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -65,10 +66,14 @@ const ContainerCard = ({ container, canEdit, canCreateReservation, onEdit, onRec
     onReceive: (containerId: string, reservations: Reservation[]) => void;
     onReserve: (containerId: string) => void;
 }) => {
-    const getValidatedReservedQuantity = (containerId: string, productName: string): number => {
-        return initialReservations
-            .filter(r => r.sourceId === containerId && r.product === productName && r.status === 'Validada')
-            .reduce((sum, r) => sum + r.quantity, 0);
+    const getReservationsForProduct = (containerId: string, productName: string): Reservation[] => {
+        return initialReservations.filter(
+            (r) => r.sourceId === containerId && r.product === productName && r.status === 'Validada'
+        );
+    };
+
+    const getValidatedReservedQuantity = (reservations: Reservation[]): number => {
+        return reservations.reduce((sum, r) => sum + r.quantity, 0);
     };
 
     const getStatusBadge = (status: ContainerType['status']) => {
@@ -98,37 +103,62 @@ const ContainerCard = ({ container, canEdit, canCreateReservation, onEdit, onRec
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Producto</TableHead>
-                            <TableHead className="text-right">Cantidad Total</TableHead>
-                            <TableHead className="text-right">Unidades Separadas (Validadas)</TableHead>
-                            <TableHead className="text-right">Total Disponible</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {container.products.map((product, index) => {
-                            const reservedQuantity = getValidatedReservedQuantity(container.id, product.name);
-                            const availableQuantity = product.quantity - reservedQuantity;
-                            return (
-                                <TableRow key={index}>
-                                    <TableCell>{product.name}</TableCell>
-                                    <TableCell className="text-right">{product.quantity}</TableCell>
-                                    <TableCell className="text-right">{reservedQuantity}</TableCell>
-                                    <TableCell className="text-right font-medium">{availableQuantity}</TableCell>
-                                </TableRow>
-                            )
-                        })}
-                        {container.products.length === 0 && (
+                <TooltipProvider>
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center text-muted-foreground">
-                                    No hay productos en este contenedor.
-                                </TableCell>
+                                <TableHead>Producto</TableHead>
+                                <TableHead className="text-right">Cantidad Total</TableHead>
+                                <TableHead className="text-right">Unidades Separadas (Validadas)</TableHead>
+                                <TableHead className="text-right">Total Disponible</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {container.products.map((product, index) => {
+                                const productReservations = getReservationsForProduct(container.id, product.name);
+                                const reservedQuantity = getValidatedReservedQuantity(productReservations);
+                                const availableQuantity = product.quantity - reservedQuantity;
+                                return (
+                                    <TableRow key={index}>
+                                        <TableCell>{product.name}</TableCell>
+                                        <TableCell className="text-right">{product.quantity}</TableCell>
+                                        <TableCell className="text-right">
+                                            {reservedQuantity > 0 ? (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span className="font-medium underline decoration-dashed cursor-help">
+                                                            {reservedQuantity}
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p className="font-bold mb-2">Reservas Validadas:</p>
+                                                        <ul className="list-disc pl-4">
+                                                            {productReservations.map(r => (
+                                                                <li key={r.id}>
+                                                                    {r.quantity} unid. por {r.advisor}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            ) : (
+                                                reservedQuantity
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right font-medium">{availableQuantity}</TableCell>
+                                    </TableRow>
+                                )
+                            })}
+                            {container.products.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                        No hay productos en este contenedor.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </TooltipProvider>
             </CardContent>
              <CardFooter className="flex justify-end p-4 gap-2">
                 {canCreateReservation && container.status !== 'Llegado' && (

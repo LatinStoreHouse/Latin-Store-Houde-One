@@ -26,9 +26,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { TransferInventoryForm } from '@/components/transfer-inventory-form';
-import { InventoryContext } from '@/context/inventory-context';
+import { InventoryContext, Reservation } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { initialReservations } from '@/lib/sales-history';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -42,6 +43,12 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
     const isNumber = typeof inventoryData[brand][subCategory][productName][field] === 'number';
     onDataChange(brand, subCategory, productName, field, isNumber ? Number(value) : value, isNameChange);
+  };
+
+  const getReservationsForProduct = (productName: string) => {
+    return initialReservations.filter(
+        (r) => r.product === productName && r.status === 'Validada'
+    );
   };
 
   if (Object.keys(products).length === 0) {
@@ -70,6 +77,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             const totalDisponible = disponibleBodega + disponibleZonaFranca;
             const hasReservations = item.separadasBodega > 0 || item.separadasZonaFranca > 0;
             const highStock = totalDisponible > 500;
+            const reservations = getReservationsForProduct(name);
 
             return (
               <TableRow key={name}>
@@ -86,8 +94,18 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                              </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                             <p>Bodega: {item.separadasBodega}</p>
-                             <p>Zona Franca: {item.separadasZonaFranca}</p>
+                             <p className="font-bold mb-2">Total Separado: {item.separadasBodega + item.separadasZonaFranca}</p>
+                              {reservations.length > 0 ? (
+                                <ul className="list-disc pl-4">
+                                  {reservations.map(r => (
+                                    <li key={r.id}>
+                                      {r.quantity} unid. por {r.advisor} ({r.sourceId})
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p>No hay detalles de reserva.</p>
+                              )}
                           </TooltipContent>
                        </Tooltip>
                     )}
@@ -602,5 +620,4 @@ export default function InventoryPage() {
     </Card>
   );
 }
-
     
