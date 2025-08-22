@@ -184,9 +184,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const pendingValidations = useMemo(() => {
     if (!inventoryContext) return 0;
     const pendingReservations = inventoryContext.reservations.filter(r => r.status === 'En espera de validación').length;
-    // NOTE: In a real app, pending dispatches would also come from a shared state/context
-    // For now, we assume initialDispatchData represents pending ones.
-    const pendingDispatches = initialDispatchData.length;
+    const pendingDispatches = initialDispatchData.filter(d => !d.remision).length; // A proxy for pending
     return pendingReservations + pendingDispatches;
   }, [inventoryContext]);
 
@@ -255,6 +253,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   };
 
   const isSuperAdmin = initialUser.roles.includes('Administrador');
+  const canEditPrices = hasPermission({ permission: 'pricing:edit' });
 
   return (
     <SidebarProvider>
@@ -311,7 +310,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                         <span>{item.label}</span>
                       </div>
                        {item.href === '/validation' && pendingValidations > 0 && <div className="h-2 w-2 rounded-full bg-white" />}
-                       {item.href === '/pricing' && pendingPrices > 0 && <div className="h-2 w-2 rounded-full bg-white" />}
+                       {item.href === '/pricing' && pendingPrices > 0 && canEditPrices && <div className="h-2 w-2 rounded-full bg-white" />}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
