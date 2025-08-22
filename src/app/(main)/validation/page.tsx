@@ -50,7 +50,7 @@ interface PendingDispatch {
     factura: string;
 }
 
-const initialPendingDispatches: PendingDispatch[] = [
+export const initialPendingDispatches: PendingDispatch[] = [
     { id: 1, cotizacion: 'COT-001', cliente: 'ConstruCali', vendedor: 'John Doe', factura: '' },
 ]
 

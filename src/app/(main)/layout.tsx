@@ -72,6 +72,7 @@ import { InventoryProvider, InventoryContext } from '@/context/inventory-context
 import { RoleSwitcher } from '@/components/role-switcher';
 import { initialProductPrices } from '@/lib/prices';
 import { initialDispatchData } from '@/app/(main)/orders/page';
+import { initialPendingDispatches } from '@/app/(main)/validation/page';
 
 
 // CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
@@ -184,7 +185,8 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const pendingValidations = useMemo(() => {
     if (!inventoryContext) return 0;
     const pendingReservations = inventoryContext.reservations.filter(r => r.status === 'En espera de validación').length;
-    const pendingDispatches = initialDispatchData.filter(d => !d.remision).length; // A proxy for pending
+    // This should ideally come from a shared state, but for now we'll use the initial data
+    const pendingDispatches = initialPendingDispatches.length;
     return pendingReservations + pendingDispatches;
   }, [inventoryContext]);
 
