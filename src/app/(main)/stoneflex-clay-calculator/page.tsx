@@ -207,7 +207,7 @@ function AdhesiveReferenceTable() {
                         </TableBody>
                     </Table>
                     <p className="text-xs text-muted-foreground mt-2">
-                        Nota: Se recomienda el uso del sellante semi-brillante para un acabado óptimo y duradero.
+                       Nota: Se recomienda el uso del sellante semi-brillante para un acabado óptimo y duradero.
                     </p>
                 </div>
             </div>
@@ -473,8 +473,6 @@ export default function StoneflexCalculatorPage() {
         const quarterPriceCOP = productPrices[quarterRef] || 0;
         const quarterPerf = sealantPerformance[quarterRef as SealantType];
         
-        const totalSqm = totalSqmClay + totalSqmOther;
-        
         const quartersForClay = totalSqmClay > 0 ? Math.ceil(totalSqmClay / quarterPerf.clay) : 0;
         const quartersForOther = totalSqmOther > 0 ? Math.ceil(totalSqmOther / quarterPerf.other) : 0;
         
@@ -559,9 +557,9 @@ export default function StoneflexCalculatorPage() {
     if (quote.totalTranslucentAdhesiveCost > 0) {
         body.push(['Adhesivo (Translúcido)', quote.totalTranslucentAdhesiveUnits, formatCurrency(quote.translucentAdhesivePrice), formatCurrency(quote.totalTranslucentAdhesiveCost)]);
     }
-    if (quote.sealantQuarters > 0 && quote.sealantQuarterType) {
-        const price = convert(productPrices[quote.sealantQuarterType] || 0);
-        body.push([quote.sealantQuarterType, quote.sealantQuarters, formatCurrency(price), formatCurrency(price * quote.sealantQuarters)]);
+    if (quote.totalSealantCost > 0 && quote.sealantQuarterType) {
+        const price = productPrices[quote.sealantQuarterType] || 0;
+        body.push([`Sellante (1/4 de galón)`, quote.sealantQuarters, formatCurrency(convert(price)), formatCurrency(quote.totalSealantCost)]);
     }
     
     doc.autoTable({
@@ -649,6 +647,10 @@ export default function StoneflexCalculatorPage() {
      if (quote.totalTranslucentAdhesiveCost > 0) {
         dataToExport.push({ 'Referencia': 'Adhesivo (Translúcido)', 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.totalTranslucentAdhesiveUnits, 'Precio Unitario': formatCurrency(quote.translucentAdhesivePrice), 'Costo Total': formatCurrency(quote.totalTranslucentAdhesiveCost) });
     }
+     if (quote.totalSealantCost > 0 && quote.sealantQuarterType) {
+        const price = convert(productPrices[quote.sealantQuarterType] || 0);
+        dataToExport.push({ 'Referencia': `Sellante (1/4 de galón)`, 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.sealantQuarters, 'Precio Unitario': formatCurrency(price), 'Costo Total': formatCurrency(quote.totalSealantCost) });
+    }
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
 
@@ -696,8 +698,9 @@ export default function StoneflexCalculatorPage() {
     if (quote.totalTranslucentAdhesiveCost > 0 && quote.totalTranslucentAdhesiveUnits > 0) {
         message += `- Adhesivo Translúcido (${quote.totalTranslucentAdhesiveUnits} u. @ ${formatCurrency(quote.translucentAdhesivePrice)}/u.): ${formatCurrency(quote.totalTranslucentAdhesiveCost)}\n`;
     }
-    if (quote.totalSealantCost > 0 && quote.sealantQuarters > 0) {
-        message += `- Costo Sellante (1/4 de galón) (${quote.sealantQuarters} u. @ ${formatCurrency(quote.sealantQuarterPrice)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
+    if (quote.totalSealantCost > 0 && quote.sealantQuarterType) {
+        const price = convert(productPrices[quote.sealantQuarterType] || 0);
+        message += `- Costo Sellante (1/4 de galón) (${quote.sealantQuarters} u. @ ${formatCurrency(price)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
      if (quote.manualSuppliesCost > 0) {
         message += `- Insumos Adicionales: ${formatCurrency(quote.manualSuppliesCost)}\n`;
@@ -874,66 +877,69 @@ export default function StoneflexCalculatorPage() {
          <Separator />
           <div>
             <h3 className="text-lg font-medium mb-4">Insumos y Accesorios</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center space-x-2">
-                    <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
-                    <Label htmlFor="include-adhesive">Incluir Adhesivo (Automático)</Label>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                        <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
+                        <Label htmlFor="include-adhesive">Incluir Adhesivo (Automático)</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
+                        <Label htmlFor="include-sealant">Incluir Sellante (Automático)</Label>
+                    </div>
+                    {includeSealant && (
+                        <div className="mt-4 space-y-2 pl-6">
+                            <Label>Acabado del Sellante</Label>
+                            <RadioGroup value={sealantFinish} onValueChange={(v) => setSealantFinish(v as SealantFinish)} className="flex gap-4 pt-2">
+                                <RadioGroupItem value="semibright" id="finish-semi" />
+                                <Label htmlFor="finish-semi" className="font-normal">Semi-Brillante</Label>
+                                <RadioGroupItem value="shiny" id="finish-shiny" />
+                                <Label htmlFor="finish-shiny" className="font-normal">Brillante</Label>
+                            </RadioGroup>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="link" size="sm" className="text-xs p-0 h-auto">
+                                        <HelpCircle className="mr-1 h-3 w-3" />
+                                        ¿No estás seguro? Ver tabla de rendimiento
+                                    </Button>
+                                </DialogTrigger>
+                                <AdhesiveReferenceTable />
+                            </Dialog>
+                        </div>
+                    )}
                 </div>
-                <div className="flex items-center space-x-2">
-                    <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
-                    <Label htmlFor="include-sealant">Incluir Sellante (Automático)</Label>
+                <div className="space-y-4">
+                     <h4 className="text-md font-medium">Insumos y Accesorios Adicionales</h4>
+                     <div className="grid grid-cols-[2fr_1fr] gap-2 items-end">
+                        <div className="space-y-2">
+                           <Label>Insumo</Label>
+                           <Combobox
+                             options={supplyOptions}
+                             value={supplyReference}
+                             onValueChange={setSupplyReference}
+                             placeholder="Seleccione un insumo"
+                             searchPlaceholder="Buscar insumo..."
+                             emptyPlaceholder="No se encontraron insumos."
+                           />
+                         </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="supply-units-input">Unidades</Label>
+                            <Input
+                              id="supply-units-input"
+                              type="number"
+                              value={supplyUnits}
+                              onChange={(e) => setSupplyUnits(e.target.value)}
+                              className="w-full"
+                              min="1"
+                            />
+                          </div>
+                      </div>
+                       <Button onClick={handleAddSupply} disabled={!supplyReference} className="w-full">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Agregar Insumo
+                      </Button>
                 </div>
             </div>
-             {includeSealant && (
-                <div className="mt-4 space-y-2 pl-6">
-                    <Label>Acabado del Sellante</Label>
-                     <RadioGroup value={sealantFinish} onValueChange={(v) => setSealantFinish(v as SealantFinish)} className="flex gap-4 pt-2">
-                        <RadioGroupItem value="semibright" id="finish-semi" />
-                        <Label htmlFor="finish-semi" className="font-normal">Semi-Brillante</Label>
-                        <RadioGroupItem value="shiny" id="finish-shiny" />
-                        <Label htmlFor="finish-shiny" className="font-normal">Brillante</Label>
-                    </RadioGroup>
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button variant="link" size="sm" className="text-xs p-0 h-auto">
-                                <HelpCircle className="mr-1 h-3 w-3" />
-                                ¿No estás seguro? Ver tabla de rendimiento
-                            </Button>
-                        </DialogTrigger>
-                        <AdhesiveReferenceTable />
-                    </Dialog>
-                </div>
-            )}
-             <Separator className="my-6" />
-             <h4 className="text-md font-medium mb-4">Insumos y Accesorios Adicionales</h4>
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_auto] gap-4 items-end">
-                <div className="space-y-2">
-                   <Label>Insumo</Label>
-                   <Combobox
-                     options={supplyOptions}
-                     value={supplyReference}
-                     onValueChange={setSupplyReference}
-                     placeholder="Seleccione un insumo"
-                     searchPlaceholder="Buscar insumo..."
-                     emptyPlaceholder="No se encontraron insumos."
-                   />
-                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="supply-units-input">Cantidad (Unidades)</Label>
-                    <Input
-                      id="supply-units-input"
-                      type="number"
-                      value={supplyUnits}
-                      onChange={(e) => setSupplyUnits(e.target.value)}
-                      className="w-full"
-                      min="1"
-                    />
-                  </div>
-                  <Button onClick={handleAddSupply} disabled={!supplyReference}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Agregar Insumo
-                  </Button>
-              </div>
           </div>
          
          {quote && (
@@ -1005,7 +1011,7 @@ export default function StoneflexCalculatorPage() {
                         <span>{formatCurrency(quote.totalTranslucentAdhesiveCost)}</span>
                     </div>
                  )}
-                  {quote.sealantQuarters > 0 && (
+                  {quote.totalSealantCost > 0 && quote.sealantQuarterType && (
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Costo Sellante (1/4 de galón) ({quote.sealantQuarters} u. @ {formatCurrency(quote.sealantQuarterPrice)}/u.)</span>
                         <span>{formatCurrency(quote.totalSealantCost)}</span>
