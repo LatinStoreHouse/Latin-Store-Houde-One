@@ -1,4 +1,5 @@
 
+
 export const initialProductPrices: { [key: string]: number } = {
     // Pizarra Estándar
     'Black': 131100,
@@ -80,7 +81,7 @@ export const initialProductPrices: { [key: string]: number } = {
     '3d adhesivo - indian rustic': 207072,
     '3d adhesivo - tan': 207072,
     
-    // Insumos Starwood
+    // Productos Starwood (tratados como insumos en algunos casos)
     'Pergola 9x4 - 3 mts coffee': 126788,
     'Pergola 9x4 - 3 mts chocolate': 126788,
     'Pergola 10x5 - 3 coffee': 165456,
@@ -91,13 +92,28 @@ export const initialProductPrices: { [key: string]: number } = {
     'Liston 6.8x2.5 - 3 mts camel': 64400,
     'Liston 6.8x2.5 - 3 mts coffee': 64400,
     'Liston 6.8x2.5 - 3 mts chocolate': 64400,
+
+    // Insumos Starwood
     'Clip plastico para deck wpc': 1500,
     'Durmiente plastico 3x3 - 2.90 mts': 25000,
+    'Durmiente plastico 6 x 6 - 1 mts': 0, // No price provided
+    'Daily clean': 0, // No price provided
+    'Intensive clean': 0, // No price provided
     'Sellante wpc 1 galon': 60000,
+    'Sellante wpc 1/4 galon': 0, // No price provided
+    'Daily clean galon': 0, // No price provided
+    'Remate wall panel roble': 0, // No price provided
+    'Remate wall panel maple': 0, // No price provided
+    'Remate wall panel negro': 0, // No price provided
+    'Remate wall panel gris': 0, // No price provided
+    'Bocel decorativo blanco': 0, // No price provided
+    'Liston 6x4 - 3 mts chocolate': 0, // No price provided
 
     // Insumos StoneFlex
     'Adhesivo': 28039,
-    'ADHESIVO TRASLUCIDO': 43450,
+    'Adhesivo translucido': 43450,
+    'ADHESIVO TRASLUCIDO': 43450, // Legacy support
+    'Poliuretano stoneflex': 0, // No price provided
     'SELLANTE SEMI - BRIGHT GALON': 176000,
     'SELLANTE SEMI - BRIGTH 1/ 4 GALON': 46200,
     'SELLANTE SHYNY GALON': 185900,
