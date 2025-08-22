@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown, BarChart2, PieChart, MapPin } from 'lucide-react';
+import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown, BarChart2, PieChart, MapPin, Filter } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { MonthPicker } from '@/components/month-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,7 +13,7 @@ import { ForecastSalesOutput } from '@/ai/flows/forecast-sales';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { useToast } from '@/hooks/use-toast';
-import { initialCustomerData } from '@/lib/customers';
+import { initialCustomerData, CustomerStatus, customerStatuses } from '@/lib/customers';
 import { initialDispatchData } from '@/app/(main)/orders/page';
 import { cn } from '@/lib/utils';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Pie, Cell, Legend } from 'recharts';
@@ -116,6 +116,27 @@ const MonthlyAnalysis = ({ date }: { date: Date }) => {
             return acc;
         }, {} as Record<string, number>);
 
+        // Customer Status Funnel
+        const funnelOrder: CustomerStatus[] = ['Contactado', 'Showroom', 'Cotizado', 'Facturado'];
+        const customerStatusCounts = customersInMonth.reduce((acc, customer) => {
+            acc[customer.status] = (acc[customer.status] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        
+        const salesFunnelData = funnelOrder.map(status => ({
+            name: status,
+            clientes: customerStatusCounts[status] || 0,
+        }));
+
+        const funnelExits = customerStatuses
+            .filter(status => !funnelOrder.includes(status))
+            .map(status => ({
+                name: status,
+                clientes: customerStatusCounts[status] || 0
+            }))
+            .filter(item => item.clientes > 0);
+
+
         return {
             advisorPerformance: Object.entries(advisorPerformance)
                 .map(([name, dispatches]) => ({ name, despachos: dispatches }))
@@ -126,6 +147,8 @@ const MonthlyAnalysis = ({ date }: { date: Date }) => {
             topCities: Object.entries(topCities)
                 .map(([name, count]) => ({ name, clientes: count }))
                 .sort((a, b) => b.clientes - a.clientes).slice(0, 5),
+            salesFunnel: salesFunnelData,
+            funnelExits: funnelExits,
         };
     }, [date]);
 
@@ -138,6 +161,55 @@ const MonthlyAnalysis = ({ date }: { date: Date }) => {
                 <CardDescription>Métricas clave de rendimiento para el mes seleccionado.</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base"><Filter className="h-5 w-5" />Embudo de Clientes por Estado</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                       {monthlyStats.salesFunnel.some(d => d.clientes > 0) ? (
+                         <>
+                            <ResponsiveContainer width="100%" height={200}>
+                                <BarChart data={monthlyStats.salesFunnel} layout="vertical" margin={{ left: 20 }}>
+                                    <XAxis type="number" hide />
+                                    <YAxis dataKey="name" type="category" width={100} tickLine={false} axisLine={false} />
+                                    <Tooltip
+                                        cursor={{ fill: 'hsl(var(--muted))' }}
+                                        contentStyle={{
+                                            background: 'hsl(var(--background))',
+                                            border: '1px solid hsl(var(--border))',
+                                            borderRadius: 'var(--radius)',
+                                        }}
+                                    />
+                                    <Bar dataKey="clientes" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} barSize={20} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                            {monthlyStats.funnelExits.length > 0 && (
+                                <>
+                                 <h4 className="font-semibold text-sm mt-4 mb-2">Salidas del Embudo:</h4>
+                                 <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Estado</TableHead>
+                                            <TableHead className="text-right"># Clientes</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {monthlyStats.funnelExits.map(exit => (
+                                            <TableRow key={exit.name}>
+                                                <TableCell>{exit.name}</TableCell>
+                                                <TableCell className="text-right">{exit.clientes}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                 </Table>
+                                </>
+                            )}
+                         </>
+                       ) : (
+                           <p className="text-center text-muted-foreground py-16">No hay datos de estado de clientes para este mes.</p>
+                       )}
+                    </CardContent>
+                </Card>
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base"><BarChart2 className="h-5 w-5" />Desempeño de Asesores (por Despachos)</CardTitle>
@@ -192,7 +264,7 @@ const MonthlyAnalysis = ({ date }: { date: Date }) => {
                        )}
                     </CardContent>
                 </Card>
-                 <Card className="lg:col-span-2">
+                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base"><MapPin className="h-5 w-5" />Ciudades con Más Clientes Nuevos</CardTitle>
                     </CardHeader>
