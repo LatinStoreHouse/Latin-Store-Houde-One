@@ -1,6 +1,6 @@
 
 'use client';
-import React, { createContext, useState, ReactNode } from 'react';
+import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { initialContainers as initialContainerData } from '@/lib/initial-containers';
 import { initialReservations } from '@/lib/sales-history';
