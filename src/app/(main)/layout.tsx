@@ -226,6 +226,21 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     }).length;
   }, [inventoryContext, currentUser]);
 
+  const hasLateContainersAlert = useMemo(() => {
+    if (!inventoryContext?.containers) return false;
+    
+    const canSeeAlert = currentUser.roles.includes('Logística') || currentUser.roles.includes('Contador') || currentUser.roles.includes('Administrador');
+    if (!canSeeAlert) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return inventoryContext.containers.some(c => {
+        const etaDate = new Date(c.eta);
+        return etaDate < today && c.status !== 'Llegado';
+    });
+  }, [inventoryContext?.containers, currentUser.roles]);
+
 
   const hasPermission = (item: any) => {
     if (!item.permission) return true; // Items without a specific permission are public
@@ -320,6 +335,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                                   <SubIcon />
                                   <span className="">{subItem.label}</span>
                                    {subItem.href === '/reservations' && pendingReservationAlerts > 0 && canViewReservationsAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
+                                   {subItem.href === '/transit' && hasLateContainersAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
                                 </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
