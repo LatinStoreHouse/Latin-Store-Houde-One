@@ -87,6 +87,13 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
     if (!context) throw new Error("Context not found");
     const { reservations } = context;
 
+    const isDelayed = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return new Date(container.eta) < today && container.status !== 'Llegado';
+    }, [container.eta, container.status]);
+
+    const displayStatus = isDelayed ? 'Atrasado' : container.status;
 
     const getReservationsForProduct = (containerId: string, productName: string): Reservation[] => {
         return reservations.filter(
@@ -98,7 +105,7 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
         return productReservations.reduce((sum, r) => sum + r.quantity, 0);
     };
 
-    const getStatusBadgeColor = (status: ContainerType['status']) => {
+    const getStatusBadgeColor = (status: ContainerType['status'] | 'Atrasado') => {
         switch (status) {
             case 'En producción': return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'En tránsito': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -124,19 +131,19 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
                             </CardDescription>
                         </div>
                     </div>
-                     {canEditStatus ? (
+                     {canEditStatus && container.status !== 'Llegado' ? (
                         <Select value={container.status} onValueChange={(value) => onStatusChange(container.id, value as ContainerStatus)}>
-                            <SelectTrigger className={cn("w-[180px]", getStatusBadgeColor(container.status))}>
-                                <SelectValue />
+                            <SelectTrigger className={cn("w-[180px]", getStatusBadgeColor(displayStatus))}>
+                                <SelectValue>{displayStatus}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                                {containerStatuses.map(status => (
+                                {containerStatuses.filter(s => s !== 'Llegado' && s !== 'Atrasado').map(status => (
                                     <SelectItem key={status} value={status}>{status}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                      ) : (
-                        <Badge className={cn("text-base", getStatusBadgeColor(container.status))}>{container.status}</Badge>
+                        <Badge className={cn("text-base", getStatusBadgeColor(displayStatus))}>{displayStatus}</Badge>
                      )}
                 </div>
             </CardHeader>
@@ -278,7 +285,11 @@ export default function TransitPage() {
   const { activeContainers, historyContainers, hasLateContainers } = useMemo(() => {
     const active = containers.filter(c => c.status !== 'Llegado');
     const history = containers.filter(c => c.status === 'Llegado');
-    const late = active.some(c => c.status === 'Atrasado');
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const late = active.some(c => new Date(c.eta) < today && c.status !== 'Llegado');
+
     return { activeContainers: active, historyContainers: history, hasLateContainers: late };
   }, [containers]);
 
@@ -850,6 +861,7 @@ export default function TransitPage() {
     </div>
   );
 }
+
 
 
 
