@@ -87,7 +87,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             <TableHead className="p-2">Medidas</TableHead>
             <TableHead className="text-right p-2">Disponible Bodega</TableHead>
             <TableHead className="text-right p-2">Disponible Zona Franca</TableHead>
-            {!isPartner && <TableHead className="text-right p-2 w-[150px]">Reservas</TableHead>}
+            {!isPartner && <TableHead className="text-right p-2 w-[150px]"></TableHead>}
             {isMarketing && <TableHead className="text-right p-2">Oportunidad de Campaña</TableHead>}
           </TableRow>
         </TableHeader>
@@ -710,5 +710,3 @@ export default function InventoryPage() {
     
 
     
-
-
