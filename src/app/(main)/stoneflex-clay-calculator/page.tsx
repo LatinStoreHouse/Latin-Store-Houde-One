@@ -26,6 +26,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { productDimensions } from '@/lib/dimensions';
+import { initialInventoryData } from '@/lib/initial-inventory';
 
 
 const WhatsAppIcon = () => (
@@ -90,17 +91,6 @@ const referenceDetails: { [key: string]: { brand: string, line: string } } = {
 
 
 const allReferences = Object.keys(referenceDetails);
-
-const supplies = [
-  'Adhesivo',
-  'ADHESIVO TRASLUCIDO',
-  'SELLANTE SEMI - BRIGHT GALON',
-  'SELLANTE SEMI - BRIGTH 1/ 4 GALON',
-  'SELLANTE SHYNY GALON',
-  'SELLANTE SHYNY 1/4 GALON',
-  'Daily clean',
-  'Intensive clean'
-];
 
 const IVA_RATE = 0.19; // 19%
 
@@ -196,16 +186,6 @@ function AdhesiveReferenceTable() {
                                 <TableCell>18 M²</TableCell>
                                 <TableCell>10 M²</TableCell>
                             </TableRow>
-                             <TableRow>
-                                <TableCell>Brillante (Galón)</TableCell>
-                                <TableCell>60 M²</TableCell>
-                                <TableCell>N/A</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Brillante (1/4 Galón)</TableCell>
-                                <TableCell>18 M²</TableCell>
-                                <TableCell>N/A</TableCell>
-                            </TableRow>
                         </TableBody>
                     </Table>
                     <p className="text-xs text-muted-foreground mt-2">
@@ -246,7 +226,10 @@ export default function StoneflexCalculatorPage() {
   }, []);
 
   const supplyOptions = useMemo(() => {
-    return supplies.map(ref => ({ value: ref, label: ref }));
+    const stoneflexSupplies = Object.keys(initialInventoryData.StoneFlex.Insumos);
+    const starwoodSupplies = Object.keys(initialInventoryData.Starwood.Insumos);
+    const allSupplies = [...stoneflexSupplies, ...starwoodSupplies];
+    return allSupplies.map(ref => ({ value: ref, label: ref }));
   }, []);
 
   useEffect(() => {
@@ -473,15 +456,18 @@ export default function StoneflexCalculatorPage() {
     if (includeSealant) {
         const quarterRef = sealantFinish === 'semibright' ? 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' : 'SELLANTE SHYNY 1/4 GALON';
         const quarterPriceCOP = productPrices[quarterRef] || 0;
-        const quarterPerf = sealantPerformance[quarterRef as SealantType];
         
-        const quartersForClay = totalSqmClay > 0 ? Math.ceil(totalSqmClay / quarterPerf.clay) : 0;
-        const quartersForOther = totalSqmOther > 0 ? Math.ceil(totalSqmOther / quarterPerf.other) : 0;
-        
-        sealantQuarters = quartersForClay + quartersForOther;
+        if (quarterPriceCOP > 0) {
+            const quarterPerf = sealantPerformance[quarterRef as SealantType];
+            
+            const quartersForClay = totalSqmClay > 0 ? Math.ceil(totalSqmClay / quarterPerf.clay) : 0;
+            const quartersForOther = totalSqmOther > 0 ? Math.ceil(totalSqmOther / quarterPerf.other) : 0;
+            
+            sealantQuarters = quartersForClay + quartersForOther;
 
-        totalSealantCost = convert(sealantQuarters * quarterPriceCOP);
-        sealantQuarterType = quarterRef as SealantType;
+            totalSealantCost = convert(sealantQuarters * quarterPriceCOP);
+            sealantQuarterType = quarterRef as SealantType;
+        }
     }
 
 
@@ -504,7 +490,7 @@ export default function StoneflexCalculatorPage() {
       totalTranslucentAdhesiveCost,
       totalSealantCost,
       sealantQuarters,
-      sealantQuarterPrice: convert(productPrices[sealantQuarterType!] || 0),
+      sealantQuarterPrice: sealantQuarterType ? convert(productPrices[sealantQuarterType] || 0) : 0,
       sealantQuarterType,
       manualSuppliesCost,
       adhesivePrice: convert(adhesivePriceCOP),
@@ -559,9 +545,8 @@ export default function StoneflexCalculatorPage() {
     if (quote.totalTranslucentAdhesiveCost > 0) {
         body.push(['Adhesivo (Translúcido)', quote.totalTranslucentAdhesiveUnits, formatCurrency(quote.translucentAdhesivePrice), formatCurrency(quote.totalTranslucentAdhesiveCost)]);
     }
-    if (quote.totalSealantCost > 0 && quote.sealantQuarterType) {
-        const price = productPrices[quote.sealantQuarterType] || 0;
-        body.push([`Sellante (1/4 de galón)`, quote.sealantQuarters, formatCurrency(convert(price)), formatCurrency(quote.totalSealantCost)]);
+    if (quote.totalSealantCost > 0 && quote.sealantQuarters > 0) {
+        body.push([`Sellante (1/4 de galón)`, quote.sealantQuarters, formatCurrency(quote.sealantQuarterPrice), formatCurrency(quote.totalSealantCost)]);
     }
     
     doc.autoTable({
@@ -649,9 +634,8 @@ export default function StoneflexCalculatorPage() {
      if (quote.totalTranslucentAdhesiveCost > 0) {
         dataToExport.push({ 'Referencia': 'Adhesivo (Translúcido)', 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.totalTranslucentAdhesiveUnits, 'Precio Unitario': formatCurrency(quote.translucentAdhesivePrice), 'Costo Total': formatCurrency(quote.totalTranslucentAdhesiveCost) });
     }
-     if (quote.totalSealantCost > 0 && quote.sealantQuarterType) {
-        const price = convert(productPrices[quote.sealantQuarterType] || 0);
-        dataToExport.push({ 'Referencia': `Sellante (1/4 de galón)`, 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.sealantQuarters, 'Precio Unitario': formatCurrency(price), 'Costo Total': formatCurrency(quote.totalSealantCost) });
+     if (quote.totalSealantCost > 0 && quote.sealantQuarters > 0) {
+        dataToExport.push({ 'Referencia': `Sellante (1/4 de galón)`, 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.sealantQuarters, 'Precio Unitario': formatCurrency(quote.sealantQuarterPrice), 'Costo Total': formatCurrency(quote.totalSealantCost) });
     }
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
@@ -1133,3 +1117,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
