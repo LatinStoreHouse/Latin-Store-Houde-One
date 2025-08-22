@@ -87,7 +87,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             <TableHead className="p-2">Medidas</TableHead>
             <TableHead className="text-right p-2">Disponible Bodega</TableHead>
             <TableHead className="text-right p-2">Disponible Zona Franca</TableHead>
-            {!isPartner && <TableHead className="text-right p-2 w-[100px]">Reservas</TableHead>}
+            {!isPartner && <TableHead className="text-right p-2 w-[150px]">Reservas</TableHead>}
             {isMarketing && <TableHead className="text-right p-2">Oportunidad de Campaña</TableHead>}
           </TableRow>
         </TableHeader>
@@ -107,53 +107,47 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
                 <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
-                
-                {totalDisponible > 0 ? (
-                    <>
-                        <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
-                        <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
-                    </>
-                ) : (
-                    <TableCell colSpan={2} className="text-center p-2">
-                        {canSubscribe && (
+                <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
+                <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
+               
+                {!isPartner && (
+                  <TableCell className="text-right p-2">
+                    <div className="flex justify-end items-center gap-2">
+                        {totalDisponible <= 0 && canSubscribe && (
                              <Button 
                                 variant={isSubscribed ? "secondary" : "outline"} 
                                 size="sm" 
-                                className="w-full"
                                 onClick={() => toggleProductSubscription(name, currentUser.name)}
+                                className="h-8"
                             >
                                 <BellRing className="mr-2 h-4 w-4" />
-                                {isSubscribed ? "Cancelar Notificación" : "Notificarme cuando llegue"}
+                                {isSubscribed ? "Suscrito" : "Notificar"}
                             </Button>
                         )}
-                    </TableCell>
-                )}
-
-                {!isPartner && (
-                  <TableCell className="text-right p-2">
-                    {totalReserved > 0 && (
-                       <Tooltip>
-                          <TooltipTrigger asChild>
-                             <div className="flex justify-end cursor-help">
-                               <BadgeCheck className="h-5 w-5 text-green-600" />
-                             </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                             <p className="font-bold mb-2">Asesores que tienen separado:</p>
-                              {reservations.length > 0 ? (
-                                <ul className="list-disc pl-4">
-                                  {reservations.map(r => (
-                                    <li key={r.id}>
-                                      {r.quantity} unid. por {r.advisor} ({r.source})
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p>No hay detalles de reserva validadas.</p>
-                              )}
-                          </TooltipContent>
-                       </Tooltip>
-                    )}
+                        {totalReserved > 0 && (
+                           <Tooltip>
+                              <TooltipTrigger asChild>
+                                 <div className="flex justify-end cursor-help">
+                                   <BadgeCheck className="h-5 w-5 text-green-600" />
+                                 </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                 <p className="font-bold mb-2">Asesores que tienen separado:</p>
+                                  {reservations.length > 0 ? (
+                                    <ul className="list-disc pl-4">
+                                      {reservations.map(r => (
+                                        <li key={r.id}>
+                                          {r.quantity} unid. por {r.advisor} ({r.source})
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <p>No hay detalles de reserva validadas.</p>
+                                  )}
+                              </TooltipContent>
+                           </Tooltip>
+                        )}
+                    </div>
                   </TableCell>
                 )}
                 {isMarketing && (
@@ -716,4 +710,5 @@ export default function InventoryPage() {
     
 
     
+
 
