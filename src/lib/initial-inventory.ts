@@ -1,3 +1,4 @@
+
 export const initialInventoryData = {
   StoneFlex: {
     'Clay': {
