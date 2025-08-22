@@ -199,8 +199,11 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
 
   const pendingReservationAlerts = useMemo(() => {
     if (!inventoryContext) return 0;
+    
+    const isAdmin = currentUser.roles.includes('Administrador');
     const isAdvisor = currentUser.roles.includes('Asesor de Ventas');
-    if (!isAdvisor) return 0;
+
+    if (!isAdmin && !isAdvisor) return 0;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0); 
@@ -208,14 +211,17 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     tomorrow.setDate(today.getDate() + 1);
     
     return inventoryContext.reservations.filter(r => {
-        // Filter only for the current advisor's reservations
-        if (r.advisor !== currentUser.name) {
-            return false;
-        }
         if (r.status !== 'Validada' || !r.expirationDate) {
             return false;
         }
+
+        if (isAdvisor && !isAdmin && r.advisor !== currentUser.name) {
+            return false;
+        }
+        
         const expiration = new Date(r.expirationDate);
+        expiration.setHours(0,0,0,0);
+        
         return expiration <= tomorrow;
     }).length;
   }, [inventoryContext, currentUser]);
