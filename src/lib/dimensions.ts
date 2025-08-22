@@ -30,8 +30,8 @@ export const productDimensions: { [key: string]: string } = {
     'Silver shine XL': '2.44x1.22 Mts',
     'Silver shine gold': '1.22x0.61 Mts',
     'Silver shine gold XL': '2.44x1.22 Mts',
-    'Steel gray': '1.22x0.61 Mts',
-    'Steel gray XL': '2.44x1.22 Mts',
+    'Steel grey': '1.22x0.61 Mts',
+    'Steel grey XL': '2.44x1.22 Mts',
 
     // StoneFlex Mármol
     'Carrara': '1.22x0.61 Mts',

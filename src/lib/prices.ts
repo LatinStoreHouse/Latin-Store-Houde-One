@@ -18,7 +18,7 @@ export const initialProductPrices: { [key: string]: number } = {
     'Jeera green': 131100,
     'Silver shine': 131100,
     'Silver shine gold': 131100,
-    'Steel gray': 131100,
+    'Steel grey': 131100,
     
     // Cuarcita XL
     'Burning forest XL': 550620,
@@ -26,7 +26,7 @@ export const initialProductPrices: { [key: string]: number } = {
     'Jeera green XL': 550620,
     'Silver shine XL': 550620,
     'Silver shine gold XL': 550620,
-    'Steel gray XL': 550620,
+    'Steel grey XL': 550620,
     
     // Concreto Estándar
     'Concreto blanco': 137340,
