@@ -786,15 +786,15 @@ export default function StoneflexCalculatorPage() {
             </div>
              <div className="space-y-2">
                 <Label>Moneda de la Cotización</Label>
-                <div className="flex items-center gap-6">
-                    <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as 'COP' | 'USD')} className="flex gap-4 pt-2">
+                <div className="flex items-center gap-4">
+                    <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as 'COP' | 'USD')} className="flex items-center gap-4">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="COP" id="currency-cop" />
-                        <Label htmlFor="currency-cop">COP</Label>
+                        <Label htmlFor="currency-cop" className="font-normal">COP</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="USD" id="currency-usd" />
-                        <Label htmlFor="currency-usd">USD</Label>
+                        <Label htmlFor="currency-usd" className="font-normal">USD</Label>
                       </div>
                     </RadioGroup>
                     {currency === 'USD' && (
@@ -1143,4 +1143,5 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
 
