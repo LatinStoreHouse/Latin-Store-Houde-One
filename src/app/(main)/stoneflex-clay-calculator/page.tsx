@@ -469,37 +469,39 @@ export default function StoneflexCalculatorPage() {
     let sealantQuarters = 0;
     let sealantGallonType: SealantType | null = null;
     let sealantQuarterType: SealantType | null = null;
-
+    
     if (includeSealant) {
         const gallonRef = sealantFinish === 'semibright' ? 'SELLANTE SEMI - BRIGHT GALON' : 'SELLANTE SHYNY GALON';
         const quarterRef = sealantFinish === 'semibright' ? 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' : 'SELLANTE SHYNY 1/4 GALON';
         
         const gallonPriceCOP = productPrices[gallonRef] || 0;
         const quarterPriceCOP = productPrices[quarterRef] || 0;
-
+    
         const gallonPerf = sealantPerformance[gallonRef as SealantType];
         const quarterPerf = sealantPerformance[quarterRef as SealantType];
-
-        let neededGallonsForClay = totalSqmClay > 0 ? Math.ceil(totalSqmClay / gallonPerf.clay) : 0;
-        let neededGallonsForOther = totalSqmOther > 0 ? Math.ceil(totalSqmOther / gallonPerf.other) : 0;
         
-        let remainingSqmClay = totalSqmClay - (neededGallonsForClay - 1) * gallonPerf.clay;
-        let remainingSqmOther = totalSqmOther - (neededGallonsForOther - 1) * gallonPerf.other;
-
-        if (neededGallonsForClay > 0 && remainingSqmClay > quarterPerf.clay) {
-            // It's cheaper to buy a full gallon than multiple quarters
-        } else if (neededGallonsForClay > 0) {
-            sealantGallons += neededGallonsForClay -1;
-            sealantQuarters += Math.ceil(remainingSqmClay / quarterPerf.clay);
+        let totalSqM = totalSqmClay + totalSqmOther;
+        
+        // This is a simplified logic. A more complex one would optimize cost between gallons and quarters.
+        if (totalSqmClay > 0) {
+            const numGallons = Math.floor(totalSqmClay / gallonPerf.clay);
+            sealantGallons += numGallons;
+            const remSqm = totalSqmClay % gallonPerf.clay;
+            if (remSqm > 0) {
+                sealantQuarters += Math.ceil(remSqm / quarterPerf.clay);
+            }
         }
-         if (neededGallonsForOther > 0 && remainingSqmOther > quarterPerf.other) {
-            // It's cheaper to buy a full gallon than multiple quarters
-        } else if (neededGallonsForOther > 0) {
-            sealantGallons += neededGallonsForOther - 1;
-            sealantQuarters += Math.ceil(remainingSqmOther / quarterPerf.other);
+        
+        if (totalSqmOther > 0) {
+             const numGallons = Math.floor(totalSqmOther / gallonPerf.other);
+            sealantGallons += numGallons;
+            const remSqm = totalSqmOther % gallonPerf.other;
+            if (remSqm > 0) {
+                sealantQuarters += Math.ceil(remSqm / quarterPerf.other);
+            }
         }
 
-        totalSealantCost = convert(sealantGallons * gallonPriceCOP + sealantQuarters * quarterPriceCOP);
+        totalSealantCost = convert((sealantGallons * gallonPriceCOP) + (sealantQuarters * quarterPriceCOP));
         sealantGallonType = gallonRef as SealantType;
         sealantQuarterType = quarterRef as SealantType;
     }
@@ -1147,5 +1149,3 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
-
-
