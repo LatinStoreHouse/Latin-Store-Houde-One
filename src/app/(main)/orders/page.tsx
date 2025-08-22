@@ -26,7 +26,6 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { DispatchForm, type DispatchFormValues } from '@/components/dispatch-form';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -198,33 +197,6 @@ export default function DispatchPage() {
         item.id === id ? { ...item, [field]: value } : item
       )
     );
-  };
-  
-  const handleSaveDispatch = (data: DispatchFormValues) => {
-    if (data.id) { // Editing existing
-        setDispatchData(prev => prev.map(d => d.id === data.id ? {...d, ...data} as DispatchData : d));
-    } else { // Creating new
-        const newId = dispatchData.length > 0 ? Math.max(...dispatchData.map(d => d.id)) + 1 : 1;
-        const newDispatch: DispatchData = {
-            id: newId,
-            vendedor: data.vendedor || currentUser.name,
-            fechaSolicitud: new Date().toISOString().split('T')[0],
-            cotizacion: data.cotizacion,
-            cliente: data.cliente,
-            ciudad: data.ciudad,
-            direccion: data.direccion,
-            remision: '',
-            observacion: data.observacion || '',
-            rutero: 'none',
-            fechaDespacho: '',
-            guia: '',
-            convencion: 'Prealistamiento de pedido',
-            products: data.products || [],
-        };
-        setDispatchData(prev => [newDispatch, ...prev]);
-    }
-    setIsFormOpen(false);
-    setEditingDispatch(null);
   };
   
   const handleOpenEditDialog = (item: DispatchData) => {
@@ -606,28 +578,6 @@ export default function DispatchPage() {
         </div>
       </CardContent>
     </Card>
-      
-    <Dialog open={isFormOpen} onOpenChange={(open) => {
-        setIsFormOpen(open);
-        if (!open) setEditingDispatch(null);
-    }}>
-        <DialogContent className="max-w-2xl">
-            <DialogHeader>
-                <DialogTitle>{editingDispatch?.id ? 'Editar Solicitud de Despacho' : 'Crear Solicitud de Despacho'}</DialogTitle>
-                <DialogDescription>
-                    {editingDispatch?.id ? 'Actualice los detalles y productos de la solicitud.' : 'Complete el formulario para enviar una nueva solicitud de despacho a validación.'}
-                </DialogDescription>
-            </DialogHeader>
-            <DispatchForm 
-                initialData={editingDispatch ?? undefined}
-                onSave={handleSaveDispatch} 
-                onCancel={() => {
-                    setIsFormOpen(false);
-                    setEditingDispatch(null);
-                }}
-            />
-        </DialogContent>
-    </Dialog>
 
     <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
         <DialogContent>
