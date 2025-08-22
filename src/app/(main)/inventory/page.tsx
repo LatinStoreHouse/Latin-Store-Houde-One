@@ -259,6 +259,7 @@ export default function InventoryPage() {
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
   const isPartner = currentUserRole === 'Partners';
   const isMarketing = currentUserRole === 'Marketing';
+  const canViewLowStockAlerts = !isPartner && !isMarketing;
   
   let columnsForExport: Record<string, boolean>;
   if (canEdit) {
@@ -628,7 +629,7 @@ export default function InventoryPage() {
             <div className="flex justify-center">
                 <TabsList>
                     {brands.map((brand) => (
-                         <TabTriggerWithIndicator value={brand} key={brand} hasAlert={lowStockAlerts[brand]}>
+                         <TabTriggerWithIndicator value={brand} key={brand} hasAlert={canViewLowStockAlerts && lowStockAlerts[brand]}>
                             {formatBrandName(brand)}
                          </TabTriggerWithIndicator>
                     ))}
@@ -710,3 +711,4 @@ export default function InventoryPage() {
     
 
     
+
