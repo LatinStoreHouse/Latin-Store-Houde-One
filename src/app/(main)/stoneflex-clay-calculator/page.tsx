@@ -55,7 +55,6 @@ const referenceDetails: { [key: string]: { brand: string, line: string } } = {
     'Jeera green': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Jeera green XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Silver shine': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Silver shine XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Silver shine gold': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Silver shine gold XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Steel grey': { brand: 'StoneFlex', line: 'Cuarcitas' },
@@ -103,6 +102,7 @@ const supplies = [
 const IVA_RATE = 0.19; // 19%
 
 type SealantType = 'SELLANTE SEMI - BRIGHT GALON' | 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' | 'SELLANTE SHYNY GALON' | 'SELLANTE SHYNY 1/4 GALON';
+type SealantFinish = 'semibright' | 'shiny';
 
 interface QuoteItem {
   id: number;
@@ -172,6 +172,8 @@ export default function StoneflexCalculatorPage() {
   const [discount, setDiscount] = useState<number | string>(0);
   const [wastePercentage, setWastePercentage] = useState<number | string>(0);
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
+  const [includeSealant, setIncludeSealant] = useState(true);
+  const [sealantFinish, setSealantFinish] = useState<SealantFinish>('semibright');
   const [calculationMode, setCalculationMode] = useState<'sqm' | 'sheets'>('sqm');
   const [laborCost, setLaborCost] = useState(0);
   const [transportationCost, setTransportationCost] = useState(0);
@@ -333,6 +335,8 @@ export default function StoneflexCalculatorPage() {
     let totalTranslucentAdhesiveUnits = 0;
     let isWarrantyVoid = false;
     let manualSuppliesCost = 0;
+    let totalSqmClay = 0;
+    let totalSqmOther = 0;
 
     const trmValue = currency === 'USD' ? parseDecimal(trm) : 1;
     if (currency === 'USD' && trmValue === 0) return null;
@@ -353,6 +357,12 @@ export default function StoneflexCalculatorPage() {
       }
 
       if (!details) return {...item, itemTotal: 0, pricePerSheet: 0};
+      
+      if (details.line === 'Clay') {
+          totalSqmClay += item.sqMeters;
+      } else {
+          totalSqmOther += item.sqMeters;
+      }
 
       const calculatedSheets = item.sheets;
       const pricePerSheetCOP = item.pricePerSheet;
@@ -387,7 +397,7 @@ export default function StoneflexCalculatorPage() {
           }
       }
       
-      if (!includeAdhesive) {
+      if (!includeAdhesive || !includeSealant) {
         isWarrantyVoid = true;
       }
       
@@ -399,8 +409,50 @@ export default function StoneflexCalculatorPage() {
     // Adhesive Cost Calculation
     const totalStandardAdhesiveCost = convert(Math.ceil(totalStandardAdhesiveUnits) * adhesivePriceCOP);
     const totalTranslucentAdhesiveCost = convert(Math.ceil(totalTranslucentAdhesiveUnits) * translucentAdhesivePriceCOP);
+    
+    // Sealant Cost Calculation
+    let totalSealantCost = 0;
+    let sealantGallons = 0;
+    let sealantQuarters = 0;
+    let sealantGallonType: SealantType | null = null;
+    let sealantQuarterType: SealantType | null = null;
 
-    const subtotalBeforeDiscount = totalProductCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost + manualSuppliesCost;
+    if (includeSealant) {
+        const gallonRef = sealantFinish === 'semibright' ? 'SELLANTE SEMI - BRIGHT GALON' : 'SELLANTE SHYNY GALON';
+        const quarterRef = sealantFinish === 'semibright' ? 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' : 'SELLANTE SHYNY 1/4 GALON';
+        
+        const gallonPriceCOP = productPrices[gallonRef] || 0;
+        const quarterPriceCOP = productPrices[quarterRef] || 0;
+
+        const gallonPerf = sealantPerformance[gallonRef as SealantType];
+        const quarterPerf = sealantPerformance[quarterRef as SealantType];
+
+        let neededGallonsForClay = totalSqmClay > 0 ? Math.ceil(totalSqmClay / gallonPerf.clay) : 0;
+        let neededGallonsForOther = totalSqmOther > 0 ? Math.ceil(totalSqmOther / gallonPerf.other) : 0;
+        
+        let remainingSqmClay = totalSqmClay - (neededGallonsForClay - 1) * gallonPerf.clay;
+        let remainingSqmOther = totalSqmOther - (neededGallonsForOther - 1) * gallonPerf.other;
+
+        if (neededGallonsForClay > 0 && remainingSqmClay > quarterPerf.clay) {
+            // It's cheaper to buy a full gallon than multiple quarters
+        } else if (neededGallonsForClay > 0) {
+            sealantGallons += neededGallonsForClay -1;
+            sealantQuarters += Math.ceil(remainingSqmClay / quarterPerf.clay);
+        }
+         if (neededGallonsForOther > 0 && remainingSqmOther > quarterPerf.other) {
+            // It's cheaper to buy a full gallon than multiple quarters
+        } else if (neededGallonsForOther > 0) {
+            sealantGallons += neededGallonsForOther - 1;
+            sealantQuarters += Math.ceil(remainingSqmOther / quarterPerf.other);
+        }
+
+        totalSealantCost = convert(sealantGallons * gallonPriceCOP + sealantQuarters * quarterPriceCOP);
+        sealantGallonType = gallonRef as SealantType;
+        sealantQuarterType = quarterRef as SealantType;
+    }
+
+
+    const subtotalBeforeDiscount = totalProductCost + totalStandardAdhesiveCost + totalTranslucentAdhesiveCost + totalSealantCost + manualSuppliesCost;
     const totalDiscountAmount = subtotalBeforeDiscount * (discountValue / 100);
     const subtotalBeforeIva = subtotalBeforeDiscount - totalDiscountAmount;
     const ivaAmount = subtotalBeforeIva * IVA_RATE;
@@ -417,6 +469,11 @@ export default function StoneflexCalculatorPage() {
       totalProductCost,
       totalStandardAdhesiveCost,
       totalTranslucentAdhesiveCost,
+      totalSealantCost,
+      sealantGallons,
+      sealantQuarters,
+      sealantGallonType,
+      sealantQuarterType,
       manualSuppliesCost,
       adhesivePrice: convert(adhesivePriceCOP),
       translucentAdhesivePrice: convert(translucentAdhesivePriceCOP),
@@ -469,6 +526,14 @@ export default function StoneflexCalculatorPage() {
     }
     if (quote.totalTranslucentAdhesiveCost > 0) {
         body.push(['Adhesivo (Translúcido)', quote.totalTranslucentAdhesiveUnits, formatCurrency(quote.translucentAdhesivePrice), formatCurrency(quote.totalTranslucentAdhesiveCost)]);
+    }
+    if (quote.sealantGallons > 0 && quote.sealantGallonType) {
+        const price = convert(productPrices[quote.sealantGallonType] || 0);
+        body.push([quote.sealantGallonType, quote.sealantGallons, formatCurrency(price), formatCurrency(price * quote.sealantGallons)]);
+    }
+    if (quote.sealantQuarters > 0 && quote.sealantQuarterType) {
+        const price = convert(productPrices[quote.sealantQuarterType] || 0);
+        body.push([quote.sealantQuarterType, quote.sealantQuarters, formatCurrency(price), formatCurrency(price * quote.sealantQuarters)]);
     }
     
     doc.autoTable({
@@ -603,6 +668,9 @@ export default function StoneflexCalculatorPage() {
     if (quote.totalTranslucentAdhesiveCost > 0 && quote.totalTranslucentAdhesiveUnits > 0) {
         message += `- Adhesivo Translúcido (${quote.totalTranslucentAdhesiveUnits} u. @ ${formatCurrency(quote.translucentAdhesivePrice)}/u.): ${formatCurrency(quote.totalTranslucentAdhesiveCost)}\n`;
     }
+    if (quote.totalSealantCost > 0) {
+        message += `- Costo Sellante: ${formatCurrency(quote.totalSealantCost)}\n`;
+    }
      if (quote.manualSuppliesCost > 0) {
         message += `- Insumos Adicionales: ${formatCurrency(quote.manualSuppliesCost)}\n`;
     }
@@ -625,7 +693,7 @@ export default function StoneflexCalculatorPage() {
     }
 
     if (quote.isWarrantyVoid) {
-        message += `*Nota Importante:* La no inclusión de adhesivo puede anular la garantía del producto.\n`;
+        message += `*Nota Importante:* La no inclusión de adhesivo o sellante puede anular la garantía del producto.\n`;
     }
     message += `_Esta es una cotización preliminar realizada sin confirmación de medidas y el costo final puede variar. No incluye costos de instalación si no se especifica._`;
 
@@ -778,12 +846,36 @@ export default function StoneflexCalculatorPage() {
          <Separator />
           <div>
             <h3 className="text-lg font-medium mb-4">Insumos y Accesorios</h3>
-            <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex items-center space-x-2 flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
                     <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
                     <Label htmlFor="include-adhesive">Incluir Adhesivo (Automático)</Label>
                 </div>
+                <div className="flex items-center space-x-2">
+                    <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
+                    <Label htmlFor="include-sealant">Incluir Sellante (Automático)</Label>
+                </div>
             </div>
+             {includeSealant && (
+                <div className="mt-4 space-y-2 pl-6">
+                    <Label>Acabado del Sellante</Label>
+                     <RadioGroup value={sealantFinish} onValueChange={(v) => setSealantFinish(v as SealantFinish)} className="flex gap-4 pt-2">
+                        <RadioGroupItem value="semibright" id="finish-semi" />
+                        <Label htmlFor="finish-semi" className="font-normal">Semi-Brillante</Label>
+                        <RadioGroupItem value="shiny" id="finish-shiny" />
+                        <Label htmlFor="finish-shiny" className="font-normal">Brillante</Label>
+                    </RadioGroup>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="link" size="sm" className="text-xs p-0 h-auto">
+                                <HelpCircle className="mr-1 h-3 w-3" />
+                                ¿No estás seguro? Ver tabla de rendimiento
+                            </Button>
+                        </DialogTrigger>
+                        <AdhesiveReferenceTable />
+                    </Dialog>
+                </div>
+            )}
              <Separator className="my-6" />
              <h4 className="text-md font-medium mb-4">Insumos y Accesorios Adicionales</h4>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_auto] gap-4 items-end">
@@ -885,6 +977,12 @@ export default function StoneflexCalculatorPage() {
                         <span>{formatCurrency(quote.totalTranslucentAdhesiveCost)}</span>
                     </div>
                  )}
+                  {quote.totalSealantCost > 0 && (
+                     <div className="flex justify-between">
+                        <span className="text-muted-foreground">Costo Sellante ({quote.sealantGallons > 0 ? `${quote.sealantGallons}G` : ''} {quote.sealantQuarters > 0 ? `${quote.sealantQuarters}Q` : ''})</span>
+                        <span>{formatCurrency(quote.totalSealantCost)}</span>
+                    </div>
+                  )}
                   {quote.manualSuppliesCost > 0 && (
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Insumos Adicionales</span>
@@ -985,7 +1083,7 @@ export default function StoneflexCalculatorPage() {
                   )}
                   {quote.isWarrantyVoid && (
                     <p className="font-semibold text-destructive">
-                      La no inclusión de adhesivo puede anular la garantía del producto.
+                      La no inclusión de adhesivo o sellante puede anular la garantía del producto.
                     </p>
                   )}
               </div>
@@ -996,4 +1094,5 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
 
