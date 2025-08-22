@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/app/(main)/layout';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
+import type { DispatchData } from '@/app/(main)/orders/page';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -42,16 +43,8 @@ interface ValidatedItem {
     type: 'Reserva' | 'Despacho';
 }
 
-interface PendingDispatch {
-    id: number;
-    cotizacion: string;
-    cliente: string;
-    vendedor: string;
-    factura: string;
-}
-
-export const initialPendingDispatches: PendingDispatch[] = [
-    { id: 1, cotizacion: 'COT-001', cliente: 'ConstruCali', vendedor: 'John Doe', factura: '' },
+export const initialPendingDispatches: DispatchData[] = [
+    { id: 1, cotizacion: 'COT-001', cliente: 'ConstruCali', vendedor: 'John Doe', factura: '', products: [{name: 'Cut stone', quantity: 10}, {name: 'Adhesivo', quantity: 5}], fechaSolicitud: '2024-07-28', ciudad: 'Cali', direccion: 'Calle Falsa 123', remision: 'REM-001', observacion: '', rutero: 'Transportadora', fechaDespacho: '', guia: '', convencion: 'Prealistamiento de pedido' },
 ]
 
 const initialHistory: ValidatedItem[] = [
@@ -75,7 +68,7 @@ export default function ValidationPage() {
     if (!context) {
         throw new Error('ValidationPage must be used within an InventoryProvider');
     }
-    const { inventoryData, setInventoryData, reservations, setReservations, dispatchReservation } = context;
+    const { inventoryData, setInventoryData, reservations, setReservations, dispatchReservation, dispatchDirectFromInventory } = context;
 
     const [pendingDispatches, setPendingDispatches] = useState(initialPendingDispatches);
     const [validationHistory, setValidationHistory] = useState<ValidatedItem[]>(initialHistory);
@@ -159,7 +152,7 @@ export default function ValidationPage() {
         toast({ title: 'Éxito', description: `Reserva ${reservation.quoteNumber} ha sido ${newStatus.toLowerCase()}.` });
     };
     
-    const handleDispatchValidation = (dispatch: PendingDispatch, newStatus: 'Validada' | 'Rechazada') => {
+    const handleDispatchValidation = (dispatch: DispatchData, newStatus: 'Validada' | 'Rechazada') => {
         const factura = facturaNumbers[`dispatch-${dispatch.id}`];
         if (!factura) {
             toast({ variant: 'destructive', title: 'Error', description: 'Se requiere un número de factura para validar.' });
@@ -183,10 +176,30 @@ export default function ValidationPage() {
     
         if (newStatus === 'Validada') {
             try {
-                dispatchReservation(dispatch.cotizacion);
-                toast({ title: 'Éxito', description: `Despacho para ${dispatch.cotizacion} ha sido validado y la reserva ha sido descontada.` });
+                // Check if a reservation exists for this quote
+                const existingReservation = reservations.find(r => r.quoteNumber === dispatch.cotizacion && r.status === 'Validada');
+                
+                if (existingReservation) {
+                    dispatchReservation(dispatch.cotizacion);
+                    toast({ title: 'Éxito', description: `Despacho para ${dispatch.cotizacion} validado. Stock descontado de la reserva.` });
+                } else {
+                    // No reservation found, dispatch directly from inventory
+                    if (dispatch.products.length === 0) {
+                        toast({ variant: 'destructive', title: 'Error de Despacho', description: `La solicitud ${dispatch.cotizacion} no tiene productos para despachar.` });
+                        // Re-add the dispatch to the pending list as it failed
+                        setPendingDispatches(prev => [dispatch, ...prev]);
+                        setValidationHistory(prev => prev.filter(h => h.id !== `DIS-${dispatch.id}`));
+                        return;
+                    }
+                    dispatchDirectFromInventory(dispatch.products);
+                    toast({ title: 'Éxito', description: `Despacho para ${dispatch.cotizacion} validado. Stock descontado directamente de bodega.` });
+                }
+
             } catch (error: any) {
                 toast({ variant: 'destructive', title: 'Error de Inventario', description: error.message });
+                 // Re-add the dispatch to the pending list as it failed
+                setPendingDispatches(prev => [dispatch, ...prev]);
+                setValidationHistory(prev => prev.filter(h => h.id !== `DIS-${dispatch.id}`));
             }
         } else {
             toast({ title: 'Éxito', description: `Despacho para ${dispatch.cotizacion} ha sido ${newStatus.toLowerCase()}.` });
@@ -369,6 +382,7 @@ export default function ValidationPage() {
                         <TableHead># Cotización</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Vendedor</TableHead>
+                        <TableHead>Productos</TableHead>
                         <TableHead>Factura #</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
@@ -379,6 +393,9 @@ export default function ValidationPage() {
                             <TableCell>{dispatch.cotizacion}</TableCell>
                             <TableCell>{dispatch.cliente}</TableCell>
                             <TableCell>{dispatch.vendedor}</TableCell>
+                            <TableCell>
+                                {dispatch.products.map(p => `${p.quantity}x ${p.name}`).join(', ')}
+                            </TableCell>
                             <TableCell>
                                 <Input 
                                     value={facturaNumbers[`dispatch-${dispatch.id}`] || ''}
@@ -403,7 +420,7 @@ export default function ValidationPage() {
                     ))}
                     {pendingDispatches.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                            <TableCell colSpan={6} className="text-center text-muted-foreground">
                                 No hay despachos pendientes de validación.
                             </TableCell>
                         </TableRow>

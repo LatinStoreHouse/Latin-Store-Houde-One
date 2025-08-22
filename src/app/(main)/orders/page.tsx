@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy, Edit, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy, Edit, Calendar as CalendarIcon, PackageOpen } from 'lucide-react';
 import { Role } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import {
@@ -71,8 +71,28 @@ const getConventionClasses = (value: string) => {
     return `${option.bgColor} ${option.textColor}`;
 };
 
-// Mocked data for dispatch requests
-export const initialDispatchData = [
+interface DispatchProduct {
+    name: string;
+    quantity: number;
+}
+export interface DispatchData {
+    id: number;
+    vendedor: string;
+    fechaSolicitud: string;
+    cotizacion: string;
+    cliente: string;
+    ciudad: string;
+    direccion: string;
+    remision: string;
+    observacion: string;
+    rutero: string;
+    fechaDespacho: string;
+    guia: string;
+    convencion: string;
+    products: DispatchProduct[];
+}
+
+export const initialDispatchData: DispatchData[] = [
   {
     id: 1,
     vendedor: 'John Doe',
@@ -87,6 +107,7 @@ export const initialDispatchData = [
     fechaDespacho: '',
     guia: '',
     convencion: 'Prealistamiento de pedido',
+    products: [{ name: 'Cut stone', quantity: 10 }, { name: 'Adhesivo', quantity: 5 }]
   },
   {
     id: 2,
@@ -102,6 +123,7 @@ export const initialDispatchData = [
     fechaDespacho: '2024-07-30',
     guia: 'TCC-98765',
     convencion: 'Despachado',
+    products: [{ name: 'Black', quantity: 20 }]
   },
   {
     id: 3,
@@ -117,18 +139,18 @@ export const initialDispatchData = [
     fechaDespacho: '2024-06-18',
     guia: 'ENV-12345',
     convencion: 'Entrega parcial',
+    products: [],
   },
 ];
 
-type DispatchData = typeof initialDispatchData[0];
-
-
 export default function DispatchPage() {
-  const [dispatchData, setDispatchData] = useState(initialDispatchData);
+  const [dispatchData, setDispatchData] = useState<DispatchData[]>(initialDispatchData);
   const [searchTerm, setSearchTerm] = useState('');
   const [date, setDate] = useState<DateRange | undefined>(undefined);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [editingDispatch, setEditingDispatch] = useState<DispatchData | null>(null);
+  const [viewingDispatch, setViewingDispatch] = useState<DispatchData | null>(null);
   
   const { currentUser } = useUser();
 
@@ -161,7 +183,8 @@ export default function DispatchPage() {
             rutero: 'none',
             fechaDespacho: '',
             guia: '',
-            convencion: 'Prealistamiento de pedido'
+            convencion: 'Prealistamiento de pedido',
+            products: [],
         });
         setIsFormOpen(true);
         // Clean up URL params
@@ -177,9 +200,9 @@ export default function DispatchPage() {
     );
   };
   
-  const handleSaveDispatch = (data: DispatchFormValues & { id?: number }) => {
+  const handleSaveDispatch = (data: DispatchFormValues) => {
     if (data.id) { // Editing existing
-        setDispatchData(prev => prev.map(d => d.id === data.id ? {...d, ...data} : d));
+        setDispatchData(prev => prev.map(d => d.id === data.id ? {...d, ...data} as DispatchData : d));
     } else { // Creating new
         const newId = dispatchData.length > 0 ? Math.max(...dispatchData.map(d => d.id)) + 1 : 1;
         const newDispatch: DispatchData = {
@@ -196,6 +219,7 @@ export default function DispatchPage() {
             fechaDespacho: '',
             guia: '',
             convencion: 'Prealistamiento de pedido',
+            products: data.products || [],
         };
         setDispatchData(prev => [newDispatch, ...prev]);
     }
@@ -293,12 +317,13 @@ export default function DispatchPage() {
       head: [
         [
           'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
-          'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
+          'Dirección', 'Productos', 'Observación', 'Rutero', 'Fecha Desp.',
           'Guía', 'Convención', 'Factura #', 'Estado Validación'
         ],
       ],
       body: filteredData.map(item => {
         const { status, factura } = getValidationStatus(item.cotizacion);
+        const productString = item.products.map(p => `${p.name} (x${p.quantity})`).join(', ');
         return [
           item.vendedor,
           item.fechaSolicitud,
@@ -306,7 +331,7 @@ export default function DispatchPage() {
           item.cliente,
           item.ciudad,
           item.direccion,
-          item.remision,
+          productString,
           item.observacion,
           item.rutero,
           item.fechaDespacho,
@@ -325,12 +350,13 @@ export default function DispatchPage() {
   const handleExportXLSX = () => {
     const tableHeaders = [
         'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
-        'Dirección', 'Remisión', 'Observación', 'Rutero', 'Fecha Desp.',
+        'Dirección', 'Productos', 'Observación', 'Rutero', 'Fecha Desp.',
         'Guía', 'Convención', 'Factura #', 'Estado Validación'
     ];
     
     const dataToExport = filteredData.map(item => {
         const { status, factura } = getValidationStatus(item.cotizacion);
+        const productString = item.products.map(p => `${p.name} (x${p.quantity})`).join(', ');
         return {
             'Vendedor': item.vendedor,
             'Fecha Sol.': item.fechaSolicitud,
@@ -338,7 +364,7 @@ export default function DispatchPage() {
             'Cliente': item.cliente,
             'Ciudad': item.ciudad,
             'Dirección': item.direccion,
-            'Remisión': item.remision,
+            'Productos': productString,
             'Observación': item.observacion,
             'Rutero': item.rutero,
             'Fecha Desp.': item.fechaDespacho,
@@ -356,6 +382,7 @@ export default function DispatchPage() {
   };
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -445,6 +472,7 @@ export default function DispatchPage() {
                 <TableHead className="p-2">Cliente</TableHead>
                 <TableHead className="p-2">Ciudad</TableHead>
                 <TableHead className="p-2">Dirección</TableHead>
+                <TableHead className="p-2">Productos</TableHead>
                 <TableHead className="p-2">Observación</TableHead>
                 {/* Logística */}
                 <TableHead className="p-2">Remisión</TableHead>
@@ -473,6 +501,16 @@ export default function DispatchPage() {
                   <TableCell className="p-2 align-middle">{item.cliente}</TableCell>
                   <TableCell className="p-2 align-middle">{item.ciudad}</TableCell>
                   <TableCell className="p-2 align-middle">{item.direccion}</TableCell>
+                  <TableCell className="p-2 align-middle">
+                      {item.products.length > 0 ? (
+                        <Button variant="outline" size="sm" onClick={() => { setViewingDispatch(item); setIsDetailModalOpen(true); }}>
+                            <PackageOpen className="h-4 w-4 mr-2" />
+                            Ver ({item.products.length})
+                        </Button>
+                      ) : (
+                        'N/A'
+                      )}
+                  </TableCell>
                   <TableCell className="p-2 align-middle text-sm text-muted-foreground whitespace-pre-wrap min-w-[200px]">{item.observacion}</TableCell>
                   
                   {/* Logística Fields */}
@@ -567,27 +605,61 @@ export default function DispatchPage() {
           </Table>
         </div>
       </CardContent>
-       <Dialog open={isFormOpen} onOpenChange={(open) => {
+    </Card>
+      
+    <Dialog open={isFormOpen} onOpenChange={(open) => {
         setIsFormOpen(open);
         if (!open) setEditingDispatch(null);
-      }}>
-        <DialogContent className="sm:max-w-[425px]">
+    }}>
+        <DialogContent className="max-w-2xl">
             <DialogHeader>
                 <DialogTitle>{editingDispatch?.id ? 'Editar Solicitud de Despacho' : 'Crear Solicitud de Despacho'}</DialogTitle>
                 <DialogDescription>
-                  {editingDispatch?.id ? 'Actualice los detalles de la solicitud.' : 'Complete el formulario para enviar una nueva solicitud de despacho a validación.'}
+                    {editingDispatch?.id ? 'Actualice los detalles y productos de la solicitud.' : 'Complete el formulario para enviar una nueva solicitud de despacho a validación.'}
                 </DialogDescription>
             </DialogHeader>
             <DispatchForm 
                 initialData={editingDispatch ?? undefined}
                 onSave={handleSaveDispatch} 
                 onCancel={() => {
-                  setIsFormOpen(false);
-                  setEditingDispatch(null);
+                    setIsFormOpen(false);
+                    setEditingDispatch(null);
                 }}
             />
         </DialogContent>
-      </Dialog>
-    </Card>
+    </Dialog>
+
+    <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Productos del Despacho</DialogTitle>
+                <DialogDescription>Cotización #{viewingDispatch?.cotizacion}</DialogDescription>
+            </DialogHeader>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Producto</TableHead>
+                        <TableHead className="text-right">Cantidad</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {viewingDispatch?.products.map(p => (
+                        <TableRow key={p.name}>
+                            <TableCell>{p.name}</TableCell>
+                            <TableCell className="text-right">{p.quantity}</TableCell>
+                        </TableRow>
+                    ))}
+                     {viewingDispatch?.products.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={2} className="text-center text-muted-foreground">
+                                No se especificaron productos.
+                            </TableCell>
+                        </TableRow>
+                     )}
+                </TableBody>
+            </Table>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }

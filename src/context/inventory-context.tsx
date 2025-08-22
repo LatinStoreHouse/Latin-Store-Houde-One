@@ -61,6 +61,7 @@ interface InventoryContextType {
   transferFromFreeZone: (items: TransferItem[]) => void;
   receiveContainer: (containerId: string, reservations: Reservation[]) => void;
   dispatchReservation: (quoteNumber: string) => void;
+  dispatchDirectFromInventory: (productsToDispatch: { name: string, quantity: number }[]) => void;
   releaseReservationStock: (reservation: Reservation) => void;
   addContainer: (container: Container) => void;
   editContainer: (containerId: string, updatedContainer: Container) => void;
@@ -265,9 +266,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     const reservationToDispatch = reservations.find(r => r.quoteNumber === quoteNumber && r.status === 'Validada');
 
     if (!reservationToDispatch) {
-        // It's not an error if a dispatch doesn't have a reservation
-        console.log(`No se encontró una reserva validada para la cotización ${quoteNumber}. Se procederá con el despacho normal.`);
-        return;
+        throw new Error(`No se encontró una reserva validada para la cotización ${quoteNumber}.`);
     }
 
     const location = findProductLocation(reservationToDispatch.product);
@@ -302,6 +301,30 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         prev.map(r => r.id === reservationToDispatch.id ? { ...r, status: 'Despachada' } : r)
     );
   };
+
+  const dispatchDirectFromInventory = (productsToDispatch: { name: string, quantity: number }[]) => {
+     setInventoryData(prevData => {
+        const newData = JSON.parse(JSON.stringify(prevData));
+        
+        for (const productToDispatch of productsToDispatch) {
+            const location = findProductLocation(productToDispatch.name);
+            if (!location) {
+                throw new Error(`Producto ${productToDispatch.name} no encontrado en inventario.`);
+            }
+            const { brand, subCategory } = location;
+            const product = newData[brand as keyof typeof prevData][subCategory][productToDispatch.name];
+            
+            const availableInBodega = product.bodega - product.separadasBodega;
+            if (availableInBodega < productToDispatch.quantity) {
+                 throw new Error(`Stock insuficiente en bodega para despachar ${productToDispatch.quantity} de ${productToDispatch.name}. Disponible: ${availableInBodega}`);
+            }
+            
+            product.bodega -= productToDispatch.quantity;
+        }
+        
+        return newData;
+    });
+  }
   
   const addContainer = (container: Container) => {
     setContainers(prev => [container, ...prev]);
@@ -323,15 +346,26 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
 
         if (isSubscribed) {
             newSubs[productName] = currentSubscribers.filter(name => name !== userName);
-             toast({ title: 'Suscripción Cancelada', description: `Ya no recibirás notificaciones para "${productName}".` });
         } else {
             newSubs[productName] = [...currentSubscribers, userName];
             toast({ title: '¡Te Notificaremos!', description: `Recibirás una alerta cuando "${productName}" esté disponible.` });
         }
-
+        
         return newSubs;
     });
   }
+
+  // Effect to show toast on unsubscribing, avoiding setState in render issue
+  useEffect(() => {
+    const handler = (e: any) => {
+        const { productName, isSubscribed } = e.detail;
+        if (!isSubscribed) {
+            toast({ title: 'Suscripción Cancelada', description: `Ya no recibirás notificaciones para "${productName}".` });
+        }
+    };
+    window.addEventListener('subscription-change', handler);
+    return () => window.removeEventListener('subscription-change', handler);
+  }, [toast]);
 
 
   return (
@@ -347,6 +381,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       transferFromFreeZone,
       receiveContainer,
       dispatchReservation,
+      dispatchDirectFromInventory,
       releaseReservationStock,
       addContainer,
       editContainer,
