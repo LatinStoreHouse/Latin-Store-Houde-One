@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { productDimensions } from '@/lib/dimensions';
 
 
 const WhatsAppIcon = () => (
@@ -33,58 +34,42 @@ const WhatsAppIcon = () => (
 
 
 const referenceDetails: { [key: string]: { brand: string, line: string } } = {
-  'Clay cut stone 1,20*0,60': { brand: 'StoneFlex', line: 'Clay' },
-  'Clay travertino 1,20*0,60': { brand: 'StoneFlex', line: 'Clay' },
-  'Concreto encofrado 2,90*0,56': { brand: 'StoneFlex', line: 'Clay' },
-  'Clay tapia negra 2,95*1,20': { brand: 'StoneFlex', line: 'Clay' },
-  'Black 1.22 x 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
-  'Kund multy 1.22 x 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
-  'Tan 1.22 x 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
-  'Indian autumn 1.22 x 0.61': { brand: 'StoneFlex', line: 'Pizarra' },
-  'Indian autumn translucido 1.22 x 0.61': { brand: 'StoneFlex', line: 'Translucida' },
-  'Burning forest 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Copper 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Jeera green 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Silver shine 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Silver shine gold 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Steel gray 1.22 x 0.61': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Carrara 1.22 x 0.61': { brand: 'StoneFlex', line: 'Mármol' },
-  'Crystal white 1.22 x 0.61': { brand: 'StoneFlex', line: 'Mármol' },
-  'Himalaya gold 1.22x0.61 mts': { brand: 'StoneFlex', line: 'Mármol' },
-  'Mint white 1.22 x 0.61': { brand: 'StoneFlex', line: 'Mármol' },
-  'Concreto blanco 1.22 x 0.61': { brand: 'StoneFlex', line: 'Concreto' },
-  'Concreto gris 1.22 x 0.61': { brand: 'StoneFlex', line: 'Concreto' },
-  'Concrete with holes 1.22 x 0.61': { brand: 'StoneFlex', line: 'Concreto' },
-  'Concreto gris medium 1.22 x 0.61': { brand: 'StoneFlex', line: 'Concreto' },
-  'Corten stell - 2.44 x 0.61': { brand: 'StoneFlex', line: 'Metales' },
-  'Mural blue patina with copper - 2.44 x 0.61': { brand: 'StoneFlex', line: 'Metales' },
-  'Mural white with copper gold - 2.44 x 0.61': { brand: 'StoneFlex', line: 'Metales' },
-  'Gate turquoise patina copper - 2.44 x 0.61': { brand: 'StoneFlex', line: 'Metales' },
-  'Madera nogal 0.15 x 2.44 mts': { brand: 'StoneFlex', line: 'Madera' },
-  'Madera teka 0.15 x 2.44 mts': { brand: 'StoneFlex', line: 'Madera' },
-  'Madera ébano 0.15 x 2.44 mts': { brand: 'StoneFlex', line: 'Madera' },
-  '3d adhesivo - 0,90 m2 - black': { brand: 'StoneFlex', line: '3D' },
-  '3d adhesivo - 0,90 m2 - indian rustic': { brand: 'StoneFlex', line: '3D' },
-  '3d adhesivo - 0,90 m2 - tan': { brand: 'StoneFlex', line: '3D' },
-  'Black 2.44 x 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
-  'Tan 2.44 x 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
-  'Kund multy 2.44 x 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
-  'Indian autumn 2.44 x 1.22': { brand: 'StoneFlex', line: 'Pizarra' },
-  'Indian autumn translucida 2.44 x 1.22': { brand: 'StoneFlex', line: 'Translucida' },
-  'Copper 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Burning forest 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Jeera green 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Silver shine 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Silver shine gold 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Steel grey 2.44 x 1.22': { brand: 'StoneFlex', line: 'Cuarcitas' },
-  'Concreto blanco 2.44 x 1.22': { brand: 'StoneFlex', line: 'Concreto' },
-  'Concreto gris 2.44 x 1.22': { brand: 'StoneFlex', line: 'Concreto' },
-  'Concreto medio 2.44 x 1.22': { brand: 'StoneFlex', line: 'Concreto' },
-  'Concreto with holes 2.44 x 1.22': { brand: 'StoneFlex', line: 'Concreto' },
-  'Carrara 2.44 x 1.22': { brand: 'StoneFlex', line: 'Mármol' },
-  'Crystal white 2.44 x 1.22': { brand: 'StoneFlex', line: 'Mármol' },
-  'Himalaya gold 2.44 x 1.22': { brand: 'StoneFlex', line: 'Mármol' },
-  'Corten steel 2.44 x 1.22': { brand: 'StoneFlex', line: 'Metales' },
+    'Cut stone': { brand: 'StoneFlex', line: 'Clay' },
+    'Travertino': { brand: 'StoneFlex', line: 'Clay' },
+    'Concreto encofrado': { brand: 'StoneFlex', line: 'Clay' },
+    'Tapia negra': { brand: 'StoneFlex', line: 'Clay' },
+    'Black': { brand: 'StoneFlex', line: 'Pizarra' },
+    'Kund multy': { brand: 'StoneFlex', line: 'Pizarra' },
+    'Tan': { brand: 'StoneFlex', line: 'Pizarra' },
+    'Indian autumn': { brand: 'StoneFlex', line: 'Pizarra' },
+    'Indian autumn translucido': { brand: 'StoneFlex', line: 'Translucida' },
+    'Burning forest': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Copper': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Jeera green': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Silver shine': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Silver shine gold': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Steel gray': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Steel grey': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Carrara': { brand: 'StoneFlex', line: 'Mármol' },
+    'Crystal white': { brand: 'StoneFlex', line: 'Mármol' },
+    'Himalaya gold': { brand: 'StoneFlex', line: 'Mármol' },
+    'Mint white': { brand: 'StoneFlex', line: 'Mármol' },
+    'Concreto blanco': { brand: 'StoneFlex', line: 'Concreto' },
+    'Concreto gris': { brand: 'StoneFlex', line: 'Concreto' },
+    'Concrete with holes': { brand: 'StoneFlex', line: 'Concreto' },
+    'Concreto gris medium': { brand: 'StoneFlex', line: 'Concreto' },
+    'Concreto medio': { brand: 'StoneFlex', line: 'Concreto' },
+    'Corten stell': { brand: 'StoneFlex', line: 'Metales' },
+    'Mural blue patina with copper': { brand: 'StoneFlex', line: 'Metales' },
+    'Mural white with copper gold': { brand: 'StoneFlex', line: 'Metales' },
+    'Gate turquoise patina copper': { brand: 'StoneFlex', line: 'Metales' },
+    'Corten steel': { brand: 'StoneFlex', line: 'Metales' },
+    'Madera nogal': { brand: 'StoneFlex', line: 'Madera' },
+    'Madera teka': { brand: 'StoneFlex', line: 'Madera' },
+    'Madera ébano': { brand: 'StoneFlex', line: 'Madera' },
+    '3d adhesivo - black': { brand: 'StoneFlex', line: '3D' },
+    '3d adhesivo - indian rustic': { brand: 'StoneFlex', line: '3D' },
+    '3d adhesivo - tan': { brand: 'StoneFlex', line: '3D' },
 };
 
 
@@ -184,7 +169,7 @@ export default function StoneflexCalculatorPage() {
   const [notes, setNotes] = useState('');
 
   const referenceOptions = useMemo(() => {
-    return allReferences.map(ref => ({ value: ref, label: ref }));
+    return allReferences.map(ref => ({ value: ref, label: `${ref} (${productDimensions[ref] || 'N/A'})` }));
   }, []);
 
   const supplyOptions = useMemo(() => {
@@ -217,31 +202,24 @@ export default function StoneflexCalculatorPage() {
 
 
   const getSqmPerSheet = (ref: string) => {
-    if (!ref) return 0;
-    if (ref.includes('1.22 X 0.61') || ref.includes('1.22X0.61')) return 0.7442;
-    if (ref.includes('1.20*0.60')) return 0.72;
-    if (ref.includes('2.44 X 1.22')) return 2.9768;
-    if (ref.includes('0.15 X 2.44')) return 0.366;
-    if (ref.includes('0,90 M2')) return 0.9;
-    if (ref.includes('2.44 X 0.61')) return 1.4884;
-    if (ref.includes('2.95*1.20')) return 3.54;
-    if (ref.includes('2.90*0.56')) return 1.624;
+    const dimension = productDimensions[ref];
+    if (!dimension) return 0;
+    
+    if (dimension.includes('Caja')) {
+        const sqmMatch = dimension.match(/(\d[.,]?\d*)\s*M²/i);
+        if (sqmMatch) return parseFloat(sqmMatch[1].replace(',', '.'));
+        return 0;
+    }
+
+    const matches = dimension.match(/(\d[.,]?\d*)/g);
+    if (matches && matches.length >= 2) {
+      const width = parseFloat(matches[0].replace(',', '.'));
+      const height = parseFloat(matches[1].replace(',', '.'));
+      return width * height;
+    }
     return 1; // Default
   }
-  
-  const getSheetDimensions = (ref: string) => {
-    if (!ref) return "N/A";
-    if (ref.includes('1.22 X 0.61') || ref.includes('1.22X0.61')) return "1.22 x 0.61 Mts";
-    if (ref.includes('1.20*0.60')) return "1.20 x 0.60 Mts";
-    if (ref.includes('2.44 X 1.22')) return "2.44 x 1.22 Mts";
-    if (ref.includes('0.15 X 2.44')) return "0.15 x 2.44 Mts";
-    if (ref.includes('0,90 M2')) return "N/A (Caja 0.90 M²)";
-    if (ref.includes('2.44 X 0.61')) return "2.44 x 0.61 Mts";
-    if (ref.includes('2.95*1.20')) return "2.95 x 1.20 Mts";
-    if (ref.includes('2.90*0.56')) return "2.90 x 0.56 Mts";
-    return "No especificadas";
-  }
-  
+
   const parseDecimal = (value: string | number) => {
     if (typeof value === 'number') return value;
     return parseFloat(value.toString().replace(',', '.')) || 0;
@@ -368,18 +346,19 @@ export default function StoneflexCalculatorPage() {
       
       if (includeAdhesive && details.line !== '3D') {
           let adhesivePerSheet = 0;
-          const isStandardSize = item.reference.includes('1.22 X 0.61') || item.reference.includes('1.20*0.60');
-          const isMetalStandardSize = item.reference.includes('2.44 X 0.61');
-          const isXLSize = item.reference.includes('2.44 X 1.22') || item.reference.includes('2.95*1.20') || item.reference.includes('2.90*0.56');
-          const isWoodSize = item.reference.includes('0.15 X 2.44');
+          const dimension = productDimensions[item.reference] || '';
+          const isStandardSize = dimension.includes('1.22 x 0.61') || dimension.includes('1.20*0.60');
+          const isMetalStandardSize = dimension.includes('2.44 x 0.61');
+          const isXLSize = dimension.includes('2.44 x 1.22') || dimension.includes('2.95*1.20') || dimension.includes('2.90*0.56');
+          const isWoodSize = dimension.includes('0.15 x 2.44');
 
           if (details.line === 'Translúcida') {
               adhesivePerSheet = isStandardSize ? 0.5 : 2;
               totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           } else {
-              if (details.line === 'Pizarra' || details.line === 'Cuarcitas' || (details.line === 'Mármol' && !item.reference.includes('HIMALAYA')) || details.line === 'Clay') {
+              if (details.line === 'Pizarra' || details.line === 'Cuarcitas' || (details.line === 'Mármol' && !item.reference.includes('Himalaya')) || details.line === 'Clay') {
                   adhesivePerSheet = isStandardSize ? 0.5 : 2;
-              } else if (details.line === 'Mármol' && item.reference.includes('HIMALAYA')) {
+              } else if (details.line === 'Mármol' && item.reference.includes('Himalaya')) {
                   adhesivePerSheet = isStandardSize ? 1.5 : 3.5;
               } else if (details.line === 'Concreto') {
                   adhesivePerSheet = isStandardSize ? 1.8 : 3;
@@ -461,7 +440,8 @@ export default function StoneflexCalculatorPage() {
     const body: any[][] = [];
 
     quote.items.forEach(item => {
-        const title = item.calculationMode === 'units' ? item.reference : `${item.reference} (${item.sqMeters.toFixed(2)} M²)`;
+        const dimensionText = productDimensions[item.reference] ? `(${productDimensions[item.reference]})` : '';
+        const title = item.calculationMode === 'units' ? item.reference : `${item.reference} ${dimensionText}`;
         const qty = item.sheets;
         const price = formatCurrency(item.pricePerSheet);
         const total = formatCurrency(item.itemTotal);
@@ -717,7 +697,7 @@ export default function StoneflexCalculatorPage() {
                    />
                      {reference && (
                         <div className="text-sm text-muted-foreground pt-1">
-                            <span className="font-medium">Medidas:</span> {getSheetDimensions(reference)} | <span className="font-medium">M² por Lámina:</span> {getSqmPerSheet(reference).toFixed(2)} M²
+                            <span className="font-medium">M² por Lámina:</span> {getSqmPerSheet(reference).toFixed(2)} M²
                         </div>
                      )}
                  </div>

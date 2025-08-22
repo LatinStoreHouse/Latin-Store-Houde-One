@@ -1,86 +1,60 @@
 
 export const initialProductPrices: { [key: string]: number } = {
     // Pizarra Estándar
-    'Black 1.22 x 0.61': 131100,
-    'Kund multy 1.22 x 0.61': 131100,
-    'Tan 1.22 x 0.61': 131100,
-    'Indian autumn 1.22 x 0.61': 131100,
-
-    // Pizarra XL
-    'Black 2.44 x 1.22': 550620,
-    'Tan 2.44 x 1.22': 550620,
-    'Kund multy 2.44 x 1.22': 550620,
-    'Indian autumn 2.44 x 1.22': 550620,
+    'Black': 131100,
+    'Kund multy': 550620, // This has two sizes, taking the XL price as default for now. Needs review.
+    'Tan': 550620, // This has two sizes, taking the XL price as default for now. Needs review.
+    'Indian autumn': 550620, // This has two sizes, taking the XL price as default for now. Needs review.
 
     // Cuarcita Estándar
-    'Burning forest 1.22 x 0.61': 131100,
-    'Copper 1.22 x 0.61': 131100,
-    'Jeera green 1.22 x 0.61': 131100,
-    'Silver shine 1.22 x 0.61': 131100,
-    'Silver shine gold 1.22 x 0.61': 131100,
-    'Steel gray 1.22 x 0.61': 131100,
+    'Burning forest': 550620,
+    'Copper': 550620,
+    'Jeera green': 550620,
+    'Silver shine': 550620,
+    'Silver shine gold': 550620,
+    'Steel gray': 131100,
+    'Steel grey': 550620,
     
-    // Cuarcita XL
-    'Copper 2.44 x 1.22': 550620,
-    'Burning forest 2.44 x 1.22': 550620,
-    'Jeera green 2.44 x 1.22': 550620,
-    'Silver shine 2.44 x 1.22': 550620,
-    'Silver shine gold 2.44 x 1.22': 550620,
-    'Steel grey 2.44 x 1.22': 550620,
-
     // Concreto Estándar
-    'Concreto blanco 1.22 x 0.61': 131100,
-    'Concreto gris 1.22 x 0.61': 131100,
-    'Concrete with holes 1.22 x 0.61': 131100,
-    'Concreto gris medium 1.22 x 0.61': 131100,
+    'Concreto blanco': 576840,
+    'Concreto gris': 576840,
+    'Concrete with holes': 576840,
+    'Concreto gris medium': 131100,
+    'Concreto medio': 576840,
     
-    // Concreto XL
-    'Concreto blanco 2.44 x 1.22': 576840,
-    'Concreto gris 2.44 x 1.22': 576840,
-    'Concreto medio 2.44 x 1.22': 576840,
-    'Concreto with holes 2.44 x 1.22': 576840,
-
     // Mármol Estándar
-    'Carrara 1.22 x 0.61': 177043,
-    'Crystal white 1.22 x 0.61': 177043,
-    'Himalaya gold 1.22x0.61 mts': 177043,
-    'Mint white 1.22 x 0.61': 177043,
-    
-    // Mármol XL
-    'Carrara 2.44 x 1.22': 743581,
-    'Crystal white 2.44 x 1.22': 743581,
-    'Himalaya gold 2.44 x 1.22': 743581,
+    'Carrara': 743581,
+    'Crystal white': 743581,
+    'Himalaya gold': 743581,
+    'Mint white': 177043,
     
     // Traslúcida Estándar
-    'Indian autumn translucido 1.22 x 0.61': 186990,
-    
-    // Traslúcida XL
-    'Indian autumn translucida 2.44 x 1.22': 785358,
+    'Indian autumn translucido': 186990,
     
     // Madera
-    'Madera nogal 0.15 x 2.44 mts': 81512,
-    'Madera teka 0.15 x 2.44 mts': 81512,
-    'Madera ébano 0.15 x 2.44 mts': 81512,
+    'Madera nogal': 81512,
+    'Madera teka': 81512,
+    'Madera ébano': 81512,
     
     // Metálicas 244x61
-    'Corten stell - 2.44 x 0.61': 399050,
-    'Mural blue patina with copper - 2.44 x 0.61': 399050,
-    'Mural white with copper gold - 2.44 x 0.61': 399050,
-    'Gate turquoise patina copper - 2.44 x 0.61': 399050,
+    'Corten stell': 399050,
+    'Mural blue patina with copper': 399050,
+    'Mural white with copper gold': 399050,
+    'Gate turquoise patina copper': 399050,
 
     // Metálicas Gran Formato (244x122)
-    'Corten steel 2.44 x 1.22': 798100,
+    'Corten steel': 798100,
 
     // Clay
-    'Clay cut stone 1,20*0,60': 176000,
-    'Clay travertino 1,20*0,60': 176000,
-    'Concreto encofrado 2,90*0,56': 176000,
-    'Clay tapia negra 2,95*1,20': 176000,
+    'Clay cut stone': 176000,
+    'Clay travertino': 176000,
+    'Concreto encofrado': 176000,
+    'Clay tapia negra': 176000,
 
     // 3D (sin precio en la imagen, se mantiene el anterior)
-    '3d adhesivo - 0,90 m2 - black': 207072,
-    '3d adhesivo - 0,90 m2 - indian rustic': 207072,
-    '3d adhesivo - 0,90 m2 - tan': 207072,
+    '3d adhesivo - black': 207072,
+    '3d adhesivo - indian rustic': 207072,
+    '3d adhesivo - tan': 207072,
     
     // Insumos Starwood (sin cambios)
     'Pergola 9x4 - 3 mts coffee': 126788,
