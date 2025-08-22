@@ -50,8 +50,7 @@ export function Combobox({
   const [open, setOpen] = React.useState(false)
 
   const handleSelect = (currentValue: string) => {
-    const newValue = options.find(o => o.value.toLowerCase() === currentValue.toLowerCase())?.value || (allowFreeText ? currentValue : "");
-    onValueChange?.(newValue);
+    onValueChange?.(currentValue);
     setOpen(false);
   };
   
