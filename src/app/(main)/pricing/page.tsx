@@ -20,6 +20,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Combobox } from '@/components/ui/combobox';
 import { productDimensions } from '@/lib/dimensions';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 
 const productStructure: { [key: string]: { [line: string]: string[] } } = {
@@ -277,6 +278,69 @@ export default function PricingPage() {
     const hasXL = products.some(p => p.includes('XL'));
     return hasEstandar && hasXL;
   };
+  
+  const ProductTable = ({ brand, line }: { brand: string; line: string }) => (
+     <Table>
+        <TableHeader>
+            <TableRow>
+                <TableHead>Producto</TableHead>
+                <TableHead className="text-right">Precio por Unidad (COP)</TableHead>
+                {canEdit && <TableHead className="w-[100px] text-right">Acciones</TableHead>}
+            </TableRow>
+        </TableHeader>
+        <TableBody>
+            {localProductStructure[brand as keyof typeof localProductStructure][line].map((product) => (
+            <TableRow key={product}>
+                <TableCell>
+                <Label htmlFor={`price-${product}`} className="font-medium">{product}</Label>
+                </TableCell>
+                <TableCell className="text-right font-medium">
+                    {formatCurrency(prices[product as keyof typeof prices] || 0)}
+                </TableCell>
+                {canEdit && (
+                    <TableCell className="text-right">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => handleOpenEditModal(product)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar Precio
+                                </DropdownMenuItem>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar Producto
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta acción no se puede deshacer. Se eliminará el producto y su precio de forma permanente.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteProduct(product)} className="bg-destructive hover:bg-destructive/90">
+                                                Eliminar
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </TableCell>
+                )}
+            </TableRow>
+            ))}
+        </TableBody>
+    </Table>
+  );
 
   return (
     <Card>
@@ -307,14 +371,31 @@ export default function PricingPage() {
             <TabsContent value={brand} key={brand} className="mt-4">
               <Card>
                 <CardContent className="p-0">
-                  <Tabs defaultValue={Object.keys(localProductStructure[brand as keyof typeof localProductStructure])[0]} className="w-full" orientation="vertical">
+                  <Tabs defaultValue={'all'} className="w-full" orientation="vertical">
                       <div className="flex justify-center mt-4">
                         <TabsList>
+                             <TabsTrigger value={'all'}>Ver Todos</TabsTrigger>
                             {Object.keys(localProductStructure[brand as keyof typeof localProductStructure]).map((line) => (
                                 <TabsTrigger value={line} key={line}>{line}</TabsTrigger>
                             ))}
                         </TabsList>
                       </div>
+                      <TabsContent value="all">
+                          <Accordion type="multiple" className="w-full space-y-2 p-4">
+                            {Object.keys(localProductStructure[brand as keyof typeof localProductStructure]).map((line) => (
+                               <AccordionItem value={line} key={line}>
+                                    <AccordionTrigger className="px-4 py-2 bg-muted/50 rounded-md hover:no-underline font-semibold text-base">
+                                        {line}
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        <div className="p-2">
+                                         <ProductTable brand={brand} line={line} />
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                          </Accordion>
+                      </TabsContent>
                       {Object.keys(localProductStructure[brand as keyof typeof localProductStructure]).map((line) => (
                           <TabsContent value={line} key={line}>
                             {line !== 'Insumos' && canEdit && (
@@ -374,66 +455,7 @@ export default function PricingPage() {
                                   )}
                                </div>
                             )}
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>Producto</TableHead>
-                                  <TableHead className="text-right">Precio por Unidad (COP)</TableHead>
-                                  {canEdit && <TableHead className="w-[100px] text-right">Acciones</TableHead>}
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {localProductStructure[brand as keyof typeof localProductStructure][line].map((product) => (
-                                  <TableRow key={product}>
-                                    <TableCell>
-                                      <Label htmlFor={`price-${product}`} className="font-medium">{product}</Label>
-                                    </TableCell>
-                                    <TableCell className="text-right font-medium">
-                                       {formatCurrency(prices[product as keyof typeof prices] || 0)}
-                                    </TableCell>
-                                     {canEdit && (
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent>
-                                                    <DropdownMenuItem onClick={() => handleOpenEditModal(product)}>
-                                                        <Edit className="mr-2 h-4 w-4" />
-                                                        Editar Precio
-                                                    </DropdownMenuItem>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                                Eliminar Producto
-                                                            </DropdownMenuItem>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    Esta acción no se puede deshacer. Se eliminará el producto y su precio de forma permanente.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={() => handleDeleteProduct(product)} className="bg-destructive hover:bg-destructive/90">
-                                                                    Eliminar
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                     )}
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
+                            <ProductTable brand={brand} line={line} />
                           </TabsContent>
                       ))}
                   </Tabs>
@@ -563,5 +585,3 @@ function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesByBrand }
         </Dialog>
     )
 }
-
-    
