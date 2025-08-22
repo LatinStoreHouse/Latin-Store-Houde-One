@@ -30,16 +30,24 @@ import { cn } from '@/lib/utils';
 
 
 const getAllInventoryProducts = () => {
-    const products: { name: string, data: any }[] = [];
+    const products: { name: string; data: any; uniqueName: string }[] = [];
+    const productNames = new Set<string>();
+
     for (const brand in initialInventoryData) {
         const subcategories = initialInventoryData[brand as keyof typeof initialInventoryData];
         for (const subCategory in subcategories) {
             const productList = subcategories[subCategory as keyof typeof subcategories];
             for (const productName in productList) {
+                let uniqueName = productName;
+                if (productNames.has(productName)) {
+                    uniqueName = `${productName} (${subCategory})`;
+                }
                 products.push({
                     name: productName,
                     data: productList[productName as keyof typeof productList],
+                    uniqueName
                 });
+                productNames.add(productName);
             }
         }
     }
@@ -130,14 +138,14 @@ export default function ReservationsPage() {
     } else if (reservationSource === 'Bodega') {
         return inventoryProducts.map(p => ({ 
             value: p.name, 
-            label: p.name, 
+            label: p.uniqueName, 
             available: p.data.bodega - p.data.separadasBodega, 
             sourceId: 'Bodega' 
         }));
     } else { // Zona Franca
         return inventoryProducts.map(p => ({ 
             value: p.name, 
-            label: p.name, 
+            label: p.uniqueName, 
             available: p.data.zonaFranca - p.data.separadasZonaFranca, 
             sourceId: 'Zona Franca' 
         }));
