@@ -26,7 +26,7 @@ export const initialProductPrices: { [key: string]: number } = {
     'Jeera green XL': 550620,
     'Silver shine XL': 550620,
     'Silver shine gold XL': 550620,
-    'Steel grey': 550620,
+    'Steel grey XL': 550620,
     
     // Concreto Estándar
     'Concreto blanco': 137340,
@@ -103,3 +103,5 @@ export const initialProductPrices: { [key: string]: number } = {
     'SELLANTE SHYNY GALON': 185900,
     'SELLANTE SHYNY 1/4 GALON': 54450,
 };
+
+    

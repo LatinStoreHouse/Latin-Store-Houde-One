@@ -52,7 +52,7 @@ const productStructure: { [key: string]: { [line: string]: string[] } } = {
       'Silver shine gold',
       'Silver shine gold XL',
       'Steel gray',
-      'Steel grey',
+      'Steel grey XL',
     ],
     'Concreto': [
       'Concreto blanco',
@@ -563,3 +563,5 @@ function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesByBrand }
         </Dialog>
     )
 }
+
+    

@@ -31,7 +31,7 @@ export const productDimensions: { [key: string]: string } = {
     'Silver shine gold': '1.22x0.61 Mts',
     'Silver shine gold XL': '2.44x1.22 Mts',
     'Steel gray': '1.22x0.61 Mts',
-    'Steel grey': '2.44x1.22 Mts',
+    'Steel grey XL': '2.44x1.22 Mts',
 
     // StoneFlex Mármol
     'Carrara': '1.22x0.61 Mts',
@@ -104,3 +104,5 @@ export const productDimensions: { [key: string]: string } = {
     'Remate wall panel gris': 'N/A',
     'Bocel decorativo blanco': 'N/A',
   };
+
+    
