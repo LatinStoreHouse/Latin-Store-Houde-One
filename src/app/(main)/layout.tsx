@@ -1,5 +1,6 @@
+
 'use client';
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useContext } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -67,8 +68,10 @@ import { Role, roles, User } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { InventoryProvider } from '@/context/inventory-context';
+import { InventoryProvider, InventoryContext } from '@/context/inventory-context';
 import { RoleSwitcher } from '@/components/role-switcher';
+import { initialProductPrices } from '@/lib/prices';
+import { initialDispatchData } from '@/app/(main)/orders/page';
 
 
 // CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
@@ -153,12 +156,12 @@ export function useUser() {
     return context;
 }
 
-
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState(initialUser);
-  
+  const { currentUser, setCurrentUser } = useUser();
+  const inventoryContext = useContext(InventoryContext);
+
   const userPermissions = useMemo(() => {
     const permissions = new Set<string>();
     currentUser.roles.forEach(userRole => {
@@ -177,6 +180,21 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  const pendingValidations = useMemo(() => {
+    const pendingReservations = inventoryContext?.reservations.filter(r => r.status === 'En espera de validación').length || 0;
+    const pendingDispatches = initialDispatchData.length;
+    return pendingReservations + pendingDispatches;
+  }, [inventoryContext?.reservations]);
+
+  const pendingPrices = useMemo(() => {
+    if (!inventoryContext) return 0;
+    const allProducts = Object.values(inventoryContext.inventoryData).flatMap(brand => 
+      Object.values(brand).flatMap(line => Object.keys(line))
+    );
+    return allProducts.filter(productName => !(productName in initialProductPrices) || initialProductPrices[productName as keyof typeof initialProductPrices] === 0).length;
+  }, [inventoryContext?.inventoryData]);
+
 
   const hasPermission = (item: any) => {
     if (!item.permission) return true; // Items without a specific permission are public
@@ -236,174 +254,186 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const isSuperAdmin = initialUser.roles.includes('Administrador');
 
   return (
-    <UserContext.Provider value={{ currentUser, setCurrentUser }}>
-      <InventoryProvider>
-        <SidebarProvider>
-          <Sidebar>
-            <SidebarHeader className="p-4">
-              <div className="flex w-full items-center justify-center">
-                <Logo />
-              </div>
-            </SidebarHeader>
-            <SidebarContent>
-              <SidebarMenu>
-                {visibleNavItems.map((item) =>
-                  item.subItems ? (
-                    <SidebarGroup key={item.label} className="p-0">
-                      <Collapsible>
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton className="w-full justify-between">
-                            <div className="flex items-center gap-2">
-                              <item.icon />
-                              <span>{item.label}</span>
-                            </div>
-                            <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
-                          </SidebarMenuButton>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <SidebarMenuSub>
-                            {item.subItems.filter(hasPermission).map((subItem) => {
-                              const SubIcon = getIconForSubItem(subItem.label);
-                              return (
-                                <SidebarMenuSubItem key={subItem.href}>
-                                  <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
-                                    <Link href={subItem.href}>
-                                      <SubIcon />
-                                      <span className="">{subItem.label}</span>
-                                    </Link>
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              )
-                            })}
-                          </SidebarMenuSub>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </SidebarGroup>
-                  ) : (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href}
-                        tooltip={item.label}
-                      >
-                        <Link href={item.href!}>
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader className="p-4">
+          <div className="flex w-full items-center justify-center">
+            <Logo />
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            {visibleNavItems.map((item) =>
+              item.subItems ? (
+                <SidebarGroup key={item.label} className="p-0">
+                  <Collapsible>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton className="w-full justify-between">
+                        <div className="flex items-center gap-2">
                           <item.icon />
                           <span>{item.label}</span>
-                        </Link>
+                        </div>
+                        <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
                       </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                )}
-              </SidebarMenu>
-            </SidebarContent>
-            <SidebarFooter className="p-4">
-              <Dialog onOpenChange={(open) => !open && setIsEditingProfile(false)}>
-                <DialogTrigger asChild>
-                    <div className="flex w-full cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent/50">
-                        <Avatar className="h-10 w-10">
-                        <AvatarImage src={currentUser.avatar} alt={currentUser.name} data-ai-hint="profile picture" />
-                        <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{currentUser.name}</span>
-                        <span className="text-xs text-muted-foreground">{currentUser.email}</span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.subItems.filter(hasPermission).map((subItem) => {
+                          const SubIcon = getIconForSubItem(subItem.label);
+                          return (
+                            <SidebarMenuSubItem key={subItem.href}>
+                              <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
+                                <Link href={subItem.href}>
+                                  <SubIcon />
+                                  <span className="">{subItem.label}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          )
+                        })}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </SidebarGroup>
+              ) : (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href}
+                    tooltip={item.label}
+                  >
+                    <Link href={item.href!} className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </div>
+                       {item.href === '/validation' && pendingValidations > 0 && <div className="h-2 w-2 rounded-full bg-white" />}
+                       {item.href === '/pricing' && pendingPrices > 0 && <div className="h-2 w-2 rounded-full bg-white" />}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            )}
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter className="p-4">
+          <Dialog onOpenChange={(open) => !open && setIsEditingProfile(false)}>
+            <DialogTrigger asChild>
+                <div className="flex w-full cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent/50">
+                    <Avatar className="h-10 w-10">
+                    <AvatarImage src={currentUser.avatar} alt={currentUser.name} data-ai-hint="profile picture" />
+                    <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{currentUser.name}</span>
+                    <span className="text-xs text-muted-foreground">{currentUser.email}</span>
+                    </div>
+                </div>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{isEditingProfile ? 'Editar Perfil' : 'Perfil de Usuario'}</DialogTitle>
+                    <DialogDescription>
+                        {isEditingProfile ? 'Actualice su nombre y foto de perfil.' : 'Esta es tu información de perfil y tus permisos actuales.'}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="flex items-center gap-4">
+                        <div className="relative">
+                            <Avatar className="h-24 w-24">
+                                <AvatarImage src={editedAvatar} alt={currentUser.name} />
+                                <AvatarFallback>{editedName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            {isEditingProfile && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute bottom-0 right-0 rounded-full bg-background/80"
+                                  onClick={() => fileInputRef.current?.click()}
+                                >
+                                  <Camera className="h-5 w-5" />
+                                </Button>
+                            )}
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              className="hidden"
+                              accept="image/png, image/jpeg"
+                              onChange={handleAvatarChange}
+                            />
+                        </div>
+                        <div>
+                            {isEditingProfile ? (
+                                <Input value={editedName} onChange={(e) => setEditedName(e.target.value)} className="text-lg font-semibold" />
+                            ): (
+                                <h2 className="text-xl font-semibold">{currentUser.name}</h2>
+                            )}
+                            <p className="text-sm text-muted-foreground">{currentUser.email}</p>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                                {currentUser.roles.map(role => (
+                                    <Badge key={role}>{role}</Badge>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{isEditingProfile ? 'Editar Perfil' : 'Perfil de Usuario'}</DialogTitle>
-                        <DialogDescription>
-                            {isEditingProfile ? 'Actualice su nombre y foto de perfil.' : 'Esta es tu información de perfil y tus permisos actuales.'}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="flex items-center gap-4">
-                            <div className="relative">
-                                <Avatar className="h-24 w-24">
-                                    <AvatarImage src={editedAvatar} alt={currentUser.name} />
-                                    <AvatarFallback>{editedName.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                {isEditingProfile && (
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="absolute bottom-0 right-0 rounded-full bg-background/80"
-                                      onClick={() => fileInputRef.current?.click()}
-                                    >
-                                      <Camera className="h-5 w-5" />
-                                    </Button>
-                                )}
-                                <input
-                                  type="file"
-                                  ref={fileInputRef}
-                                  className="hidden"
-                                  accept="image/png, image/jpeg"
-                                  onChange={handleAvatarChange}
-                                />
-                            </div>
-                            <div>
-                                {isEditingProfile ? (
-                                    <Input value={editedName} onChange={(e) => setEditedName(e.target.value)} className="text-lg font-semibold" />
-                                ): (
-                                    <h2 className="text-xl font-semibold">{currentUser.name}</h2>
-                                )}
-                                <p className="text-sm text-muted-foreground">{currentUser.email}</p>
-                                <div className="mt-2 flex flex-wrap gap-1">
-                                    {currentUser.roles.map(role => (
-                                        <Badge key={role}>{role}</Badge>
-                                    ))}
-                                </div>
+                    {avatarError && (
+                        <Alert variant="destructive">
+                          <AlertTitle>Error de Imagen</AlertTitle>
+                          <AlertDescription>{avatarError}</AlertDescription>
+                        </Alert>
+                    )}
+                    {!isEditingProfile && (
+                        <div>
+                            <h3 className="mb-2 font-medium">Módulos Accesibles</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {accessibleModules.map(item => (
+                                    <Badge key={item?.label} variant="secondary" className="font-normal">
+                                        <BadgeCheck className="mr-1.5 h-3 w-3 text-green-500" />
+                                        {item?.label}
+                                    </Badge>
+                                ))}
                             </div>
                         </div>
-                        {avatarError && (
-                            <Alert variant="destructive">
-                              <AlertTitle>Error de Imagen</AlertTitle>
-                              <AlertDescription>{avatarError}</AlertDescription>
-                            </Alert>
-                        )}
-                        {!isEditingProfile && (
-                            <div>
-                                <h3 className="mb-2 font-medium">Módulos Accesibles</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {accessibleModules.map(item => (
-                                        <Badge key={item?.label} variant="secondary" className="font-normal">
-                                            <BadgeCheck className="mr-1.5 h-3 w-3 text-green-500" />
-                                            {item?.label}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full">
-                        {isEditingProfile ? (
-                            <>
-                                <Button variant="ghost" onClick={() => setIsEditingProfile(false)}>Cancelar</Button>
-                                <Button onClick={handleProfileSave}><Save className="mr-2 h-4 w-4" /> Guardar Cambios</Button>
-                            </>
-                        ) : (
-                            <>
-                                <Button variant="outline" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" />Cerrar Sesión</Button>
-                                <Button onClick={() => setIsEditingProfile(true)}><Edit className="mr-2 h-4 w-4" />Editar Perfil</Button>
-                            </>
-                        )}
-                    </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </SidebarFooter>
-          </Sidebar>
-          <SidebarInset>
-            <header className="flex h-14 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur-sm">
-              <SidebarTrigger />
-              <h1 className="text-lg font-semibold md:text-xl">
-                {navItems.flatMap(item => item.subItems ? [{href: item.href, label: item.label}, ...item.subItems] : item).find((navItem) => navItem?.href === pathname)?.label || 'Inicio'}
-              </h1>
-            </header>
-            <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
-            {isSuperAdmin && <RoleSwitcher />}
-          </SidebarInset>
-        </SidebarProvider>
+                    )}
+                </div>
+                <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between w-full">
+                    {isEditingProfile ? (
+                        <>
+                            <Button variant="ghost" onClick={() => setIsEditingProfile(false)}>Cancelar</Button>
+                            <Button onClick={handleProfileSave}><Save className="mr-2 h-4 w-4" /> Guardar Cambios</Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button variant="outline" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" />Cerrar Sesión</Button>
+                            <Button onClick={() => setIsEditingProfile(true)}><Edit className="mr-2 h-4 w-4" />Editar Perfil</Button>
+                        </>
+                    )}
+                </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex h-14 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur-sm">
+          <SidebarTrigger />
+          <h1 className="text-lg font-semibold md:text-xl">
+            {navItems.flatMap(item => item.subItems ? [{href: item.href, label: item.label}, ...item.subItems] : item).find((navItem) => navItem?.href === pathname)?.label || 'Inicio'}
+          </h1>
+        </header>
+        <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+        {isSuperAdmin && <RoleSwitcher />}
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
+
+export default function MainLayout({ children }: { children: React.ReactNode }) {
+  const [currentUser, setCurrentUser] = useState(initialUser);
+
+  return (
+    <UserContext.Provider value={{ currentUser, setCurrentUser }}>
+      <InventoryProvider>
+        <LayoutContent>{children}</LayoutContent>
       </InventoryProvider>
     </UserContext.Provider>
   );
