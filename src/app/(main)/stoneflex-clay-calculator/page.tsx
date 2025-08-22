@@ -98,6 +98,8 @@ const supplies = [
   'SELLANTE SEMI - BRIGTH 1/ 4 GALON',
   'SELLANTE SHYNY GALON',
   'SELLANTE SHYNY 1/4 GALON',
+  'Daily clean',
+  'Intensive clean'
 ];
 
 const IVA_RATE = 0.19; // 19%
