@@ -52,7 +52,7 @@ const productStructure: { [key: string]: { [line: string]: string[] } } = {
       'Silver shine gold',
       'Silver shine gold XL',
       'Steel gray',
-      'Steel grey XL',
+      'Steel gray XL',
     ],
     'Concreto': [
       'Concreto blanco',

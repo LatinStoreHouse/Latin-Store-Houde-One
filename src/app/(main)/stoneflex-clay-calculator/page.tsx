@@ -59,7 +59,7 @@ const referenceDetails: { [key: string]: { brand: string, line: string } } = {
     'Silver shine gold': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Silver shine gold XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Steel gray': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Steel grey': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Steel gray XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Carrara': { brand: 'StoneFlex', line: 'Mármol' },
     'Carrara XL': { brand: 'StoneFlex', line: 'Mármol' },
     'Crystal white': { brand: 'StoneFlex', line: 'Mármol' },
@@ -996,3 +996,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
