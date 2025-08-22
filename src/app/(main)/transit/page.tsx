@@ -1,7 +1,7 @@
 
 
 'use client';
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -50,6 +50,8 @@ import { useUser } from '@/app/(main)/layout';
 import { initialReservations } from '@/lib/sales-history';
 import { useRouter } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { productDimensions } from '@/lib/dimensions';
+import { Combobox } from '@/components/ui/combobox';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -264,18 +266,55 @@ export default function TransitPage() {
   const canCreateReservation = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
   const canReceiveContainer = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística');
 
-
   const { activeContainers, historyContainers } = useMemo(() => {
     const active = containers.filter(c => c.status !== 'Llegado');
     const history = containers.filter(c => c.status === 'Llegado');
     return { activeContainers: active, historyContainers: history };
   }, [containers]);
 
-  const brandOptions = useMemo(() => Object.keys(inventoryData).map(b => ({ value: b, label: b })), [inventoryData]);
+  const existingProductsList = useMemo(() => {
+    const products: { value: string; label: string; brand: string; line: string; size: string; }[] = [];
+    for (const brand in inventoryData) {
+        for (const line in inventoryData[brand]) {
+            for (const name in inventoryData[brand][line]) {
+                products.push({
+                    value: name,
+                    label: name,
+                    brand: brand,
+                    line: line,
+                    size: productDimensions[name] || ''
+                });
+            }
+        }
+    }
+    return products;
+  }, [inventoryData]);
+
+  const handleContainerProductSelect = (value: string) => {
+    setProductName(value);
+    const existingProduct = existingProductsList.find(p => p.value === value);
+    if (existingProduct) {
+        setBrand(existingProduct.brand);
+        setLine(existingProduct.line);
+        setSize(existingProduct.size);
+    } else {
+        // If it's a new product, clear the fields for manual entry
+        setBrand('');
+        setLine('');
+        setSize('');
+    }
+  };
+  
+  const isExistingProductSelected = useMemo(() => {
+    return existingProductsList.some(p => p.value === productName);
+  }, [productName, existingProductsList]);
+
   const lineOptions = useMemo(() => {
     if (!brand || !inventoryData[brand as keyof typeof inventoryData]) return [];
     return Object.keys(inventoryData[brand as keyof typeof inventoryData]).map(l => ({ value: l, label: l }));
   }, [brand, inventoryData]);
+
+  const brandOptions = useMemo(() => Object.keys(inventoryData).map(b => ({ value: b, label: b })), [inventoryData]);
 
 
   const handleAddContainer = () => {
@@ -365,14 +404,16 @@ export default function TransitPage() {
     setProductName('');
     setQuantity('');
     setSize('');
+    setBrand('');
+    setLine('');
   };
   
-  const handleRemoveProductFromList = (productName: string, isEditing: boolean) => {
+  const handleRemoveProductFromList = (productNameToRemove: string, isEditing: boolean) => {
      const productListSetter = isEditing 
         ? (updater: (prev: Product[]) => Product[]) => setEditingContainer(c => c ? {...c, products: updater(c.products)} : null)
         : setNewContainerProducts;
     
-    productListSetter(prev => prev.filter(p => p.name !== productName));
+    productListSetter(prev => prev.filter(p => p.name !== productNameToRemove));
   }
   
   const handleExportOptionChange = (key: string, value: boolean) => {
@@ -541,58 +582,60 @@ export default function TransitPage() {
 
   const ProductForm = ({ isEditing }: { isEditing: boolean }) => (
     <div className="space-y-4 p-4 border rounded-md">
+        <div className="space-y-2">
+            <Label>Nombre del Producto</Label>
+            <Combobox
+                options={existingProductsList}
+                value={productName}
+                onValueChange={handleContainerProductSelect}
+                placeholder="Seleccione o escriba un producto"
+                searchPlaceholder="Buscar producto..."
+                emptyPlaceholder="No se encontró producto."
+                allowFreeText
+            />
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-            <Label>Marca</Label>
-            <Select value={brand} onValueChange={(v) => {setBrand(v); setLine('');}}>
-                <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
-                <SelectContent>
-                    {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
-                </SelectContent>
-            </Select>
+                <Label>Marca</Label>
+                <Select value={brand} onValueChange={setBrand} disabled={isExistingProductSelected}>
+                    <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
+                    <SelectContent>
+                        {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
             </div>
             <div className="space-y-2">
-            <Label>Línea</Label>
-            <Select value={line} onValueChange={setLine} disabled={!brand}>
-                <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
-                <SelectContent>
-                    {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                </SelectContent>
-            </Select>
+                <Label>Línea</Label>
+                <Select value={line} onValueChange={setLine} disabled={isExistingProductSelected || !brand}>
+                    <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
+                    <SelectContent>
+                        {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
             </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-                <Label>Nombre del Producto</Label>
-                <Input
-                placeholder="Ingrese el nombre del nuevo producto"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
-                />
-            </div>
-             <div className="space-y-2">
                 <Label>Tamaño (opcional)</Label>
                 <Input
-                placeholder="Ej: 1.22x0.61 Mts"
-                value={size}
-                onChange={(e) => setSize(e.target.value)}
+                    placeholder="Ej: 1.22x0.61 Mts"
+                    value={size}
+                    onChange={(e) => setSize(e.target.value)}
+                    disabled={isExistingProductSelected}
                 />
-            </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_100px_auto] gap-2 items-end pt-2">
-            <div className="space-y-2 col-span-full sm:col-span-1">
-                {/* This empty div helps with layout, or you can place a message here */}
             </div>
             <div className="space-y-2">
                 <Label>Cantidad</Label>
                 <Input
-                type="number"
-                placeholder="Cant."
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-            />
+                    type="number"
+                    placeholder="Cant."
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                />
             </div>
-            <Button onClick={() => handleAddProductToContainer(isEditing)} className="self-end">Agregar</Button>
+        </div>
+        <div className="flex justify-end pt-2">
+            <Button onClick={() => handleAddProductToContainer(isEditing)}>Agregar Producto</Button>
         </div>
     </div>
   );
@@ -797,5 +840,6 @@ export default function TransitPage() {
     </div>
   );
 }
+
 
 
