@@ -63,6 +63,15 @@ declare module 'jspdf' {
 
 const containerStatuses: ContainerStatus[] = ['En producción', 'En tránsito', 'En puerto', 'Atrasado', 'Llegado'];
 
+const TabTriggerWithIndicator = ({ value, hasAlert, children }: { value: string, hasAlert: boolean, children: React.ReactNode }) => {
+    return (
+        <TabsTrigger value={value} className="relative">
+            {children}
+            {hasAlert && <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-red-500" />}
+        </TabsTrigger>
+    );
+};
+
 const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateReservation, canReceiveContainer, onEdit, onStatusChange, onReceive, onReserve }: {
     container: ContainerType;
     canEditStatus: boolean;
@@ -266,10 +275,11 @@ export default function TransitPage() {
   const canCreateReservation = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
   const canReceiveContainer = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística');
 
-  const { activeContainers, historyContainers } = useMemo(() => {
+  const { activeContainers, historyContainers, hasLateContainers } = useMemo(() => {
     const active = containers.filter(c => c.status !== 'Llegado');
     const history = containers.filter(c => c.status === 'Llegado');
-    return { activeContainers: active, historyContainers: history };
+    const late = active.some(c => c.status === 'Atrasado');
+    return { activeContainers: active, historyContainers: history, hasLateContainers: late };
   }, [containers]);
 
   const existingProductsList = useMemo(() => {
@@ -749,7 +759,7 @@ export default function TransitPage() {
       
       <Tabs defaultValue="en-transito" onValueChange={setActiveTab} className="w-full">
         <TabsList>
-            <TabsTrigger value="en-transito">En Tránsito ({activeContainers.length})</TabsTrigger>
+            <TabTriggerWithIndicator value="en-transito" hasAlert={hasLateContainers}>En Tránsito ({activeContainers.length})</TabTriggerWithIndicator>
             <TabsTrigger value="historial">Historial ({historyContainers.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="en-transito" className="pt-4">
@@ -840,6 +850,7 @@ export default function TransitPage() {
     </div>
   );
 }
+
 
 
 

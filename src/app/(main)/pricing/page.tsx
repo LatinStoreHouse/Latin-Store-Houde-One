@@ -134,6 +134,15 @@ const productStructure: { [key: string]: { [line: string]: string[] } } = {
 
 type SizeFilter = 'todos' | 'estandar' | 'xl';
 
+const TabTriggerWithIndicator = ({ value, hasAlert, children }: { value: string, hasAlert: boolean, children: React.ReactNode }) => {
+    return (
+        <TabsTrigger value={value} className="relative">
+            {children}
+            {hasAlert && <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-red-500" />}
+        </TabsTrigger>
+    );
+};
+
 export default function PricingPage() {
   const context = useContext(InventoryContext);
   if (!context) {
@@ -298,6 +307,22 @@ export default function PricingPage() {
     return hasEstandar && hasXL;
   };
   
+  const hasPendingPrices = useMemo(() => {
+    const alerts: { [key: string]: { [key: string]: boolean } } = {};
+    for (const brand in localProductStructure) {
+      alerts[brand] = {};
+      for (const line in localProductStructure[brand]) {
+        const hasPending = localProductStructure[brand][line].some(product => !prices[product as keyof typeof prices] || prices[product as keyof typeof prices] === 0);
+        alerts[brand][line] = hasPending;
+      }
+    }
+    return alerts;
+  }, [localProductStructure, prices]);
+
+  const brandHasPendingPrices = (brand: string) => {
+    return Object.values(hasPendingPrices[brand] || {}).some(Boolean);
+  };
+  
   const ProductTable = ({ brand, line }: { brand: string; line: string }) => (
      <Table>
         <TableHeader>
@@ -394,7 +419,9 @@ export default function PricingPage() {
           <div className="flex justify-center">
             <TabsList>
                 {brands.map((brand) => (
-                <TabsTrigger value={brand} key={brand}>{brand}</TabsTrigger>
+                    <TabTriggerWithIndicator value={brand} key={brand} hasAlert={brandHasPendingPrices(brand)}>
+                        {brand}
+                    </TabTriggerWithIndicator>
                 ))}
             </TabsList>
           </div>
@@ -407,7 +434,9 @@ export default function PricingPage() {
                         <TabsList>
                              <TabsTrigger value={'all'}>Ver Todos</TabsTrigger>
                             {Object.keys(localProductStructure[brand as keyof typeof localProductStructure]).map((line) => (
-                                <TabsTrigger value={line} key={line}>{line}</TabsTrigger>
+                                <TabTriggerWithIndicator value={line} key={line} hasAlert={hasPendingPrices[brand]?.[line]}>
+                                    {line}
+                                </TabTriggerWithIndicator>
                             ))}
                         </TabsList>
                       </div>

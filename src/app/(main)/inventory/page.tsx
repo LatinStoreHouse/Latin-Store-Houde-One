@@ -1,7 +1,7 @@
 
 
 'use client';
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -215,6 +215,16 @@ const simplifiedColumns = {
 const partnerColumns = {
     totalDisponible: true,
 }
+
+const TabTriggerWithIndicator = ({ value, hasAlert, children }: { value: string, hasAlert: boolean, children: React.ReactNode }) => {
+    return (
+        <TabsTrigger value={value} className="relative">
+            {children}
+            {hasAlert && <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-red-500" />}
+        </TabsTrigger>
+    );
+};
+
 
 export default function InventoryPage() {
   const context = useContext(InventoryContext);
@@ -449,6 +459,27 @@ export default function InventoryPage() {
     ...Object.fromEntries(Object.keys(simplifiedColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())])),
     ...Object.fromEntries(Object.keys(partnerColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())])),
   };
+  
+  const lowStockAlerts = useMemo(() => {
+    const alerts: { [key: string]: boolean } = {};
+    for (const brand in inventoryData) {
+      let brandHasLowStock = false;
+      for (const line in inventoryData[brand]) {
+        for (const product in inventoryData[brand][line]) {
+          const item = inventoryData[brand][line][product];
+          const stockBodega = item.bodega - item.separadasBodega;
+          const stockZF = item.zonaFranca - item.separadasZonaFranca;
+          if (stockBodega <= 20 || stockZF <= 20) {
+            brandHasLowStock = true;
+            break;
+          }
+        }
+        if (brandHasLowStock) break;
+      }
+      alerts[brand] = brandHasLowStock;
+    }
+    return alerts;
+  }, [inventoryData]);
 
 
   return (
@@ -579,7 +610,9 @@ export default function InventoryPage() {
             <div className="flex justify-center">
                 <TabsList>
                     {brands.map((brand) => (
-                        <TabsTrigger value={brand} key={brand}>{formatBrandName(brand)}</TabsTrigger>
+                         <TabTriggerWithIndicator value={brand} key={brand} hasAlert={lowStockAlerts[brand]}>
+                            {formatBrandName(brand)}
+                         </TabTriggerWithIndicator>
                     ))}
                     <TabsTrigger value="all">Todo</TabsTrigger>
                 </TabsList>
@@ -659,3 +692,4 @@ export default function InventoryPage() {
     
 
     
+

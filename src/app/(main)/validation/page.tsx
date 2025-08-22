@@ -60,6 +60,15 @@ const initialHistory: ValidatedItem[] = [
     { id: 'DIS-001', quoteNumber: 'COT-002', customer: 'Diseños Modernos SAS', advisor: 'Jane Smith', status: 'Validada', validatedBy: 'Usuario Admin', validationDate: '2024-07-29', factura: 'FAC-201', type: 'Despacho' },
 ]
 
+const TabTriggerWithIndicator = ({ value, hasAlert, children }: { value: string, hasAlert: boolean, children: React.ReactNode }) => {
+    return (
+        <TabsTrigger value={value} className="relative">
+            {children}
+            {hasAlert && <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-red-500" />}
+        </TabsTrigger>
+    );
+};
+
 
 export default function ValidationPage() {
     const context = useContext(InventoryContext);
@@ -290,8 +299,12 @@ export default function ValidationPage() {
         <CardContent>
            <Tabs defaultValue="reservations" className="w-full">
             <TabsList>
-                <TabsTrigger value="reservations">Reservas Pendientes ({pendingReservations.length})</TabsTrigger>
-                <TabsTrigger value="dispatches">Despachos Pendientes ({pendingDispatches.length})</TabsTrigger>
+                <TabTriggerWithIndicator value="reservations" hasAlert={pendingReservations.length > 0}>
+                    Reservas Pendientes ({pendingReservations.length})
+                </TabTriggerWithIndicator>
+                <TabTriggerWithIndicator value="dispatches" hasAlert={pendingDispatches.length > 0}>
+                    Despachos Pendientes ({pendingDispatches.length})
+                </TabTriggerWithIndicator>
             </TabsList>
             <TabsContent value="reservations">
                  <Table>
