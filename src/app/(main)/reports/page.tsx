@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown, Filter } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { MonthPicker } from '@/components/month-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,6 +15,7 @@ import 'jspdf-autotable';
 import { useToast } from '@/hooks/use-toast';
 import { initialCustomerData } from '@/lib/customers';
 import { cn } from '@/lib/utils';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -76,6 +77,132 @@ const ForecastCard = ({ forecast, loading, error, selectedMonth }: { forecast: F
     )
 }
 
+const MonthlyAnalysis = ({ date }: { date: Date }) => {
+    const { newCustomersCount, customersChangePercentage, salesFunnelData, funnelOutcomes } = useMemo(() => {
+        const selectedYear = date.getFullYear();
+        const selectedMonth = date.getMonth();
+
+        const getCustomersInMonth = (year: number, month: number) => {
+            return initialCustomerData.filter(c => {
+                const regDate = new Date(c.registrationDate);
+                return regDate.getFullYear() === year && regDate.getMonth() === month;
+            });
+        };
+
+        const currentMonthCustomers = getCustomersInMonth(selectedYear, selectedMonth);
+
+        const prevMonthDate = new Date(date);
+        prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
+        const previousMonthCustomers = getCustomersInMonth(prevMonthDate.getFullYear(), prevMonthDate.getMonth());
+        
+        let changePercentage = 0;
+        if (previousMonthCustomers.length > 0) {
+            changePercentage = ((currentMonthCustomers.length - previousMonthCustomers.length) / previousMonthCustomers.length) * 100;
+        } else if (currentMonthCustomers.length > 0) {
+            changePercentage = 100;
+        }
+
+        const statusCounts = currentMonthCustomers.reduce((acc, customer) => {
+            acc[customer.status] = (acc[customer.status] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+
+        const salesFunnelData = [
+            { name: 'Contactado', value: statusCounts['Contactado'] || 0 },
+            { name: 'Showroom', value: statusCounts['Showroom'] || 0 },
+            { name: 'Cotizado', value: statusCounts['Cotizado'] || 0 },
+            { name: 'Facturado', value: statusCounts['Facturado'] || 0 },
+        ];
+
+        const funnelOutcomes = [
+            { name: 'Declinado', value: statusCounts['Declinado'] || 0 },
+            { name: 'Sin respuesta', value: statusCounts['Sin respuesta'] || 0 },
+            { name: 'Redireccionado', value: statusCounts['Redireccionado'] || 0 },
+        ].filter(outcome => outcome.value > 0);
+
+
+        return { 
+            newCustomersCount: currentMonthCustomers.length,
+            customersChangePercentage: changePercentage,
+            salesFunnelData,
+            funnelOutcomes
+        };
+    }, [date]);
+
+    return (
+        <>
+        <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+                <CardHeader className="flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Nuevos Clientes</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                <div className="text-2xl font-bold">+{newCustomersCount}</div>
+                <p className={cn("text-xs text-muted-foreground flex items-center", customersChangePercentage >= 0 ? "text-green-600" : "text-red-600")}>
+                    {customersChangePercentage >= 0 ? <ArrowUp className="h-3 w-3 mr-1" /> : <ArrowDown className="h-3 w-3 mr-1" />}
+                    {customersChangePercentage.toFixed(1)}% desde el mes pasado
+                </p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Pedidos Completados</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                <div className="text-2xl font-bold">+1,286</div>
+                <p className="text-xs text-muted-foreground">+12.2% desde el mes pasado</p>
+                </CardContent>
+            </Card>
+        </div>
+        <Card>
+             <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Filter />Embudo de Clientes por Estado</CardTitle>
+                <CardDescription>Visualización del flujo de clientes a través de las etapas de venta en el mes seleccionado.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                 <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                       <BarChart layout="vertical" data={salesFunnelData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                         <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                         <XAxis type="number" />
+                         <YAxis type="category" dataKey="name" width={80} />
+                         <RechartsTooltip cursor={{ fill: 'hsl(var(--muted))' }} />
+                         <Bar dataKey="value" fill="hsl(var(--primary))" barSize={30} />
+                       </BarChart>
+                    </ResponsiveContainer>
+                 </div>
+                 <div>
+                    <h4 className="font-semibold mb-2">Resultados del Embudo</h4>
+                    <p className="text-sm text-muted-foreground mb-4">Clientes que salieron del embudo de ventas durante el mes.</p>
+                    {funnelOutcomes.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Estado</TableHead>
+                                    <TableHead className="text-right"># Clientes</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {funnelOutcomes.map(item => (
+                                    <TableRow key={item.name}>
+                                        <TableCell>{item.name}</TableCell>
+                                        <TableCell className="text-right font-bold">{item.value}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <p className="text-sm text-center text-muted-foreground py-4">No hay clientes con estados de salida este mes.</p>
+                    )}
+                 </div>
+            </CardContent>
+        </Card>
+        </>
+    );
+}
+
 export default function ReportsPage() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [forecast, setForecast] = useState<ForecastSalesOutput | null>(null);
@@ -93,39 +220,6 @@ export default function ReportsPage() {
         const startOfSelectedMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         return startOfSelectedMonth <= startOfTodayMonth;
     }, [currentDate]);
-
-    const { newCustomersCount, customersChangePercentage } = useMemo(() => {
-        const selectedYear = currentDate.getFullYear();
-        const selectedMonth = currentDate.getMonth();
-
-        const currentMonthCustomers = initialCustomerData.filter(c => {
-            const regDate = new Date(c.registrationDate);
-            return regDate.getFullYear() === selectedYear && regDate.getMonth() === selectedMonth;
-        }).length;
-
-        const prevMonthDate = new Date(currentDate);
-        prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
-        const prevMonthYear = prevMonthDate.getFullYear();
-        const prevMonth = prevMonthDate.getMonth();
-
-        const previousMonthCustomers = initialCustomerData.filter(c => {
-            const regDate = new Date(c.registrationDate);
-            return regDate.getFullYear() === prevMonthYear && regDate.getMonth() === prevMonth;
-        }).length;
-        
-        let changePercentage = 0;
-        if (previousMonthCustomers > 0) {
-            changePercentage = ((currentMonthCustomers - previousMonthCustomers) / previousMonthCustomers) * 100;
-        } else if (currentMonthCustomers > 0) {
-            changePercentage = 100; // If previous was 0 and current is > 0, it's a 100% increase
-        }
-
-        return { 
-            newCustomersCount: currentMonthCustomers,
-            customersChangePercentage: changePercentage
-        };
-    }, [currentDate]);
-
 
     useEffect(() => {
         const fetchForecast = async () => {
@@ -227,30 +321,8 @@ export default function ReportsPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader className="flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Nuevos Clientes</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+{newCustomersCount}</div>
-               <p className={cn("text-xs text-muted-foreground flex items-center", customersChangePercentage >= 0 ? "text-green-600" : "text-red-600")}>
-                {customersChangePercentage >= 0 ? <ArrowUp className="h-3 w-3 mr-1" /> : <ArrowDown className="h-3 w-3 mr-1" />}
-                {customersChangePercentage.toFixed(1)}% desde el mes pasado
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Pedidos Completados</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+1,286</div>
-              <p className="text-xs text-muted-foreground">+12.2% desde el mes pasado</p>
-            </CardContent>
-          </Card>
+        <CardContent className="space-y-6">
+          <MonthlyAnalysis date={currentDate} />
         </CardContent>
       </Card>
       

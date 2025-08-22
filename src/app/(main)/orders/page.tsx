@@ -24,7 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { DateRange } from 'react-day-picker';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -32,6 +32,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { useUser } from '@/app/(main)/layout';
 import { initialCustomerData } from '@/lib/customers';
+import { DispatchForm } from '@/components/dispatch-form';
+import { useToast } from '@/hooks/use-toast';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {
@@ -70,7 +72,7 @@ const getConventionClasses = (value: string) => {
     return `${option.bgColor} ${option.textColor}`;
 };
 
-interface DispatchProduct {
+export interface DispatchProduct {
     name: string;
     quantity: number;
 }
@@ -138,7 +140,7 @@ export const initialDispatchData: DispatchData[] = [
     fechaDespacho: '2024-06-18',
     guia: 'ENV-12345',
     convencion: 'Entrega parcial',
-    products: [],
+    products: [{ name: 'Concreto gris', quantity: 15 }],
   },
 ];
 
@@ -150,6 +152,7 @@ export default function DispatchPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [editingDispatch, setEditingDispatch] = useState<DispatchData | null>(null);
   const [viewingDispatch, setViewingDispatch] = useState<DispatchData | null>(null);
+  const { toast } = useToast();
   
   const { currentUser } = useUser();
 
@@ -176,7 +179,7 @@ export default function DispatchPage() {
             cotizacion,
             direccion: customerData?.address || '',
             ciudad: customerData?.city || '',
-            fechaSolicitud: '',
+            fechaSolicitud: new Date().toISOString().split('T')[0],
             remision: '',
             observacion: '',
             rutero: 'none',
@@ -229,6 +232,17 @@ export default function DispatchPage() {
     };
     setDispatchData(prev => [newDispatch, ...prev]);
   };
+  
+  const handleSaveDispatch = (data: DispatchData) => {
+    if (editingDispatch) {
+        setDispatchData(prev => prev.map(d => d.id === data.id ? data : d));
+        toast({ title: 'Despacho Actualizado', description: 'La solicitud de despacho ha sido actualizada.'});
+    } else {
+        setDispatchData(prev => [data, ...prev]);
+        toast({ title: 'Despacho Creado', description: 'La nueva solicitud de despacho ha sido creada.'});
+    }
+    setIsFormOpen(false);
+  }
 
   const filteredData = dispatchData.filter(item => {
     const searchTermLower = searchTerm.toLowerCase();
@@ -578,6 +592,19 @@ export default function DispatchPage() {
         </div>
       </CardContent>
     </Card>
+    
+    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-3xl">
+            <DialogHeader>
+                <DialogTitle>{editingDispatch ? 'Editar Solicitud de Despacho' : 'Crear Nueva Solicitud de Despacho'}</DialogTitle>
+            </DialogHeader>
+            <DispatchForm 
+                dispatch={editingDispatch}
+                onSave={handleSaveDispatch}
+                onCancel={() => setIsFormOpen(false)}
+            />
+        </DialogContent>
+    </Dialog>
 
     <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
         <DialogContent>
