@@ -205,6 +205,9 @@ function AdhesiveReferenceTable() {
                             </TableRow>
                         </TableBody>
                     </Table>
+                    <p className="text-xs text-muted-foreground mt-2">
+                        Nota: Se recomienda el uso del sellante semi-brillante para un acabado óptimo y duradero.
+                    </p>
                 </div>
             </div>
         </DialogContent>
@@ -786,7 +789,7 @@ export default function StoneflexCalculatorPage() {
             </div>
              <div className="space-y-2">
                 <Label>Moneda de la Cotización</Label>
-                <div className="flex items-center gap-4">
+                 <div className="flex items-center gap-4">
                     <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as 'COP' | 'USD')} className="flex items-center gap-4">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="COP" id="currency-cop" />
@@ -836,7 +839,7 @@ export default function StoneflexCalculatorPage() {
                  </div>
                  <div className="space-y-2">
                     <Label>Calcular por</Label>
-                    <RadioGroup defaultValue="sqm" value={calculationMode} onValueChange={(value) => setCalculationMode(value as 'sqm' | 'sheets')} className="flex gap-4 pt-2">
+                    <RadioGroup defaultValue="sqm" value={calculationMode} onValueChange={(value) => setCalculationMode(value as 'sqm' | 'sheets')} className="flex items-center gap-4 pt-2">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="sqm" id="sqm" />
                         <Label htmlFor="sqm">M²</Label>
