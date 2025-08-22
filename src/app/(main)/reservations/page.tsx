@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, Truck } from 'lucide-react';
+import { PlusCircle, Search, Truck, AlertTriangle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
+import { cn } from '@/lib/utils';
 
 
 const getAllInventoryProducts = () => {
@@ -240,7 +241,18 @@ export default function ReservationsPage() {
     router.push(`/orders?${params.toString()}`);
   }
   
-  const ReservationsTable = ({ data, showActions = false }: { data: Reservation[], showActions?: boolean }) => (
+  const ReservationsTable = ({ data, showActions = false }: { data: Reservation[], showActions?: boolean }) => {
+    
+    const isExpired = (dateString?: string) => {
+        if (!dateString) return false;
+        const today = new Date();
+        const expirationDate = new Date(dateString);
+        // Adjust for timezone differences by comparing dates only
+        today.setHours(0, 0, 0, 0);
+        return expirationDate < today;
+    }
+
+    return (
      <Table>
         <TableHeader>
           <TableRow>
@@ -250,44 +262,57 @@ export default function ReservationsPage() {
             <TableHead>Cantidad</TableHead>
             <TableHead>Origen</TableHead>
             <TableHead>Asesor</TableHead>
+            <TableHead>Vence</TableHead>
             <TableHead>Estado</TableHead>
             {showActions && <TableHead className="text-right">Acciones</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((reservation) => (
-            <TableRow key={reservation.id}>
-              <TableCell>{reservation.quoteNumber}</TableCell>
-              <TableCell>{reservation.customer}</TableCell>
-              <TableCell>{reservation.product}</TableCell>
-              <TableCell>{reservation.quantity}</TableCell>
-              <TableCell>{renderOrigin(reservation)}</TableCell>
-              <TableCell>{reservation.advisor}</TableCell>
-              <TableCell>
-                <Badge variant={getStatusBadgeVariant(reservation.status)}>
-                    {reservation.status}
-                </Badge>
-              </TableCell>
-              {showActions && (
-                <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => handleCreateDispatch(reservation)}>
-                        <Truck className="mr-2 h-4 w-4" />
-                        Crear Despacho
-                    </Button>
+          {data.map((reservation) => {
+            const expired = isExpired(reservation.expirationDate);
+            return (
+                <TableRow key={reservation.id}>
+                <TableCell>{reservation.quoteNumber}</TableCell>
+                <TableCell>{reservation.customer}</TableCell>
+                <TableCell>{reservation.product}</TableCell>
+                <TableCell>{reservation.quantity}</TableCell>
+                <TableCell>{renderOrigin(reservation)}</TableCell>
+                <TableCell>{reservation.advisor}</TableCell>
+                <TableCell className={cn(expired && 'text-destructive')}>
+                    {reservation.expirationDate ? (
+                        <div className="flex items-center gap-2">
+                           <span>{reservation.expirationDate}</span>
+                           {expired && <Badge variant="destructive">Expirada</Badge>}
+                        </div>
+                    ) : 'N/A'}
                 </TableCell>
-              )}
-            </TableRow>
-          ))}
+                <TableCell>
+                    <Badge variant={getStatusBadgeVariant(reservation.status)}>
+                        {reservation.status}
+                    </Badge>
+                </TableCell>
+                {showActions && (
+                    <TableCell className="text-right">
+                        <Button variant="outline" size="sm" onClick={() => handleCreateDispatch(reservation)}>
+                            <Truck className="mr-2 h-4 w-4" />
+                            Crear Despacho
+                        </Button>
+                    </TableCell>
+                )}
+                </TableRow>
+            )
+          })}
           {data.length === 0 && (
             <TableRow>
-                <TableCell colSpan={showActions ? 8 : 7} className="text-center text-muted-foreground">
+                <TableCell colSpan={showActions ? 9 : 8} className="text-center text-muted-foreground">
                     No se encontraron reservas.
                 </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
-  );
+    )
+  };
 
   return (
     <div>
