@@ -419,7 +419,7 @@ export default function PricingPage() {
           <div className="flex justify-center">
             <TabsList>
                 {brands.map((brand) => (
-                    <TabTriggerWithIndicator value={brand} key={brand} hasAlert={brandHasPendingPrices(brand)}>
+                    <TabTriggerWithIndicator value={brand} key={brand} hasAlert={canEdit && brandHasPendingPrices(brand)}>
                         {brand}
                     </TabTriggerWithIndicator>
                 ))}
@@ -434,7 +434,7 @@ export default function PricingPage() {
                         <TabsList>
                              <TabsTrigger value={'all'}>Ver Todos</TabsTrigger>
                             {Object.keys(localProductStructure[brand as keyof typeof localProductStructure]).map((line) => (
-                                <TabTriggerWithIndicator value={line} key={line} hasAlert={hasPendingPrices[brand]?.[line]}>
+                                <TabTriggerWithIndicator value={line} key={line} hasAlert={canEdit && hasPendingPrices[brand]?.[line]}>
                                     {line}
                                 </TabTriggerWithIndicator>
                             ))}
