@@ -199,19 +199,26 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
 
   const pendingReservationAlerts = useMemo(() => {
     if (!inventoryContext) return 0;
+    const isAdvisor = currentUser.roles.includes('Asesor de Ventas');
+    if (!isAdvisor) return 0;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0); 
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-
+    
     return inventoryContext.reservations.filter(r => {
+        // Filter only for the current advisor's reservations
+        if (r.advisor !== currentUser.name) {
+            return false;
+        }
         if (r.status !== 'Validada' || !r.expirationDate) {
             return false;
         }
         const expiration = new Date(r.expirationDate);
         return expiration <= tomorrow;
     }).length;
-  }, [inventoryContext]);
+  }, [inventoryContext, currentUser]);
 
 
   const hasPermission = (item: any) => {
