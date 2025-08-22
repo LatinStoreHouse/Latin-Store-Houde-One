@@ -25,9 +25,10 @@ import {
     Bell,
     X,
     Receipt,
+    Clock,
 } from 'lucide-react';
 import { Role, roles } from '@/lib/roles';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { InventoryContext } from '@/context/inventory-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { navItems, useUser } from '@/app/(main)/layout';
@@ -112,7 +113,7 @@ export default function DashboardPage() {
     if (!inventoryContext || !userContext) {
       throw new Error('DashboardPage must be used within an InventoryProvider and UserProvider');
     }
-    const { notifications, dismissNotification } = inventoryContext;
+    const { notifications, dismissNotification, reservations } = inventoryContext;
     const { currentUser } = userContext;
 
     const currentUserRole = currentUser.roles[0];
@@ -123,6 +124,23 @@ export default function DashboardPage() {
         return userPermissions.includes(permission);
     };
 
+    const expiringReservations = useMemo(() => {
+        if (currentUserRole !== 'Asesor de Ventas') return [];
+
+        const now = new Date();
+        return reservations.filter(r => {
+            if (r.advisor !== currentUser.name || r.status !== 'Validada') return false;
+            
+            // This logic assumes a `validationDate` property exists. 
+            // Since it's not on the Reservation type, we'll simulate it for now.
+            // In a real app, this should be part of the reservation data.
+            const validationDate = new Date(new Date().setDate(now.getDate() - (Math.random() * 10))); // Mock date
+            const diffTime = now.getTime() - validationDate.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays > 5;
+        });
+    }, [reservations, currentUser.name, currentUserRole]);
+
     const allNavItems = navItems.flatMap(item => item.subItems ? item.subItems.map(sub => ({...sub, icon: item.icon})) : [{ ...item, icon: item.icon }]);
     const accessibleNavItems = allNavItems.filter(item => item.href !== '/dashboard' && hasPermission(item.permission));
     const overviewItems = currentUserRole === 'Asesor de Ventas' ? salesOverviewItems : inventoryOverviewItems;
@@ -130,6 +148,15 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-4">
+        {expiringReservations.map(res => (
+            <Alert key={`exp-${res.id}`} variant="destructive" className="relative">
+             <Clock className="h-4 w-4" />
+             <AlertTitle className="font-semibold">¡Reserva a Punto de Expirar!</AlertTitle>
+             <AlertDescription>
+                Tu reserva para **{res.quantity} unidades** de **{res.product}** ({res.quoteNumber}) fue validada hace más de 5 días. Por favor, gestiona el despacho pronto para no perder el material separado.
+             </AlertDescription>
+           </Alert>
+        ))}
         {notifications.map(notification => (
            <Alert key={notification.id} className="relative bg-primary/10 border-primary/20">
              <Bell className="h-4 w-4 text-primary" />

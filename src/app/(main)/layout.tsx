@@ -182,10 +182,13 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
   
   const pendingValidations = useMemo(() => {
-    const pendingReservations = inventoryContext?.reservations.filter(r => r.status === 'En espera de validación').length || 0;
+    if (!inventoryContext) return 0;
+    const pendingReservations = inventoryContext.reservations.filter(r => r.status === 'En espera de validación').length;
+    // NOTE: In a real app, pending dispatches would also come from a shared state/context
+    // For now, we assume initialDispatchData represents pending ones.
     const pendingDispatches = initialDispatchData.length;
     return pendingReservations + pendingDispatches;
-  }, [inventoryContext?.reservations]);
+  }, [inventoryContext]);
 
   const pendingPrices = useMemo(() => {
     if (!inventoryContext) return 0;
