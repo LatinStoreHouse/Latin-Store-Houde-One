@@ -300,9 +300,8 @@ export default function ValidationPage() {
                         <TableHead># Cotización</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Producto</TableHead>
-                        <TableHead>Cantidad</TableHead>
-                        <TableHead>Origen</TableHead>
                         <TableHead>Asesor</TableHead>
+                        <TableHead>Vence</TableHead>
                         <TableHead>Factura #</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
@@ -312,10 +311,12 @@ export default function ValidationPage() {
                         <TableRow key={reservation.id}>
                         <TableCell>{reservation.quoteNumber}</TableCell>
                         <TableCell>{reservation.customer}</TableCell>
-                        <TableCell>{reservation.product}</TableCell>
-                        <TableCell>{reservation.quantity}</TableCell>
-                        <TableCell>{reservation.sourceId}</TableCell>
+                        <TableCell>
+                            {reservation.product} ({reservation.quantity} u.)
+                            <p className="text-xs text-muted-foreground">Origen: {reservation.sourceId}</p>
+                        </TableCell>
                         <TableCell>{reservation.advisor}</TableCell>
+                        <TableCell>{reservation.expirationDate || 'Sin Vencimiento'}</TableCell>
                         <TableCell>
                             <Input 
                                 value={facturaNumbers[reservation.id] || ''}
@@ -340,7 +341,7 @@ export default function ValidationPage() {
                     ))}
                     {pendingReservations.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={8} className="text-center text-muted-foreground">
+                            <TableCell colSpan={7} className="text-center text-muted-foreground">
                                 No hay reservas pendientes de validación.
                             </TableCell>
                         </TableRow>

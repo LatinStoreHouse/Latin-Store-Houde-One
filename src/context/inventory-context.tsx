@@ -1,5 +1,3 @@
-
-
 'use client';
 import React, { createContext, useState, ReactNode } from 'react';
 import { initialInventoryData } from '@/lib/initial-inventory';
@@ -38,6 +36,7 @@ export interface Reservation {
   quoteNumber: string;
   status: 'En espera de validación' | 'Validada' | 'Rechazada' | 'Despachada';
   source: 'Contenedor' | 'Bodega' | 'Zona Franca';
+  expirationDate?: string;
 }
 
 export interface AppNotification {

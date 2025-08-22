@@ -58,6 +58,7 @@ export default function ReservationsPage() {
   const [quantity, setQuantity] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [quoteNumber, setQuoteNumber] = useState('');
+  const [expirationDate, setExpirationDate] = useState('');
   const [reservationSource, setReservationSource] = useState<'Contenedor' | 'Bodega' | 'Zona Franca'>('Contenedor');
   const [selectedContainerId, setSelectedContainerId] = useState('');
   const { toast } = useToast();
@@ -184,6 +185,7 @@ export default function ReservationsPage() {
         quoteNumber: quoteNumber,
         status: 'En espera de validación',
         source: reservationSource,
+        expirationDate: expirationDate || undefined,
     };
 
     setReservations([...reservations, newReservation]);
@@ -192,6 +194,7 @@ export default function ReservationsPage() {
     setQuantity(0);
     setQuoteNumber('');
     setAdvisorName('');
+    setExpirationDate('');
     setSelectedContainerId('');
     setIsNewReservationDialogOpen(false);
     toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
@@ -327,9 +330,15 @@ export default function ReservationsPage() {
                           </div>
                         </RadioGroup>
                     </div>
-                    <div className="space-y-2">
-                        <Label># Cotización</Label>
-                        <Input value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                          <Label># Cotización</Label>
+                          <Input value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" />
+                      </div>
+                       <div className="space-y-2">
+                          <Label>Fecha Vencimiento (Opcional)</Label>
+                          <Input type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} />
+                      </div>
                     </div>
                     <div className="space-y-2">
                         <Label>Nombre del Cliente</Label>
