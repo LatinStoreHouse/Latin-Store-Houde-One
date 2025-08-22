@@ -18,7 +18,7 @@ import { Combobox } from './ui/combobox';
 import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { PlusCircle, Trash2 } from 'lucide-react';
-import { useToast } from './ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { InventoryContext } from '@/context/inventory-context';
 
 const colombianCities = [
