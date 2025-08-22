@@ -185,7 +185,6 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const pendingValidations = useMemo(() => {
     if (!inventoryContext) return 0;
     const pendingReservations = inventoryContext.reservations.filter(r => r.status === 'En espera de validación').length;
-    // This should ideally come from a shared state, but for now we'll use the initial data
     const pendingDispatches = initialPendingDispatches.length;
     return pendingReservations + pendingDispatches;
   }, [inventoryContext]);
@@ -197,6 +196,22 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     );
     return allProducts.filter(productName => !(productName in initialProductPrices) || initialProductPrices[productName as keyof typeof initialProductPrices] === 0).length;
   }, [inventoryContext?.inventoryData]);
+
+  const pendingReservationAlerts = useMemo(() => {
+    if (!inventoryContext) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); 
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    return inventoryContext.reservations.filter(r => {
+        if (r.status !== 'Validada' || !r.expirationDate) {
+            return false;
+        }
+        const expiration = new Date(r.expirationDate);
+        return expiration <= tomorrow;
+    }).length;
+  }, [inventoryContext]);
 
 
   const hasPermission = (item: any) => {
@@ -256,6 +271,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
 
   const isSuperAdmin = initialUser.roles.includes('Administrador');
   const canEditPrices = hasPermission({ permission: 'pricing:edit' });
+  const canViewReservationsAlert = hasPermission({ permission: 'reservations:view' });
 
   return (
     <SidebarProvider>
@@ -290,6 +306,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                                 <Link href={subItem.href}>
                                   <SubIcon />
                                   <span className="">{subItem.label}</span>
+                                   {subItem.href === '/reservations' && pendingReservationAlerts > 0 && canViewReservationsAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
                                 </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
