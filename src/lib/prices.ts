@@ -97,8 +97,8 @@ export const initialProductPrices: { [key: string]: number } = {
     'Clip plastico para deck wpc': 1500,
     'Durmiente plastico 3x3 - 2.90 mts': 25000,
     'Durmiente plastico 6 x 6 - 1 mts': 0, // No price provided
-    'Daily clean': 0, // No price provided
-    'Intensive clean': 0, // No price provided
+    'Daily clean': 0,
+    'Intensive clean': 0,
     'Sellante wpc 1 galon': 60000,
     'Sellante wpc 1/4 galon': 0, // No price provided
     'Daily clean galon': 0, // No price provided
@@ -114,10 +114,10 @@ export const initialProductPrices: { [key: string]: number } = {
     'Adhesivo translucido': 43450,
     'ADHESIVO TRASLUCIDO': 43450, // Legacy support
     'Poliuretano stoneflex': 0, // No price provided
-    'SELLANTE SEMI - BRIGHT GALON': 176000,
-    'SELLANTE SEMI - BRIGTH 1/ 4 GALON': 46200,
-    'SELLANTE SHYNY GALON': 185900,
-    'SELLANTE SHYNY 1/4 GALON': 54450,
+    'Sellante semi - bright galon': 176000,
+    'Sellante semi - brigth 1/ 4 galon': 46200,
+    'Sellante shyny galon': 185900,
+    'Sellante shyny 1/4 galon': 54450,
 };
 
     
