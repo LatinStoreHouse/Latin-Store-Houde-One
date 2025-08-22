@@ -54,12 +54,6 @@ export function Combobox({
     setOpen(false);
   };
   
-  const handleInputChange = (search: string) => {
-     if (allowFreeText) {
-      onValueChange?.(search);
-    }
-  }
-
   const getDisplayValue = () => {
     if (value) {
       const selectedOption = options.find(o => o.value === value);
@@ -87,8 +81,10 @@ export function Combobox({
         <Command>
           <CommandInput
             placeholder={searchPlaceholder}
-            onValueChange={handleInputChange}
-            value={allowFreeText ? value : undefined}
+            {...(allowFreeText && {
+              value: value,
+              onValueChange: onValueChange
+            })}
           />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
@@ -97,7 +93,7 @@ export function Combobox({
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={() => handleSelect(option.value)}
+                  onSelect={handleSelect}
                 >
                   <Check
                     className={cn(
