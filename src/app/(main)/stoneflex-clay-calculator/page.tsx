@@ -480,26 +480,15 @@ export default function StoneflexCalculatorPage() {
         const gallonPerf = sealantPerformance[gallonRef as SealantType];
         const quarterPerf = sealantPerformance[quarterRef as SealantType];
         
-        let totalSqM = totalSqmClay + totalSqmOther;
+        const totalSqm = totalSqmClay + totalSqmOther;
+        const totalGallonsNeeded = Math.floor(totalSqmClay / gallonPerf.clay) + Math.floor(totalSqmOther / gallonPerf.other);
+        const remainingSqmClay = totalSqmClay % gallonPerf.clay;
+        const remainingSqmOther = totalSqmOther % gallonPerf.other;
         
-        // This is a simplified logic. A more complex one would optimize cost between gallons and quarters.
-        if (totalSqmClay > 0) {
-            const numGallons = Math.floor(totalSqmClay / gallonPerf.clay);
-            sealantGallons += numGallons;
-            const remSqm = totalSqmClay % gallonPerf.clay;
-            if (remSqm > 0) {
-                sealantQuarters += Math.ceil(remSqm / quarterPerf.clay);
-            }
-        }
+        const totalQuartersNeeded = Math.ceil(remainingSqmClay / quarterPerf.clay) + Math.ceil(remainingSqmOther / quarterPerf.other);
         
-        if (totalSqmOther > 0) {
-             const numGallons = Math.floor(totalSqmOther / gallonPerf.other);
-            sealantGallons += numGallons;
-            const remSqm = totalSqmOther % gallonPerf.other;
-            if (remSqm > 0) {
-                sealantQuarters += Math.ceil(remSqm / quarterPerf.other);
-            }
-        }
+        sealantGallons = totalGallonsNeeded;
+        sealantQuarters = totalQuartersNeeded;
 
         totalSealantCost = convert((sealantGallons * gallonPriceCOP) + (sealantQuarters * quarterPriceCOP));
         sealantGallonType = gallonRef as SealantType;
@@ -527,6 +516,8 @@ export default function StoneflexCalculatorPage() {
       totalSealantCost,
       sealantGallons,
       sealantQuarters,
+      sealantGallonPrice: convert(productPrices[sealantGallonType!] || 0),
+      sealantQuarterPrice: convert(productPrices[sealantQuarterType!] || 0),
       sealantGallonType,
       sealantQuarterType,
       manualSuppliesCost,
@@ -1032,10 +1023,16 @@ export default function StoneflexCalculatorPage() {
                         <span>{formatCurrency(quote.totalTranslucentAdhesiveCost)}</span>
                     </div>
                  )}
-                  {quote.totalSealantCost > 0 && (
+                  {quote.sealantGallons > 0 && (
                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Costo Sellante ({quote.sealantGallons > 0 ? `${quote.sealantGallons}G` : ''} {quote.sealantQuarters > 0 ? `${quote.sealantQuarters}Q` : ''})</span>
-                        <span>{formatCurrency(quote.totalSealantCost)}</span>
+                        <span className="text-muted-foreground">Costo Sellante (Galón) ({quote.sealantGallons} u. @ {formatCurrency(quote.sealantGallonPrice)}/u.)</span>
+                        <span>{formatCurrency(quote.sealantGallonPrice * quote.sealantGallons)}</span>
+                    </div>
+                  )}
+                  {quote.sealantQuarters > 0 && (
+                     <div className="flex justify-between">
+                        <span className="text-muted-foreground">Costo Sellante (1/4 de galón) ({quote.sealantQuarters} u. @ {formatCurrency(quote.sealantQuarterPrice)}/u.)</span>
+                        <span>{formatCurrency(quote.sealantQuarterPrice * quote.sealantQuarters)}</span>
                     </div>
                   )}
                   {quote.manualSuppliesCost > 0 && (
