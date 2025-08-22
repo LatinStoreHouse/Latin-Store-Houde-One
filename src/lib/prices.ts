@@ -2,34 +2,58 @@
 export const initialProductPrices: { [key: string]: number } = {
     // Pizarra Estándar
     'Black': 131100,
-    'Kund multy': 550620, // This has two sizes, taking the XL price as default for now. Needs review.
-    'Tan': 550620, // This has two sizes, taking the XL price as default for now. Needs review.
-    'Indian autumn': 550620, // This has two sizes, taking the XL price as default for now. Needs review.
+    'Kund multy': 131100,
+    'Tan': 131100,
+    'Indian autumn': 131100,
+    
+    // Pizarra XL
+    'Black XL': 550620,
+    'Kund multy XL': 550620,
+    'Tan XL': 550620,
+    'Indian autumn XL': 550620,
 
     // Cuarcita Estándar
-    'Burning forest': 550620,
-    'Copper': 550620,
-    'Jeera green': 550620,
-    'Silver shine': 550620,
-    'Silver shine gold': 550620,
+    'Burning forest': 131100,
+    'Copper': 131100,
+    'Jeera green': 131100,
+    'Silver shine': 131100,
+    'Silver shine gold': 131100,
     'Steel gray': 131100,
+    
+    // Cuarcita XL
+    'Burning forest XL': 550620,
+    'Copper XL': 550620,
+    'Jeera green XL': 550620,
+    'Silver shine XL': 550620,
+    'Silver shine gold XL': 550620,
     'Steel grey': 550620,
     
     // Concreto Estándar
-    'Concreto blanco': 576840,
-    'Concreto gris': 576840,
-    'Concrete with holes': 576840,
+    'Concreto blanco': 137340,
+    'Concreto gris': 137340,
+    'Concrete with holes': 137340,
     'Concreto gris medium': 131100,
+
+    // Concreto XL
+    'Concreto blanco XL': 576840,
+    'Concreto gris XL': 576840,
+    'Concrete with holes XL': 576840,
     'Concreto medio': 576840,
     
     // Mármol Estándar
-    'Carrara': 743581,
-    'Crystal white': 743581,
-    'Himalaya gold': 743581,
+    'Carrara': 177043,
+    'Crystal white': 177043,
+    'Himalaya gold': 177043,
     'Mint white': 177043,
+    
+    // Mármol XL
+    'Carrara XL': 743581,
+    'Crystal white XL': 743581,
+    'Himalaya gold XL': 743581,
     
     // Traslúcida Estándar
     'Indian autumn translucido': 186990,
+    'Indian autumn translucido XL': 785358,
     
     // Madera
     'Madera nogal': 81512,
@@ -46,17 +70,17 @@ export const initialProductPrices: { [key: string]: number } = {
     'Corten steel': 798100,
 
     // Clay
-    'Clay cut stone': 176000,
-    'Clay travertino': 176000,
+    'Cut stone': 176000,
+    'Travertino': 176000,
     'Concreto encofrado': 176000,
-    'Clay tapia negra': 176000,
+    'Tapia negra': 176000,
 
-    // 3D (sin precio en la imagen, se mantiene el anterior)
+    // 3D
     '3d adhesivo - black': 207072,
     '3d adhesivo - indian rustic': 207072,
     '3d adhesivo - tan': 207072,
     
-    // Insumos Starwood (sin cambios)
+    // Insumos Starwood
     'Pergola 9x4 - 3 mts coffee': 126788,
     'Pergola 9x4 - 3 mts chocolate': 126788,
     'Pergola 10x5 - 3 coffee': 165456,
@@ -72,7 +96,7 @@ export const initialProductPrices: { [key: string]: number } = {
     'Sellante wpc 1 galon': 60000,
 
     // Insumos StoneFlex
-    'Adhesivo': 28039, // Poliuretano
+    'Adhesivo': 28039,
     'ADHESIVO TRASLUCIDO': 43450,
     'SELLANTE SEMI - BRIGHT GALON': 176000,
     'SELLANTE SEMI - BRIGTH 1/ 4 GALON': 46200,

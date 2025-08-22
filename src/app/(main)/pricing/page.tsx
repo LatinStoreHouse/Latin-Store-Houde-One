@@ -32,34 +32,50 @@ const productStructure: { [key: string]: { [line: string]: string[] } } = {
     ],
     'Pizarra': [
       'Black',
+      'Black XL',
       'Kund multy',
+      'Kund multy XL',
       'Tan',
+      'Tan XL',
       'Indian autumn',
+      'Indian autumn XL',
     ],
     'Cuarcitas': [
       'Burning forest',
+      'Burning forest XL',
       'Copper',
+      'Copper XL',
       'Jeera green',
+      'Jeera green XL',
       'Silver shine',
+      'Silver shine XL',
       'Silver shine gold',
+      'Silver shine gold XL',
       'Steel gray',
       'Steel grey',
     ],
     'Concreto': [
       'Concreto blanco',
+      'Concreto blanco XL',
       'Concreto gris',
+      'Concreto gris XL',
       'Concrete with holes',
+      'Concrete with holes XL',
       'Concreto gris medium',
       'Concreto medio',
     ],
     'Mármol': [
       'Carrara',
+      'Carrara XL',
       'Crystal white',
+      'Crystal white XL',
       'Himalaya gold',
+      'Himalaya gold XL',
       'Mint white',
     ],
     'Translucida': [
       'Indian autumn translucido',
+      'Indian autumn translucido XL',
     ],
     'Madera': [
       'Madera nogal',
@@ -132,7 +148,7 @@ export default function PricingPage() {
   const canEdit = userPermissions.includes('pricing:edit');
   
   const handleOpenEditModal = (productName: string) => {
-    setEditingProduct({ name: productName, price: prices[productName] || 0 });
+    setEditingProduct({ name: productName, price: prices[productName as keyof typeof prices] || 0 });
     setIsEditModalOpen(true);
   };
 
@@ -174,7 +190,7 @@ export default function PricingPage() {
   const handleDeleteProduct = (productName: string) => {
     setPrices(prev => {
         const newPrices = {...prev};
-        delete newPrices[productName];
+        delete newPrices[productName as keyof typeof newPrices];
         return newPrices;
     });
     setLocalProductStructure(prev => {
@@ -221,14 +237,14 @@ export default function PricingPage() {
     let productsInLine = localProductStructure[brand as keyof typeof localProductStructure][line];
     
     if (sizeFilter === 'estandar') {
-        productsInLine = productsInLine.filter(p => (productDimensions[p] || '').includes('1.22 x 0.61'));
+        productsInLine = productsInLine.filter(p => !p.includes('XL'));
     } else if (sizeFilter === 'xl') {
-        productsInLine = productsInLine.filter(p => (productDimensions[p] || '').includes('2.44 x 1.22'));
+        productsInLine = productsInLine.filter(p => p.includes('XL'));
     }
 
     const updatedPrices = { ...prices };
     productsInLine.forEach(product => {
-      updatedPrices[product] = numericPrice;
+      updatedPrices[product as keyof typeof updatedPrices] = numericPrice;
     });
     setPrices(updatedPrices);
     toast({
@@ -257,8 +273,8 @@ export default function PricingPage() {
   
   const lineHasMultipleSizes = (brand: string, line: string) => {
     const products = localProductStructure[brand as keyof typeof localProductStructure][line];
-    const hasEstandar = products.some(p => (productDimensions[p] || '').includes('1.22 x 0.61'));
-    const hasXL = products.some(p => (productDimensions[p] || '').includes('2.44 x 1.22'));
+    const hasEstandar = products.some(p => !p.includes('XL'));
+    const hasXL = products.some(p => p.includes('XL'));
     return hasEstandar && hasXL;
   };
 
@@ -373,7 +389,7 @@ export default function PricingPage() {
                                       <Label htmlFor={`price-${product}`} className="font-medium">{product}</Label>
                                     </TableCell>
                                     <TableCell className="text-right font-medium">
-                                       {formatCurrency(prices[product] || 0)}
+                                       {formatCurrency(prices[product as keyof typeof prices] || 0)}
                                     </TableCell>
                                      {canEdit && (
                                         <TableCell className="text-right">

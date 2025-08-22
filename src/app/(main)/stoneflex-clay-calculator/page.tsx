@@ -39,24 +39,40 @@ const referenceDetails: { [key: string]: { brand: string, line: string } } = {
     'Concreto encofrado': { brand: 'StoneFlex', line: 'Clay' },
     'Tapia negra': { brand: 'StoneFlex', line: 'Clay' },
     'Black': { brand: 'StoneFlex', line: 'Pizarra' },
+    'Black XL': { brand: 'StoneFlex', line: 'Pizarra' },
     'Kund multy': { brand: 'StoneFlex', line: 'Pizarra' },
+    'Kund multy XL': { brand: 'StoneFlex', line: 'Pizarra' },
     'Tan': { brand: 'StoneFlex', line: 'Pizarra' },
+    'Tan XL': { brand: 'StoneFlex', line: 'Pizarra' },
     'Indian autumn': { brand: 'StoneFlex', line: 'Pizarra' },
+    'Indian autumn XL': { brand: 'StoneFlex', line: 'Pizarra' },
     'Indian autumn translucido': { brand: 'StoneFlex', line: 'Translucida' },
+    'Indian autumn translucido XL': { brand: 'StoneFlex', line: 'Translucida' },
     'Burning forest': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Burning forest XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Copper': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Copper XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Jeera green': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Jeera green XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Silver shine': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Silver shine XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Silver shine gold': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Silver shine gold XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Steel gray': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Steel grey': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Carrara': { brand: 'StoneFlex', line: 'Mármol' },
+    'Carrara XL': { brand: 'StoneFlex', line: 'Mármol' },
     'Crystal white': { brand: 'StoneFlex', line: 'Mármol' },
+    'Crystal white XL': { brand: 'StoneFlex', line: 'Mármol' },
     'Himalaya gold': { brand: 'StoneFlex', line: 'Mármol' },
+    'Himalaya gold XL': { brand: 'StoneFlex', line: 'Mármol' },
     'Mint white': { brand: 'StoneFlex', line: 'Mármol' },
     'Concreto blanco': { brand: 'StoneFlex', line: 'Concreto' },
+    'Concreto blanco XL': { brand: 'StoneFlex', line: 'Concreto' },
     'Concreto gris': { brand: 'StoneFlex', line: 'Concreto' },
+    'Concreto gris XL': { brand: 'StoneFlex', line: 'Concreto' },
     'Concrete with holes': { brand: 'StoneFlex', line: 'Concreto' },
+    'Concrete with holes XL': { brand: 'StoneFlex', line: 'Concreto' },
     'Concreto gris medium': { brand: 'StoneFlex', line: 'Concreto' },
     'Concreto medio': { brand: 'StoneFlex', line: 'Concreto' },
     'Corten stell': { brand: 'StoneFlex', line: 'Metales' },
@@ -169,7 +185,7 @@ export default function StoneflexCalculatorPage() {
   const [notes, setNotes] = useState('');
 
   const referenceOptions = useMemo(() => {
-    return allReferences.map(ref => ({ value: ref, label: `${ref} (${productDimensions[ref] || 'N/A'})` }));
+    return allReferences.map(ref => ({ value: ref, label: `${ref} (${productDimensions[ref as keyof typeof productDimensions] || 'N/A'})` }));
   }, []);
 
   const supplyOptions = useMemo(() => {
@@ -202,7 +218,7 @@ export default function StoneflexCalculatorPage() {
 
 
   const getSqmPerSheet = (ref: string) => {
-    const dimension = productDimensions[ref];
+    const dimension = productDimensions[ref as keyof typeof productDimensions];
     if (!dimension) return 0;
     
     if (dimension.includes('Caja')) {
@@ -252,7 +268,7 @@ export default function StoneflexCalculatorPage() {
     const finalSqm = baseSqm * wasteFactor;
     const finalSheets = sqmPerSheet > 0 ? Math.ceil(finalSqm / sqmPerSheet) : baseSheets;
 
-    const pricePerSheet = productPrices[reference] || 0;
+    const pricePerSheet = productPrices[reference as keyof typeof productPrices] || 0;
 
     const newItem: QuoteItem = {
       id: Date.now(),
@@ -279,7 +295,7 @@ export default function StoneflexCalculatorPage() {
       sqMeters: 0,
       sheets: units,
       calculationMode: 'units',
-      pricePerSheet: productPrices[supplyReference] || 0
+      pricePerSheet: productPrices[supplyReference as keyof typeof productPrices] || 0
     };
     
     setQuoteItems([...quoteItems, newItem]);
@@ -328,7 +344,7 @@ export default function StoneflexCalculatorPage() {
     const translucentAdhesivePriceCOP = productPrices['ADHESIVO TRASLUCIDO'] || 0;
 
     const detailedItems = quoteItems.map(item => {
-      const details = referenceDetails[item.reference];
+      const details = referenceDetails[item.reference as keyof typeof referenceDetails];
       
       if (item.calculationMode === 'units') { // Manual Supply
           const itemCost = convert(item.pricePerSheet * item.sheets);
@@ -346,13 +362,13 @@ export default function StoneflexCalculatorPage() {
       
       if (includeAdhesive && details.line !== '3D') {
           let adhesivePerSheet = 0;
-          const dimension = productDimensions[item.reference] || '';
+          const dimension = productDimensions[item.reference as keyof typeof productDimensions] || '';
           const isStandardSize = dimension.includes('1.22 x 0.61') || dimension.includes('1.20*0.60');
           const isMetalStandardSize = dimension.includes('2.44 x 0.61');
           const isXLSize = dimension.includes('2.44 x 1.22') || dimension.includes('2.95*1.20') || dimension.includes('2.90*0.56');
           const isWoodSize = dimension.includes('0.15 x 2.44');
 
-          if (details.line === 'Translúcida') {
+          if (details.line === 'Translucida') {
               adhesivePerSheet = isStandardSize ? 0.5 : 2;
               totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           } else {
@@ -440,7 +456,7 @@ export default function StoneflexCalculatorPage() {
     const body: any[][] = [];
 
     quote.items.forEach(item => {
-        const dimensionText = productDimensions[item.reference] ? `(${productDimensions[item.reference]})` : '';
+        const dimensionText = productDimensions[item.reference as keyof typeof productDimensions] ? `(${productDimensions[item.reference as keyof typeof productDimensions]})` : '';
         const title = item.calculationMode === 'units' ? item.reference : `${item.reference} ${dimensionText}`;
         const qty = item.sheets;
         const price = formatCurrency(item.pricePerSheet);
@@ -810,12 +826,6 @@ export default function StoneflexCalculatorPage() {
                           Cliente: {customerName || 'N/A'} | Válida hasta {quote.expiryDate} | Moneda: {currency}
                       </CardDescription>
                   </div>
-                  <div className="text-right">
-                      <div className="relative h-10 w-32 mb-2">
-                          <Image src="https://www.latinstorehouse.com/wp-content/uploads/2021/02/LATIN-STORE-HOUSE.png" alt="Latin Store House" fill style={{ objectFit: 'contain' }} />
-                      </div>
-                      <p className="text-sm font-semibold">Asesor: Usuario Admin</p>
-                  </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -839,7 +849,7 @@ export default function StoneflexCalculatorPage() {
                              <Input 
                                 id={`price-${item.id}`}
                                 type="text"
-                                value={new Intl.NumberFormat('es-CO').format(productPrices[item.reference] || 0)}
+                                value={new Intl.NumberFormat('es-CO').format(productPrices[item.reference as keyof typeof productPrices] || 0)}
                                 onChange={(e) => handleItemPriceChange(item.id, parseDecimal(e.target.value.replace(/[^0-9]/g, '')))}
                                 className="h-7 w-28"
                             />

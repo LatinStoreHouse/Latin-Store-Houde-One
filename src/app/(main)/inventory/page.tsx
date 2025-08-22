@@ -102,7 +102,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             return (
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
-                <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name] || 'N/A'}</TableCell>
+                <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
                 <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
                 <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
                 {!isPartner && (
@@ -174,7 +174,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                     className="h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0"
                 />
               </TableCell>
-              <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name] || 'N/A'}</TableCell>
+              <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
               <TableCell className="text-right p-0">
                 <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
               </TableCell>
