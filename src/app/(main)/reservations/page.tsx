@@ -141,9 +141,6 @@ export default function ReservationsPage() {
     return allValidatedReservations.filter(r => r.source === 'Contenedor' && activeContainerIds.has(r.sourceId));
   }, [allValidatedReservations, activeContainers]);
   
-  const pendingDispatchReservations = useMemo(() => {
-    return allValidatedReservations.filter(r => r.source === 'Bodega' || r.source === 'Zona Franca');
-  }, [allValidatedReservations]);
 
   const historyReservations = useMemo(() => filteredReservations.filter(r => r.status === 'Despachada' || r.status === 'Rechazada'), [filteredReservations]);
 
@@ -402,11 +399,10 @@ export default function ReservationsPage() {
       </Card>
       
       <Tabs defaultValue="pendientes-validacion" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="pendientes-validacion">Pendiente Validación ({pendingValidationReservations.length})</TabsTrigger>
             <TabsTrigger value="separadas">Separadas (Validadas) ({allValidatedReservations.length})</TabsTrigger>
             <TabsTrigger value="pendientes-llegada">Pendiente Llegada ({pendingArrivalReservations.length})</TabsTrigger>
-            <TabsTrigger value="pendientes-despacho">Pendiente Despacho ({pendingDispatchReservations.length})</TabsTrigger>
             <TabsTrigger value="historial">Historial ({historyReservations.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="pendientes-validacion" className="pt-4">
@@ -427,13 +423,6 @@ export default function ReservationsPage() {
            <Card>
             <CardContent className="p-0">
               <ReservationsTable data={pendingArrivalReservations} />
-            </CardContent>
-           </Card>
-        </TabsContent>
-         <TabsContent value="pendientes-despacho" className="pt-4">
-           <Card>
-            <CardContent className="p-0">
-              <ReservationsTable data={pendingDispatchReservations} showActions={true} />
             </CardContent>
            </Card>
         </TabsContent>
