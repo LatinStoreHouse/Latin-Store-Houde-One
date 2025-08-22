@@ -259,7 +259,7 @@ export default function InventoryPage() {
   const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
   const isPartner = currentUserRole === 'Partners';
   const isMarketing = currentUserRole === 'Marketing';
-  const canViewLowStockAlerts = !isPartner && !isMarketing;
+  const canViewLowStockAlerts = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística');
   
   let columnsForExport: Record<string, boolean>;
   if (canEdit) {
@@ -712,3 +712,4 @@ export default function InventoryPage() {
 
     
 
+    
