@@ -55,6 +55,7 @@ const referenceDetails: { [key: string]: { brand: string, line: string } } = {
     'Jeera green': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Jeera green XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Silver shine': { brand: 'StoneFlex', line: 'Cuarcitas' },
+    'Silver shine XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Silver shine gold': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Silver shine gold XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
     'Steel grey': { brand: 'StoneFlex', line: 'Cuarcitas' },
@@ -193,15 +194,15 @@ function AdhesiveReferenceTable() {
                                 <TableCell>18 M²</TableCell>
                                 <TableCell>10 M²</TableCell>
                             </TableRow>
-                            <TableRow>
+                             <TableRow>
                                 <TableCell>Brillante (Galón)</TableCell>
                                 <TableCell>60 M²</TableCell>
-                                <TableCell>40 M²</TableCell>
+                                <TableCell>N/A</TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>Brillante (1/4 Galón)</TableCell>
                                 <TableCell>18 M²</TableCell>
-                                <TableCell>10 M²</TableCell>
+                                <TableCell>N/A</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
