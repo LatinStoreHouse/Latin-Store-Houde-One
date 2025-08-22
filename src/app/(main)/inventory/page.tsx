@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, Save, Truck, BadgeCheck } from 'lucide-react';
+import { FileDown, Save, Truck, BadgeCheck, BellRing } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Role } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
@@ -43,10 +43,11 @@ declare module 'jspdf' {
 
 const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMarketing, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, isPartner: boolean, isMarketing: boolean, onDataChange: Function, inventoryData: any }) => {
   const context = useContext(InventoryContext);
-  if (!context) {
-    throw new Error('ProductTable must be used within an InventoryProvider');
+  const { currentUser } = useUser();
+  if (!context || !currentUser) {
+    throw new Error('ProductTable must be used within an InventoryProvider and UserProvider');
   }
-  const { reservations: allReservations } = context;
+  const { reservations: allReservations, toggleProductSubscription, productSubscriptions } = context;
   
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
     const isNumber = typeof inventoryData[brand][subCategory][productName][field] === 'number';
@@ -68,6 +69,8 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
     if (stock > 0 && stock <= 20) return 'text-yellow-600';
     return 'text-green-600';
   };
+  
+  const canSubscribe = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
 
   if (Object.keys(products).length === 0) {
     return <p className="p-4 text-center text-muted-foreground">No hay productos en esta categoría.</p>;
@@ -98,13 +101,34 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             const totalReserved = item.separadasBodega + item.separadasZonaFranca;
 
             const highStock = totalDisponible > 500;
+            const isSubscribed = productSubscriptions[name]?.includes(currentUser.name);
 
             return (
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
                 <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
-                <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
-                <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
+                
+                {totalDisponible > 0 ? (
+                    <>
+                        <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
+                        <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
+                    </>
+                ) : (
+                    <TableCell colSpan={2} className="text-center p-2">
+                        {canSubscribe && (
+                             <Button 
+                                variant={isSubscribed ? "secondary" : "outline"} 
+                                size="sm" 
+                                className="w-full"
+                                onClick={() => toggleProductSubscription(name, currentUser.name)}
+                            >
+                                <BellRing className="mr-2 h-4 w-4" />
+                                {isSubscribed ? "Cancelar Notificación" : "Notificarme cuando llegue"}
+                            </Button>
+                        )}
+                    </TableCell>
+                )}
+
                 {!isPartner && (
                   <TableCell className="text-right p-2">
                     {totalReserved > 0 && (

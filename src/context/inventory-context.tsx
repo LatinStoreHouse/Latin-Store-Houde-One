@@ -6,6 +6,7 @@ import { initialReservations } from '@/lib/sales-history';
 import { TransferItem } from '@/components/transfer-inventory-form';
 import { productDimensions } from '@/lib/dimensions';
 import { initialProductPrices } from '@/lib/prices';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Product {
   name: string;
@@ -63,6 +64,8 @@ interface InventoryContextType {
   releaseReservationStock: (reservation: Reservation) => void;
   addContainer: (container: Container) => void;
   editContainer: (containerId: string, updatedContainer: Container) => void;
+  productSubscriptions: Record<string, string[]>;
+  toggleProductSubscription: (productName: string, userName: string) => void;
 }
 
 export const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -72,6 +75,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [containers, setContainers] = useState<Container[]>(initialContainerData);
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [productSubscriptions, setProductSubscriptions] = useState<Record<string, string[]>>({});
+  const { toast } = useToast();
 
 
   const findProductLocation = (productName: string) => {
@@ -163,6 +168,25 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       const newInventory = JSON.parse(JSON.stringify(prevInventory));
       
       for (const productInContainer of container.products) {
+        // Notify subscribed users
+        const subscribers = productSubscriptions[productInContainer.name] || [];
+        for (const userName of subscribers) {
+            newNotifications.push({
+                id: Date.now() + Math.random(),
+                title: '¡Stock Disponible!',
+                message: `El producto "${productInContainer.name}" por el que te suscribiste ya está disponible en Zona Franca.`,
+                date: new Date().toISOString(),
+                // We can add a 'user' property if notifications become user-specific
+            });
+        }
+         // Clear subscriptions for this product
+        setProductSubscriptions(prev => {
+            const newSubs = {...prev};
+            delete newSubs[productInContainer.name];
+            return newSubs;
+        });
+
+
         // Find the quantity reserved for this specific product in this container
         const reservedQuantity = validatedReservations
             .filter(r => r.product === productInContainer.name)
@@ -291,6 +315,24 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   }
 
+  const toggleProductSubscription = (productName: string, userName: string) => {
+    setProductSubscriptions(prev => {
+        const newSubs = {...prev};
+        const currentSubscribers = newSubs[productName] || [];
+        const isSubscribed = currentSubscribers.includes(userName);
+
+        if (isSubscribed) {
+            newSubs[productName] = currentSubscribers.filter(name => name !== userName);
+             toast({ title: 'Suscripción Cancelada', description: `Ya no recibirás notificaciones para "${productName}".` });
+        } else {
+            newSubs[productName] = [...currentSubscribers, userName];
+            toast({ title: '¡Te Notificaremos!', description: `Recibirás una alerta cuando "${productName}" esté disponible.` });
+        }
+
+        return newSubs;
+    });
+  }
+
 
   return (
     <InventoryContext.Provider value={{ 
@@ -307,7 +349,9 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       dispatchReservation,
       releaseReservationStock,
       addContainer,
-      editContainer
+      editContainer,
+      productSubscriptions,
+      toggleProductSubscription
     }}>
       {children}
     </InventoryContext.Provider>
