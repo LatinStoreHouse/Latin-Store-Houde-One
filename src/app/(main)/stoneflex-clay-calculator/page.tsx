@@ -465,33 +465,22 @@ export default function StoneflexCalculatorPage() {
     
     // Sealant Cost Calculation
     let totalSealantCost = 0;
-    let sealantGallons = 0;
     let sealantQuarters = 0;
-    let sealantGallonType: SealantType | null = null;
     let sealantQuarterType: SealantType | null = null;
     
     if (includeSealant) {
-        const gallonRef = sealantFinish === 'semibright' ? 'SELLANTE SEMI - BRIGHT GALON' : 'SELLANTE SHYNY GALON';
         const quarterRef = sealantFinish === 'semibright' ? 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' : 'SELLANTE SHYNY 1/4 GALON';
-        
-        const gallonPriceCOP = productPrices[gallonRef] || 0;
         const quarterPriceCOP = productPrices[quarterRef] || 0;
-    
-        const gallonPerf = sealantPerformance[gallonRef as SealantType];
         const quarterPerf = sealantPerformance[quarterRef as SealantType];
         
         const totalSqm = totalSqmClay + totalSqmOther;
-        const totalGallonsNeeded = Math.floor(totalSqmClay / gallonPerf.clay) + Math.floor(totalSqmOther / gallonPerf.other);
-        const remainingSqmClay = totalSqmClay % gallonPerf.clay;
-        const remainingSqmOther = totalSqmOther % gallonPerf.other;
         
-        const totalQuartersNeeded = Math.ceil(remainingSqmClay / quarterPerf.clay) + Math.ceil(remainingSqmOther / quarterPerf.other);
+        const quartersForClay = totalSqmClay > 0 ? Math.ceil(totalSqmClay / quarterPerf.clay) : 0;
+        const quartersForOther = totalSqmOther > 0 ? Math.ceil(totalSqmOther / quarterPerf.other) : 0;
         
-        sealantGallons = totalGallonsNeeded;
-        sealantQuarters = totalQuartersNeeded;
+        sealantQuarters = quartersForClay + quartersForOther;
 
-        totalSealantCost = convert((sealantGallons * gallonPriceCOP) + (sealantQuarters * quarterPriceCOP));
-        sealantGallonType = gallonRef as SealantType;
+        totalSealantCost = convert(sealantQuarters * quarterPriceCOP);
         sealantQuarterType = quarterRef as SealantType;
     }
 
@@ -514,11 +503,8 @@ export default function StoneflexCalculatorPage() {
       totalStandardAdhesiveCost,
       totalTranslucentAdhesiveCost,
       totalSealantCost,
-      sealantGallons,
       sealantQuarters,
-      sealantGallonPrice: convert(productPrices[sealantGallonType!] || 0),
       sealantQuarterPrice: convert(productPrices[sealantQuarterType!] || 0),
-      sealantGallonType,
       sealantQuarterType,
       manualSuppliesCost,
       adhesivePrice: convert(adhesivePriceCOP),
@@ -572,10 +558,6 @@ export default function StoneflexCalculatorPage() {
     }
     if (quote.totalTranslucentAdhesiveCost > 0) {
         body.push(['Adhesivo (Translúcido)', quote.totalTranslucentAdhesiveUnits, formatCurrency(quote.translucentAdhesivePrice), formatCurrency(quote.totalTranslucentAdhesiveCost)]);
-    }
-    if (quote.sealantGallons > 0 && quote.sealantGallonType) {
-        const price = convert(productPrices[quote.sealantGallonType] || 0);
-        body.push([quote.sealantGallonType, quote.sealantGallons, formatCurrency(price), formatCurrency(price * quote.sealantGallons)]);
     }
     if (quote.sealantQuarters > 0 && quote.sealantQuarterType) {
         const price = convert(productPrices[quote.sealantQuarterType] || 0);
@@ -714,8 +696,8 @@ export default function StoneflexCalculatorPage() {
     if (quote.totalTranslucentAdhesiveCost > 0 && quote.totalTranslucentAdhesiveUnits > 0) {
         message += `- Adhesivo Translúcido (${quote.totalTranslucentAdhesiveUnits} u. @ ${formatCurrency(quote.translucentAdhesivePrice)}/u.): ${formatCurrency(quote.totalTranslucentAdhesiveCost)}\n`;
     }
-    if (quote.totalSealantCost > 0) {
-        message += `- Costo Sellante: ${formatCurrency(quote.totalSealantCost)}\n`;
+    if (quote.totalSealantCost > 0 && quote.sealantQuarters > 0) {
+        message += `- Costo Sellante (1/4 de galón) (${quote.sealantQuarters} u. @ ${formatCurrency(quote.sealantQuarterPrice)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
      if (quote.manualSuppliesCost > 0) {
         message += `- Insumos Adicionales: ${formatCurrency(quote.manualSuppliesCost)}\n`;
@@ -1023,16 +1005,10 @@ export default function StoneflexCalculatorPage() {
                         <span>{formatCurrency(quote.totalTranslucentAdhesiveCost)}</span>
                     </div>
                  )}
-                  {quote.sealantGallons > 0 && (
-                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Costo Sellante (Galón) ({quote.sealantGallons} u. @ {formatCurrency(quote.sealantGallonPrice)}/u.)</span>
-                        <span>{formatCurrency(quote.sealantGallonPrice * quote.sealantGallons)}</span>
-                    </div>
-                  )}
                   {quote.sealantQuarters > 0 && (
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Costo Sellante (1/4 de galón) ({quote.sealantQuarters} u. @ {formatCurrency(quote.sealantQuarterPrice)}/u.)</span>
-                        <span>{formatCurrency(quote.sealantQuarterPrice * quote.sealantQuarters)}</span>
+                        <span>{formatCurrency(quote.totalSealantCost)}</span>
                     </div>
                   )}
                   {quote.manualSuppliesCost > 0 && (
