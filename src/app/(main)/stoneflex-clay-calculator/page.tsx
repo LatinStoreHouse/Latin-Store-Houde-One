@@ -422,10 +422,10 @@ export default function StoneflexCalculatorPage() {
       if (includeAdhesive && details.line !== '3D') {
           let adhesivePerSheet = 0;
           const dimension = productDimensions[item.reference as keyof typeof productDimensions] || '';
-          const isStandardSize = dimension.includes('1.22 x 0.61') || dimension.includes('1.20*0.60');
-          const isMetalStandardSize = dimension.includes('2.44 x 0.61');
-          const isXLSize = dimension.includes('2.44 x 1.22') || dimension.includes('2.95*1.20') || dimension.includes('2.90*0.56');
-          const isWoodSize = dimension.includes('0.15 x 2.44');
+          const isStandardSize = dimension.includes('1.22x0.61') || dimension.includes('1.20*0.60');
+          const isMetalStandardSize = dimension.includes('2.44x0.61');
+          const isXLSize = dimension.includes('2.44x1.22') || dimension.includes('2.95*1.20') || dimension.includes('2.90*0.56');
+          const isWoodSize = dimension.includes('0.15x2.44');
 
           if (details.line === 'Translucida') {
               adhesivePerSheet = isStandardSize ? 0.5 : 2;
@@ -784,36 +784,36 @@ export default function StoneflexCalculatorPage() {
                   placeholder="Ingrese el nombre del cliente..."
                 />
             </div>
-            <div className="space-y-2">
+             <div className="space-y-2">
                 <Label>Moneda de la Cotización</Label>
-                <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as 'COP' | 'USD')} className="flex gap-4 pt-2">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="COP" id="currency-cop" />
-                    <Label htmlFor="currency-cop">COP</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="USD" id="currency-usd" />
-                    <Label htmlFor="currency-usd">USD</Label>
-                  </div>
-                </RadioGroup>
-            </div>
-            
-         </div>
-         {currency === 'USD' && (
-             <div className="space-y-2 max-w-sm">
-                <Label htmlFor="trm-input">Tasa de Cambio (TRM)</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="trm-input"
-                    type="text"
-                    value={trm}
-                    onChange={handleDecimalInputChange(setTrm)}
-                    className="w-full"
-                    placeholder={trmLoading ? 'Cargando...' : ''}
-                  />
+                <div className="flex items-center gap-6">
+                    <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as 'COP' | 'USD')} className="flex gap-4 pt-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="COP" id="currency-cop" />
+                        <Label htmlFor="currency-cop">COP</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="USD" id="currency-usd" />
+                        <Label htmlFor="currency-usd">USD</Label>
+                      </div>
+                    </RadioGroup>
+                    {currency === 'USD' && (
+                         <div className="flex items-center gap-2">
+                             <Label htmlFor="trm-input" className="text-sm shrink-0">TRM:</Label>
+                              <Input
+                                id="trm-input"
+                                type="text"
+                                value={trm}
+                                onChange={handleDecimalInputChange(setTrm)}
+                                className="w-full h-8"
+                                placeholder={trmLoading ? 'Cargando...' : ''}
+                              />
+                         </div>
+                    )}
                 </div>
-             </div>
-        )}
+            </div>
+         </div>
+         
          <Separator />
          <div>
             <h3 className="text-lg font-medium">Añadir Producto StoneFlex</h3>
@@ -1143,3 +1143,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
