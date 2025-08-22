@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -128,12 +129,17 @@ export default function StarwoodCalculatorPage() {
   const calculateQuote = () => {
     let subtotal = 0;
     const detailedItems = quoteItems.map(item => {
-      const itemCost = item.units * (productPrices[item.reference] || 0);
-      subtotal += itemCost;
+      const price = productPrices[item.reference as keyof typeof productPrices];
+      const hasPrice = price !== undefined && price > 0;
+      const itemCost = hasPrice ? item.units * price : 0;
+      if (hasPrice) {
+        subtotal += itemCost;
+      }
       
       return { 
         ...item,
-        itemCost
+        itemCost,
+        hasPrice
       };
     });
 
@@ -171,12 +177,16 @@ export default function StarwoodCalculatorPage() {
     doc.text(`Cliente: ${customerName || 'N/A'}`, 14, 40);
     doc.text(`Válida hasta: ${quote.expiryDate}`, 14, 45);
 
-    const tableBody = quote.items.map(item => [
-      item.reference,
-      item.units,
-      formatCurrency(productPrices[item.reference] || 0),
-      formatCurrency(item.itemCost)
-    ]);
+    const tableBody = quote.items.map(item => {
+        const price = productPrices[item.reference as keyof typeof productPrices];
+        const priceText = (price !== undefined && price > 0) ? formatCurrency(price) : 'Precio Pendiente';
+        return [
+            item.reference,
+            item.units,
+            priceText,
+            item.hasPrice ? formatCurrency(item.itemCost) : 'N/A'
+        ];
+    });
 
     doc.autoTable({ 
       startY: 55, 
@@ -315,7 +325,7 @@ export default function StarwoodCalculatorPage() {
                         <p className="text-sm text-muted-foreground">{item.units} unidades</p>
                      </div>
                     <div className="flex items-center gap-4">
-                       <p className="font-medium">{formatCurrency(item.itemCost)}</p>
+                       <p className="font-medium">{item.hasPrice ? formatCurrency(item.itemCost) : <span className="text-destructive">Precio Pendiente</span>}</p>
                         <Button variant="ghost" size="icon" onClick={() => handleRemoveProduct(item.id)} className="h-7 w-7">
                            <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>

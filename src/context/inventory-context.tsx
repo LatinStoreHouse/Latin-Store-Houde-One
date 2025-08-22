@@ -7,6 +7,7 @@ import { initialContainers as initialContainerData } from '@/lib/initial-contain
 import { initialReservations } from '@/lib/sales-history';
 import { TransferItem } from '@/components/transfer-inventory-form';
 import { productDimensions } from '@/lib/dimensions';
+import { initialProductPrices } from '@/lib/prices';
 
 export interface Product {
   name: string;
@@ -138,6 +139,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     const container = containers.find(c => c.id === containerId);
     if (!container) return;
 
+    const newNotifications: AppNotification[] = [];
+
     setInventoryData(prevInventory => {
       const newInventory = JSON.parse(JSON.stringify(prevInventory));
       
@@ -173,13 +176,15 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
             muestras: 0,
           };
           
-          if (size) {
-            // This is a side-effect, ideally should be handled differently,
-            // but for this prototype structure it's the most direct way.
-            productDimensions[name] = size;
+          // Check if the new product has a price
+          if (!initialProductPrices.hasOwnProperty(name)) {
+            newNotifications.push({
+              id: Date.now() + Math.random(),
+              title: 'Precio Requerido para Nuevo Producto',
+              message: `El nuevo producto "${name}" ha sido agregado al inventario pero no tiene un precio. Por favor, actualícelo en la página de Precios.`,
+              date: new Date().toISOString(),
+            });
           }
-
-          console.log(`Producto nuevo "${name}" creado en ${brand} > ${line}.`);
 
         } else {
           console.warn(`Producto "${productInContainer.name}" del contenedor no fue encontrado y no tiene información de marca/línea para crearlo.`);
@@ -204,14 +209,14 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       )
     );
     
-    // Add notification
-    const newNotification: AppNotification = {
+    // Add general and price-specific notifications
+     const generalNotification: AppNotification = {
         id: Date.now(),
         title: '¡Nuevo Material Disponible!',
         message: `El contenedor ${containerId} ha llegado y su contenido ha sido añadido al inventario de Zona Franca.`,
         date: new Date().toISOString(),
     };
-    setNotifications(prev => [newNotification, ...prev]);
+    setNotifications(prev => [generalNotification, ...newNotifications, ...prev]);
   };
   
   const dispatchReservation = (quoteNumber: string) => {

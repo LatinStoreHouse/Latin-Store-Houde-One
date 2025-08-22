@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Combobox } from '@/components/ui/combobox';
 import { Separator } from '@/components/ui/separator';
-import { initialProductPrices as productPrices } from '@/lib/prices';
+import { initialProductPrices } from '@/lib/prices';
 import { getExchangeRate } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
@@ -226,8 +226,8 @@ export default function StoneflexCalculatorPage() {
   }, []);
 
   const supplyOptions = useMemo(() => {
-    const stoneflexSupplies = Object.keys(initialInventoryData.StoneFlex.Insumos);
-    const starwoodSupplies = Object.keys(initialInventoryData.Starwood.Insumos);
+    const stoneflexSupplies = Object.keys(initialInventoryData.StoneFlex?.Insumos || {});
+    const starwoodSupplies = Object.keys(initialInventoryData.Starwood?.Insumos || {});
     const allSupplies = [...stoneflexSupplies, ...starwoodSupplies];
     return allSupplies.map(ref => ({ value: ref, label: ref }));
   }, []);
@@ -308,7 +308,7 @@ export default function StoneflexCalculatorPage() {
     const finalSqm = baseSqm * wasteFactor;
     const finalSheets = sqmPerSheet > 0 ? Math.ceil(finalSqm / sqmPerSheet) : baseSheets;
 
-    const pricePerSheet = productPrices[reference as keyof typeof productPrices] || 0;
+    const pricePerSheet = initialProductPrices[reference as keyof typeof initialProductPrices] || 0;
 
     const newItem: QuoteItem = {
       id: Date.now(),
@@ -335,7 +335,7 @@ export default function StoneflexCalculatorPage() {
       sqMeters: 0,
       sheets: units,
       calculationMode: 'units',
-      pricePerSheet: productPrices[supplyReference as keyof typeof productPrices] || 0
+      pricePerSheet: initialProductPrices[supplyReference as keyof typeof initialProductPrices] || 0
     };
     
     setQuoteItems([...quoteItems, newItem]);
@@ -382,33 +382,36 @@ export default function StoneflexCalculatorPage() {
     const convert = (value: number) => currency === 'USD' ? value / trmValue : value;
     const discountValue = parseDecimal(discount);
     
-    const adhesivePriceCOP = productPrices['Adhesivo'] || 0;
-    const translucentAdhesivePriceCOP = productPrices['ADHESIVO TRASLUCIDO'] || 0;
+    const adhesivePriceCOP = initialProductPrices['Adhesivo'] || 0;
+    const translucentAdhesivePriceCOP = initialProductPrices['ADHESIVO TRASLUCIDO'] || 0;
 
     const detailedItems = quoteItems.map(item => {
       const details = referenceDetails[item.reference as keyof typeof referenceDetails];
+      const pricePerSheetCOP = item.pricePerSheet;
+      const hasPrice = pricePerSheetCOP > 0;
       
       if (item.calculationMode === 'units') { // Manual Supply
-          const itemCost = convert(item.pricePerSheet * item.sheets);
-          manualSuppliesCost += itemCost;
-          return {...item, itemTotal: itemCost, pricePerSheet: convert(item.pricePerSheet)};
+          const itemCost = hasPrice ? convert(pricePerSheetCOP * item.sheets) : 0;
+          if (hasPrice) manualSuppliesCost += itemCost;
+          return {...item, itemTotal: itemCost, pricePerSheet: hasPrice ? convert(pricePerSheetCOP) : 0, hasPrice};
       }
 
-      if (!details) return {...item, itemTotal: 0, pricePerSheet: 0};
+      if (!details) return {...item, itemTotal: 0, pricePerSheet: 0, hasPrice: false};
       
-      if (details.line === 'Clay') {
-          totalSqmClay += item.sqMeters;
-      } else {
-          totalSqmOther += item.sqMeters;
+      if (hasPrice) {
+        if (details.line === 'Clay') {
+            totalSqmClay += item.sqMeters;
+        } else {
+            totalSqmOther += item.sqMeters;
+        }
       }
 
       const calculatedSheets = item.sheets;
-      const pricePerSheetCOP = item.pricePerSheet;
-      const productCost = convert(pricePerSheetCOP * calculatedSheets);
+      const productCost = hasPrice ? convert(pricePerSheetCOP * calculatedSheets) : 0;
       
-      totalProductCost += productCost;
+      if (hasPrice) totalProductCost += productCost;
       
-      if (includeAdhesive && details.line !== '3D') {
+      if (includeAdhesive && details.line !== '3D' && hasPrice) {
           let adhesivePerSheet = 0;
           const dimension = productDimensions[item.reference as keyof typeof productDimensions] || '';
           const isStandardSize = dimension.includes('1.22x0.61') || dimension.includes('1.20*0.60');
@@ -441,7 +444,7 @@ export default function StoneflexCalculatorPage() {
       
       const itemSubtotal = productCost;
 
-      return {...item, itemTotal: itemSubtotal, pricePerSheet: convert(pricePerSheetCOP)};
+      return {...item, itemTotal: itemSubtotal, pricePerSheet: hasPrice ? convert(pricePerSheetCOP) : 0, hasPrice };
     });
     
     // Adhesive Cost Calculation
@@ -455,7 +458,7 @@ export default function StoneflexCalculatorPage() {
     
     if (includeSealant) {
         const quarterRef = sealantFinish === 'semibright' ? 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' : 'SELLANTE SHYNY 1/4 GALON';
-        const quarterPriceCOP = productPrices[quarterRef] || 0;
+        const quarterPriceCOP = initialProductPrices[quarterRef as keyof typeof initialProductPrices] || 0;
         
         if (quarterPriceCOP > 0) {
             const quarterPerf = sealantPerformance[quarterRef as SealantType];
@@ -490,7 +493,7 @@ export default function StoneflexCalculatorPage() {
       totalTranslucentAdhesiveCost,
       totalSealantCost,
       sealantQuarters,
-      sealantQuarterPrice: sealantQuarterType ? convert(productPrices[sealantQuarterType] || 0) : 0,
+      sealantQuarterPrice: sealantQuarterType ? convert(initialProductPrices[sealantQuarterType] || 0) : 0,
       sealantQuarterType,
       manualSuppliesCost,
       adhesivePrice: convert(adhesivePriceCOP),
@@ -534,8 +537,8 @@ export default function StoneflexCalculatorPage() {
         const dimensionText = productDimensions[item.reference as keyof typeof productDimensions] ? `(${productDimensions[item.reference as keyof typeof productDimensions]})` : '';
         const title = item.calculationMode === 'units' ? item.reference : `${item.reference} ${dimensionText}`;
         const qty = item.sheets;
-        const price = formatCurrency(item.pricePerSheet);
-        const total = formatCurrency(item.itemTotal);
+        const price = item.hasPrice ? formatCurrency(item.pricePerSheet) : 'Precio Pendiente';
+        const total = item.hasPrice ? formatCurrency(item.itemTotal) : 'N/A';
         body.push([title, qty, price, total]);
     });
     
@@ -623,8 +626,8 @@ export default function StoneflexCalculatorPage() {
         'Modo Cálculo': item.calculationMode,
         'M²': item.sqMeters > 0 ? item.sqMeters.toFixed(2) : '',
         'Láminas/Unidades': item.sheets,
-        'Precio Unitario': formatCurrency(item.pricePerSheet),
-        'Costo Total': formatCurrency(item.itemTotal)
+        'Precio Unitario': item.hasPrice ? formatCurrency(item.pricePerSheet) : 'Precio Pendiente',
+        'Costo Total': item.hasPrice ? formatCurrency(item.itemTotal) : 'N/A'
     }));
 
     // Add supplies to the export
@@ -861,6 +864,7 @@ export default function StoneflexCalculatorPage() {
 
          <Separator />
           <div>
+            <h3 className="text-lg font-medium mb-2">Insumos y Accesorios</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <Card className="p-4">
                      <h4 className="font-medium mb-4">Insumos (Automático)</h4>
@@ -955,16 +959,18 @@ export default function StoneflexCalculatorPage() {
                             `${item.sheets} unidades`
                         }
                       </p>
+                      {item.hasPrice && (
                        <p className="text-sm text-muted-foreground font-medium">
                         Precio/Unidad: {formatCurrency(item.pricePerSheet)}
-                      </p>
+                       </p>
+                      )}
                       {currency !== 'USD' && item.calculationMode !== 'units' && (
                          <div className="flex items-center gap-2 mt-2">
                             <Label htmlFor={`price-${item.id}`} className="text-xs">Precio/Lámina (COP)</Label>
                              <Input 
                                 id={`price-${item.id}`}
                                 type="text"
-                                value={new Intl.NumberFormat('es-CO').format(productPrices[item.reference as keyof typeof productPrices] || 0)}
+                                value={new Intl.NumberFormat('es-CO').format(initialProductPrices[item.reference as keyof typeof initialProductPrices] || 0)}
                                 onChange={(e) => handleItemPriceChange(item.id, parseDecimal(e.target.value.replace(/[^0-9]/g, '')))}
                                 className="h-7 w-28"
                             />
@@ -972,7 +978,7 @@ export default function StoneflexCalculatorPage() {
                       )}
                     </div>
                     <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(item.itemTotal)}</p>
+                        <p className="font-semibold">{item.hasPrice ? formatCurrency(item.itemTotal) : <span className="text-destructive">Precio Pendiente</span>}</p>
                         <Button variant="ghost" size="icon" onClick={() => handleRemoveProduct(item.id)} className="mt-1 h-7 w-7">
                            <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -1117,4 +1123,3 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
-
