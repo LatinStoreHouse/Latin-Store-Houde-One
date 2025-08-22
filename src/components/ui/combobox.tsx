@@ -50,7 +50,7 @@ export function Combobox({
   const [open, setOpen] = React.useState(false)
 
   const handleSelect = (currentValue: string) => {
-    onValueChange?.(currentValue);
+    onValueChange?.(currentValue === value ? "" : currentValue);
     setOpen(false);
   };
   
@@ -97,7 +97,7 @@ export function Combobox({
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={handleSelect}
+                  onSelect={() => handleSelect(option.value)}
                 >
                   <Check
                     className={cn(
