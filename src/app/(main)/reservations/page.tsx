@@ -134,15 +134,16 @@ export default function ReservationsPage() {
 
   const pendingValidationReservations = useMemo(() => filteredReservations.filter(r => r.status === 'En espera de validación'), [filteredReservations]);
   
+  const allValidatedReservations = useMemo(() => filteredReservations.filter(r => r.status === 'Validada'), [filteredReservations]);
+
   const pendingArrivalReservations = useMemo(() => {
-    const validatedFromContainers = filteredReservations.filter(r => r.status === 'Validada' && r.source === 'Contenedor');
     const activeContainerIds = new Set(activeContainers.map(c => c.id));
-    return validatedFromContainers.filter(r => activeContainerIds.has(r.sourceId));
-  }, [filteredReservations, activeContainers]);
+    return allValidatedReservations.filter(r => r.source === 'Contenedor' && activeContainerIds.has(r.sourceId));
+  }, [allValidatedReservations, activeContainers]);
   
   const pendingDispatchReservations = useMemo(() => {
-    return filteredReservations.filter(r => r.status === 'Validada' && (r.source === 'Bodega' || r.source === 'Zona Franca'));
-  }, [filteredReservations]);
+    return allValidatedReservations.filter(r => r.source === 'Bodega' || r.source === 'Zona Franca');
+  }, [allValidatedReservations]);
 
   const historyReservations = useMemo(() => filteredReservations.filter(r => r.status === 'Despachada' || r.status === 'Rechazada'), [filteredReservations]);
 
@@ -401,8 +402,9 @@ export default function ReservationsPage() {
       </Card>
       
       <Tabs defaultValue="pendientes-validacion" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
             <TabsTrigger value="pendientes-validacion">Pendiente Validación ({pendingValidationReservations.length})</TabsTrigger>
+            <TabsTrigger value="separadas">Separadas (Validadas) ({allValidatedReservations.length})</TabsTrigger>
             <TabsTrigger value="pendientes-llegada">Pendiente Llegada ({pendingArrivalReservations.length})</TabsTrigger>
             <TabsTrigger value="pendientes-despacho">Pendiente Despacho ({pendingDispatchReservations.length})</TabsTrigger>
             <TabsTrigger value="historial">Historial ({historyReservations.length})</TabsTrigger>
@@ -411,6 +413,13 @@ export default function ReservationsPage() {
            <Card>
             <CardContent className="p-0">
               <ReservationsTable data={pendingValidationReservations} />
+            </CardContent>
+           </Card>
+        </TabsContent>
+        <TabsContent value="separadas" className="pt-4">
+           <Card>
+            <CardContent className="p-0">
+              <ReservationsTable data={allValidatedReservations} showActions={true} />
             </CardContent>
            </Card>
         </TabsContent>
