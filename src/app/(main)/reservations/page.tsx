@@ -39,8 +39,8 @@ const getAllInventoryProducts = () => {
             const productList = subcategories[subCategory as keyof typeof subcategories];
             for (const productName in productList) {
                 let uniqueName = productName;
-                if (productNames.has(productName)) {
-                    uniqueName = `${productName} (${subCategory})`;
+                if (productNames.has(productName) && subCategory === 'Insumos') {
+                    uniqueName = `${productName} (Insumo)`;
                 }
                 products.push({
                     name: productName,
@@ -161,6 +161,26 @@ export default function ReservationsPage() {
   const pendingValidationReservations = useMemo(() => filteredReservations.filter(r => r.status === 'En espera de validación'), [filteredReservations]);
   
   const allValidatedReservations = useMemo(() => filteredReservations.filter(r => r.status === 'Validada'), [filteredReservations]);
+  
+  const expiredOrDueReservations = useMemo(() => {
+      const isAdmin = currentUser.roles.includes('Administrador');
+      const isAdvisor = currentUser.roles.includes('Asesor de Ventas');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); 
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      return allValidatedReservations.filter(r => {
+          if (isAdvisor && !isAdmin && r.advisor !== currentUser.name) {
+            return false;
+          }
+          if (!r.expirationDate) return false;
+          const expiration = new Date(r.expirationDate);
+          expiration.setHours(0,0,0,0);
+          return expiration <= tomorrow;
+      });
+  }, [allValidatedReservations, currentUser]);
+
 
   const pendingArrivalReservations = useMemo(() => {
     const activeContainerIds = new Set(activeContainers.map(c => c.id));
@@ -430,6 +450,16 @@ export default function ReservationsPage() {
       </Table>
     )
   };
+  
+  const TabTriggerWithIndicator = ({ value, count, hasAlert, children }: { value: string, count: number, hasAlert: boolean, children: React.ReactNode }) => {
+    return (
+        <TabsTrigger value={value} className="relative">
+            {children} ({count})
+            {hasAlert && <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-red-500" />}
+        </TabsTrigger>
+    );
+  };
+
 
   return (
     <div>
@@ -461,8 +491,12 @@ export default function ReservationsPage() {
       
       <Tabs defaultValue="pendientes-validacion" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="pendientes-validacion">Pendiente Validación ({pendingValidationReservations.length})</TabsTrigger>
-            <TabsTrigger value="separadas">Separadas (Validadas) ({allValidatedReservations.length})</TabsTrigger>
+            <TabTriggerWithIndicator value="pendientes-validacion" count={pendingValidationReservations.length} hasAlert={pendingValidationReservations.length > 0}>
+                Pendiente Validación
+            </TabTriggerWithIndicator>
+            <TabTriggerWithIndicator value="separadas" count={allValidatedReservations.length} hasAlert={expiredOrDueReservations.length > 0}>
+                Separadas (Validadas)
+            </TabTriggerWithIndicator>
             <TabsTrigger value="pendientes-llegada">Pendiente Llegada ({pendingArrivalReservations.length})</TabsTrigger>
             <TabsTrigger value="historial">Historial ({historyReservations.length})</TabsTrigger>
         </TabsList>
