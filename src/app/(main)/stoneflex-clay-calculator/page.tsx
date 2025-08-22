@@ -698,9 +698,8 @@ export default function StoneflexCalculatorPage() {
     if (quote.totalTranslucentAdhesiveCost > 0 && quote.totalTranslucentAdhesiveUnits > 0) {
         message += `- Adhesivo Translúcido (${quote.totalTranslucentAdhesiveUnits} u. @ ${formatCurrency(quote.translucentAdhesivePrice)}/u.): ${formatCurrency(quote.totalTranslucentAdhesiveCost)}\n`;
     }
-    if (quote.totalSealantCost > 0 && quote.sealantQuarterType) {
-        const price = convert(productPrices[quote.sealantQuarterType] || 0);
-        message += `- Costo Sellante (1/4 de galón) (${quote.sealantQuarters} u. @ ${formatCurrency(price)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
+    if (quote.totalSealantCost > 0 && quote.sealantQuarters > 0) {
+        message += `- Costo Sellante (1/4 de galón) (${quote.sealantQuarters} u. @ ${formatCurrency(quote.sealantQuarterPrice)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
      if (quote.manualSuppliesCost > 0) {
         message += `- Insumos Adicionales: ${formatCurrency(quote.manualSuppliesCost)}\n`;
@@ -876,69 +875,73 @@ export default function StoneflexCalculatorPage() {
 
          <Separator />
           <div>
-            <h3 className="text-lg font-medium mb-4">Insumos y Accesorios</h3>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                        <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
-                        <Label htmlFor="include-adhesive">Incluir Adhesivo (Automático)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
-                        <Label htmlFor="include-sealant">Incluir Sellante (Automático)</Label>
-                    </div>
-                    {includeSealant && (
-                        <div className="mt-4 space-y-2 pl-6">
-                            <Label>Acabado del Sellante</Label>
-                            <RadioGroup value={sealantFinish} onValueChange={(v) => setSealantFinish(v as SealantFinish)} className="flex gap-4 pt-2">
-                                <RadioGroupItem value="semibright" id="finish-semi" />
-                                <Label htmlFor="finish-semi" className="font-normal">Semi-Brillante</Label>
-                                <RadioGroupItem value="shiny" id="finish-shiny" />
-                                <Label htmlFor="finish-shiny" className="font-normal">Brillante</Label>
-                            </RadioGroup>
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="link" size="sm" className="text-xs p-0 h-auto">
-                                        <HelpCircle className="mr-1 h-3 w-3" />
-                                        ¿No estás seguro? Ver tabla de rendimiento
-                                    </Button>
-                                </DialogTrigger>
-                                <AdhesiveReferenceTable />
-                            </Dialog>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Card className="p-4">
+                     <h4 className="font-medium mb-4">Insumos (Automático)</h4>
+                     <div className="space-y-4">
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="include-adhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))} />
+                            <Label htmlFor="include-adhesive">Incluir Adhesivo</Label>
                         </div>
-                    )}
-                </div>
-                <div className="space-y-4">
-                     <h4 className="text-md font-medium">Insumos y Accesorios Adicionales</h4>
-                     <div className="grid grid-cols-[2fr_1fr] gap-2 items-end">
-                        <div className="space-y-2">
-                           <Label>Insumo</Label>
-                           <Combobox
-                             options={supplyOptions}
-                             value={supplyReference}
-                             onValueChange={setSupplyReference}
-                             placeholder="Seleccione un insumo"
-                             searchPlaceholder="Buscar insumo..."
-                             emptyPlaceholder="No se encontraron insumos."
-                           />
-                         </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="supply-units-input">Unidades</Label>
-                            <Input
-                              id="supply-units-input"
-                              type="number"
-                              value={supplyUnits}
-                              onChange={(e) => setSupplyUnits(e.target.value)}
-                              className="w-full"
-                              min="1"
-                            />
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="include-sealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))} />
+                            <Label htmlFor="include-sealant">Incluir Sellante</Label>
+                        </div>
+                        {includeSealant && (
+                            <div className="mt-4 space-y-2 pl-6">
+                                <Label>Acabado del Sellante</Label>
+                                <RadioGroup value={sealantFinish} onValueChange={(v) => setSealantFinish(v as SealantFinish)} className="flex gap-4 pt-2">
+                                    <RadioGroupItem value="semibright" id="finish-semi" />
+                                    <Label htmlFor="finish-semi" className="font-normal">Semi-Brillante</Label>
+                                    <RadioGroupItem value="shiny" id="finish-shiny" />
+                                    <Label htmlFor="finish-shiny" className="font-normal">Brillante</Label>
+                                </RadioGroup>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="link" size="sm" className="text-xs p-0 h-auto">
+                                            <HelpCircle className="mr-1 h-3 w-3" />
+                                            ¿No estás seguro? Ver tabla de rendimiento
+                                        </Button>
+                                    </DialogTrigger>
+                                    <AdhesiveReferenceTable />
+                                </Dialog>
+                            </div>
+                        )}
+                    </div>
+                </Card>
+                <Card className="p-4">
+                     <h4 className="font-medium mb-4">Insumos (Adicional)</h4>
+                     <div className="space-y-4">
+                         <div className="grid grid-cols-[2fr_1fr] gap-2 items-end">
+                            <div className="space-y-2">
+                               <Label>Insumo</Label>
+                               <Combobox
+                                 options={supplyOptions}
+                                 value={supplyReference}
+                                 onValueChange={setSupplyReference}
+                                 placeholder="Seleccione un insumo"
+                                 searchPlaceholder="Buscar insumo..."
+                                 emptyPlaceholder="No se encontraron insumos."
+                               />
+                             </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="supply-units-input">Unidades</Label>
+                                <Input
+                                  id="supply-units-input"
+                                  type="number"
+                                  value={supplyUnits}
+                                  onChange={(e) => setSupplyUnits(e.target.value)}
+                                  className="w-full"
+                                  min="1"
+                                />
+                              </div>
                           </div>
-                      </div>
-                       <Button onClick={handleAddSupply} disabled={!supplyReference} className="w-full">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Agregar Insumo
-                      </Button>
-                </div>
+                           <Button onClick={handleAddSupply} disabled={!supplyReference} className="w-full">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Agregar Insumo
+                          </Button>
+                     </div>
+                </Card>
             </div>
           </div>
          
@@ -1011,7 +1014,7 @@ export default function StoneflexCalculatorPage() {
                         <span>{formatCurrency(quote.totalTranslucentAdhesiveCost)}</span>
                     </div>
                  )}
-                  {quote.totalSealantCost > 0 && quote.sealantQuarterType && (
+                  {quote.totalSealantCost > 0 && quote.sealantQuarters > 0 && (
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Costo Sellante (1/4 de galón) ({quote.sealantQuarters} u. @ {formatCurrency(quote.sealantQuarterPrice)}/u.)</span>
                         <span>{formatCurrency(quote.totalSealantCost)}</span>
