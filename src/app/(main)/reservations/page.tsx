@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, Truck, AlertTriangle } from 'lucide-react';
+import { PlusCircle, Search, Truck, AlertTriangle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,8 @@ import {
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -49,14 +51,17 @@ export default function ReservationsPage() {
   if (!context) {
     throw new Error('ReservationsPage must be used within an InventoryProvider');
   }
-  const { containers, reservations, setReservations } = context;
+  const { containers, reservations, setReservations, releaseReservationStock } = context;
   const { currentUser } = useUser();
 
-  const [isNewReservationDialogOpen, setIsNewReservationDialogOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
+
+  // Form fields state
   const [customerName, setCustomerName] = useState('');
   const [advisorName, setAdvisorName] = useState('');
   const [productName, setProductName] = useState('');
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState<number | string>(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [quoteNumber, setQuoteNumber] = useState('');
   const [expirationDate, setExpirationDate] = useState('');
@@ -82,11 +87,23 @@ export default function ReservationsPage() {
 
       setCustomerName(cliente);
       setAdvisorName(asesor);
-      setIsNewReservationDialogOpen(true);
+      setIsFormOpen(true);
       // Clean up URL params, keeping the main path
       router.replace('/reservations', {scroll: false});
     }
   }, [searchParams, router, currentUser]);
+  
+  const resetFormFields = () => {
+    setCustomerName('');
+    setProductName('');
+    setQuantity(0);
+    setQuoteNumber('');
+    setAdvisorName('');
+    setExpirationDate('');
+    setSelectedContainerId('');
+    setReservationSource('Contenedor');
+    setEditingReservation(null);
+  };
 
   const inventoryProducts = useMemo(() => getAllInventoryProducts(), []);
   
@@ -107,7 +124,7 @@ export default function ReservationsPage() {
         return container.products.map(p => ({ 
             value: p.name, 
             label: `${p.name}`, 
-            available: p.quantity, // In transit, all quantity is "available" for reservation
+            available: p.quantity,
             sourceId: container.id 
         }));
     } else if (reservationSource === 'Bodega') {
@@ -146,9 +163,9 @@ export default function ReservationsPage() {
   const historyReservations = useMemo(() => filteredReservations.filter(r => r.status === 'Despachada' || r.status === 'Rechazada'), [filteredReservations]);
 
 
-  const handleCreateReservation = () => {
-    if (!customerName || !productName || quantity <= 0 || !quoteNumber) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos.'});
+  const handleSaveReservation = () => {
+    if (!customerName || !productName || Number(quantity) <= 0 || !quoteNumber) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos requeridos.'});
         return;
     }
     
@@ -157,46 +174,102 @@ export default function ReservationsPage() {
         return;
     }
 
-    const quoteExists = reservations.some(r => r.quoteNumber.toLowerCase() === quoteNumber.toLowerCase());
-    if (quoteExists) {
-        toast({ variant: 'destructive', title: 'Error', description: 'El número de cotización ya existe.'});
-        return;
+    if (!editingReservation) {
+      const quoteExists = reservations.some(r => r.quoteNumber.toLowerCase() === quoteNumber.toLowerCase());
+      if (quoteExists) {
+          toast({ variant: 'destructive', title: 'Error', description: 'El número de cotización ya existe.'});
+          return;
+      }
     }
-
+    
     const productInfo = productOptions.find(p => p.value === productName);
     if (!productInfo) {
         toast({ variant: 'destructive', title: 'Error', description: 'Producto no encontrado.'});
         return;
     }
     
-    if(quantity > productInfo.available) {
+    // For new reservations, check against available stock. For edits, we allow it but it needs re-validation.
+    if(!editingReservation && Number(quantity) > productInfo.available) {
         toast({ variant: 'destructive', title: 'Error de Stock', description: `La cantidad solicitada (${quantity}) excede la disponible (${productInfo.available}).`});
         return;
     }
+    
+    if (editingReservation) {
+        const originalReservation = reservations.find(r => r.id === editingReservation.id);
+        if (!originalReservation) return;
 
-    const newReservation: Reservation = {
-        id: `RES-00${reservations.length + 1}`,
-        customer: customerName,
-        product: productName,
-        quantity,
-        sourceId: productInfo.sourceId,
-        advisor: advisorName || 'Usuario Admin', // Mock current user or from params
-        quoteNumber: quoteNumber,
-        status: 'En espera de validación',
-        source: reservationSource,
-        expirationDate: expirationDate || undefined,
-    };
+        const needsRevalidation = 
+            originalReservation.product !== productName ||
+            originalReservation.quantity !== Number(quantity) ||
+            originalReservation.expirationDate !== expirationDate;
+        
+        if (needsRevalidation) {
+            // Release old stock if it was from warehouse/ZF
+            if(originalReservation.status === 'Validada' && (originalReservation.source === 'Bodega' || originalReservation.source === 'Zona Franca')) {
+                releaseReservationStock(originalReservation);
+            }
+        }
 
-    setReservations([...reservations, newReservation]);
-    setCustomerName('');
-    setProductName('');
-    setQuantity(0);
-    setQuoteNumber('');
-    setAdvisorName('');
-    setExpirationDate('');
-    setSelectedContainerId('');
-    setIsNewReservationDialogOpen(false);
-    toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
+        const updatedReservation: Reservation = {
+            ...originalReservation,
+            customer: customerName,
+            product: productName,
+            quantity: Number(quantity),
+            source: reservationSource,
+            sourceId: productInfo.sourceId,
+            quoteNumber: quoteNumber,
+            expirationDate: expirationDate || undefined,
+            status: needsRevalidation ? 'En espera de validación' : originalReservation.status
+        };
+
+        setReservations(prev => prev.map(r => r.id === editingReservation.id ? updatedReservation : r));
+        toast({ title: 'Reserva Actualizada', description: needsRevalidation ? 'La reserva debe ser validada nuevamente.' : 'La reserva ha sido actualizada.' });
+    } else {
+        const newReservation: Reservation = {
+            id: `RES-00${reservations.length + 1}`,
+            customer: customerName,
+            product: productName,
+            quantity: Number(quantity),
+            sourceId: productInfo.sourceId,
+            advisor: advisorName || currentUser.name || 'Admin',
+            quoteNumber: quoteNumber,
+            status: 'En espera de validación',
+            source: reservationSource,
+            expirationDate: expirationDate || undefined,
+        };
+        setReservations([...reservations, newReservation]);
+        toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
+    }
+    
+    resetFormFields();
+    setIsFormOpen(false);
+  };
+  
+  const handleOpenEditDialog = (reservation: Reservation) => {
+    setEditingReservation(reservation);
+    setCustomerName(reservation.customer);
+    setAdvisorName(reservation.advisor);
+    setProductName(reservation.product);
+    setQuantity(reservation.quantity);
+    setQuoteNumber(reservation.quoteNumber);
+    setReservationSource(reservation.source);
+    setExpirationDate(reservation.expirationDate || '');
+    if (reservation.source === 'Contenedor') {
+        setSelectedContainerId(reservation.sourceId);
+    }
+    setIsFormOpen(true);
+  };
+  
+  const handleDeleteReservation = (reservationId: string) => {
+    const reservationToDelete = reservations.find(r => r.id === reservationId);
+    if (!reservationToDelete) return;
+
+    if (reservationToDelete.status === 'Validada' && (reservationToDelete.source === 'Bodega' || reservationToDelete.source === 'Zona Franca')) {
+        releaseReservationStock(reservationToDelete);
+    }
+
+    setReservations(prev => prev.filter(r => r.id !== reservationId));
+    toast({ variant: 'destructive', title: 'Reserva Eliminada' });
   };
   
   const getSelectedProductInfo = () => {
@@ -247,7 +320,6 @@ export default function ReservationsPage() {
         if (!dateString) return false;
         const today = new Date();
         const expirationDate = new Date(dateString);
-        // Adjust for timezone differences by comparing dates only
         today.setHours(0, 0, 0, 0);
         return expirationDate < today;
     }
@@ -270,6 +342,8 @@ export default function ReservationsPage() {
         <TableBody>
           {data.map((reservation) => {
             const expired = isExpired(reservation.expirationDate);
+            const isOwner = currentUser.name === reservation.advisor;
+            const isAdmin = currentUser.roles.includes('Administrador');
             return (
                 <TableRow key={reservation.id}>
                 <TableCell>{reservation.quoteNumber}</TableCell>
@@ -293,10 +367,45 @@ export default function ReservationsPage() {
                 </TableCell>
                 {showActions && (
                     <TableCell className="text-right">
-                        <Button variant="outline" size="sm" onClick={() => handleCreateDispatch(reservation)}>
-                            <Truck className="mr-2 h-4 w-4" />
-                            Crear Despacho
-                        </Button>
+                       <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" disabled={!isAdmin && !isOwner}>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => handleCreateDispatch(reservation)}>
+                                    <Truck className="mr-2 h-4 w-4" />
+                                    Crear Despacho
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleOpenEditDialog(reservation)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar Reserva
+                                </DropdownMenuItem>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar Reserva
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta acción no se puede deshacer. Se eliminará la reserva y se liberará el stock si estaba separado.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteReservation(reservation.id)} className="bg-destructive hover:bg-destructive/90">
+                                                Eliminar
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                       </DropdownMenu>
                     </TableCell>
                 )}
                 </TableRow>
@@ -322,91 +431,10 @@ export default function ReservationsPage() {
             <CardTitle>Reservas de Productos</CardTitle>
             <CardDescription>Cree y gestione las reservas de productos en tránsito o en bodega.</CardDescription>
           </div>
-          <Dialog open={isNewReservationDialogOpen} onOpenChange={setIsNewReservationDialogOpen}>
-            <DialogTrigger asChild>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Crear Reserva
-                </Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader><DialogTitle>Crear Nueva Reserva</DialogTitle></DialogHeader>
-                <div className="space-y-4 py-4">
-                     <div className="space-y-2">
-                        <Label>Origen del Producto</Label>
-                        <RadioGroup value={reservationSource} onValueChange={(value) => {
-                            setReservationSource(value as 'Contenedor' | 'Bodega' | 'Zona Franca');
-                            setProductName('');
-                            setSelectedContainerId('');
-                        }} className="flex gap-4">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Contenedor" id="source-container" />
-                            <Label htmlFor="source-container">Contenedor en Tránsito</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Bodega" id="source-warehouse" />
-                            <Label htmlFor="source-warehouse">Bodega</Label>
-                          </div>
-                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Zona Franca" id="source-free-zone" />
-                            <Label htmlFor="source-free-zone">Zona Franca</Label>
-                          </div>
-                        </RadioGroup>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                          <Label># Cotización</Label>
-                          <Input value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" />
-                      </div>
-                       <div className="space-y-2">
-                          <Label>Fecha Vencimiento (Opcional)</Label>
-                          <Input type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Nombre del Cliente</Label>
-                        <Input value={customerName} onChange={e => setCustomerName(e.target.value)} />
-                    </div>
-                    {reservationSource === 'Contenedor' && (
-                         <div className="space-y-2">
-                            <Label>Contenedor</Label>
-                            <Combobox
-                                options={containerOptions}
-                                value={selectedContainerId}
-                                onValueChange={(value) => {
-                                    setSelectedContainerId(value);
-                                    setProductName(''); // Reset product when container changes
-                                }}
-                                placeholder="Seleccione un contenedor"
-                                searchPlaceholder="Buscar contenedor..."
-                                emptyPlaceholder="No hay contenedores en tránsito"
-                            />
-                        </div>
-                    )}
-                    <div className="space-y-2">
-                        <Label>Producto</Label>
-                        <Combobox
-                            options={productOptions}
-                            value={productName}
-                            onValueChange={setProductName}
-                            placeholder="Seleccione un producto"
-                            searchPlaceholder="Buscar producto..."
-                            emptyPlaceholder="No se encontraron productos"
-                            disabled={reservationSource === 'Contenedor' && !selectedContainerId}
-                        />
-                        <p className="text-sm text-muted-foreground">{getSelectedProductInfo()}</p>
-                    </div>
-                     <div className="space-y-2">
-                        <Label>Cantidad</Label>
-                        <Input type="number" value={quantity} onChange={e => setQuantity(Number(e.target.value))} />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <DialogClose asChild><Button variant="ghost">Cancelar</Button></DialogClose>
-                    <Button onClick={handleCreateReservation}>Crear Reserva</Button>
-                </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => { setEditingReservation(null); setIsFormOpen(true); }}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Crear Reserva
+          </Button>
         </CardHeader>
         <CardContent>
             <div className="mb-4">
@@ -459,6 +487,87 @@ export default function ReservationsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Reusable Dialog for Create/Edit */}
+      <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) resetFormFields(); setIsFormOpen(open); }}>
+          <DialogContent>
+              <DialogHeader><DialogTitle>{editingReservation ? 'Editar Reserva' : 'Crear Nueva Reserva'}</DialogTitle></DialogHeader>
+              <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Origen del Producto</Label>
+                      <RadioGroup value={reservationSource} onValueChange={(value) => {
+                          setReservationSource(value as 'Contenedor' | 'Bodega' | 'Zona Franca');
+                          setProductName('');
+                          setSelectedContainerId('');
+                      }} className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Contenedor" id="source-container" />
+                          <Label htmlFor="source-container">Contenedor en Tránsito</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Bodega" id="source-warehouse" />
+                          <Label htmlFor="source-warehouse">Bodega</Label>
+                        </div>
+                          <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Zona Franca" id="source-free-zone" />
+                          <Label htmlFor="source-free-zone">Zona Franca</Label>
+                        </div>
+                      </RadioGroup>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label># Cotización</Label>
+                        <Input value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" />
+                    </div>
+                      <div className="space-y-2">
+                        <Label>Fecha Vencimiento (Opcional)</Label>
+                        <Input type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                      <Label>Nombre del Cliente</Label>
+                      <Input value={customerName} onChange={e => setCustomerName(e.target.value)} />
+                  </div>
+                  {reservationSource === 'Contenedor' && (
+                        <div className="space-y-2">
+                          <Label>Contenedor</Label>
+                          <Combobox
+                              options={containerOptions}
+                              value={selectedContainerId}
+                              onValueChange={(value) => {
+                                  setSelectedContainerId(value);
+                                  setProductName(''); // Reset product when container changes
+                              }}
+                              placeholder="Seleccione un contenedor"
+                              searchPlaceholder="Buscar contenedor..."
+                              emptyPlaceholder="No hay contenedores en tránsito"
+                          />
+                      </div>
+                  )}
+                  <div className="space-y-2">
+                      <Label>Producto</Label>
+                      <Combobox
+                          options={productOptions}
+                          value={productName}
+                          onValueChange={setProductName}
+                          placeholder="Seleccione un producto"
+                          searchPlaceholder="Buscar producto..."
+                          emptyPlaceholder="No se encontraron productos"
+                          disabled={reservationSource === 'Contenedor' && !selectedContainerId}
+                      />
+                      <p className="text-sm text-muted-foreground">{getSelectedProductInfo()}</p>
+                  </div>
+                    <div className="space-y-2">
+                      <Label>Cantidad</Label>
+                      <Input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} />
+                  </div>
+              </div>
+              <DialogFooter>
+                  <DialogClose asChild><Button variant="ghost">Cancelar</Button></DialogClose>
+                  <Button onClick={handleSaveReservation}>{editingReservation ? 'Guardar Cambios' : 'Crear Reserva'}</Button>
+              </DialogFooter>
+          </DialogContent>
+      </Dialog>
     </div>
   );
 }

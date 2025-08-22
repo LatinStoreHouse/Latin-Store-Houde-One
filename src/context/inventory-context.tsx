@@ -60,6 +60,7 @@ interface InventoryContextType {
   transferFromFreeZone: (items: TransferItem[]) => void;
   receiveContainer: (containerId: string, reservations: Reservation[]) => void;
   dispatchReservation: (quoteNumber: string) => void;
+  releaseReservationStock: (reservation: Reservation) => void;
   addContainer: (container: Container) => void;
   editContainer: (containerId: string, updatedContainer: Container) => void;
 }
@@ -82,6 +83,24 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     return null;
+  };
+
+  const releaseReservationStock = (reservation: Reservation) => {
+    const location = findProductLocation(reservation.product);
+    if (!location) return;
+
+    const { brand, subCategory } = location;
+    setInventoryData(prevData => {
+        const newData = JSON.parse(JSON.stringify(prevData));
+        const product = newData[brand as keyof typeof prevData][subCategory][reservation.product];
+        
+        if (reservation.source === 'Bodega') {
+            product.separadasBodega -= reservation.quantity;
+        } else if (reservation.source === 'Zona Franca') {
+            product.separadasZonaFranca -= reservation.quantity;
+        }
+        return newData;
+    });
   };
 
   const transferFromFreeZone = (items: TransferItem[]) => {
@@ -286,6 +305,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       transferFromFreeZone,
       receiveContainer,
       dispatchReservation,
+      releaseReservationStock,
       addContainer,
       editContainer
     }}>
