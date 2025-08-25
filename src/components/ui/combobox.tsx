@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button"
 import {
   Command,
   CommandEmpty,
-  CommandInput,
   CommandGroup,
+  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
@@ -45,75 +45,45 @@ export function Combobox({
   emptyPlaceholder = "No options found.",
   className,
   disabled,
-  allowFreeText = false
+  allowFreeText = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState(value || '')
-
-  React.useEffect(() => {
-    setInputValue(options.find(o => o.value === value)?.label || value || '')
-  }, [value, options]);
 
   const handleSelect = (currentValue: string) => {
-    const selectedOption = options.find(o => o.value.toLowerCase() === currentValue.toLowerCase());
-    const newValue = selectedOption ? selectedOption.value : "";
-    
+    const newValue = value === currentValue ? "" : currentValue
     if (onValueChange) {
-        onValueChange(newValue);
+      onValueChange(newValue)
     }
-    
-    setInputValue(selectedOption ? selectedOption.label : '');
-    setOpen(false);
-  };
+    setOpen(false)
+  }
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const textValue = e.target.value;
-    setInputValue(textValue);
-    if(allowFreeText && onValueChange) {
-        onValueChange(textValue);
-    }
-  }
-
-  const handleBlur = () => {
-    if (!allowFreeText) {
-        const selectedOption = options.find(o => o.value === value);
-        setInputValue(selectedOption ? selectedOption.label : '');
-    }
-  }
-
-  const displayValue = options.find((option) => option.value === value)?.label || (allowFreeText && value ? value : placeholder);
+  const displayLabel = options.find((option) => option.value === value)?.label || (allowFreeText ? value : '') || placeholder
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild disabled={disabled}>
+      <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
           className={cn("w-full justify-between font-normal", className)}
+          disabled={disabled}
         >
-          <span className="truncate">
-            {displayValue}
-          </span>
+          <span className="truncate">{displayLabel}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command shouldFilter={!allowFreeText}>
-          <CommandInput
-            placeholder={searchPlaceholder}
-            value={allowFreeText ? value : inputValue}
-            onValueChange={allowFreeText ? onValueChange : setInputValue}
-            onBlur={handleBlur}
-          />
+        <Command>
+          <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label} // Compare against label for filtering
-                  onSelect={() => handleSelect(option.value)}
+                  value={option.value}
+                  onSelect={handleSelect}
                 >
                   <Check
                     className={cn(
