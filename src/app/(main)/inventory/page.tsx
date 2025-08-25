@@ -532,6 +532,11 @@ export default function InventoryPage() {
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
+                <div className="flex-1">
+                    <p className="text-sm text-muted-foreground">
+                        Al cancelar, permanecerá en esta página.
+                    </p>
+                </div>
                 <AlertDialogCancel onClick={() => setNextRoute(null)}>Cancelar</AlertDialogCancel>
                 <AlertDialogAction onClick={() => {
                     setHasPendingChanges(false);
