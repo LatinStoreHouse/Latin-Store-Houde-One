@@ -261,6 +261,7 @@ export default function TransitPage() {
   const [newContainerProducts, setNewContainerProducts] = useState<Product[]>([]);
   
   // State for the product form inside the dialog
+  const [isNewProduct, setIsNewProduct] = useState(false);
   const [brand, setBrand] = useState('');
   const [line, setLine] = useState('');
   const [productName, setProductName] = useState('');
@@ -318,17 +319,8 @@ export default function TransitPage() {
         setBrand(existingProduct.brand);
         setLine(existingProduct.line);
         setSize(existingProduct.size);
-    } else {
-        // If it's a new product, clear the fields for manual entry
-        setBrand('');
-        setLine('');
-        setSize('');
     }
   };
-  
-  const isExistingProductSelected = useMemo(() => {
-    return existingProductsList.some(p => p.value === productName);
-  }, [productName, existingProductsList]);
 
   const lineOptions = useMemo(() => {
     if (!brand || !inventoryData[brand as keyof typeof inventoryData]) return [];
@@ -427,6 +419,7 @@ export default function TransitPage() {
     setSize('');
     setBrand('');
     setLine('');
+    setIsNewProduct(false);
   };
   
   const handleRemoveProductFromList = (productNameToRemove: string, isEditing: boolean) => {
@@ -563,6 +556,7 @@ export default function TransitPage() {
     setProductName('');
     setSize('');
     setQuantity('');
+    setIsNewProduct(false);
     setIsAddContainerDialogOpen(true);
   }
 
@@ -603,22 +597,43 @@ export default function TransitPage() {
 
   const ProductForm = ({ isEditing }: { isEditing: boolean }) => (
     <div className="space-y-4 p-4 border rounded-md">
+        <div className="flex items-center space-x-2">
+            <Checkbox
+                id="is-new-product"
+                checked={isNewProduct}
+                onCheckedChange={(checked) => {
+                    setIsNewProduct(Boolean(checked));
+                    setProductName('');
+                    setBrand('');
+                    setLine('');
+                    setSize('');
+                }}
+            />
+            <Label htmlFor="is-new-product">Agregar producto nuevo</Label>
+        </div>
         <div className="space-y-2">
             <Label>Nombre del Producto</Label>
-            <Combobox
-                options={existingProductsList}
-                value={productName}
-                onValueChange={handleContainerProductSelect}
-                placeholder="Seleccione o escriba un producto"
-                searchPlaceholder="Buscar producto..."
-                emptyPlaceholder="No se encontró producto."
-                allowFreeText
-            />
+            {isNewProduct ? (
+                <Input 
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    placeholder="Escriba el nombre del nuevo producto..."
+                />
+            ) : (
+                <Combobox
+                    options={existingProductsList}
+                    value={productName}
+                    onValueChange={handleContainerProductSelect}
+                    placeholder="Seleccione un producto existente"
+                    searchPlaceholder="Buscar producto..."
+                    emptyPlaceholder="No se encontró producto."
+                />
+            )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label>Marca</Label>
-                <Select value={brand} onValueChange={setBrand} disabled={isExistingProductSelected}>
+                <Select value={brand} onValueChange={setBrand} disabled={!isNewProduct}>
                     <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
                     <SelectContent>
                         {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
@@ -627,7 +642,7 @@ export default function TransitPage() {
             </div>
             <div className="space-y-2">
                 <Label>Línea</Label>
-                <Select value={line} onValueChange={setLine} disabled={isExistingProductSelected || !brand}>
+                <Select value={line} onValueChange={setLine} disabled={!isNewProduct || !brand}>
                     <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
                     <SelectContent>
                         {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
@@ -642,7 +657,7 @@ export default function TransitPage() {
                     placeholder="Ej: 1.22x0.61 Mts"
                     value={size}
                     onChange={(e) => setSize(e.target.value)}
-                    disabled={isExistingProductSelected}
+                    disabled={!isNewProduct}
                 />
             </div>
             <div className="space-y-2">
@@ -861,6 +876,7 @@ export default function TransitPage() {
     </div>
   );
 }
+
 
 
 
