@@ -49,7 +49,7 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
-  const displayLabel = options.find((option) => option.value === value)?.label || value || placeholder;
+  const displayLabel = options.find((option) => option.value === value)?.label || value || placeholder
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -66,12 +66,7 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command
-          filter={(searchValue, itemValue) => {
-            if (allowFreeText) return 1;
-            return itemValue.toLowerCase().includes(searchValue.toLowerCase()) ? 1 : 0
-          }}
-        >
+        <Command shouldFilter={!allowFreeText}>
           <CommandInput
             placeholder={searchPlaceholder}
             onValueChange={allowFreeText ? onValueChange : undefined}
@@ -82,10 +77,10 @@ export function Combobox({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
+                  value={option.label}
+                  onSelect={() => {
                     if (onValueChange) {
-                      onValueChange(currentValue === value ? "" : currentValue)
+                      onValueChange(option.value)
                     }
                     setOpen(false)
                   }}
