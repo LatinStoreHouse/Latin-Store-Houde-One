@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
@@ -49,7 +48,7 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
-  const displayLabel = options.find((option) => option.value === value)?.label || value || placeholder
+  const displayLabel = options.find((option) => option.value.toLowerCase() === value?.toLowerCase())?.label || value
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -61,40 +60,39 @@ export function Combobox({
           className={cn("w-full justify-between font-normal", className)}
           disabled={disabled}
         >
-          <span className="truncate">{displayLabel}</span>
+          <span className="truncate">{value ? displayLabel : placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command shouldFilter={!allowFreeText}>
+        <Command>
           <CommandInput
             placeholder={searchPlaceholder}
             onValueChange={allowFreeText ? onValueChange : undefined}
           />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  onSelect={() => {
-                    if (onValueChange) {
-                      onValueChange(option.value)
-                    }
-                    setOpen(false)
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {option.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {options.map((option) => (
+              <CommandItem
+                key={option.value}
+                value={option.label}
+                onSelect={(currentLabel) => {
+                  const selectedValue = options.find(opt => opt.label.toLowerCase() === currentLabel.toLowerCase())?.value || ''
+                  if (onValueChange) {
+                     onValueChange(selectedValue)
+                  }
+                  setOpen(false)
+                }}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    value === option.value ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                {option.label}
+              </CommandItem>
+            ))}
           </CommandList>
         </Command>
       </PopoverContent>
