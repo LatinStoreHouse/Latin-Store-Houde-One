@@ -1,7 +1,7 @@
 
 
 'use client';
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useContext, useMemo, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,12 +15,22 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, Save, Truck, BadgeCheck, BellRing } from 'lucide-react';
+import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Role } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -32,6 +42,7 @@ import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { productDimensions } from '@/lib/dimensions';
+import { useBeforeUnload } from '@/hooks/use-before-unload';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -48,6 +59,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
     throw new Error('ProductTable must be used within an InventoryProvider and UserProvider');
   }
   const { reservations: allReservations, toggleProductSubscription, productSubscriptions } = context;
+  const canEditName = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
   
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
     const isNumber = typeof inventoryData[brand][subCategory][productName][field] === 'number';
@@ -185,28 +197,29 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
           if (!name) return null;
           return (
             <TableRow key={name}>
-              <TableCell className="font-medium p-2">
+              <TableCell className="font-medium p-0">
                 <Input 
                     defaultValue={name} 
                     onBlur={(e) => handleInputChange(name, 'name', e.target.value, true)}
-                    className="h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0"
+                    className="h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent"
+                    disabled={!canEditName}
                 />
               </TableCell>
               <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
               <TableCell className="text-right p-0">
-                <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
+                <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
               <TableCell className="text-right p-0">
-                <Input type="number" defaultValue={item.separadasBodega} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-0" disabled readOnly />
+                <Input type="number" defaultValue={item.separadasBodega} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-0 bg-transparent" disabled readOnly />
               </TableCell>
               <TableCell className="text-right p-0">
-                <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
+                <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
               <TableCell className="text-right p-0">
-                <Input type="number" defaultValue={item.separadasZonaFranca} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-0" disabled readOnly />
+                <Input type="number" defaultValue={item.separadasZonaFranca} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-0 bg-transparent" disabled readOnly />
               </TableCell>
               <TableCell className="text-right p-0">
-                 <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0" />
+                 <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
             </TableRow>
           );
@@ -254,9 +267,14 @@ export default function InventoryPage() {
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
+  const [showUnloadAlert, setShowUnloadAlert] = useState(false);
+  const [nextRoute, setNextRoute] = useState<string | null>(null);
+
+  useBeforeUnload(hasPendingChanges, 'Tiene cambios sin guardar. ¿Está seguro de que desea salir?');
   
   const currentUserRole = currentUser.roles[0];
-  const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Logística';
+  const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Contador';
   const isPartner = currentUserRole === 'Partners';
   const isMarketing = currentUserRole === 'Marketing';
   const canViewLowStockAlerts = currentUserRole === 'Logística' || currentUserRole === 'Administrador';
@@ -304,10 +322,12 @@ export default function InventoryPage() {
 
         return newData;
     });
+    if (!hasPendingChanges) setHasPendingChanges(true);
   };
 
   const handleSaveChanges = () => {
     console.log("Saving data:", inventoryData);
+    setHasPendingChanges(false);
     toast({
         title: 'Inventario Guardado',
         description: 'Los cambios en el inventario han sido guardados exitosamente.'
@@ -502,13 +522,35 @@ export default function InventoryPage() {
 
 
   return (
+    <>
+    <AlertDialog open={showUnloadAlert} onOpenChange={setShowUnloadAlert}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Cambios sin Guardar</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Tiene cambios sin guardar. ¿Está seguro de que desea salir? Sus cambios se perderán.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setNextRoute(null)}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={() => {
+                    setHasPendingChanges(false);
+                    // This is a workaround to allow navigation after confirmation
+                    if (nextRoute) {
+                        window.location.href = nextRoute;
+                    }
+                }}>Salir sin Guardar</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Inventario de Productos - Stock Actual</CardTitle>
         <div className="flex gap-2">
             {canEdit && (
                 <>
-                <Button onClick={handleSaveChanges} size="sm">
+                <Button onClick={handleSaveChanges} size="sm" variant={hasPendingChanges ? 'destructive' : 'default'}>
+                    {hasPendingChanges && <AlertTriangle className="mr-2 h-4 w-4" />}
                     <Save className="mr-2 h-4 w-4" />
                     Guardar Cambios
                 </Button>
@@ -704,6 +746,7 @@ export default function InventoryPage() {
         </Tabs>
       </CardContent>
     </Card>
+    </>
   );
 }
     
@@ -713,3 +756,4 @@ export default function InventoryPage() {
     
 
     
+
