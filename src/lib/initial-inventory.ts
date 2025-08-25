@@ -1,12 +1,6 @@
 
 export const initialInventoryData = {
   StoneFlex: {
-    'Clay': {
-      'Cut stone': { bodega: 15, zonaFranca: 352, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
-      'Travertino': { bodega: 14, zonaFranca: 304, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
-      'Concreto encofrado': { bodega: 1, zonaFranca: 77, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
-      'Tapia negra': { bodega: 2, zonaFranca: 23, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
-    },
     'Pizarra': {
       'Black': { bodega: 217, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 1 },
       'Black XL': { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
@@ -72,6 +66,12 @@ export const initialInventoryData = {
       '3d adhesivo - tan': { bodega: 177, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 1 },
       'Panel 3d - indian autumn': { bodega: 13, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
       'Panel 3d - tan': { bodega: 5, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+    },
+    'Clay': {
+      'Cut stone': { bodega: 15, zonaFranca: 352, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'Travertino': { bodega: 14, zonaFranca: 304, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'Concreto encofrado': { bodega: 1, zonaFranca: 77, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'Tapia negra': { bodega: 2, zonaFranca: 23, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
     },
     'Insumos': {
       'Adhesivo': { bodega: 150, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
