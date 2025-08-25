@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button"
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
+  CommandGroup,
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
@@ -48,19 +48,40 @@ export function Combobox({
   allowFreeText = false
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
+  const [inputValue, setInputValue] = React.useState(value || '')
+
+  React.useEffect(() => {
+    setInputValue(options.find(o => o.value === value)?.label || value || '')
+  }, [value, options]);
 
   const handleSelect = (currentValue: string) => {
-    onValueChange?.(currentValue === value ? "" : currentValue);
+    const selectedOption = options.find(o => o.value.toLowerCase() === currentValue.toLowerCase());
+    const newValue = selectedOption ? selectedOption.value : "";
+    
+    if (onValueChange) {
+        onValueChange(newValue);
+    }
+    
+    setInputValue(selectedOption ? selectedOption.label : '');
     setOpen(false);
   };
   
-  const getDisplayValue = () => {
-    if (value) {
-      const selectedOption = options.find(o => o.value === value);
-      return selectedOption ? selectedOption.label : (allowFreeText ? value : placeholder);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const textValue = e.target.value;
+    setInputValue(textValue);
+    if(allowFreeText && onValueChange) {
+        onValueChange(textValue);
     }
-    return placeholder;
   }
+
+  const handleBlur = () => {
+    if (!allowFreeText) {
+        const selectedOption = options.find(o => o.value === value);
+        setInputValue(selectedOption ? selectedOption.label : '');
+    }
+  }
+
+  const displayValue = options.find((option) => option.value === value)?.label || (allowFreeText && value ? value : placeholder);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -72,19 +93,18 @@ export function Combobox({
           className={cn("w-full justify-between font-normal", className)}
         >
           <span className="truncate">
-            {getDisplayValue()}
+            {displayValue}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command>
+        <Command shouldFilter={!allowFreeText}>
           <CommandInput
             placeholder={searchPlaceholder}
-            {...(allowFreeText && {
-              value: value,
-              onValueChange: onValueChange
-            })}
+            value={allowFreeText ? value : inputValue}
+            onValueChange={allowFreeText ? onValueChange : setInputValue}
+            onBlur={handleBlur}
           />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
@@ -92,8 +112,8 @@ export function Combobox({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={handleSelect}
+                  value={option.label} // Compare against label for filtering
+                  onSelect={() => handleSelect(option.value)}
                 >
                   <Check
                     className={cn(
