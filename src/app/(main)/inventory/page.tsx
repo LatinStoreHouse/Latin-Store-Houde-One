@@ -77,9 +77,9 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
   };
   
   const getStockColorClass = (stock: number) => {
-    if (stock <= 0) return 'text-red-600';
-    if (stock > 0 && stock <= 20) return 'text-yellow-600';
-    return 'text-green-600';
+    if (stock < 0) return 'text-red-600'; // Critical error
+    if (stock > 0 && stock <= 20) return 'text-yellow-600'; // Low stock
+    return 'text-green-600'; // Healthy stock
   };
   
   const canSubscribe = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
@@ -303,16 +303,26 @@ export default function InventoryPage() {
   const { toast } = useToast();
 
   const brands = Object.keys(localInventoryData);
+
+   const findProductLocation = (productName: string, data: InventoryData) => {
+    for (const brand in data) {
+      for (const subCategory in data[brand as keyof typeof data]) {
+        if (data[brand as keyof typeof data][subCategory][productName]) {
+          return { brand, subCategory };
+        }
+      }
+    }
+    return null;
+  };
   
   const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
     if (isNameChange) {
-      if (value !== productName && localInventoryData[brand][subCategory][value]) {
+      if (value !== productName && findProductLocation(value, localInventoryData)) {
         toast({
           variant: 'destructive',
           title: 'Error',
           description: `El producto "${value}" ya existe en esta categoría.`,
         });
-        // We need to revert the input field visually if possible, but for now just prevent state update
         return;
       }
     }
@@ -336,17 +346,34 @@ export default function InventoryPage() {
   };
   
  const handleSaveChanges = () => {
+    // Check for renames
     const initialNames = new Set(Object.values(initialData).flatMap(b => Object.values(b).flatMap(l => Object.keys(l))));
     const localNames = new Set(Object.values(localInventoryData).flatMap(b => Object.values(b).flatMap(l => Object.keys(l))));
-
+    
     const addedNames = [...localNames].filter(name => !initialNames.has(name));
     const removedNames = [...initialNames].filter(name => !localNames.has(name));
 
-    if (addedNames.length > 0 && removedNames.length === addedNames.length) {
-        // This is a rough heuristic. A better approach would be to track renames explicitly.
-        // For now, we'll assume a 1-to-1 rename if counts match.
-        for (let i = 0; i < addedNames.length; i++) {
-            updateProductName(removedNames[i], addedNames[i]);
+    if (addedNames.length > 0 && removedNames.length > 0) {
+        // Simple 1-to-1 rename detection. Could be more robust.
+        const removedName = removedNames[0];
+        const addedName = addedNames[0];
+        
+        const oldLocation = findProductLocation(removedName, initialData);
+        const newLocation = findProductLocation(addedName, localInventoryData);
+        
+        if (oldLocation && newLocation) {
+            const oldData = initialData[oldLocation.brand as keyof typeof initialData][oldLocation.subCategory][removedName];
+            const newData = localInventoryData[newLocation.brand as keyof typeof localInventoryData][newLocation.subCategory][addedName];
+
+            // Compare data excluding name to confirm it's likely a rename
+            const { ...oldDataWithoutName } = oldData;
+            const { ...newDataWithoutName } = newData;
+            
+            // This is a weak check, but better than nothing.
+            // A more robust solution would be to track renames explicitly.
+            if (JSON.stringify(oldDataWithoutName) === JSON.stringify(newDataWithoutName)) {
+                 updateProductName(removedName, addedName);
+            }
         }
     }
     
@@ -537,24 +564,26 @@ export default function InventoryPage() {
   
   const lowStockAlerts = useMemo(() => {
     const alerts: { [key: string]: boolean } = {};
+    if (!canViewLowStockAlerts) return alerts;
+
     for (const brand in localInventoryData) {
-      let brandHasLowStock = false;
+      let brandHasAlert = false;
       for (const line in localInventoryData[brand]) {
         for (const product in localInventoryData[brand][line]) {
           const item = localInventoryData[brand][line][product];
           const stockBodega = item.bodega - item.separadasBodega;
           const stockZF = item.zonaFranca - item.separadasZonaFranca;
-          if (stockBodega <= 20 || stockZF <= 20) {
-            brandHasLowStock = true;
+          if (stockBodega < 0 || stockZF < 0) {
+            brandHasAlert = true;
             break;
           }
         }
-        if (brandHasLowStock) break;
+        if (brandHasAlert) break;
       }
-      alerts[brand] = brandHasLowStock;
+      alerts[brand] = brandHasAlert;
     }
     return alerts;
-  }, [localInventoryData]);
+  }, [localInventoryData, canViewLowStockAlerts]);
 
 
   return (
@@ -679,7 +708,7 @@ export default function InventoryPage() {
             <div className="flex justify-center">
                 <TabsList>
                     {brands.map((brand) => (
-                         <TabTriggerWithIndicator value={brand} key={brand} hasAlert={canViewLowStockAlerts && lowStockAlerts[brand]}>
+                         <TabTriggerWithIndicator value={brand} key={brand} hasAlert={lowStockAlerts[brand]}>
                             {formatBrandName(brand)}
                          </TabTriggerWithIndicator>
                     ))}
