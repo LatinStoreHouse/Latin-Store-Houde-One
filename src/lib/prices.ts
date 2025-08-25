@@ -108,6 +108,7 @@ export const initialProductPrices: { [key: string]: number } = {
     'Remate wall panel gris': 0, // No price provided
     'Bocel decorativo blanco': 0, // No price provided
     'Liston 6x4 chocolate': 0, // No price provided
+    'Liston 9x4 chocolate (4 mts)': 0,
 
     // Insumos StoneFlex
     'Adhesivo': 28039,

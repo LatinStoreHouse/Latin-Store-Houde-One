@@ -85,7 +85,6 @@ export const productDimensions: { [key: string]: string } = {
     'Liston 9x4 chocolate': '9x4cm - 3 Mts',
     'Liston 10x5 coffee': '10x5cm - 3 Mts',
     'Liston 10x5 chocolate': '10x5cm - 3 Mts',
-    'Liston 10x5 chocolate (5.60 mts)': '10x5cm - 5.60 Mts',
     'Liston 9x4 chocolate (4 mts)': '9x4cm - 4 Mts',
     'Liston 16x8 chocolate': '16x8cm - 3 Mts',
     'Liston 6x4 chocolate': '6x4cm - 3 Mts',

@@ -32,7 +32,6 @@ const starwoodProducts = [
   'Liston 10x5 camel',
   'Liston 16x8 camel',
   'Deck teck',
-  'Liston 10x5 chocolate (5.60 mts)',
   'Liston 9x4 chocolate (4 mts)',
   'Liston 16x8 chocolate',
   'Liston 6x4 chocolate',
