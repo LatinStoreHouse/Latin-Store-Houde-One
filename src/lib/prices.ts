@@ -118,4 +118,17 @@ export const initialProductPrices: { [key: string]: number } = {
     'Sellante semi - brigth 1/ 4 galon': 46200,
     'Sellante shyny galon': 185900,
     'Sellante shyny 1/4 galon': 54450,
+    
+    // Graphestone
+    'BIOSPHERE WHITE': 0,
+    'COATEXTURE PREMIUM': 0,
+    'ECOSPHERE WHITE': 0,
+    'GRAFCLEAN AG+': 0,
+    'GRAFCLEAN COLOR PASTEL': 0,
+    'MODENA': 0,
+    'MORTARFINE PREMIUM': 0,
+    'NEVADA DUO WHITE': 0,
+    'NEVADA ULTRA MEDIA': 0,
+    'NEVADA ULTRA WHITE': 0,
+    'SIENA': 0,
 };

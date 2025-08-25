@@ -1,4 +1,5 @@
 
+
 export const productDimensions: { [key: string]: string } = {
     // StoneFlex Clay
     'Cut stone': '1.20x0.60 Mts',
@@ -114,4 +115,17 @@ export const productDimensions: { [key: string]: string } = {
     'Remate wall panel negro': 'N/A',
     'Remate wall panel gris': 'N/A',
     'Bocel decorativo blanco': 'N/A',
+    
+    // Graphestone
+    'BIOSPHERE WHITE': '4 Litros',
+    'COATEXTURE PREMIUM': 'Galón',
+    'ECOSPHERE WHITE': '15 Litros', // Also 4 Litros, need to distinguish
+    'GRAFCLEAN AG+': '15 Litros',
+    'GRAFCLEAN COLOR PASTEL': '15 Litros',
+    'MODENA': 'N/A',
+    'MORTARFINE PREMIUM': '15.5 KG',
+    'NEVADA DUO WHITE': '15 Litros',
+    'NEVADA ULTRA MEDIA': '15 Litros',
+    'NEVADA ULTRA WHITE': '4 Litros',
+    'SIENA': '4 Litros',
   };

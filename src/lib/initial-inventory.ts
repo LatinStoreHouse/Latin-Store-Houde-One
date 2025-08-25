@@ -85,10 +85,10 @@ export const initialInventoryData = {
   },
   Starwood: {
     'Deck': {
-        'Deck co-extrusion cf - wn': { bodega: 193, zonaFranca: 620, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
-        'Deck co-extrusion eb - lg': { bodega: 60, zonaFranca: 126, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
-        'Deck estandar coffee': { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
-        'Deck teck': { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'Deck co-extrusion cf - wn': { bodega: 193, zonaFranca: 620, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'Deck co-extrusion eb - lg': { bodega: 60, zonaFranca: 126, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'Deck estandar coffee': { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'Deck teck': { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
     },
     'Listones': {
       'Liston 10x5 camel': { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
@@ -122,7 +122,21 @@ export const initialInventoryData = {
         'Sellante wpc 1/4 galon': { bodega: 25, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
     }
   },
-  Graphestone: {},
+  Graphestone: {
+    'Pinturas y Revestimientos': {
+      'BIOSPHERE WHITE': { bodega: 64, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'COATEXTURE PREMIUM': { bodega: 46, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'ECOSPHERE WHITE': { bodega: 95, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'GRAFCLEAN AG+': { bodega: 23, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'GRAFCLEAN COLOR PASTEL': { bodega: 6, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'MODENA': { bodega: 5, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'MORTARFINE PREMIUM': { bodega: 13, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'NEVADA DUO WHITE': { bodega: 4, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'NEVADA ULTRA MEDIA': { bodega: 48, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'NEVADA ULTRA WHITE': { bodega: 4, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'SIENA': { bodega: 4, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+    }
+  },
   '7walls': {},
   Uvcovering: {},
   glasswing: {},
