@@ -1,5 +1,4 @@
 
-
 'use client';
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import jsPDF from 'jspdf';
@@ -251,6 +250,9 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
     const { inventoryData } = useContext(InventoryContext)!;
     
     const [isNewProduct, setIsNewProduct] = useState(false);
+    const [isNewBrand, setIsNewBrand] = useState(false);
+    const [isNewLine, setIsNewLine] = useState(false);
+
     const [productName, setProductName] = useState('');
     const [brand, setBrand] = useState('');
     const [line, setLine] = useState('');
@@ -289,22 +291,37 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
         setLine('');
         setSize('');
         setQuantity('');
+        setIsNewProduct(false);
+        setIsNewBrand(false);
+        setIsNewLine(false);
     };
     
     const handleToggleNewProduct = (checked: boolean) => {
         setIsNewProduct(checked);
-        resetForm();
+        setProductName('');
+        setBrand('');
+        setLine('');
+        setSize('');
+    };
+
+    const handleToggleNewBrand = (checked: boolean) => {
+        setIsNewBrand(checked);
+        setBrand('');
+        setLine('');
+    };
+
+    const handleToggleNewLine = (checked: boolean) => {
+        setIsNewLine(checked);
+        setLine('');
     };
 
     const handleSelectExistingProduct = (value: string) => {
         const existing = existingProductsList.find(p => p.value === value);
+        setProductName(value);
         if (existing) {
-            setProductName(value);
             setBrand(existing.brand);
             setLine(existing.line);
             setSize(existing.size);
-        } else {
-            setProductName(value);
         }
     };
     
@@ -356,30 +373,42 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label>Marca</Label>
-                    <Combobox
-                        options={brandOptions}
-                        value={brand}
-                        onValueChange={(value) => { setBrand(value); setLine(''); }}
-                        placeholder="Seleccione o escriba una marca"
-                        searchPlaceholder="Buscar marca..."
-                        emptyPlaceholder="No hay marcas."
-                        disabled={!isNewProduct}
-                        allowFreeText
-                    />
+                    <div className="flex items-center space-x-2 mb-2">
+                        <Checkbox id="is-new-brand" checked={isNewBrand} onCheckedChange={handleToggleNewBrand} disabled={!isNewProduct} />
+                        <Label htmlFor="is-new-brand">Agregar marca nueva</Label>
+                    </div>
+                    {isNewBrand ? (
+                        <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Nombre de la nueva marca" disabled={!isNewProduct} />
+                    ) : (
+                        <Combobox
+                            options={brandOptions}
+                            value={brand}
+                            onValueChange={(value) => { setBrand(value); setLine(''); }}
+                            placeholder="Seleccione una marca"
+                            searchPlaceholder="Buscar marca..."
+                            emptyPlaceholder="No hay marcas."
+                            disabled={!isNewProduct}
+                        />
+                    )}
                 </div>
                 <div className="space-y-2">
-                    <Label>Línea</Label>
-                     <Combobox
-                        options={lineOptions}
-                        value={line}
-                        onValueChange={setLine}
-                        placeholder="Seleccione o escriba una línea"
-                        searchPlaceholder="Buscar línea..."
-                        emptyPlaceholder="No hay líneas para esta marca."
-                        disabled={!isNewProduct || !brand}
-                        allowFreeText
-                    />
+                    <div className="flex items-center space-x-2 mb-2">
+                        <Checkbox id="is-new-line" checked={isNewLine} onCheckedChange={handleToggleNewLine} disabled={!isNewProduct || !brand} />
+                        <Label htmlFor="is-new-line">Agregar línea nueva</Label>
+                    </div>
+                    {isNewLine ? (
+                         <Input value={line} onChange={(e) => setLine(e.target.value)} placeholder="Nombre de la nueva línea" disabled={!isNewProduct || !brand} />
+                    ) : (
+                        <Combobox
+                            options={lineOptions}
+                            value={line}
+                            onValueChange={setLine}
+                            placeholder="Seleccione una línea"
+                            searchPlaceholder="Buscar línea..."
+                            emptyPlaceholder="No hay líneas para esta marca."
+                            disabled={!isNewProduct || !brand}
+                        />
+                    )}
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
