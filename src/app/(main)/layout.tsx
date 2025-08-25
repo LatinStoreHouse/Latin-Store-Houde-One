@@ -309,7 +309,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarMenu>
+          <SidebarMenu className="px-2">
             {visibleNavItems.map((item) =>
               item.subItems ? (
                 <SidebarGroup key={item.label} className="p-0">
