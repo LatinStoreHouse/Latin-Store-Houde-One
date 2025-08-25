@@ -1,5 +1,4 @@
 
-
 'use client';
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import jsPDF from 'jspdf';
@@ -247,6 +246,161 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
     );
 };
 
+const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => void }) => {
+    const { inventoryData } = useContext(InventoryContext)!;
+    const [isNewProduct, setIsNewProduct] = useState(false);
+    const [productToAdd, setProductToAdd] = useState({
+        name: '',
+        brand: '',
+        line: '',
+        size: '',
+        quantity: ''
+    });
+    const { toast } = useToast();
+
+    const existingProductsList = useMemo(() => {
+        const products: { value: string; label: string; brand: string; line: string; size: string; }[] = [];
+        for (const brand in inventoryData) {
+            for (const line in inventoryData[brand]) {
+                for (const name in inventoryData[brand][line]) {
+                    products.push({
+                        value: name,
+                        label: `${name} (${brand} > ${line})`,
+                        brand: brand,
+                        line: line,
+                        size: productDimensions[name as keyof typeof productDimensions] || ''
+                    });
+                }
+            }
+        }
+        return products;
+    }, [inventoryData]);
+
+    const brandOptions = useMemo(() => Object.keys(inventoryData).map(b => ({ value: b, label: b })), [inventoryData]);
+    const lineOptions = useMemo(() => {
+        if (!productToAdd.brand || !inventoryData[productToAdd.brand as keyof typeof inventoryData]) return [];
+        return Object.keys(inventoryData[productToAdd.brand as keyof typeof inventoryData]).map(l => ({ value: l, label: l }));
+    }, [productToAdd.brand, inventoryData]);
+    
+    const resetForm = () => {
+        setProductToAdd({ name: '', brand: '', line: '', size: '', quantity: '' });
+    };
+
+    const handleSelectProduct = (value: string) => {
+        const existing = existingProductsList.find(p => p.value === value);
+        if (existing) {
+            setProductToAdd(prev => ({
+                ...prev,
+                name: value,
+                brand: existing.brand,
+                line: existing.line,
+                size: existing.size,
+            }));
+        }
+    };
+    
+    const handleToggleNewProduct = (checked: boolean) => {
+        setIsNewProduct(checked);
+        resetForm();
+    };
+    
+    const handleSubmit = () => {
+        if (!productToAdd.name || !productToAdd.brand || !productToAdd.line || !productToAdd.quantity) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos del producto.' });
+            return;
+        }
+        onAddProduct({
+            name: productToAdd.name,
+            quantity: Number(productToAdd.quantity),
+            brand: productToAdd.brand,
+            line: productToAdd.line,
+            size: productToAdd.size
+        });
+        resetForm();
+    };
+
+    return (
+        <div className="space-y-4 p-4 border rounded-md">
+            <div className="flex items-center space-x-2">
+                <Checkbox
+                    id="is-new-product"
+                    checked={isNewProduct}
+                    onCheckedChange={(checked) => handleToggleNewProduct(Boolean(checked))}
+                />
+                <Label htmlFor="is-new-product">Agregar producto nuevo</Label>
+            </div>
+
+            {isNewProduct ? (
+                <div className="space-y-2">
+                    <Label>Nombre del Producto</Label>
+                    <Input 
+                        value={productToAdd.name}
+                        onChange={(e) => setProductToAdd(p => ({...p, name: e.target.value}))}
+                        placeholder="Escriba el nombre del nuevo producto..."
+                    />
+                </div>
+            ) : (
+                <div className="space-y-2">
+                    <Label>Nombre del Producto</Label>
+                    <Combobox
+                        options={existingProductsList}
+                        value={productToAdd.name}
+                        onValueChange={handleSelectProduct}
+                        placeholder="Seleccione un producto existente"
+                        searchPlaceholder="Buscar producto..."
+                        emptyPlaceholder="No se encontró producto."
+                    />
+                </div>
+            )}
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label>Marca</Label>
+                    <Select value={productToAdd.brand} onValueChange={(value) => setProductToAdd(p => ({...p, brand: value}))} disabled={!isNewProduct}>
+                        <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
+                        <SelectContent>
+                            {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label>Línea</Label>
+                    <Select value={productToAdd.line} onValueChange={(value) => setProductToAdd(p => ({...p, line: value}))} disabled={!isNewProduct || !productToAdd.brand}>
+                        <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
+                        <SelectContent>
+                            {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label>Tamaño (opcional)</Label>
+                    <Input
+                        placeholder="Ej: 1.22x0.61 Mts"
+                        value={productToAdd.size}
+                        onChange={(e) => setProductToAdd(p => ({...p, size: e.target.value}))}
+                        disabled={!isNewProduct}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label>Cantidad</Label>
+                    <Input
+                        type="number"
+                        placeholder="Cant."
+                        value={productToAdd.quantity}
+                        onChange={(e) => setProductToAdd(p => ({...p, quantity: e.target.value}))}
+                    />
+                </div>
+            </div>
+            <div className="flex justify-end pt-2">
+                <Button onClick={handleSubmit}>Agregar Producto</Button>
+            </div>
+        </div>
+    );
+};
+
+
 export default function TransitPage() {
   const context = useContext(InventoryContext);
   if (!context) {
@@ -256,26 +410,13 @@ export default function TransitPage() {
   const { currentUser } = useUser();
   const router = useRouter();
 
-  const [newContainerId, setNewContainerId] = useState('');
-  const [newContainerEta, setNewContainerEta] = useState('');
-  const [newContainerProducts, setNewContainerProducts] = useState<Product[]>([]);
-  
-  // State for the product form inside the dialog
-  const [productToAdd, setProductToAdd] = useState({
-    name: '',
-    brand: '',
-    line: '',
-    size: '',
-    quantity: ''
-  });
-  const [isNewProduct, setIsNewProduct] = useState(false);
-
-
   const [isAddContainerDialogOpen, setIsAddContainerDialogOpen] = useState(false);
   const [isEditContainerDialogOpen, setIsEditContainerDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  
   const [editingContainer, setEditingContainer] = useState<ContainerType | null>(null);
-  const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
+  const [newContainer, setNewContainer] = useState<Omit<ContainerType, 'status' | 'creationDate'>>({ id: '', eta: '', carrier: '', products: [] });
+
   const [selectedContainersForExport, setSelectedContainersForExport] = useState<Record<string, boolean>>({});
   const [exportFormat, setExportFormat] = useState<'pdf' | 'xls'>('pdf');
   const [activeTab, setActiveTab] = useState('en-transito');
@@ -297,76 +438,52 @@ export default function TransitPage() {
     return { activeContainers: active, historyContainers: history, hasLateContainers: late };
   }, [containers]);
 
-  const existingProductsList = useMemo(() => {
-    const products: { value: string; label: string; brand: string; line: string; size: string; }[] = [];
-    for (const brand in inventoryData) {
-        for (const line in inventoryData[brand]) {
-            for (const name in inventoryData[brand][line]) {
-                products.push({
-                    value: name,
-                    label: name,
-                    brand: brand,
-                    line: line,
-                    size: productDimensions[name as keyof typeof productDimensions] || ''
-                });
-            }
-        }
-    }
-    return products.map(p => ({...p, label: `${p.label} (${p.brand} > ${p.line})`}));
-  }, [inventoryData]);
 
-  const handleContainerProductSelect = (value: string) => {
-    const existingProduct = existingProductsList.find(p => p.value === value);
-    if (existingProduct) {
-        setProductToAdd({
-            ...productToAdd,
-            name: value,
-            brand: existingProduct.brand,
-            line: existingProduct.line,
-            size: existingProduct.size
-        });
-    }
+  const handleAddProductToNewContainer = (product: Product) => {
+    setNewContainer(prev => ({...prev, products: [...prev.products, product] }));
   };
 
-  const lineOptions = useMemo(() => {
-    if (!productToAdd.brand || !inventoryData[productToAdd.brand as keyof typeof inventoryData]) return [];
-    return Object.keys(inventoryData[productToAdd.brand as keyof typeof inventoryData]).map(l => ({ value: l, label: l }));
-  }, [productToAdd.brand, inventoryData]);
+  const handleRemoveProductFromNewContainer = (productName: string) => {
+    setNewContainer(prev => ({...prev, products: prev.products.filter(p => p.name !== productName) }));
+  };
+  
+   const handleAddProductToEditingContainer = (product: Product) => {
+    if (!editingContainer) return;
+    setEditingContainer(prev => prev ? {...prev, products: [...prev.products, product] } : null);
+  };
+  
+   const handleRemoveProductFromEditingContainer = (productName: string) => {
+    if (!editingContainer) return;
+    setEditingContainer(prev => prev ? {...prev, products: prev.products.filter(p => p.name !== productName) } : null);
+  };
 
-  const brandOptions = useMemo(() => Object.keys(inventoryData).map(b => ({ value: b, label: b })), [inventoryData]);
+  const handleOpenAddDialog = () => {
+    setNewContainer({ id: '', eta: '', carrier: '', products: [] });
+    setIsAddContainerDialogOpen(true);
+  };
 
-  const resetProductForm = () => {
-    setProductToAdd({ name: '', brand: '', line: '', size: '', quantity: '' });
-    setIsNewProduct(false);
-  }
+  const handleOpenEditDialog = (container: ContainerType) => {
+    setEditingContainer(JSON.parse(JSON.stringify(container))); // Deep copy
+    setIsEditContainerDialogOpen(true);
+  };
 
-  const handleAddContainer = () => {
-    if (!newContainerId || !newContainerEta) {
+  const handleSaveNewContainer = () => {
+    if (!newContainer.id || !newContainer.eta) {
         toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete el ID y la fecha de llegada.' });
         return;
     }
-    const newContainer: ContainerType = {
-      id: newContainerId,
-      eta: newContainerEta,
-      carrier: '', // Carrier removed from form
-      products: newContainerProducts,
+    const containerToAdd: ContainerType = {
+      ...newContainer,
+      id: newContainer.id.toUpperCase(),
       status: 'En producción',
       creationDate: new Date().toISOString().split('T')[0],
     };
-    addContainer(newContainer);
-    setNewContainerId('');
-    setNewContainerEta('');
-    setNewContainerProducts([]);
+    addContainer(containerToAdd);
     setIsAddContainerDialogOpen(false);
     toast({ title: 'Éxito', description: 'Contenedor agregado correctamente.' });
   };
   
-  const handleOpenEditDialog = (container: ContainerType) => {
-    setEditingContainer(container);
-    setIsEditContainerDialogOpen(true);
-  };
-
-  const handleEditContainer = () => {
+  const handleSaveChangesToContainer = () => {
     if (!editingContainer) return;
     editContainer(editingContainer.id, editingContainer);
     setIsEditContainerDialogOpen(false);
@@ -378,7 +495,6 @@ export default function TransitPage() {
     const container = containers.find(c => c.id === containerId);
     if (!container) return;
     
-    // If status is "Llegado", trigger the receive confirmation dialog
     if (newStatus === 'Llegado') {
         const reservations = context.reservations.filter(r => r.source === 'Contenedor' && r.sourceId === containerId && r.status === 'Validada');
         receiveContainer(containerId, reservations);
@@ -401,45 +517,6 @@ export default function TransitPage() {
     router.push(`/reservations?${params.toString()}`);
   }
 
-
-  const handleAddProductToContainer = (isEditing: boolean) => {
-    if (!productToAdd.brand || !productToAdd.line || !productToAdd.name || Number(productToAdd.quantity) <= 0) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos del producto.' });
-        return;
-    }
-
-    const productListSetter = isEditing 
-        ? (updater: (prev: Product[]) => Product[]) => setEditingContainer(c => c ? {...c, products: updater(c.products)} : null)
-        : setNewContainerProducts;
-    
-    productListSetter(prev => {
-        const existingProductIndex = prev.findIndex(p => p.name === productToAdd.name);
-        const newProduct = { 
-            name: productToAdd.name, 
-            quantity: Number(productToAdd.quantity), 
-            brand: productToAdd.brand, 
-            line: productToAdd.line, 
-            size: productToAdd.size 
-        };
-        if (existingProductIndex !== -1) {
-            const updatedProducts = [...prev];
-            updatedProducts[existingProductIndex].quantity += Number(productToAdd.quantity);
-            return updatedProducts;
-        } else {
-            return [...prev, newProduct];
-        }
-    });
-
-    resetProductForm();
-  };
-  
-  const handleRemoveProductFromList = (productNameToRemove: string, isEditing: boolean) => {
-     const productListSetter = isEditing 
-        ? (updater: (prev: Product[]) => Product[]) => setEditingContainer(c => c ? {...c, products: updater(c.products)} : null)
-        : setNewContainerProducts;
-    
-    productListSetter(prev => prev.filter(p => p.name !== productNameToRemove));
-  }
   
   const handleExportOptionChange = (key: string, value: boolean) => {
     setSelectedContainersForExport(prev => ({
@@ -558,14 +635,6 @@ export default function TransitPage() {
       });
   };
   
-  const handleOpenAddContainerDialog = () => {
-    setNewContainerId('');
-    setNewContainerEta('');
-    setNewContainerProducts([]);
-    resetProductForm();
-    setIsAddContainerDialogOpen(true);
-  }
-
   const renderActiveList = (list: ContainerType[]) => (
       <div className="space-y-8">
           {list.map((container) => (
@@ -601,87 +670,7 @@ export default function TransitPage() {
   
   const containersForExportDialog = activeTab === 'historial' ? historyContainers : activeContainers;
 
-  const ProductForm = ({ isEditing }: { isEditing: boolean }) => {
-    return (
-        <div className="space-y-4 p-4 border rounded-md">
-            <div className="flex items-center space-x-2">
-                <Checkbox
-                    id="is-new-product"
-                    checked={isNewProduct}
-                    onCheckedChange={(checked) => {
-                        setIsNewProduct(Boolean(checked));
-                        resetProductForm();
-                    }}
-                />
-                <Label htmlFor="is-new-product">Agregar producto nuevo</Label>
-            </div>
-            <div className="space-y-2">
-                <Label>Nombre del Producto</Label>
-                {isNewProduct ? (
-                    <Input 
-                        value={productToAdd.name}
-                        onChange={(e) => setProductToAdd(p => ({...p, name: e.target.value}))}
-                        placeholder="Escriba el nombre del nuevo producto..."
-                    />
-                ) : (
-                    <Combobox
-                        options={existingProductsList}
-                        value={productToAdd.name}
-                        onValueChange={handleContainerProductSelect}
-                        placeholder="Seleccione un producto existente"
-                        searchPlaceholder="Buscar producto..."
-                        emptyPlaceholder="No se encontró producto."
-                    />
-                )}
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label>Marca</Label>
-                    <Select value={productToAdd.brand} onValueChange={(value) => setProductToAdd(p => ({...p, brand: value}))} disabled={!isNewProduct}>
-                        <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
-                        <SelectContent>
-                            {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <Label>Línea</Label>
-                    <Select value={productToAdd.line} onValueChange={(value) => setProductToAdd(p => ({...p, line: value}))} disabled={!isNewProduct || !productToAdd.brand}>
-                        <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
-                        <SelectContent>
-                            {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label>Tamaño (opcional)</Label>
-                    <Input
-                        placeholder="Ej: 1.22x0.61 Mts"
-                        value={productToAdd.size}
-                        onChange={(e) => setProductToAdd(p => ({...p, size: e.target.value}))}
-                        disabled={!isNewProduct}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label>Cantidad</Label>
-                    <Input
-                        type="number"
-                        placeholder="Cant."
-                        value={productToAdd.quantity}
-                        onChange={(e) => setProductToAdd(p => ({...p, quantity: e.target.value}))}
-                    />
-                </div>
-            </div>
-            <div className="flex justify-end pt-2">
-                <Button onClick={() => handleAddProductToContainer(isEditing)}>Agregar Producto</Button>
-            </div>
-        </div>
-    );
-  }
-
- const ProductList = ({ products, isEditing }: { products: Product[], isEditing: boolean }) => (
+ const ProductList = ({ products, onRemove }: { products: Product[], onRemove: (productName: string) => void }) => (
     <div className="rounded-md border max-h-48 overflow-y-auto">
         <Table>
             <TableHeader>
@@ -700,7 +689,7 @@ export default function TransitPage() {
                         </TableCell>
                         <TableCell className="text-right">{p.quantity}</TableCell>
                         <TableCell>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveProductFromList(p.name, isEditing)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRemove(p.name)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                         </TableCell>
@@ -729,7 +718,7 @@ export default function TransitPage() {
           </div>
           <div className="flex items-center gap-2">
             {canEditContainer && (
-                <Button onClick={handleOpenAddContainerDialog}>
+                <Button onClick={handleOpenAddDialog}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Agregar Contenedor
                 </Button>
@@ -811,23 +800,23 @@ export default function TransitPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                 <Label htmlFor="container-id">ID del Contenedor</Label>
-                <Input id="container-id" value={newContainerId} onChange={(e) => setNewContainerId(e.target.value.toUpperCase())} />
+                <Input id="container-id" value={newContainer.id} onChange={(e) => setNewContainer({...newContainer, id: e.target.value.toUpperCase()})} />
                 </div>
                 <div className="space-y-2">
                 <Label htmlFor="container-eta">Llegada a Puerto</Label>
-                <Input id="container-eta" type="date" value={newContainerEta} onChange={(e) => setNewContainerEta(e.target.value)} />
+                <Input id="container-eta" type="date" value={newContainer.eta} onChange={(e) => setNewContainer({...newContainer, eta: e.target.value})} />
                 </div>
               </div>
               <Separator />
                <h4 className="font-medium text-center">Productos del Contenedor</h4>
-              <ProductForm isEditing={false} />
-              <ProductList products={newContainerProducts} isEditing={false} />
+              <ProductForm onAddProduct={handleAddProductToNewContainer} />
+              <ProductList products={newContainer.products} onRemove={handleRemoveProductFromNewContainer} />
           </div>
           <DialogFooter>
               <DialogClose asChild>
                   <Button variant="ghost">Cancelar</Button>
               </DialogClose>
-              <Button onClick={handleAddContainer}>Guardar Contenedor</Button>
+              <Button onClick={handleSaveNewContainer}>Guardar Contenedor</Button>
           </DialogFooter>
           </DialogContent>
       </Dialog>
@@ -868,12 +857,12 @@ export default function TransitPage() {
                     </div>
                     <Separator />
                     <h4 className="font-medium text-center">Productos del Contenedor</h4>
-                    <ProductForm isEditing={true} />
-                    <ProductList products={editingContainer.products} isEditing={true} />
+                    <ProductForm onAddProduct={handleAddProductToEditingContainer} />
+                    <ProductList products={editingContainer.products} onRemove={handleRemoveProductFromEditingContainer} />
                 </div>
                 <DialogFooter>
                     <DialogClose asChild><Button variant="ghost" onClick={() => setEditingContainer(null)}>Cancelar</Button></DialogClose>
-                    <Button onClick={handleEditContainer}>Guardar Cambios</Button>
+                    <Button onClick={handleSaveChangesToContainer}>Guardar Cambios</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -881,6 +870,7 @@ export default function TransitPage() {
     </div>
   );
 }
+
 
 
 
