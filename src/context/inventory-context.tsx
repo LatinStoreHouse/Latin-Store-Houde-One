@@ -53,6 +53,8 @@ export type InventoryData = typeof initialInventoryData;
 interface InventoryContextType {
   inventoryData: InventoryData;
   setInventoryData: React.Dispatch<React.SetStateAction<InventoryData>>;
+  productPrices: { [key: string]: number };
+  productDimensions: { [key: string]: string };
   containers: Container[];
   setContainers: React.Dispatch<React.SetStateAction<Container[]>>;
   reservations: Reservation[];
@@ -66,6 +68,7 @@ interface InventoryContextType {
   releaseReservationStock: (reservation: Reservation) => void;
   addContainer: (container: Container) => void;
   editContainer: (containerId: string, updatedContainer: Container) => void;
+  updateProductName: (oldName: string, newName: string) => void;
   productSubscriptions: Record<string, string[]>;
   toggleProductSubscription: (productName: string, userName: string) => void;
 }
@@ -74,6 +77,8 @@ export const InventoryContext = createContext<InventoryContextType | undefined>(
 
 export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [inventoryData, setInventoryData] = useState<InventoryData>(initialInventoryData);
+  const [productPrices, setProductPrices] = useState(initialProductPrices);
+  const [localProductDimensions, setLocalProductDimensions] = useState(productDimensions);
   const [containers, setContainers] = useState<Container[]>(initialContainerData);
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -90,6 +95,53 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     return null;
+  };
+
+  const updateProductName = (oldName: string, newName: string) => {
+    if (oldName === newName) return;
+
+    setInventoryData(prev => {
+        const newData = JSON.parse(JSON.stringify(prev));
+        const location = findProductLocation(oldName);
+        if (location) {
+            const { brand, subCategory } = location;
+            if (newData[brand][subCategory][newName]) {
+                toast({ variant: 'destructive', title: 'Error', description: `El nombre de producto "${newName}" ya existe.`});
+                return prev;
+            }
+            const productData = newData[brand][subCategory][oldName];
+            delete newData[brand][subCategory][oldName];
+            newData[brand][subCategory][newName] = productData;
+        }
+        return newData;
+    });
+
+    setProductPrices(prev => {
+        const newPrices = {...prev};
+        if (newPrices.hasOwnProperty(oldName)) {
+            newPrices[newName] = newPrices[oldName];
+            delete newPrices[oldName];
+        }
+        return newPrices;
+    });
+
+    setLocalProductDimensions(prev => {
+         const newDimensions = {...prev};
+        if (newDimensions.hasOwnProperty(oldName)) {
+            newDimensions[newName] = newDimensions[oldName];
+            delete newDimensions[oldName];
+        }
+        return newDimensions;
+    });
+
+    setContainers(prev => prev.map(container => ({
+        ...container,
+        products: container.products.map(p => p.name === oldName ? { ...p, name: newName } : p)
+    })));
+
+    setReservations(prev => prev.map(r => r.product === oldName ? { ...r, product: newName } : r));
+    
+    toast({ title: 'Nombre Actualizado', description: `"${oldName}" ha sido renombrado a "${newName}" en todo el sistema.`});
   };
 
   const releaseReservationStock = (reservation: Reservation) => {
@@ -372,7 +424,9 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   return (
     <InventoryContext.Provider value={{ 
       inventoryData, 
-      setInventoryData, 
+      setInventoryData,
+      productPrices,
+      productDimensions: localProductDimensions, 
       containers, 
       setContainers,
       reservations,
@@ -386,6 +440,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       releaseReservationStock,
       addContainer,
       editContainer,
+      updateProductName,
       productSubscriptions,
       toggleProductSubscription
     }}>

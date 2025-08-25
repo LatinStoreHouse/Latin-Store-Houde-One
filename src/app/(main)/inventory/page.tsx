@@ -42,7 +42,6 @@ import { InventoryContext, Reservation } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { productDimensions } from '@/lib/dimensions';
 import { useBeforeUnload } from '@/hooks/use-before-unload';
 
 
@@ -59,12 +58,12 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
   if (!context || !currentUser) {
     throw new Error('ProductTable must be used within an InventoryProvider and UserProvider');
   }
-  const { reservations: allReservations, toggleProductSubscription, productSubscriptions } = context;
+  const { reservations: allReservations, toggleProductSubscription, productSubscriptions, productDimensions } = context;
   const canEditName = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
   
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
     const isNumber = typeof inventoryData[brand][subCategory][productName][field] === 'number';
-    onDataChange(brand, subCategory, productName, field, isNumber ? Number(value) : value, isNameChange);
+    onDataChange(brand, subCategory, productName, field, isNumber && !isNameChange ? Number(value) : value, isNameChange);
   };
 
   const getReservationsForProduct = (productName: string): Reservation[] => {
@@ -263,12 +262,11 @@ export default function InventoryPage() {
   if (!context) {
     throw new Error('InventoryContext must be used within an InventoryProvider');
   }
-  const { inventoryData: initialData, transferFromFreeZone } = context;
+  const { inventoryData: initialData, transferFromFreeZone, setInventoryData: setGlobalInventoryData, updateProductName } = context;
   const { currentUser } = useUser();
 
-  const [inventoryData, setInventoryData] = useState(initialData);
-  const [originalInventoryData, setOriginalInventoryData] = useState(initialData);
-
+  const [localInventoryData, setLocalInventoryData] = useState(initialData);
+  
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
@@ -276,9 +274,8 @@ export default function InventoryPage() {
   useBeforeUnload(hasPendingChanges, 'Tiene cambios sin guardar. ¿Está seguro de que desea salir?');
   
   useEffect(() => {
-    // Keep track of the initial data when the component mounts or the context data changes
-    setOriginalInventoryData(initialData);
-    setInventoryData(initialData);
+    // Update local state when global state changes, effectively discarding local changes.
+    setLocalInventoryData(initialData);
   }, [initialData]);
 
   const currentUserRole = currentUser.roles[0];
@@ -305,14 +302,15 @@ export default function InventoryPage() {
   });
   const { toast } = useToast();
 
-  const brands = Object.keys(inventoryData);
+  const brands = Object.keys(localInventoryData);
   
   const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
-    setInventoryData(prevData => {
+    setLocalInventoryData(prevData => {
         const newData = JSON.parse(JSON.stringify(prevData));
         const products = newData[brand][subCategory];
 
         if (isNameChange) {
+            // This only changes the key locally for now. The global update happens on save.
             if (value !== productName && products[value]) {
                 toast({
                     variant: 'destructive',
@@ -333,20 +331,52 @@ export default function InventoryPage() {
     if (!hasPendingChanges) setHasPendingChanges(true);
   };
 
-  const handleSaveChanges = () => {
-    // In a real app, this would be an API call to save the data.
-    // For now, we'll just update the original data state.
-    setOriginalInventoryData(inventoryData);
+ const handleSaveChanges = () => {
+    // Iterate through the local state to find name changes and apply them globally.
+    for (const brand in localInventoryData) {
+        for (const subCategory in localInventoryData[brand]) {
+            for (const newName in localInventoryData[brand][subCategory]) {
+                const oldProduct = initialData[brand as keyof typeof initialData]?.[subCategory]?.[newName];
+                if (!oldProduct) {
+                    // This is a newly named product. We need to find its old name.
+                    const oldName = Object.keys(initialData[brand as keyof typeof initialData][subCategory]).find(
+                        key => JSON.stringify(initialData[brand as keyof typeof initialData][subCategory][key]) === JSON.stringify(localInventoryData[brand][subCategory][newName])
+                    );
+                    
+                    const oldNameFromAll = Object.keys(initialData).flatMap(b => Object.keys(initialData[b as keyof typeof initialData]).flatMap(sc => Object.keys(initialData[b as keyof typeof initialData][sc]))).find(
+                         on => {
+                             const loc = findProductLocation(on);
+                             if (!loc) return false;
+                             return JSON.stringify(initialData[loc.brand][loc.subCategory][on]) === JSON.stringify(localInventoryData[brand][subCategory][newName]);
+                         }
+                    );
+                    
+                    const aRealOldName = Object.keys(initialData[brand]?.[subCategory] ?? {}).find(oldKey => 
+                        !Object.keys(localInventoryData[brand][subCategory]).includes(oldKey)
+                    );
+
+
+                    if(aRealOldName && newName !== aRealOldName) {
+                       updateProductName(aRealOldName, newName);
+                    }
+                }
+            }
+        }
+    }
+    
+    // Set the global state with all changes (including quantities)
+    setGlobalInventoryData(localInventoryData);
     setHasPendingChanges(false);
     toast({
         title: 'Inventario Guardado',
         description: 'Los cambios en el inventario han sido guardados exitosamente.'
     });
-  }
+}
+
 
   const handleCancelChanges = () => {
     // Revert local state to the original state from context
-    setInventoryData(originalInventoryData);
+    setLocalInventoryData(initialData);
     setHasPendingChanges(false);
     toast({
         title: 'Cambios Descartados',
@@ -365,7 +395,7 @@ export default function InventoryPage() {
     const selectedCategories = Object.keys(exportOptions.categories).filter(c => exportOptions.categories[c]);
     const selectedProducts = Object.keys(exportOptions.products).filter(p => exportOptions.products[p]);
 
-    Object.entries(inventoryData).forEach(([brand, categories]) => {
+    Object.entries(localInventoryData).forEach(([brand, categories]) => {
       if (selectedBrands.length > 0 && !selectedBrands.includes(brand)) return;
       
       Object.entries(categories).forEach(([category, products]) => {
@@ -522,11 +552,11 @@ export default function InventoryPage() {
   
   const lowStockAlerts = useMemo(() => {
     const alerts: { [key: string]: boolean } = {};
-    for (const brand in inventoryData) {
+    for (const brand in localInventoryData) {
       let brandHasLowStock = false;
-      for (const line in inventoryData[brand]) {
-        for (const product in inventoryData[brand][line]) {
-          const item = inventoryData[brand][line][product];
+      for (const line in localInventoryData[brand]) {
+        for (const product in localInventoryData[brand][line]) {
+          const item = localInventoryData[brand][line][product];
           const stockBodega = item.bodega - item.separadasBodega;
           const stockZF = item.zonaFranca - item.separadasZonaFranca;
           if (stockBodega <= 20 || stockZF <= 20) {
@@ -539,7 +569,7 @@ export default function InventoryPage() {
       alerts[brand] = brandHasLowStock;
     }
     return alerts;
-  }, [inventoryData]);
+  }, [localInventoryData]);
 
 
   return (
@@ -618,7 +648,7 @@ export default function InventoryPage() {
                                 <AccordionTrigger>Marcas</AccordionTrigger>
                                 <AccordionContent>
                                     <ScrollArea className="h-40">
-                                      {Object.keys(inventoryData).map(brand => (
+                                      {Object.keys(localInventoryData).map(brand => (
                                         <div key={brand} className="flex items-center space-x-2 p-1">
                                             <Checkbox
                                                 id={`brand-${brand}`}
@@ -635,7 +665,7 @@ export default function InventoryPage() {
                                 <AccordionTrigger>Productos Específicos</AccordionTrigger>
                                 <AccordionContent>
                                     <ScrollArea className="h-64">
-                                       {Object.values(inventoryData).flatMap(categories => Object.values(categories).flatMap(products => Object.keys(products))).map(productName => (
+                                       {Object.values(localInventoryData).flatMap(categories => Object.values(categories).flatMap(products => Object.keys(products))).map(productName => (
                                          <div key={productName} className="flex items-center space-x-2 p-1">
                                             <Checkbox
                                                 id={`product-${productName}`}
@@ -675,15 +705,15 @@ export default function InventoryPage() {
                 <TabsContent value={brand} key={brand} className="mt-4">
                     <Card>
                       <CardContent className="p-0">
-                        <Tabs defaultValue={Object.keys(inventoryData[brand as keyof typeof inventoryData])[0] || 'default'} className="w-full">
+                        <Tabs defaultValue={Object.keys(localInventoryData[brand as keyof typeof localInventoryData])[0] || 'default'} className="w-full">
                             <div className="flex justify-center mt-4">
                                 <TabsList>
-                                    {Object.keys(inventoryData[brand as keyof typeof inventoryData]).map((subCategory) => (
+                                    {Object.keys(localInventoryData[brand as keyof typeof localInventoryData]).map((subCategory) => (
                                         <TabsTrigger value={subCategory} key={subCategory}>{subCategory}</TabsTrigger>
                                     ))}
                                 </TabsList>
                             </div>
-                            {Object.entries(inventoryData[brand as keyof typeof inventoryData]).map(([subCategory, products]) => (
+                            {Object.entries(localInventoryData[brand as keyof typeof localInventoryData]).map(([subCategory, products]) => (
                                  <TabsContent value={subCategory} key={subCategory}>
                                     <ProductTable 
                                         products={products} 
@@ -693,7 +723,7 @@ export default function InventoryPage() {
                                         isPartner={isPartner}
                                         isMarketing={isMarketing}
                                         onDataChange={handleDataChange}
-                                        inventoryData={inventoryData}
+                                        inventoryData={localInventoryData}
                                     />
                                 </TabsContent>
                             ))}
@@ -711,7 +741,7 @@ export default function InventoryPage() {
                         </AccordionTrigger>
                         <AccordionContent>
                             <div className="p-2 space-y-4">
-                                {Object.entries(inventoryData[brand as keyof typeof inventoryData]).map(([subCategory, products]) => (
+                                {Object.entries(localInventoryData[brand as keyof typeof localInventoryData]).map(([subCategory, products]) => (
                                     <Card key={subCategory}>
                                         <CardHeader className="p-4">
                                             <CardTitle className="text-lg">{subCategory}</CardTitle>
@@ -725,7 +755,7 @@ export default function InventoryPage() {
                                                 isPartner={isPartner}
                                                 isMarketing={isMarketing}
                                                 onDataChange={handleDataChange}
-                                                inventoryData={inventoryData}
+                                                inventoryData={localInventoryData}
                                             />
                                         </CardContent>
                                     </Card>
@@ -784,3 +814,4 @@ export default function InventoryPage() {
     
 
     
+
