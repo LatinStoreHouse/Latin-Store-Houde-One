@@ -65,10 +65,11 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command>
+        <Command shouldFilter={!allowFreeText}>
           <CommandInput
             placeholder={searchPlaceholder}
             onValueChange={allowFreeText ? onValueChange : undefined}
+            value={allowFreeText ? value : undefined}
           />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>

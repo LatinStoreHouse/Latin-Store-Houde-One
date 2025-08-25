@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import jsPDF from 'jspdf';
@@ -248,8 +249,8 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
 
 const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => void }) => {
     const { inventoryData } = useContext(InventoryContext)!;
-    const [isNewProduct, setIsNewProduct] = useState(false);
     
+    const [isNewProduct, setIsNewProduct] = useState(false);
     const [productName, setProductName] = useState('');
     const [brand, setBrand] = useState('');
     const [line, setLine] = useState('');
@@ -289,6 +290,11 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
         setSize('');
         setQuantity('');
     };
+    
+    const handleToggleNewProduct = (checked: boolean) => {
+        setIsNewProduct(checked);
+        resetForm();
+    };
 
     const handleSelectExistingProduct = (value: string) => {
         const existing = existingProductsList.find(p => p.value === value);
@@ -297,12 +303,9 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
             setBrand(existing.brand);
             setLine(existing.line);
             setSize(existing.size);
+        } else {
+            setProductName(value);
         }
-    };
-    
-    const handleToggleNewProduct = (checked: boolean) => {
-        setIsNewProduct(checked);
-        resetForm();
     };
     
     const handleSubmit = () => {
@@ -367,7 +370,7 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
                 </div>
                 <div className="space-y-2">
                     <Label>Línea</Label>
-                    <Combobox
+                     <Combobox
                         options={lineOptions}
                         value={line}
                         onValueChange={setLine}
@@ -876,13 +879,3 @@ export default function TransitPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
