@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -37,19 +38,19 @@ const starwoodProducts = [
 ];
 
 const starwoodSupplies = [
+  'Bocel decorativo blanco',
   'Clip plastico para deck wpc',
+  'Daily clean',
+  'Daily clean galon',
   'Durmiente plastico 3x3',
   'Durmiente plastico 6x6',
-  'Daily clean',
   'Intensive clean',
-  'Sellante wpc 1 galon',
-  'Sellante wpc 1/4 galon',
-  'Daily clean galon',
-  'Remate wall panel roble',
+  'Remate wall panel gris',
   'Remate wall panel maple',
   'Remate wall panel negro',
-  'Remate wall panel gris',
-  'Bocel decorativo blanco',
+  'Remate wall panel roble',
+  'Sellante wpc 1 galon',
+  'Sellante wpc 1/4 galon',
 ];
 
 
