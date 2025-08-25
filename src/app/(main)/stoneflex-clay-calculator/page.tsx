@@ -94,7 +94,7 @@ const allReferences = Object.keys(referenceDetails);
 
 const IVA_RATE = 0.19; // 19%
 
-type SealantType = 'SELLANTE SEMI - BRIGHT GALON' | 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' | 'SELLANTE SHYNY GALON' | 'SELLANTE SHYNY 1/4 GALON';
+type SealantType = 'Sellante semi - brigth 1/ 4 galon' | 'Sellante shyny 1/4 galon';
 type SealantFinish = 'semibright' | 'shiny';
 
 interface QuoteItem {
@@ -107,10 +107,8 @@ interface QuoteItem {
 }
 
 const sealantPerformance = {
-    'SELLANTE SEMI - BRIGHT GALON': { clay: 40, other: 60 },
-    'SELLANTE SEMI - BRIGTH 1/ 4 GALON': { clay: 10, other: 18 },
-    'SELLANTE SHYNY GALON': { clay: 40, other: 60 },
-    'SELLANTE SHYNY 1/4 GALON': { clay: 10, other: 18 },
+    'Sellante semi - brigth 1/ 4 galon': { clay: 10, other: 18 },
+    'Sellante shyny 1/4 galon': { clay: 10, other: 18 },
 };
 
 function AdhesiveReferenceTable() {
@@ -457,7 +455,7 @@ export default function StoneflexCalculatorPage() {
     let sealantQuarterType: SealantType | null = null;
     
     if (includeSealant) {
-        const quarterRef = sealantFinish === 'semibright' ? 'SELLANTE SEMI - BRIGTH 1/ 4 GALON' : 'SELLANTE SHYNY 1/4 GALON';
+        const quarterRef = sealantFinish === 'semibright' ? 'Sellante semi - brigth 1/ 4 galon' : 'Sellante shyny 1/4 galon';
         const quarterPriceCOP = initialProductPrices[quarterRef as keyof typeof initialProductPrices] || 0;
         
         if (quarterPriceCOP > 0) {
@@ -468,8 +466,10 @@ export default function StoneflexCalculatorPage() {
             
             sealantQuarters = quartersForClay + quartersForOther;
 
-            totalSealantCost = convert(sealantQuarters * quarterPriceCOP);
-            sealantQuarterType = quarterRef as SealantType;
+            if (sealantQuarters > 0) {
+                totalSealantCost = convert(sealantQuarters * quarterPriceCOP);
+                sealantQuarterType = quarterRef as SealantType;
+            }
         }
     }
 
