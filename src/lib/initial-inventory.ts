@@ -89,7 +89,7 @@ export const initialInventoryData = {
         'Deck co-extrusion 13.8 x 2.3 3 mts color eb - lg': { bodega: 60, zonaFranca: 126, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
         'Deck 13.5x2.5 teck': { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
     },
-    'Pérgolas y Listones': {
+    'Listones': {
         'Pergola 9x4 - 3 mts coffee': { bodega: 64, zonaFranca: 144, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
         'Pergola 9x4 - 3 mts chocolate': { bodega: 142, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
         'Pergola 10x5 - 3 coffee': { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
