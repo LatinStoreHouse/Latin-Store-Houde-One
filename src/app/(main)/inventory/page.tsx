@@ -77,9 +77,9 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
   };
   
   const getStockColorClass = (stock: number) => {
-    if (stock < 0) return 'text-red-600'; // Critical error
+    if (stock < 0) return 'text-red-600 font-bold'; // Critical error
     if (stock > 0 && stock <= 20) return 'text-yellow-600'; // Low stock
-    return 'text-green-600'; // Healthy stock
+    return ''; // Healthy stock
   };
   
   const canSubscribe = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
@@ -119,8 +119,8 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
                 <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
-                <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
-                <TableCell className={cn("text-right p-2 font-bold", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
+                <TableCell className={cn("text-right p-2 font-medium", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
+                <TableCell className={cn("text-right p-2 font-medium", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
                
                 {!isPartner && (
                   <TableCell className="text-right p-2">
@@ -304,7 +304,7 @@ export default function InventoryPage() {
 
   const brands = Object.keys(localInventoryData);
 
-   const findProductLocation = (productName: string, data: InventoryData) => {
+   const findProductLocation = (productName: string, data: typeof localInventoryData) => {
     for (const brand in data) {
       for (const subCategory in data[brand as keyof typeof data]) {
         if (data[brand as keyof typeof data][subCategory][productName]) {
@@ -315,13 +315,13 @@ export default function InventoryPage() {
     return null;
   };
   
-  const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
+ const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
     if (isNameChange) {
       if (value !== productName && findProductLocation(value, localInventoryData)) {
         toast({
           variant: 'destructive',
-          title: 'Error',
-          description: `El producto "${value}" ya existe en esta categoría.`,
+          title: 'Error de Duplicado',
+          description: `El producto "${value}" ya existe en el inventario.`,
         });
         return;
       }
@@ -563,27 +563,31 @@ export default function InventoryPage() {
   };
   
   const lowStockAlerts = useMemo(() => {
-    const alerts: { [key: string]: boolean } = {};
+    const alerts: { [key: string]: { [key: string]: boolean } } = {};
     if (!canViewLowStockAlerts) return alerts;
 
     for (const brand in localInventoryData) {
-      let brandHasAlert = false;
+      alerts[brand] = {};
       for (const line in localInventoryData[brand]) {
+        let lineHasAlert = false;
         for (const product in localInventoryData[brand][line]) {
           const item = localInventoryData[brand][line][product];
           const stockBodega = item.bodega - item.separadasBodega;
           const stockZF = item.zonaFranca - item.separadasZonaFranca;
           if (stockBodega < 0 || stockZF < 0) {
-            brandHasAlert = true;
+            lineHasAlert = true;
             break;
           }
         }
-        if (brandHasAlert) break;
+        alerts[brand][line] = lineHasAlert;
       }
-      alerts[brand] = brandHasAlert;
     }
     return alerts;
   }, [localInventoryData, canViewLowStockAlerts]);
+  
+  const brandHasAlert = (brand: string) => {
+    return Object.values(lowStockAlerts[brand] || {}).some(Boolean);
+  }
 
 
   return (
@@ -708,7 +712,7 @@ export default function InventoryPage() {
             <div className="flex justify-center">
                 <TabsList>
                     {brands.map((brand) => (
-                         <TabTriggerWithIndicator value={brand} key={brand} hasAlert={lowStockAlerts[brand]}>
+                         <TabTriggerWithIndicator value={brand} key={brand} hasAlert={brandHasAlert(brand)}>
                             {formatBrandName(brand)}
                          </TabTriggerWithIndicator>
                     ))}
@@ -723,7 +727,9 @@ export default function InventoryPage() {
                             <div className="flex justify-center mt-4">
                                 <TabsList>
                                     {Object.keys(localInventoryData[brand as keyof typeof localInventoryData]).map((subCategory) => (
-                                        <TabsTrigger value={subCategory} key={subCategory}>{subCategory}</TabsTrigger>
+                                        <TabTriggerWithIndicator value={subCategory} key={subCategory} hasAlert={lowStockAlerts[brand]?.[subCategory]}>
+                                            {subCategory}
+                                        </TabTriggerWithIndicator>
                                     ))}
                                 </TabsList>
                             </div>
