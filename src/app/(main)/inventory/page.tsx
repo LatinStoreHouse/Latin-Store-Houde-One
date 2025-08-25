@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle } from 'lucide-react';
+import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle, XCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Role } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -262,17 +263,24 @@ export default function InventoryPage() {
   if (!context) {
     throw new Error('InventoryContext must be used within an InventoryProvider');
   }
-  const { inventoryData, setInventoryData, transferFromFreeZone } = context;
+  const { inventoryData: initialData, transferFromFreeZone } = context;
   const { currentUser } = useUser();
+
+  const [inventoryData, setInventoryData] = useState(initialData);
+  const [originalInventoryData, setOriginalInventoryData] = useState(initialData);
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
-  const [showUnloadAlert, setShowUnloadAlert] = useState(false);
-  const [nextRoute, setNextRoute] = useState<string | null>(null);
-
+  
   useBeforeUnload(hasPendingChanges, 'Tiene cambios sin guardar. ¿Está seguro de que desea salir?');
   
+  useEffect(() => {
+    // Keep track of the initial data when the component mounts or the context data changes
+    setOriginalInventoryData(initialData);
+    setInventoryData(initialData);
+  }, [initialData]);
+
   const currentUserRole = currentUser.roles[0];
   const canEdit = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
   const isPartner = currentUserRole === 'Partners';
@@ -326,11 +334,24 @@ export default function InventoryPage() {
   };
 
   const handleSaveChanges = () => {
-    console.log("Saving data:", inventoryData);
+    // In a real app, this would be an API call to save the data.
+    // For now, we'll just update the original data state.
+    setOriginalInventoryData(inventoryData);
     setHasPendingChanges(false);
     toast({
         title: 'Inventario Guardado',
         description: 'Los cambios en el inventario han sido guardados exitosamente.'
+    });
+  }
+
+  const handleCancelChanges = () => {
+    // Revert local state to the original state from context
+    setInventoryData(originalInventoryData);
+    setHasPendingChanges(false);
+    toast({
+        title: 'Cambios Descartados',
+        description: 'Se ha restaurado el estado original del inventario.',
+        variant: 'destructive'
     });
   }
 
@@ -523,31 +544,6 @@ export default function InventoryPage() {
 
   return (
     <>
-    <AlertDialog open={showUnloadAlert} onOpenChange={setShowUnloadAlert}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Cambios sin Guardar</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Tiene cambios sin guardar. ¿Está seguro de que desea salir? Sus cambios se perderán.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">
-                        Al cancelar, permanecerá en esta página.
-                    </p>
-                </div>
-                <AlertDialogCancel onClick={() => setNextRoute(null)}>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => {
-                    setHasPendingChanges(false);
-                    // This is a workaround to allow navigation after confirmation
-                    if (nextRoute) {
-                        window.location.href = nextRoute;
-                    }
-                }}>Salir sin Guardar</AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Inventario de Productos - Stock Actual</CardTitle>
@@ -743,7 +739,31 @@ export default function InventoryPage() {
         </Tabs>
       </CardContent>
        {canEdit && (
-        <CardFooter className="flex justify-end">
+        <CardFooter className="flex justify-end items-center gap-2">
+            {hasPendingChanges && (
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                       <Button variant="ghost" size="sm">
+                          <XCircle className="mr-2 h-4 w-4" />
+                          Cancelar
+                       </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                       <AlertDialogHeader>
+                         <AlertDialogTitle>¿Descartar cambios?</AlertDialogTitle>
+                         <AlertDialogDescription>
+                           Está a punto de revertir todos los cambios no guardados. Esta acción no se puede deshacer.
+                         </AlertDialogDescription>
+                       </AlertDialogHeader>
+                       <AlertDialogFooter>
+                         <AlertDialogCancel>Continuar Editando</AlertDialogCancel>
+                         <AlertDialogAction onClick={handleCancelChanges} className="bg-destructive hover:bg-destructive/90">
+                           Descartar Cambios
+                         </AlertDialogAction>
+                       </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+            )}
             <Button onClick={handleSaveChanges} size="sm" variant={hasPendingChanges ? 'destructive' : 'default'}>
                 {hasPendingChanges && <AlertTriangle className="mr-2 h-4 w-4" />}
                 <Save className="mr-2 h-4 w-4" />
@@ -764,4 +784,3 @@ export default function InventoryPage() {
     
 
     
-
