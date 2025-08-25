@@ -18,30 +18,30 @@ const WhatsAppIcon = () => (
 );
 
 const starwoodProducts = [
-  'Liston 9x4 - 3 mts coffee',
-  'Liston 9x4 - 3 mts chocolate',
-  'Liston 10x5 - 3 coffee',
-  'Liston 10x5 - 3 mts chocolate',
-  'Deck estandar 14.5 cm x 2.2 cm x 2.21 mts coffee',
-  'Deck co-extrusion 13.8 x 2.3 3 mts color cf - wn',
-  'Deck co-extrusion 13.8 x 2.3 3 mts color eb - lg',
-  'Liston 6.8x2.5 - 3 mts camel',
-  'Liston 6.8x2.5 - 3 mts coffee',
-  'Liston 6.8x2.5 - 3 mts chocolate',
-  'Liston 9x4 - 3 mts camel',
-  'Liston 10x5 - 3 mts camel',
-  'Liston 16x8 - 3 mts camel',
-  'Deck 13.5x2.5 teck',
-  'Liston 10x5 - 5.60 mts chocolate',
-  'Liston 9x4 cm x 4 mts chocolate',
-  'Liston 16x8 - 3 mts chocolate',
-  'Liston 6x4 - 3 mts chocolate',
+  'Liston 9x4 coffee',
+  'Liston 9x4 chocolate',
+  'Liston 10x5 coffee',
+  'Liston 10x5 chocolate',
+  'Deck estandar coffee',
+  'Deck co-extrusion cf - wn',
+  'Deck co-extrusion eb - lg',
+  'Liston 6.8x2.5 camel',
+  'Liston 6.8x2.5 coffee',
+  'Liston 6.8x2.5 chocolate',
+  'Liston 9x4 camel',
+  'Liston 10x5 camel',
+  'Liston 16x8 camel',
+  'Deck teck',
+  'Liston 10x5 chocolate (5.60 mts)',
+  'Liston 9x4 chocolate (4 mts)',
+  'Liston 16x8 chocolate',
+  'Liston 6x4 chocolate',
 ];
 
 const starwoodSupplies = [
   'Clip plastico para deck wpc',
-  'Durmiente plastico 3x3 - 2.90 mts',
-  'Durmiente plastico 6 x 6 - 1 mts',
+  'Durmiente plastico 3x3',
+  'Durmiente plastico 6x6',
   'Daily clean',
   'Intensive clean',
   'Sellante wpc 1 galon',
@@ -371,3 +371,5 @@ export default function StarwoodCalculatorPage() {
     </Card>
   );
 }
+
+    

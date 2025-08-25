@@ -80,20 +80,32 @@ export const productDimensions: { [key: string]: string } = {
     'Sellante shyny 1/4 galon': '1/4 Galón',
     'Sellante shyny galon': 'Galón',
 
-    // Starwood Productos
-    'Liston 9x4': '9x4cm - 3 Mts',
-    'Liston 10x5': '10x5cm - 3 Mts / 5.60 Mts',
-    'Liston 16x8': '16x8cm - 3 Mts',
-    'Deck estandar': '14.5x2.2cm - 2.21 Mts',
-    'Deck co-extrusion': '13.8x2.3cm - 3 Mts',
-    'Liston 6.8x2.5': '6.8x2.5cm - 3 Mts',
-    'Liston 6x4': '6x4cm - 3 Mts',
-    'Deck 13.5x2.5 teck': '13.5x2.5cm',
+    // Starwood Listones
+    'Liston 9x4 coffee': '9x4cm - 3 Mts',
+    'Liston 9x4 chocolate': '9x4cm - 3 Mts',
+    'Liston 10x5 coffee': '10x5cm - 3 Mts',
+    'Liston 10x5 chocolate': '10x5cm - 3 Mts',
+    'Liston 10x5 chocolate (5.60 mts)': '10x5cm - 5.60 Mts',
+    'Liston 9x4 chocolate (4 mts)': '9x4cm - 4 Mts',
+    'Liston 16x8 chocolate': '16x8cm - 3 Mts',
+    'Liston 6x4 chocolate': '6x4cm - 3 Mts',
+    'Liston 6.8x2.5 camel': '6.8x2.5cm - 3 Mts',
+    'Liston 6.8x2.5 coffee': '6.8x2.5cm - 3 Mts',
+    'Liston 6.8x2.5 chocolate': '6.8x2.5cm - 3 Mts',
+    'Liston 9x4 camel': '9x4cm - 3 Mts',
+    'Liston 10x5 camel': '10x5cm - 3 Mts',
+    'Liston 16x8 camel': '16x8cm - 3 Mts',
+
+    // Starwood Deck
+    'Deck estandar coffee': '14.5x2.2cm - 2.21 Mts',
+    'Deck co-extrusion cf - wn': '13.8x2.3cm - 3 Mts',
+    'Deck co-extrusion eb - lg': '13.8x2.3cm - 3 Mts',
+    'Deck teck': '13.5x2.5cm',
     
     // Insumos Starwood
     'Clip plastico para deck wpc': 'N/A',
     'Durmiente plastico 3x3': '3x3cm - 2.90 Mts',
-    'Durmiente plastico 6 x 6': '6x6cm - 1 Mts',
+    'Durmiente plastico 6x6': '6x6cm - 1 Mts',
     'Daily clean': 'Botella',
     'Intensive clean': 'Botella',
     'Sellante wpc 1 galon': 'Galón',
@@ -105,3 +117,5 @@ export const productDimensions: { [key: string]: string } = {
     'Remate wall panel gris': 'N/A',
     'Bocel decorativo blanco': 'N/A',
   };
+
+    

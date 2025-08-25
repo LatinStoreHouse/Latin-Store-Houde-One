@@ -81,22 +81,22 @@ export const initialProductPrices: { [key: string]: number } = {
     '3d adhesivo - indian rustic': 207072,
     '3d adhesivo - tan': 207072,
     
-    // Productos Starwood (tratados como insumos en algunos casos)
-    'Liston 9x4 - 3 mts coffee': 126788,
-    'Liston 9x4 - 3 mts chocolate': 126788,
-    'Liston 10x5 - 3 coffee': 165456,
-    'Liston 10x5 - 3 mts chocolate': 165456,
-    'Deck estandar 14.5 cm x 2.2 cm x 2.21 mts coffee': 127000,
-    'Deck co-extrusion 13.8 x 2.3 3 mts color cf - wn': 127000,
-    'Deck co-extrusion 13.8 x 2.3 3 mts color eb - lg': 127000,
-    'Liston 6.8x2.5 - 3 mts camel': 64400,
-    'Liston 6.8x2.5 - 3 mts coffee': 64400,
-    'Liston 6.8x2.5 - 3 mts chocolate': 64400,
+    // Starwood Productos
+    'Liston 9x4 coffee': 126788,
+    'Liston 9x4 chocolate': 126788,
+    'Liston 10x5 coffee': 165456,
+    'Liston 10x5 chocolate': 165456,
+    'Deck estandar coffee': 127000,
+    'Deck co-extrusion cf - wn': 127000,
+    'Deck co-extrusion eb - lg': 127000,
+    'Liston 6.8x2.5 camel': 64400,
+    'Liston 6.8x2.5 coffee': 64400,
+    'Liston 6.8x2.5 chocolate': 64400,
 
     // Insumos Starwood
     'Clip plastico para deck wpc': 1500,
-    'Durmiente plastico 3x3 - 2.90 mts': 25000,
-    'Durmiente plastico 6 x 6 - 1 mts': 0, // No price provided
+    'Durmiente plastico 3x3': 25000,
+    'Durmiente plastico 6x6': 0, // No price provided
     'Daily clean': 0,
     'Intensive clean': 0,
     'Sellante wpc 1 galon': 60000,
@@ -107,7 +107,7 @@ export const initialProductPrices: { [key: string]: number } = {
     'Remate wall panel negro': 0, // No price provided
     'Remate wall panel gris': 0, // No price provided
     'Bocel decorativo blanco': 0, // No price provided
-    'Liston 6x4 - 3 mts chocolate': 0, // No price provided
+    'Liston 6x4 chocolate': 0, // No price provided
 
     // Insumos StoneFlex
     'Adhesivo': 28039,
@@ -119,3 +119,5 @@ export const initialProductPrices: { [key: string]: number } = {
     'Sellante shyny galon': 185900,
     'Sellante shyny 1/4 galon': 54450,
 };
+
+    
