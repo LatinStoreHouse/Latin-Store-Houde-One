@@ -4,7 +4,7 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -274,7 +274,7 @@ export default function InventoryPage() {
   useBeforeUnload(hasPendingChanges, 'Tiene cambios sin guardar. ¿Está seguro de que desea salir?');
   
   const currentUserRole = currentUser.roles[0];
-  const canEdit = currentUserRole === 'Administrador' || currentUserRole === 'Contador';
+  const canEdit = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
   const isPartner = currentUserRole === 'Partners';
   const isMarketing = currentUserRole === 'Marketing';
   const canViewLowStockAlerts = currentUserRole === 'Logística' || currentUserRole === 'Administrador';
@@ -548,12 +548,6 @@ export default function InventoryPage() {
         <CardTitle>Inventario de Productos - Stock Actual</CardTitle>
         <div className="flex gap-2">
             {canEdit && (
-                <>
-                <Button onClick={handleSaveChanges} size="sm" variant={hasPendingChanges ? 'destructive' : 'default'}>
-                    {hasPendingChanges && <AlertTriangle className="mr-2 h-4 w-4" />}
-                    <Save className="mr-2 h-4 w-4" />
-                    Guardar Cambios
-                </Button>
                 <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
                     <DialogTrigger asChild>
                         <Button variant="outline" size="sm">
@@ -569,8 +563,6 @@ export default function InventoryPage() {
                         <TransferInventoryForm onTransfer={handleTransfer} />
                     </DialogContent>
                 </Dialog>
-                </>
-
             )}
             <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
                 <DialogTrigger asChild>
@@ -745,10 +737,21 @@ export default function InventoryPage() {
             </TabsContent>
         </Tabs>
       </CardContent>
+       {canEdit && (
+        <CardFooter className="flex justify-end">
+            <Button onClick={handleSaveChanges} size="sm" variant={hasPendingChanges ? 'destructive' : 'default'}>
+                {hasPendingChanges && <AlertTriangle className="mr-2 h-4 w-4" />}
+                <Save className="mr-2 h-4 w-4" />
+                Guardar Cambios
+            </Button>
+        </CardFooter>
+      )}
     </Card>
     </>
   );
 }
+    
+
     
 
     
