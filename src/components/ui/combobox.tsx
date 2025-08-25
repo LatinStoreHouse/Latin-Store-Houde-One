@@ -18,7 +18,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Input } from "./input"
 
 export type ComboboxOption = {
   value: string
@@ -49,30 +48,8 @@ export function Combobox({
   allowFreeText = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState(value || "")
 
-  React.useEffect(() => {
-    setInputValue(value || "")
-  }, [value])
-
-  const handleSelect = (currentValue: string) => {
-    const newValue = value === currentValue ? "" : currentValue
-    if (onValueChange) {
-      onValueChange(newValue)
-    }
-    setInputValue(newValue)
-    setOpen(false)
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newInputValue = e.target.value
-    setInputValue(newInputValue)
-    if (allowFreeText && onValueChange) {
-      onValueChange(newInputValue)
-    }
-  }
-  
-  const displayLabel = options.find((option) => option.value.toLowerCase() === value?.toLowerCase())?.label || value || placeholder
+  const displayLabel = options.find((option) => option.value === value)?.label || value || placeholder;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -89,17 +66,16 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command shouldFilter={!allowFreeText}>
-           {allowFreeText ? (
-            <Input
-              placeholder={searchPlaceholder}
-              value={inputValue}
-              onChange={handleInputChange}
-              className="h-9 border-0 focus-visible:ring-0"
-            />
-          ) : (
-            <CommandInput placeholder={searchPlaceholder} />
-          )}
+        <Command
+          filter={(searchValue, itemValue) => {
+            if (allowFreeText) return 1;
+            return itemValue.toLowerCase().includes(searchValue.toLowerCase()) ? 1 : 0
+          }}
+        >
+          <CommandInput
+            placeholder={searchPlaceholder}
+            onValueChange={allowFreeText ? onValueChange : undefined}
+          />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
             <CommandGroup>
@@ -107,7 +83,12 @@ export function Combobox({
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={() => handleSelect(option.value)}
+                  onSelect={(currentValue) => {
+                    if (onValueChange) {
+                      onValueChange(currentValue === value ? "" : currentValue)
+                    }
+                    setOpen(false)
+                  }}
                 >
                   <Check
                     className={cn(
