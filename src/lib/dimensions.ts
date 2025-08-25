@@ -1,3 +1,4 @@
+
 export const productDimensions: { [key: string]: string } = {
     // StoneFlex Clay
     'Cut stone': '1.20x0.60 Mts',
@@ -80,9 +81,9 @@ export const productDimensions: { [key: string]: string } = {
     'Sellante shyny galon': 'Galón',
 
     // Starwood Productos
-    'Pergola 9x4': '9x4cm - 3 Mts',
-    'Pergola 10x5': '10x5cm - 3 Mts / 5.60 Mts',
-    'Pergola 16x8': '16x8cm - 3 Mts',
+    'Liston 9x4': '9x4cm - 3 Mts',
+    'Liston 10x5': '10x5cm - 3 Mts / 5.60 Mts',
+    'Liston 16x8': '16x8cm - 3 Mts',
     'Deck estandar': '14.5x2.2cm - 2.21 Mts',
     'Deck co-extrusion': '13.8x2.3cm - 3 Mts',
     'Liston 6.8x2.5': '6.8x2.5cm - 3 Mts',
@@ -104,5 +105,3 @@ export const productDimensions: { [key: string]: string } = {
     'Remate wall panel gris': 'N/A',
     'Bocel decorativo blanco': 'N/A',
   };
-
-    

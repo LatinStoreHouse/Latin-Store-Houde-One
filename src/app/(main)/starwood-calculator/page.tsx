@@ -18,23 +18,23 @@ const WhatsAppIcon = () => (
 );
 
 const starwoodProducts = [
-  'Pergola 9x4 - 3 mts coffee',
-  'Pergola 9x4 - 3 mts chocolate',
-  'Pergola 10x5 - 3 coffee',
-  'Pergola 10x5 - 3 mts chocolate',
+  'Liston 9x4 - 3 mts coffee',
+  'Liston 9x4 - 3 mts chocolate',
+  'Liston 10x5 - 3 coffee',
+  'Liston 10x5 - 3 mts chocolate',
   'Deck estandar 14.5 cm x 2.2 cm x 2.21 mts coffee',
   'Deck co-extrusion 13.8 x 2.3 3 mts color cf - wn',
   'Deck co-extrusion 13.8 x 2.3 3 mts color eb - lg',
   'Liston 6.8x2.5 - 3 mts camel',
   'Liston 6.8x2.5 - 3 mts coffee',
   'Liston 6.8x2.5 - 3 mts chocolate',
-  'Pergola 9x4 - 3 mts camel',
-  'Pergola 10x5 - 3 mts camel',
-  'Pergola 16x8 - 3 mts camel',
+  'Liston 9x4 - 3 mts camel',
+  'Liston 10x5 - 3 mts camel',
+  'Liston 16x8 - 3 mts camel',
   'Deck 13.5x2.5 teck',
-  'Pergola 10x5 - 5.60 mts chocolate',
-  'Pergola 9x4 cm x 4 mts chocolate',
-  'Pergola 16x8 - 3 mts chocolate',
+  'Liston 10x5 - 5.60 mts chocolate',
+  'Liston 9x4 cm x 4 mts chocolate',
+  'Liston 16x8 - 3 mts chocolate',
   'Liston 6x4 - 3 mts chocolate',
 ];
 

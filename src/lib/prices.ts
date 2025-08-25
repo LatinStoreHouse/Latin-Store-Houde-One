@@ -82,10 +82,10 @@ export const initialProductPrices: { [key: string]: number } = {
     '3d adhesivo - tan': 207072,
     
     // Productos Starwood (tratados como insumos en algunos casos)
-    'Pergola 9x4 - 3 mts coffee': 126788,
-    'Pergola 9x4 - 3 mts chocolate': 126788,
-    'Pergola 10x5 - 3 coffee': 165456,
-    'Pergola 10x5 - 3 mts chocolate': 165456,
+    'Liston 9x4 - 3 mts coffee': 126788,
+    'Liston 9x4 - 3 mts chocolate': 126788,
+    'Liston 10x5 - 3 coffee': 165456,
+    'Liston 10x5 - 3 mts chocolate': 165456,
     'Deck estandar 14.5 cm x 2.2 cm x 2.21 mts coffee': 127000,
     'Deck co-extrusion 13.8 x 2.3 3 mts color cf - wn': 127000,
     'Deck co-extrusion 13.8 x 2.3 3 mts color eb - lg': 127000,
@@ -119,5 +119,3 @@ export const initialProductPrices: { [key: string]: number } = {
     'Sellante shyny galon': 185900,
     'Sellante shyny 1/4 galon': 54450,
 };
-
-    
