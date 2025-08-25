@@ -249,13 +249,13 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
 const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => void }) => {
     const { inventoryData } = useContext(InventoryContext)!;
     const [isNewProduct, setIsNewProduct] = useState(false);
-    const [productToAdd, setProductToAdd] = useState({
-        name: '',
-        brand: '',
-        line: '',
-        size: '',
-        quantity: ''
-    });
+    
+    const [productName, setProductName] = useState('');
+    const [brand, setBrand] = useState('');
+    const [line, setLine] = useState('');
+    const [size, setSize] = useState('');
+    const [quantity, setQuantity] = useState<number | string>('');
+
     const { toast } = useToast();
 
     const existingProductsList = useMemo(() => {
@@ -278,24 +278,25 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
 
     const brandOptions = useMemo(() => Object.keys(inventoryData).map(b => ({ value: b, label: b })), [inventoryData]);
     const lineOptions = useMemo(() => {
-        if (!productToAdd.brand || !inventoryData[productToAdd.brand as keyof typeof inventoryData]) return [];
-        return Object.keys(inventoryData[productToAdd.brand as keyof typeof inventoryData]).map(l => ({ value: l, label: l }));
-    }, [productToAdd.brand, inventoryData]);
+        if (!brand || !inventoryData[brand as keyof typeof inventoryData]) return [];
+        return Object.keys(inventoryData[brand as keyof typeof inventoryData]).map(l => ({ value: l, label: l }));
+    }, [brand, inventoryData]);
     
     const resetForm = () => {
-        setProductToAdd({ name: '', brand: '', line: '', size: '', quantity: '' });
+        setProductName('');
+        setBrand('');
+        setLine('');
+        setSize('');
+        setQuantity('');
     };
 
-    const handleSelectProduct = (value: string) => {
+    const handleSelectExistingProduct = (value: string) => {
         const existing = existingProductsList.find(p => p.value === value);
         if (existing) {
-            setProductToAdd(prev => ({
-                ...prev,
-                name: value,
-                brand: existing.brand,
-                line: existing.line,
-                size: existing.size,
-            }));
+            setProductName(value);
+            setBrand(existing.brand);
+            setLine(existing.line);
+            setSize(existing.size);
         }
     };
     
@@ -305,16 +306,16 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
     };
     
     const handleSubmit = () => {
-        if (!productToAdd.name || !productToAdd.brand || !productToAdd.line || !productToAdd.quantity) {
+        if (!productName || !brand || !line || !quantity) {
             toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos del producto.' });
             return;
         }
         onAddProduct({
-            name: productToAdd.name,
-            quantity: Number(productToAdd.quantity),
-            brand: productToAdd.brand,
-            line: productToAdd.line,
-            size: productToAdd.size
+            name: productName,
+            quantity: Number(quantity),
+            brand: brand,
+            line: line,
+            size: size
         });
         resetForm();
     };
@@ -325,52 +326,57 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
                 <Checkbox
                     id="is-new-product"
                     checked={isNewProduct}
-                    onCheckedChange={(checked) => handleToggleNewProduct(Boolean(checked))}
+                    onCheckedChange={handleToggleNewProduct}
                 />
                 <Label htmlFor="is-new-product">Agregar producto nuevo</Label>
             </div>
 
-            {isNewProduct ? (
-                <div className="space-y-2">
-                    <Label>Nombre del Producto</Label>
-                    <Input 
-                        value={productToAdd.name}
-                        onChange={(e) => setProductToAdd(p => ({...p, name: e.target.value}))}
+            <div className="space-y-2">
+                <Label>Nombre del Producto</Label>
+                {isNewProduct ? (
+                     <Input 
+                        value={productName}
+                        onChange={(e) => setProductName(e.target.value)}
                         placeholder="Escriba el nombre del nuevo producto..."
                     />
-                </div>
-            ) : (
-                <div className="space-y-2">
-                    <Label>Nombre del Producto</Label>
+                ) : (
                     <Combobox
                         options={existingProductsList}
-                        value={productToAdd.name}
-                        onValueChange={handleSelectProduct}
+                        value={productName}
+                        onValueChange={handleSelectExistingProduct}
                         placeholder="Seleccione un producto existente"
                         searchPlaceholder="Buscar producto..."
                         emptyPlaceholder="No se encontró producto."
                     />
-                </div>
-            )}
+                )}
+            </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label>Marca</Label>
-                    <Select value={productToAdd.brand} onValueChange={(value) => setProductToAdd(p => ({...p, brand: value}))} disabled={!isNewProduct}>
-                        <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
-                        <SelectContent>
-                            {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
+                    <Combobox
+                        options={brandOptions}
+                        value={brand}
+                        onValueChange={(value) => { setBrand(value); setLine(''); }}
+                        placeholder="Seleccione o escriba una marca"
+                        searchPlaceholder="Buscar marca..."
+                        emptyPlaceholder="No hay marcas."
+                        disabled={!isNewProduct}
+                        allowFreeText
+                    />
                 </div>
                 <div className="space-y-2">
                     <Label>Línea</Label>
-                    <Select value={productToAdd.line} onValueChange={(value) => setProductToAdd(p => ({...p, line: value}))} disabled={!isNewProduct || !productToAdd.brand}>
-                        <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
-                        <SelectContent>
-                            {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
+                    <Combobox
+                        options={lineOptions}
+                        value={line}
+                        onValueChange={setLine}
+                        placeholder="Seleccione o escriba una línea"
+                        searchPlaceholder="Buscar línea..."
+                        emptyPlaceholder="No hay líneas para esta marca."
+                        disabled={!isNewProduct || !brand}
+                        allowFreeText
+                    />
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -378,8 +384,8 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
                     <Label>Tamaño (opcional)</Label>
                     <Input
                         placeholder="Ej: 1.22x0.61 Mts"
-                        value={productToAdd.size}
-                        onChange={(e) => setProductToAdd(p => ({...p, size: e.target.value}))}
+                        value={size}
+                        onChange={(e) => setSize(e.target.value)}
                         disabled={!isNewProduct}
                     />
                 </div>
@@ -388,8 +394,8 @@ const ProductForm = ({ onAddProduct }: { onAddProduct: (product: Product) => voi
                     <Input
                         type="number"
                         placeholder="Cant."
-                        value={productToAdd.quantity}
-                        onChange={(e) => setProductToAdd(p => ({...p, quantity: e.target.value}))}
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
                     />
                 </div>
             </div>
@@ -870,6 +876,7 @@ export default function TransitPage() {
     </div>
   );
 }
+
 
 
 
