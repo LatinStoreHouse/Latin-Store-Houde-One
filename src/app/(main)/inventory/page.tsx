@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle, XCircle } from 'lucide-react';
+import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle, XCircle, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Role } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
@@ -310,7 +310,6 @@ export default function InventoryPage() {
         const products = newData[brand][subCategory];
 
         if (isNameChange) {
-            // This only changes the key locally for now. The global update happens on save.
             if (value !== productName && products[value]) {
                 toast({
                     variant: 'destructive',
@@ -330,48 +329,37 @@ export default function InventoryPage() {
     });
     if (!hasPendingChanges) setHasPendingChanges(true);
   };
-
+  
  const handleSaveChanges = () => {
-    // Iterate through the local state to find name changes and apply them globally.
-    for (const brand in localInventoryData) {
-        for (const subCategory in localInventoryData[brand]) {
-            for (const newName in localInventoryData[brand][subCategory]) {
-                const oldProduct = initialData[brand as keyof typeof initialData]?.[subCategory]?.[newName];
-                if (!oldProduct) {
-                    // This is a newly named product. We need to find its old name.
-                    const oldName = Object.keys(initialData[brand as keyof typeof initialData][subCategory]).find(
-                        key => JSON.stringify(initialData[brand as keyof typeof initialData][subCategory][key]) === JSON.stringify(localInventoryData[brand][subCategory][newName])
-                    );
-                    
-                    const oldNameFromAll = Object.keys(initialData).flatMap(b => Object.keys(initialData[b as keyof typeof initialData]).flatMap(sc => Object.keys(initialData[b as keyof typeof initialData][sc]))).find(
-                         on => {
-                             const loc = findProductLocation(on);
-                             if (!loc) return false;
-                             return JSON.stringify(initialData[loc.brand][loc.subCategory][on]) === JSON.stringify(localInventoryData[brand][subCategory][newName]);
-                         }
-                    );
-                    
-                    const aRealOldName = Object.keys(initialData[brand]?.[subCategory] ?? {}).find(oldKey => 
-                        !Object.keys(localInventoryData[brand][subCategory]).includes(oldKey)
-                    );
+    // 1. Detect name changes
+    const initialProductNames = new Set(Object.values(initialData).flatMap(brand => Object.values(brand).flatMap(line => Object.keys(line))));
+    const localProductNames = new Set(Object.values(localInventoryData).flatMap(brand => Object.values(brand).flatMap(line => Object.keys(line))));
 
+    const renamedProducts: { oldName: string, newName: string }[] = [];
+    const addedNames = [...localProductNames].filter(name => !initialProductNames.has(name));
+    const removedNames = [...initialProductNames].filter(name => !localProductNames.has(name));
 
-                    if(aRealOldName && newName !== aRealOldName) {
-                       updateProductName(aRealOldName, newName);
-                    }
-                }
-            }
+    if (addedNames.length > 0 && addedNames.length === removedNames.length) {
+        // This is a heuristic for renaming. It assumes a 1-to-1 rename.
+        // A more robust system might need a specific UI for renaming.
+        for(let i = 0; i < addedNames.length; i++) {
+            renamedProducts.push({ oldName: removedNames[i], newName: addedNames[i] });
         }
     }
-    
-    // Set the global state with all changes (including quantities)
+
+    // 2. Call the context function to update names everywhere
+    renamedProducts.forEach(({ oldName, newName }) => {
+        updateProductName(oldName, newName);
+    });
+
+    // 3. Set the global state with all changes (including quantities)
     setGlobalInventoryData(localInventoryData);
     setHasPendingChanges(false);
     toast({
         title: 'Inventario Guardado',
         description: 'Los cambios en el inventario han sido guardados exitosamente.'
     });
-}
+};
 
 
   const handleCancelChanges = () => {
@@ -774,8 +762,8 @@ export default function InventoryPage() {
                  <AlertDialog>
                     <AlertDialogTrigger asChild>
                        <Button variant="ghost" size="sm">
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Cancelar
+                          <X className="mr-2 h-4 w-4" />
+                          Cancelar Cambios
                        </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -786,9 +774,12 @@ export default function InventoryPage() {
                          </AlertDialogDescription>
                        </AlertDialogHeader>
                        <AlertDialogFooter>
+                         <div className="flex-1 text-sm text-muted-foreground">
+                            <p>No podrá recuperar los cambios si decide descartarlos.</p>
+                         </div>
                          <AlertDialogCancel>Continuar Editando</AlertDialogCancel>
                          <AlertDialogAction onClick={handleCancelChanges} className="bg-destructive hover:bg-destructive/90">
-                           Descartar Cambios
+                           Descartar
                          </AlertDialogAction>
                        </AlertDialogFooter>
                     </AlertDialogContent>
@@ -814,4 +805,3 @@ export default function InventoryPage() {
     
 
     
-
