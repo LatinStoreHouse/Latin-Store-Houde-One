@@ -305,19 +305,23 @@ export default function InventoryPage() {
   const brands = Object.keys(localInventoryData);
   
   const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
+    if (isNameChange) {
+      if (value !== productName && localInventoryData[brand][subCategory][value]) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: `El producto "${value}" ya existe en esta categoría.`,
+        });
+        // We need to revert the input field visually if possible, but for now just prevent state update
+        return;
+      }
+    }
+
     setLocalInventoryData(prevData => {
         const newData = JSON.parse(JSON.stringify(prevData));
         const products = newData[brand][subCategory];
 
         if (isNameChange) {
-            if (value !== productName && products[value]) {
-                toast({
-                    variant: 'destructive',
-                    title: 'Error',
-                    description: `El producto "${value}" ya existe en esta categoría.`,
-                });
-                return prevData;
-            }
             const productData = products[productName];
             delete products[productName];
             products[value] = productData;
@@ -327,32 +331,25 @@ export default function InventoryPage() {
 
         return newData;
     });
+
     if (!hasPendingChanges) setHasPendingChanges(true);
   };
   
  const handleSaveChanges = () => {
-    // 1. Detect name changes
-    const initialProductNames = new Set(Object.values(initialData).flatMap(brand => Object.values(brand).flatMap(line => Object.keys(line))));
-    const localProductNames = new Set(Object.values(localInventoryData).flatMap(brand => Object.values(brand).flatMap(line => Object.keys(line))));
+    const initialNames = new Set(Object.values(initialData).flatMap(b => Object.values(b).flatMap(l => Object.keys(l))));
+    const localNames = new Set(Object.values(localInventoryData).flatMap(b => Object.values(b).flatMap(l => Object.keys(l))));
 
-    const renamedProducts: { oldName: string, newName: string }[] = [];
-    const addedNames = [...localProductNames].filter(name => !initialProductNames.has(name));
-    const removedNames = [...initialProductNames].filter(name => !localProductNames.has(name));
+    const addedNames = [...localNames].filter(name => !initialNames.has(name));
+    const removedNames = [...initialNames].filter(name => !localNames.has(name));
 
-    if (addedNames.length > 0 && addedNames.length === removedNames.length) {
-        // This is a heuristic for renaming. It assumes a 1-to-1 rename.
-        // A more robust system might need a specific UI for renaming.
-        for(let i = 0; i < addedNames.length; i++) {
-            renamedProducts.push({ oldName: removedNames[i], newName: addedNames[i] });
+    if (addedNames.length > 0 && removedNames.length === addedNames.length) {
+        // This is a rough heuristic. A better approach would be to track renames explicitly.
+        // For now, we'll assume a 1-to-1 rename if counts match.
+        for (let i = 0; i < addedNames.length; i++) {
+            updateProductName(removedNames[i], addedNames[i]);
         }
     }
-
-    // 2. Call the context function to update names everywhere
-    renamedProducts.forEach(({ oldName, newName }) => {
-        updateProductName(oldName, newName);
-    });
-
-    // 3. Set the global state with all changes (including quantities)
+    
     setGlobalInventoryData(localInventoryData);
     setHasPendingChanges(false);
     toast({
