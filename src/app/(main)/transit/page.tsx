@@ -303,12 +303,12 @@ export default function TransitPage() {
                     label: name,
                     brand: brand,
                     line: line,
-                    size: productDimensions[name] || ''
+                    size: productDimensions[name as keyof typeof productDimensions] || ''
                 });
             }
         }
     }
-    return products;
+    return products.map(p => ({...p, label: `${p.label} (${p.brand} > ${p.line})`}));
   }, [inventoryData]);
 
   const handleContainerProductSelect = (value: string) => {
@@ -861,6 +861,7 @@ export default function TransitPage() {
     </div>
   );
 }
+
 
 
 
