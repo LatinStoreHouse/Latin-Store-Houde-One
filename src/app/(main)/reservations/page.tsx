@@ -192,8 +192,8 @@ export default function ReservationsPage() {
 
 
   const handleSaveReservation = () => {
-    if (!customerName || !productName || Number(quantity) <= 0 || !quoteNumber) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos requeridos.'});
+    if (!customerName || !productName || Number(quantity) <= 0 || !quoteNumber || !expirationDate) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos requeridos, incluyendo la fecha de vencimiento.'});
         return;
     }
     
@@ -246,7 +246,7 @@ export default function ReservationsPage() {
             source: reservationSource,
             sourceId: productInfo.sourceId,
             quoteNumber: quoteNumber,
-            expirationDate: expirationDate || undefined,
+            expirationDate: expirationDate,
             status: needsRevalidation ? 'En espera de validación' : originalReservation.status
         };
 
@@ -263,7 +263,7 @@ export default function ReservationsPage() {
             quoteNumber: quoteNumber,
             status: 'En espera de validación',
             source: reservationSource,
-            expirationDate: expirationDate || undefined,
+            expirationDate: expirationDate,
         };
         setReservations([...reservations, newReservation]);
         toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
@@ -558,17 +558,17 @@ export default function ReservationsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label># Cotización</Label>
-                        <Input value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" />
+                        <Label htmlFor="quoteNumber"># Cotización</Label>
+                        <Input id="quoteNumber" value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" required />
                     </div>
                       <div className="space-y-2">
-                        <Label>Fecha Vencimiento (Opcional)</Label>
-                        <Input type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} />
+                        <Label htmlFor="expirationDate">Fecha Vencimiento</Label>
+                        <Input id="expirationDate" type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} required />
                     </div>
                   </div>
                   <div className="space-y-2">
-                      <Label>Nombre del Cliente</Label>
-                      <Input value={customerName} onChange={e => setCustomerName(e.target.value)} />
+                      <Label htmlFor="customerName">Nombre del Cliente</Label>
+                      <Input id="customerName" value={customerName} onChange={e => setCustomerName(e.target.value)} required />
                   </div>
                   {reservationSource === 'Contenedor' && (
                         <div className="space-y-2">
@@ -601,7 +601,7 @@ export default function ReservationsPage() {
                   </div>
                     <div className="space-y-2">
                       <Label>Cantidad</Label>
-                      <Input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} />
+                      <Input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} required />
                   </div>
               </div>
               <DialogFooter>
