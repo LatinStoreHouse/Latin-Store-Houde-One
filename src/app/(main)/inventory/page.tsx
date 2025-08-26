@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle, XCircle, X, PlusCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Role } from '@/lib/roles';
+import { roles } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -308,7 +308,7 @@ export default function InventoryPage() {
   const userPermissions = useMemo(() => {
     const permissions = new Set<string>();
     currentUser.roles.forEach(userRole => {
-      const roleConfig = Role.find(r => r.name === userRole);
+      const roleConfig = roles.find(r => r.name === userRole);
       if (roleConfig) {
         roleConfig.permissions.forEach(p => permissions.add(p));
       }
