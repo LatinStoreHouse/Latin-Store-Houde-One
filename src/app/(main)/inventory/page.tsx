@@ -97,10 +97,10 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
           <TableRow>
             <TableHead className="p-2">Nombre del Producto</TableHead>
             <TableHead className="p-2">Medidas</TableHead>
-            <TableHead className="text-right p-2">Disponible Bodega</TableHead>
-            <TableHead className="text-right p-2">Disponible Zona Franca</TableHead>
-            {!isPartner && <TableHead className="text-right p-2 w-[150px]"></TableHead>}
-            {isMarketing && <TableHead className="text-right p-2">Oportunidad de Campaña</TableHead>}
+            <TableHead className="text-center p-2">Disponible Bodega</TableHead>
+            <TableHead className="text-center p-2">Disponible Zona Franca</TableHead>
+            {!isPartner && <TableHead className="text-center p-2 w-[150px]"></TableHead>}
+            {isMarketing && <TableHead className="text-center p-2">Oportunidad de Campaña</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -119,12 +119,12 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
                 <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
-                <TableCell className={cn("text-right p-2 font-medium", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
-                <TableCell className={cn("text-right p-2 font-medium", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
+                <TableCell className={cn("text-center p-2 font-medium", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
+                <TableCell className={cn("text-center p-2 font-medium", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
                
                 {!isPartner && (
-                  <TableCell className="text-right p-2">
-                    <div className="flex justify-end items-center gap-2">
+                  <TableCell className="text-center p-2">
+                    <div className="flex justify-center items-center gap-2">
                         {totalDisponible <= 0 && canSubscribe && (
                              <Button 
                                 variant={isSubscribed ? "secondary" : "outline"} 
@@ -163,7 +163,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                   </TableCell>
                 )}
                 {isMarketing && (
-                    <TableCell className="text-right p-2">
+                    <TableCell className="text-center p-2">
                         {highStock && (
                             <Badge variant="success">Sugerencia de Contenido</Badge>
                         )}
@@ -187,17 +187,17 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
           <TableHead className="p-2">Medidas</TableHead>
           <TableHead className="text-center p-2 border-l" colSpan={3}>Bodega</TableHead>
           <TableHead className="text-center p-2 border-l" colSpan={3}>Zona Franca</TableHead>
-          <TableHead className="text-right p-2 border-l">Muestras</TableHead>
+          <TableHead className="text-center p-2 border-l">Muestras</TableHead>
         </TableRow>
         <TableRow>
             <TableHead className="p-2 border-t"></TableHead>
             <TableHead className="p-2 border-t"></TableHead>
-            <TableHead className="text-right p-2 border-t border-l font-medium">Total</TableHead>
-            <TableHead className="text-right p-2 border-t font-medium">Separado</TableHead>
-            <TableHead className="text-right p-2 border-t font-bold">Disponible</TableHead>
-            <TableHead className="text-right p-2 border-t border-l font-medium">Total</TableHead>
-            <TableHead className="text-right p-2 border-t font-medium">Separado</TableHead>
-            <TableHead className="text-right p-2 border-t font-bold">Disponible</TableHead>
+            <TableHead className="text-center p-2 border-t border-l font-medium">Total</TableHead>
+            <TableHead className="text-center p-2 border-t font-medium">Separado</TableHead>
+            <TableHead className="text-center p-2 border-t font-bold">Disponible</TableHead>
+            <TableHead className="text-center p-2 border-t border-l font-medium">Total</TableHead>
+            <TableHead className="text-center p-2 border-t font-medium">Separado</TableHead>
+            <TableHead className="text-center p-2 border-t font-bold">Disponible</TableHead>
             <TableHead className="p-2 border-t border-l"></TableHead>
         </TableRow>
       </TableHeader>
@@ -219,30 +219,30 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
               <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
               
               {/* Bodega */}
-              <TableCell className="text-right p-0 border-l">
-                <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
+              <TableCell className="text-center p-0 border-l">
+                <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
-              <TableCell className="text-right p-0">
-                <Input type="number" defaultValue={item.separadasBodega} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-0 bg-transparent" disabled readOnly />
+              <TableCell className="text-center p-0">
+                <Input type="number" defaultValue={item.separadasBodega} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-0 bg-transparent" disabled readOnly />
               </TableCell>
-               <TableCell className={cn("text-right p-2 font-medium", getStockColorClass(disponibleBodega))}>
+               <TableCell className={cn("text-center p-2 font-medium", getStockColorClass(disponibleBodega))}>
                 {disponibleBodega}
                </TableCell>
 
               {/* Zona Franca */}
-              <TableCell className="text-right p-0 border-l">
-                <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
+              <TableCell className="text-center p-0 border-l">
+                <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
-              <TableCell className="text-right p-0">
-                <Input type="number" defaultValue={item.separadasZonaFranca} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-0 bg-transparent" disabled readOnly />
+              <TableCell className="text-center p-0">
+                <Input type="number" defaultValue={item.separadasZonaFranca} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-0 bg-transparent" disabled readOnly />
               </TableCell>
-               <TableCell className={cn("text-right p-2 font-medium", getStockColorClass(disponibleZonaFranca))}>
+               <TableCell className={cn("text-center p-2 font-medium", getStockColorClass(disponibleZonaFranca))}>
                 {disponibleZonaFranca}
                </TableCell>
               
               {/* Muestras */}
-              <TableCell className="text-right p-0 border-l">
-                 <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
+              <TableCell className="text-center p-0 border-l">
+                 <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
             </TableRow>
           );
@@ -340,7 +340,7 @@ export default function InventoryPage() {
   
  const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
     if (isNameChange && value !== productName && findProductLocation(value, localInventoryData)) {
-        toast({
+         toast({
             variant: 'destructive',
             title: 'Error de Duplicado',
             description: `El producto "${value}" ya existe en el inventario.`,
