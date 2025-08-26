@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Role } from '@/lib/roles';
+import { Role, roles } from '@/lib/roles';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion } from '@/components/ui/accordion';
@@ -460,10 +460,22 @@ export default function TransitPage() {
   const [activeTab, setActiveTab] = useState('en-transito');
   const { toast } = useToast();
   
-  const canEditContainer = currentUser.roles.includes('Administrador');
-  const canEditStatus = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
-  const canCreateReservation = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
-  const canReceiveContainer = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Logística');
+  const userPermissions = useMemo(() => {
+    const permissions = new Set<string>();
+    currentUser.roles.forEach(userRole => {
+      const roleConfig = roles.find(r => r.name === userRole);
+      if (roleConfig) {
+        roleConfig.permissions.forEach(p => permissions.add(p));
+      }
+    });
+    return Array.from(permissions);
+  }, [currentUser.roles]);
+
+  const canCreateContainer = userPermissions.includes('inventory:transit:create');
+  const canEditContainer = userPermissions.includes('inventory:transit:edit');
+  const canEditStatus = userPermissions.includes('Administrador') || userPermissions.includes('Contador');
+  const canCreateReservation = userPermissions.includes('reservations:create');
+  const canReceiveContainer = userPermissions.includes('Logística') || userPermissions.includes('Administrador');
 
   const { activeContainers, historyContainers, hasLateContainers } = useMemo(() => {
     const active = containers.filter(c => c.status !== 'Llegado');
@@ -755,7 +767,7 @@ export default function TransitPage() {
             <CardDescription>Agregue, edite y gestione los contenedores y sus productos.</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            {canEditContainer && (
+            {canCreateContainer && (
                 <Button onClick={handleOpenAddDialog}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Agregar Contenedor

@@ -5,6 +5,8 @@ export type Permission =
   // Inventory
   'inventory:view' |
   'inventory:transit' |
+  'inventory:transit:create' |
+  'inventory:transit:edit' |
   // Sales
   'invoices:view' |
   // Orders
@@ -40,7 +42,7 @@ export type Permission =
   'marketing:view' |
   'marketing:create';
 
-export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners';
+export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico';
 
 export interface RoleConfig {
     id: string;
@@ -66,6 +68,8 @@ export const roles: RoleConfig[] = [
             'dashboard:view',
             'inventory:view',
             'inventory:transit',
+            'inventory:transit:create',
+            'inventory:transit:edit',
             'invoices:view',
             'orders:view',
             'orders:create',
@@ -138,6 +142,17 @@ export const roles: RoleConfig[] = [
             'orders:view',
             'reservations:view',
             'pricing:view'
+        ]
+    },
+     {
+        id: 'trafico',
+        name: 'Tráfico',
+        permissions: [
+            'dashboard:view',
+            'inventory:transit',
+            'inventory:transit:create',
+            'inventory:transit:edit',
+            'reservations:view'
         ]
     },
     {
