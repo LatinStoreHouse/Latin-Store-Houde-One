@@ -342,7 +342,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                               <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
                                 <Link href={subItem.href}>
                                   <SubIcon />
-                                  <span className="">{subItem.label}</span>
+                                  <span className="truncate">{subItem.label}</span>
                                    {subItem.href === '/reservations' && pendingReservationAlerts > 0 && canViewReservationsAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
                                    {subItem.href === '/transit' && hasLateContainersAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
                                 </Link>
