@@ -68,19 +68,17 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
   };
 
   const getReservationsForProduct = (productName: string): Reservation[] => {
-    // Only show reservations from warehouse or free zone, not from containers
     return allReservations.filter(
       (r) =>
         r.product === productName &&
-        r.status === 'Validada' &&
-        (r.source === 'Bodega' || r.source === 'Zona Franca')
+        r.status === 'Validada'
     );
   };
   
   const getStockColorClass = (stock: number) => {
-    if (stock < 0) return 'text-red-600 font-bold'; // Critical error
-    if (stock > 0 && stock <= 20) return 'text-yellow-600'; // Low stock
-    return ''; // Healthy stock
+    if (stock < 0) return 'text-red-600 font-bold';
+    if (stock > 0 && stock <= 20) return 'text-yellow-600';
+    return '';
   };
   
   const canSubscribe = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
@@ -343,19 +341,18 @@ export default function InventoryPage() {
   };
   
  const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
-    if (isNameChange && value !== productName && findProductLocation(value, localInventoryData)) {
-        toast({
-            variant: 'destructive',
-            title: 'Error de Duplicado',
-            description: `El producto "${value}" ya existe en el inventario.`,
-        });
-        // This is a bit of a hack to revert the input field's value.
-        // A more robust solution would involve controlled components for the inputs, but that's a bigger refactor.
-        setTimeout(() => {
-            const revertedState = JSON.parse(JSON.stringify(localInventoryData));
-            setLocalInventoryData(revertedState);
-        }, 0);
-        return; 
+    if (isNameChange && value !== productName) {
+        if (findProductLocation(value, localInventoryData)) {
+            toast({
+                variant: 'destructive',
+                title: 'Error de Duplicado',
+                description: `El producto "${value}" ya existe en el inventario.`,
+            });
+            // Revert state visually by forcing a re-render with the original data.
+            // A more robust solution involves controlled inputs, but this is simpler for now.
+             setLocalInventoryData(prevData => JSON.parse(JSON.stringify(prevData)));
+            return;
+        }
     }
 
     setLocalInventoryData(prevData => {
