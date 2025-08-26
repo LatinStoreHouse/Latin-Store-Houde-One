@@ -43,7 +43,8 @@ export type Permission =
   'marketing:view' |
   'marketing:create' |
   // Purchasing
-  'purchasing:suggestions:view';
+  'purchasing:suggestions:view' |
+  'purchasing:suggestions:create';
 
 export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico';
 
@@ -115,7 +116,9 @@ export const roles: RoleConfig[] = [
             'pricing:view',
             'advisor:use',
             'reservations:view',
-            'reservations:create'
+            'reservations:create',
+            'purchasing:suggestions:view',
+            'purchasing:suggestions:create'
         ]
     },
     {
