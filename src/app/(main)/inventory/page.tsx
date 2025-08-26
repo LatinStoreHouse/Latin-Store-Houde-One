@@ -59,7 +59,8 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
     throw new Error('ProductTable must be used within an InventoryProvider and UserProvider');
   }
   const { reservations: allReservations, toggleProductSubscription, productSubscriptions, productDimensions } = context;
-  const canEditName = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
+  const canEditName = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador') || currentUser.roles.includes('Logística');
+  const canEditQuantities = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador') || currentUser.roles.includes('Logística');
   
   const handleInputChange = (productName: string, field: string, value: string | number, isNameChange = false) => {
     const isNumber = typeof inventoryData[brand][subCategory][productName][field] === 'number';
@@ -216,11 +217,11 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                     disabled={!canEditName}
                 />
               </TableCell>
-              <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
+              <TableCell className="p-2 text-sm text-muted-foreground text-center">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
               
               {/* Bodega */}
               <TableCell className="text-center p-0 border-l">
-                <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
+                <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" disabled={!canEditQuantities} />
               </TableCell>
               <TableCell className="text-center p-0">
                 <Input type="number" defaultValue={item.separadasBodega} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-0 bg-transparent" disabled readOnly />
@@ -231,7 +232,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
 
               {/* Zona Franca */}
               <TableCell className="text-center p-0 border-l">
-                <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
+                <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" disabled={!canEditQuantities} />
               </TableCell>
               <TableCell className="text-center p-0">
                 <Input type="number" defaultValue={item.separadasZonaFranca} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-0 bg-transparent" disabled readOnly />
@@ -242,7 +243,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
               
               {/* Muestras */}
               <TableCell className="text-center p-0 border-l">
-                 <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
+                 <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 mx-auto text-center h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" disabled={!canEditQuantities} />
               </TableCell>
             </TableRow>
           );
@@ -302,7 +303,7 @@ export default function InventoryPage() {
   }, [initialData]);
 
   const currentUserRole = currentUser.roles[0];
-  const canEdit = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
+  const canEdit = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador') || currentUser.roles.includes('Logística');
   const isPartner = currentUserRole === 'Partners';
   const isMarketing = currentUserRole === 'Marketing';
   const canViewLowStockAlerts = currentUserRole === 'Logística' || currentUserRole === 'Administrador' || currentUserRole === 'Contador';
@@ -340,7 +341,7 @@ export default function InventoryPage() {
   
  const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
     if (isNameChange && value !== productName && findProductLocation(value, localInventoryData)) {
-         toast({
+        toast({
             variant: 'destructive',
             title: 'Error de Duplicado',
             description: `El producto "${value}" ya existe en el inventario.`,
