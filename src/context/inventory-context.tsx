@@ -1,4 +1,3 @@
-
 'use client';
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { initialInventoryData } from '@/lib/initial-inventory';
@@ -54,6 +53,7 @@ interface InventoryContextType {
   inventoryData: InventoryData;
   setInventoryData: React.Dispatch<React.SetStateAction<InventoryData>>;
   productPrices: { [key: string]: number };
+  setProductPrices: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>;
   productDimensions: { [key: string]: string };
   containers: Container[];
   setContainers: React.Dispatch<React.SetStateAction<Container[]>>;
@@ -66,6 +66,7 @@ interface InventoryContextType {
   dispatchReservation: (quoteNumber: string) => void;
   dispatchDirectFromInventory: (productsToDispatch: { name: string, quantity: number }[]) => void;
   releaseReservationStock: (reservation: Reservation) => void;
+  addProduct: (product: { name: string; brand: string; line: string; size?: string; price: number, stock: any }) => void;
   addContainer: (container: Container) => void;
   editContainer: (containerId: string, updatedContainer: Container) => void;
   updateProductName: (oldName: string, newName: string) => void;
@@ -96,6 +97,32 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     }
     return null;
   };
+
+  const addProduct = (product: { name: string; brand: string; line: string; size?: string; price: number, stock: any }) => {
+    const { name, brand, line, size, price, stock } = product;
+
+    // Update inventory data
+    setInventoryData(prev => {
+        const newData = { ...prev };
+        if (!newData[brand as keyof typeof newData]) {
+            newData[brand as keyof typeof newData] = {};
+        }
+        if (!newData[brand as keyof typeof newData][line]) {
+            newData[brand as keyof typeof newData][line] = {};
+        }
+        newData[brand as keyof typeof newData][line][name] = stock;
+        return newData;
+    });
+
+    // Update prices
+    setProductPrices(prev => ({ ...prev, [name]: price }));
+
+    // Update dimensions if provided
+    if (size) {
+        setLocalProductDimensions(prev => ({ ...prev, [name]: size }));
+    }
+  };
+
 
   const updateProductName = (oldName: string, newName: string) => {
     if (oldName === newName) return;
@@ -426,6 +453,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       inventoryData, 
       setInventoryData,
       productPrices,
+      setProductPrices,
       productDimensions: localProductDimensions, 
       containers, 
       setContainers,
@@ -438,6 +466,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       dispatchReservation,
       dispatchDirectFromInventory,
       releaseReservationStock,
+      addProduct,
       addContainer,
       editContainer,
       updateProductName,

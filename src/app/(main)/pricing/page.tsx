@@ -1,5 +1,3 @@
-
-
 'use client';
 import React, { useState, useMemo, useContext } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -11,18 +9,16 @@ import { useToast } from '@/hooks/use-toast';
 import { Save, MoreHorizontal, Edit, Trash2, PlusCircle, AlertTriangle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { initialProductPrices } from '@/lib/prices';
 import { useUser } from '@/app/(main)/layout';
 import { roles } from '@/lib/roles';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Combobox } from '@/components/ui/combobox';
-import { productDimensions } from '@/lib/dimensions';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { InventoryContext } from '@/context/inventory-context';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Combobox } from '@/components/ui/combobox';
 
 
 const productStructure: { [key: string]: { [line: string]: string[] } } = {
@@ -115,19 +111,19 @@ const productStructure: { [key: string]: { [line: string]: string[] } } = {
         'Liston 6.8x2.5',
       ],
       'Insumos': [
+        'Bocel decorativo blanco',
         'Clip plastico para deck wpc',
-        'Durmiente plastico 3x3',
-        'Durmiente plastico 6 x 6',
         'Daily clean',
-        'Intensive clean',
-        'Sellante wpc 1 galon',
-        'Sellante wpc 1/4 galon',
         'Daily clean galon',
-        'Remate wall panel roble',
+        'Durmiente plastico 3x3',
+        'Durmiente plastico 6x6',
+        'Intensive clean',
+        'Remate wall panel gris',
         'Remate wall panel maple',
         'Remate wall panel negro',
-        'Remate wall panel gris',
-        'Bocel decorativo blanco',
+        'Remate wall panel roble',
+        'Sellante wpc 1 galon',
+        'Sellante wpc 1/4 galon',
       ]
   }
 };
@@ -148,7 +144,7 @@ export default function PricingPage() {
   if (!context) {
     throw new Error('PricingPage must be used within an InventoryProvider');
   }
-  const { inventoryData } = context;
+  const { inventoryData, productPrices, setProductPrices, addProduct: addProductToContext } = context;
 
   const [localProductStructure, setLocalProductStructure] = useState(() => {
     // Initialize structure from inventory data
@@ -162,7 +158,6 @@ export default function PricingPage() {
     return structure;
   });
 
-  const [prices, setPrices] = useState(initialProductPrices);
   const [linePrices, setLinePrices] = useState<{ [key: string]: string }>({});
   const [sizeFilters, setSizeFilters] = useState<{ [key: string]: SizeFilter }>({});
   const [isEditingLine, setIsEditingLine] = useState(false);
@@ -177,26 +172,30 @@ export default function PricingPage() {
   const canEdit = userPermissions.includes('pricing:edit');
   
   const handleOpenEditModal = (productName: string) => {
-    setEditingProduct({ name: productName, price: prices[productName as keyof typeof prices] || 0 });
+    setEditingProduct({ name: productName, price: productPrices[productName as keyof typeof productPrices] || 0 });
     setIsEditModalOpen(true);
   };
 
   const handleUpdatePrice = () => {
     if (editingProduct) {
-        setPrices(prev => ({...prev, [editingProduct.name]: editingProduct.price}));
+        setProductPrices(prev => ({...prev, [editingProduct.name]: editingProduct.price}));
         setIsEditModalOpen(false);
         setEditingProduct(null);
         toast({ title: 'Precio actualizado', description: `El precio de "${editingProduct.name}" ha sido actualizado.` });
     }
   };
   
-  const handleAddProduct = (newProduct: { brand: string; line: string; name: string; price: number }) => {
-    const { brand, line, name, price } = newProduct;
+  const handleAddProduct = (newProduct: { brand: string; line: string; name: string; price: number; size?: string }) => {
+    const { brand, line, name, price, size } = newProduct;
     if (!brand || !line || !name) {
       toast({ variant: 'destructive', title: 'Error', description: 'Todos los campos son requeridos para agregar un producto.' });
       return;
     }
 
+    // Use context function to add the product
+    addProductToContext({ name, brand, line, size, price, stock: { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 }});
+
+    // Update local structure for immediate UI feedback
     setLocalProductStructure(prev => {
         const newStructure = { ...prev };
         if (!newStructure[brand as keyof typeof newStructure]) newStructure[brand as keyof typeof newStructure] = {};
@@ -211,13 +210,12 @@ export default function PricingPage() {
         return newStructure;
     });
 
-    setPrices(prev => ({...prev, [name]: price}));
-    toast({ title: 'Producto Agregado', description: `Se ha agregado "${name}" a la lista de precios.` });
+    toast({ title: 'Producto Agregado', description: `Se ha agregado "${name}" a la lista de precios y al inventario.` });
     setIsAddModalOpen(false);
   };
   
   const handleDeleteProduct = (productName: string) => {
-    setPrices(prev => {
+    setProductPrices(prev => {
         const newPrices = {...prev};
         delete newPrices[productName as keyof typeof newPrices];
         return newPrices;
@@ -271,11 +269,11 @@ export default function PricingPage() {
         productsInLine = productsInLine.filter(p => p.includes('XL'));
     }
 
-    const updatedPrices = { ...prices };
+    const updatedPrices: { [key: string]: number } = { ...productPrices };
     productsInLine.forEach(product => {
       updatedPrices[product as keyof typeof updatedPrices] = numericPrice;
     });
-    setPrices(updatedPrices);
+    setProductPrices(updatedPrices);
     toast({
       title: 'Precios actualizados',
       description: `Todos los productos en la línea "${line}" (${sizeFilter}) han sido actualizados a ${formatCurrency(numericPrice)}.`,
@@ -291,7 +289,7 @@ export default function PricingPage() {
   };
 
   const handleSaveChanges = () => {
-    console.log('Saving prices:', prices);
+    console.log('Saving prices:', productPrices);
     toast({
       title: 'Precios actualizados',
       description: 'Los nuevos precios han sido guardados exitosamente.',
@@ -312,12 +310,12 @@ export default function PricingPage() {
     for (const brand in localProductStructure) {
       alerts[brand] = {};
       for (const line in localProductStructure[brand]) {
-        const hasPending = localProductStructure[brand][line].some(product => !prices[product as keyof typeof prices] || prices[product as keyof typeof prices] === 0);
+        const hasPending = localProductStructure[brand][line].some(product => !productPrices[product as keyof typeof productPrices] || productPrices[product as keyof typeof productPrices] === 0);
         alerts[brand][line] = hasPending;
       }
     }
     return alerts;
-  }, [localProductStructure, prices]);
+  }, [localProductStructure, productPrices]);
 
   const brandHasPendingPrices = (brand: string) => {
     return Object.values(hasPendingPrices[brand] || {}).some(Boolean);
@@ -334,7 +332,7 @@ export default function PricingPage() {
         </TableHeader>
         <TableBody>
             {localProductStructure[brand as keyof typeof localProductStructure][line].map((product) => {
-                const price = prices[product as keyof typeof prices];
+                const price = productPrices[product as keyof typeof productPrices];
                 const hasPrice = price !== undefined && price > 0;
                 return (
                  <TableRow key={product}>
@@ -581,7 +579,7 @@ export default function PricingPage() {
 interface AddProductDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
-    onSave: (product: { brand: string; line: string; name: string; price: number }) => void;
+    onSave: (product: { brand: string; line: string; name: string; price: number, size?: string }) => void;
     brands: string[];
     linesByBrand: Record<string, string[]>;
 }
@@ -591,17 +589,35 @@ function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesByBrand }
     const [line, setLine] = useState('');
     const [name, setName] = useState('');
     const [price, setPrice] = useState(0);
+    const [size, setSize] = useState('');
+    const [isNewBrand, setIsNewBrand] = useState(false);
+    const [isNewLine, setIsNewLine] = useState(false);
     
     const brandOptions = brands.map(b => ({ value: b, label: b }));
     const lineOptions = brand ? (linesByBrand[brand] || []).map(l => ({ value: l, label: l })) : [];
     
     const handleSave = () => {
-        onSave({ brand, line, name, price });
+        onSave({ brand, line, name, price, size });
         setBrand('');
         setLine('');
         setName('');
         setPrice(0);
+        setSize('');
+        setIsNewBrand(false);
+        setIsNewLine(false);
     }
+    
+     const handleToggleNewBrand = (checked: boolean) => {
+        setIsNewBrand(checked);
+        setBrand('');
+        setLine('');
+        setIsNewLine(false);
+    };
+
+    const handleToggleNewLine = (checked: boolean) => {
+        setIsNewLine(checked);
+        setLine('');
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -611,26 +627,49 @@ function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesByBrand }
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label>Marca</Label>
-                        <Select onValueChange={(v) => { setBrand(v); setLine(''); }}>
-                           <SelectTrigger><SelectValue placeholder="Seleccione una marca" /></SelectTrigger>
-                           <SelectContent>
-                             {brandOptions.map(b => <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>)}
-                           </SelectContent>
-                        </Select>
+                        <div className="flex items-center space-x-2 mb-2">
+                            <Checkbox id="is-new-brand-dialog" checked={isNewBrand} onCheckedChange={handleToggleNewBrand} />
+                            <Label htmlFor="is-new-brand-dialog">Agregar marca nueva</Label>
+                        </div>
+                        {isNewBrand ? (
+                            <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Nombre de la nueva marca" />
+                        ) : (
+                            <Combobox
+                                options={brandOptions}
+                                value={brand}
+                                onValueChange={(value) => { setBrand(value); setLine(''); }}
+                                placeholder="Seleccione una marca"
+                                searchPlaceholder="Buscar marca..."
+                                emptyPlaceholder="No hay marcas."
+                            />
+                        )}
                     </div>
                      <div className="space-y-2">
-                        <Label>Línea</Label>
-                        <Select onValueChange={setLine} disabled={!brand}>
-                           <SelectTrigger><SelectValue placeholder="Seleccione una línea" /></SelectTrigger>
-                           <SelectContent>
-                             {lineOptions.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                           </SelectContent>
-                        </Select>
+                        <div className="flex items-center space-x-2 mb-2">
+                            <Checkbox id="is-new-line-dialog" checked={isNewLine} onCheckedChange={handleToggleNewLine} disabled={!brand} />
+                            <Label htmlFor="is-new-line-dialog" className={!brand ? 'text-muted-foreground' : ''}>Agregar línea nueva</Label>
+                        </div>
+                        {isNewLine ? (
+                             <Input value={line} onChange={(e) => setLine(e.target.value)} placeholder="Nombre de la nueva línea" disabled={!brand} />
+                        ) : (
+                            <Combobox
+                                options={lineOptions}
+                                value={line}
+                                onValueChange={setLine}
+                                placeholder="Seleccione una línea"
+                                searchPlaceholder="Buscar línea..."
+                                emptyPlaceholder="No hay líneas para esta marca."
+                                disabled={!brand}
+                            />
+                        )}
                     </div>
                      <div className="space-y-2">
                         <Label>Nombre del Producto</Label>
                         <Input value={name} onChange={e => setName(e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label>Medidas (Opcional)</Label>
+                        <Input value={size} onChange={e => setSize(e.target.value)} placeholder="Ej: 1.22x0.61 Mts" />
                     </div>
                      <div className="space-y-2">
                         <Label>Precio (COP)</Label>
