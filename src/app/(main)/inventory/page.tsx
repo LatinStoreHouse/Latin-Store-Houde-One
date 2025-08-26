@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle, XCircle, X } from 'lucide-react';
+import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle, XCircle, X, PlusCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Role } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
@@ -43,6 +43,7 @@ import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useBeforeUnload } from '@/hooks/use-before-unload';
+import { AddProductDialog } from '@/components/add-product-dialog';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -287,13 +288,14 @@ export default function InventoryPage() {
   if (!context) {
     throw new Error('InventoryContext must be used within an InventoryProvider');
   }
-  const { inventoryData: initialData, transferFromFreeZone, setInventoryData: setGlobalInventoryData, updateProductName } = context;
+  const { inventoryData: initialData, transferFromFreeZone, setInventoryData: setGlobalInventoryData, updateProductName, addProduct } = context;
   const { currentUser } = useUser();
 
   const [localInventoryData, setLocalInventoryData] = useState(initialData);
   
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
   
   useBeforeUnload(hasPendingChanges, 'Tiene cambios sin guardar. ¿Está seguro de que desea salir?');
@@ -303,11 +305,22 @@ export default function InventoryPage() {
     setLocalInventoryData(initialData);
   }, [initialData]);
 
-  const currentUserRole = currentUser.roles[0];
-  const canEdit = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador') || currentUser.roles.includes('Logística');
-  const isPartner = currentUserRole === 'Partners';
-  const isMarketing = currentUserRole === 'Marketing';
-  const canViewLowStockAlerts = currentUserRole === 'Logística' || currentUserRole === 'Administrador' || currentUserRole === 'Contador';
+  const userPermissions = useMemo(() => {
+    const permissions = new Set<string>();
+    currentUser.roles.forEach(userRole => {
+      const roleConfig = Role.find(r => r.name === userRole);
+      if (roleConfig) {
+        roleConfig.permissions.forEach(p => permissions.add(p));
+      }
+    });
+    return Array.from(permissions);
+  }, [currentUser.roles]);
+
+  const canEdit = userPermissions.includes('pricing:edit') || currentUser.roles.includes('Logística');
+  const canCreateProduct = userPermissions.includes('pricing:edit');
+  const isPartner = currentUser.roles.includes('Partners');
+  const isMarketing = currentUser.roles.includes('Marketing');
+  const canViewLowStockAlerts = currentUser.roles.includes('Logística') || currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
   
   let columnsForExport: Record<string, boolean>;
   if (canEdit) {
@@ -583,6 +596,20 @@ export default function InventoryPage() {
         });
      }
   };
+
+  const handleAddProduct = (newProduct: { brand: string; line: string; name: string; price: number; size?: string }) => {
+    const { brand, line, name, price, size } = newProduct;
+    if (!brand || !line || !name) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Todos los campos son requeridos para agregar un producto.' });
+      return;
+    }
+
+    // Use context function to add the product
+    addProduct({ name, brand, line, size, price, stock: { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 }});
+
+    toast({ title: 'Producto Agregado', description: `Se ha agregado "${name}" al inventario.` });
+    setIsAddDialogOpen(false);
+  };
   
   const columnLabels: Record<string, string> = {
     ...Object.fromEntries(Object.keys(detailedColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())])),
@@ -624,6 +651,12 @@ export default function InventoryPage() {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Inventario de Productos - Stock Actual</CardTitle>
         <div className="flex gap-2">
+            {canCreateProduct && (
+                 <Button onClick={() => setIsAddDialogOpen(true)} variant="outline" size="sm">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Añadir Producto
+                </Button>
+            )}
             {canEdit && (
                 <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
                     <DialogTrigger asChild>
@@ -853,6 +886,17 @@ export default function InventoryPage() {
         </CardFooter>
       )}
     </Card>
+
+    <AddProductDialog
+        isOpen={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSave={handleAddProduct}
+        brands={Object.keys(localInventoryData)}
+        linesByBrand={Object.entries(localInventoryData).reduce((acc, [brand, lines]) => {
+            acc[brand] = Object.keys(lines);
+            return acc;
+        }, {} as Record<string, string[]>)}
+      />
     </>
   );
 }
