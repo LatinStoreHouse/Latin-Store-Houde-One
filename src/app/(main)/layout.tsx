@@ -59,7 +59,9 @@ import {
     Store,
     Megaphone,
     ArrowUp,
-    ArrowDown
+    ArrowDown,
+    ShoppingBag,
+    Lightbulb
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -109,6 +111,13 @@ export const navItems = [
       { href: '/invoices', label: 'Historial de Cotizaciones', permission: 'invoices:view' },
     ],
   },
+   {
+    label: 'Compras',
+    icon: ShoppingBag,
+    subItems: [
+      { href: '/purchasing/suggestions', label: 'Sugerencias de Compra', permission: 'purchasing:suggestions:view' },
+    ],
+  },
   { href: '/pricing', label: 'Precios', icon: Tags, permission: 'pricing:view' },
   { href: '/marketing/campaigns', label: 'Marketing', icon: Megaphone, permission: 'marketing:view' },
   { href: '/users', label: 'Usuarios', icon: UserCog, permission: 'users:manage' },
@@ -124,6 +133,7 @@ const getIconForSubItem = (label: string) => {
         case 'Reservas': return BookUser;
         case 'Despachos': return Truck;
         case 'Historial de Cotizaciones': return Receipt;
+        case 'Sugerencias de Compra': return Lightbulb;
         case 'Stoneflex': return Store;
         case 'Starwood': return Store;
         default: return Warehouse;

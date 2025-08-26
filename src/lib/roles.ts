@@ -1,3 +1,4 @@
+'use client';
 
 export type Permission = 
   // Dashboard
@@ -40,7 +41,9 @@ export type Permission =
   'reservations:validate' |
   // Marketing
   'marketing:view' |
-  'marketing:create';
+  'marketing:create' |
+  // Purchasing
+  'purchasing:suggestions:view';
 
 export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico';
 
@@ -91,7 +94,8 @@ export const roles: RoleConfig[] = [
             'reservations:create',
             'reservations:validate',
             'marketing:view',
-            'marketing:create'
+            'marketing:create',
+            'purchasing:suggestions:view'
         ]
     },
     {
@@ -152,7 +156,8 @@ export const roles: RoleConfig[] = [
             'inventory:transit',
             'inventory:transit:create',
             'inventory:transit:edit',
-            'reservations:view'
+            'reservations:view',
+            'purchasing:suggestions:view'
         ]
     },
     {
