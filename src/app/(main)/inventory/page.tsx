@@ -97,9 +97,10 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
         <TableHeader>
           <TableRow>
             <TableHead className="p-2">Nombre del Producto</TableHead>
-            <TableHead className="p-2">Medidas</TableHead>
+            <TableHead className="text-center p-2">Medidas</TableHead>
             <TableHead className="text-center p-2">Disponible Bodega</TableHead>
-            <TableHead className="text-center p-2">Disponible Zona Franca</TableHead>
+            <TableHead className="text-center p-2">Disponible ZF</TableHead>
+            <TableHead className="text-center p-2">Separado</TableHead>
             {!isPartner && <TableHead className="text-center p-2 w-[150px]"></TableHead>}
             {isMarketing && <TableHead className="text-center p-2">Oportunidad de Campaña</TableHead>}
           </TableRow>
@@ -112,6 +113,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             const totalDisponible = disponibleBodega + disponibleZonaFranca;
             const reservations = getReservationsForProduct(name);
             const totalReserved = item.separadasBodega + item.separadasZonaFranca;
+            const userHasReservation = reservations.some(r => r.advisor === currentUser.name);
 
             const highStock = totalDisponible > 500;
             const isSubscribed = productSubscriptions[name]?.includes(currentUser.name);
@@ -119,9 +121,10 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
             return (
               <TableRow key={name}>
                 <TableCell className="font-medium p-2">{name}</TableCell>
-                <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
+                <TableCell className="p-2 text-sm text-muted-foreground text-center">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
                 <TableCell className={cn("text-center p-2 font-medium", getStockColorClass(disponibleBodega))}>{disponibleBodega}</TableCell>
                 <TableCell className={cn("text-center p-2 font-medium", getStockColorClass(disponibleZonaFranca))}>{disponibleZonaFranca}</TableCell>
+                <TableCell className={cn("text-center p-2 font-medium", userHasReservation && totalReserved > 0 && "bg-green-100 rounded-md")}>{totalReserved}</TableCell>
                
                 {!isPartner && (
                   <TableCell className="text-center p-2">
@@ -145,7 +148,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                                  </div>
                               </TooltipTrigger>
                               <TooltipContent>
-                                 <p className="font-bold mb-2">Asesores que tienen separado:</p>
+                                 <p className="font-bold mb-2">Unidades Separadas ({totalReserved} Total)</p>
                                   {reservations.length > 0 ? (
                                     <ul className="list-disc pl-4">
                                       {reservations.map(r => (
@@ -185,14 +188,14 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
       <TableHeader>
         <TableRow>
           <TableHead className="p-2 min-w-[250px]">Nombre del Producto</TableHead>
-          <TableHead className="p-2">Medidas</TableHead>
+          <TableHead className="p-2 text-center">Medidas</TableHead>
           <TableHead className="text-center p-2 border-l" colSpan={3}>Bodega</TableHead>
           <TableHead className="text-center p-2 border-l" colSpan={3}>Zona Franca</TableHead>
           <TableHead className="text-center p-2 border-l">Muestras</TableHead>
         </TableRow>
         <TableRow>
             <TableHead className="p-2 border-t"></TableHead>
-            <TableHead className="p-2 border-t"></TableHead>
+            <TableHead className="p-2 border-t text-center"></TableHead>
             <TableHead className="text-center p-2 border-t border-l font-medium">Total</TableHead>
             <TableHead className="text-center p-2 border-t font-medium">Separado</TableHead>
             <TableHead className="text-center p-2 border-t font-bold">Disponible</TableHead>
