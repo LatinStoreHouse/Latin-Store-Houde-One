@@ -183,18 +183,29 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="p-2">Nombre del Producto</TableHead>
+          <TableHead className="p-2 min-w-[250px]">Nombre del Producto</TableHead>
           <TableHead className="p-2">Medidas</TableHead>
-          <TableHead className="text-right p-2">Bodega</TableHead>
-          <TableHead className="text-right p-2">Separadas Bodega</TableHead>
-          <TableHead className="text-right p-2">Zona Franca</TableHead>
-          <TableHead className="text-right p-2">Separadas ZF</TableHead>
+          <TableHead className="text-center p-2" colSpan={3}>Bodega</TableHead>
+          <TableHead className="text-center p-2" colSpan={3}>Zona Franca</TableHead>
           <TableHead className="text-right p-2">Muestras</TableHead>
+        </TableRow>
+        <TableRow>
+            <TableHead className="p-2 border-t"></TableHead>
+            <TableHead className="p-2 border-t"></TableHead>
+            <TableHead className="text-right p-2 border-t font-medium">Total</TableHead>
+            <TableHead className="text-right p-2 border-t font-medium">Separado</TableHead>
+            <TableHead className="text-right p-2 border-t font-bold">Disponible</TableHead>
+            <TableHead className="text-right p-2 border-t font-medium">Total</TableHead>
+            <TableHead className="text-right p-2 border-t font-medium">Separado</TableHead>
+            <TableHead className="text-right p-2 border-t font-bold">Disponible</TableHead>
+            <TableHead className="p-2 border-t"></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {Object.entries(products).map(([name, item]) => {
           if (!name) return null;
+           const disponibleBodega = item.bodega - item.separadasBodega;
+           const disponibleZonaFranca = item.zonaFranca - item.separadasZonaFranca;
           return (
             <TableRow key={name}>
               <TableCell className="font-medium p-0">
@@ -206,18 +217,30 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                 />
               </TableCell>
               <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
+              
+              {/* Bodega */}
               <TableCell className="text-right p-0">
                 <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
               <TableCell className="text-right p-0">
                 <Input type="number" defaultValue={item.separadasBodega} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-0 bg-transparent" disabled readOnly />
               </TableCell>
+               <TableCell className={cn("text-right p-2 font-medium", getStockColorClass(disponibleBodega))}>
+                {disponibleBodega}
+               </TableCell>
+
+              {/* Zona Franca */}
               <TableCell className="text-right p-0">
                 <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
               <TableCell className="text-right p-0">
                 <Input type="number" defaultValue={item.separadasZonaFranca} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-0 bg-transparent" disabled readOnly />
               </TableCell>
+               <TableCell className={cn("text-right p-2 font-medium", getStockColorClass(disponibleZonaFranca))}>
+                {disponibleZonaFranca}
+               </TableCell>
+              
+              {/* Muestras */}
               <TableCell className="text-right p-0">
                  <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
@@ -282,7 +305,7 @@ export default function InventoryPage() {
   const canEdit = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador');
   const isPartner = currentUserRole === 'Partners';
   const isMarketing = currentUserRole === 'Marketing';
-  const canViewLowStockAlerts = currentUserRole === 'Logística' || currentUserRole === 'Administrador';
+  const canViewLowStockAlerts = currentUserRole === 'Logística' || currentUserRole === 'Administrador' || currentUserRole === 'Contador';
   
   let columnsForExport: Record<string, boolean>;
   if (canEdit) {
@@ -316,15 +339,16 @@ export default function InventoryPage() {
   };
   
  const handleDataChange = (brand: string, subCategory: string, productName: string, field: string, value: any, isNameChange: boolean) => {
-    if (isNameChange) {
-      if (value !== productName && findProductLocation(value, localInventoryData)) {
+    if (isNameChange && value !== productName && findProductLocation(value, localInventoryData)) {
         toast({
-          variant: 'destructive',
-          title: 'Error de Duplicado',
-          description: `El producto "${value}" ya existe en el inventario.`,
+            variant: 'destructive',
+            title: 'Error de Duplicado',
+            description: `El producto "${value}" ya existe en el inventario.`,
         });
-        return;
-      }
+        // We have to revert the input field's value if we do this.
+        // This is tricky without more complex state management.
+        // For now, the user has to manually correct it.
+        return; 
     }
 
     setLocalInventoryData(prevData => {
@@ -332,6 +356,10 @@ export default function InventoryPage() {
         const products = newData[brand][subCategory];
 
         if (isNameChange) {
+            if (products[value]) { // Check again inside the setter to be safe
+                // Do not update state if the new name already exists
+                return prevData;
+            }
             const productData = products[productName];
             delete products[productName];
             products[value] = productData;
