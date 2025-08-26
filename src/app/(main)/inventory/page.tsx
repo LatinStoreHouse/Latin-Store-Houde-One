@@ -185,20 +185,20 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
         <TableRow>
           <TableHead className="p-2 min-w-[250px]">Nombre del Producto</TableHead>
           <TableHead className="p-2">Medidas</TableHead>
-          <TableHead className="text-center p-2" colSpan={3}>Bodega</TableHead>
-          <TableHead className="text-center p-2" colSpan={3}>Zona Franca</TableHead>
-          <TableHead className="text-right p-2">Muestras</TableHead>
+          <TableHead className="text-center p-2 border-l" colSpan={3}>Bodega</TableHead>
+          <TableHead className="text-center p-2 border-l" colSpan={3}>Zona Franca</TableHead>
+          <TableHead className="text-right p-2 border-l">Muestras</TableHead>
         </TableRow>
         <TableRow>
             <TableHead className="p-2 border-t"></TableHead>
             <TableHead className="p-2 border-t"></TableHead>
-            <TableHead className="text-right p-2 border-t font-medium">Total</TableHead>
+            <TableHead className="text-right p-2 border-t border-l font-medium">Total</TableHead>
             <TableHead className="text-right p-2 border-t font-medium">Separado</TableHead>
             <TableHead className="text-right p-2 border-t font-bold">Disponible</TableHead>
-            <TableHead className="text-right p-2 border-t font-medium">Total</TableHead>
+            <TableHead className="text-right p-2 border-t border-l font-medium">Total</TableHead>
             <TableHead className="text-right p-2 border-t font-medium">Separado</TableHead>
             <TableHead className="text-right p-2 border-t font-bold">Disponible</TableHead>
-            <TableHead className="p-2 border-t"></TableHead>
+            <TableHead className="p-2 border-t border-l"></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -219,7 +219,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
               <TableCell className="p-2 text-sm text-muted-foreground">{productDimensions[name as keyof typeof productDimensions] || 'N/A'}</TableCell>
               
               {/* Bodega */}
-              <TableCell className="text-right p-0">
+              <TableCell className="text-right p-0 border-l">
                 <Input type="number" defaultValue={item.bodega} onBlur={(e) => handleInputChange(name, 'bodega', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
               <TableCell className="text-right p-0">
@@ -230,7 +230,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                </TableCell>
 
               {/* Zona Franca */}
-              <TableCell className="text-right p-0">
+              <TableCell className="text-right p-0 border-l">
                 <Input type="number" defaultValue={item.zonaFranca} onBlur={(e) => handleInputChange(name, 'zonaFranca', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
               <TableCell className="text-right p-0">
@@ -241,7 +241,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                </TableCell>
               
               {/* Muestras */}
-              <TableCell className="text-right p-0">
+              <TableCell className="text-right p-0 border-l">
                  <Input type="number" defaultValue={item.muestras} onBlur={(e) => handleInputChange(name, 'muestras', e.target.value)} className="w-20 ml-auto text-right h-full border-0 rounded-none focus-visible:ring-1 focus-visible:ring-offset-0 bg-transparent" />
               </TableCell>
             </TableRow>
@@ -345,9 +345,12 @@ export default function InventoryPage() {
             title: 'Error de Duplicado',
             description: `El producto "${value}" ya existe en el inventario.`,
         });
-        // We have to revert the input field's value if we do this.
-        // This is tricky without more complex state management.
-        // For now, the user has to manually correct it.
+        // This is a bit of a hack to revert the input field's value.
+        // A more robust solution would involve controlled components for the inputs, but that's a bigger refactor.
+        setTimeout(() => {
+            const revertedState = JSON.parse(JSON.stringify(localInventoryData));
+            setLocalInventoryData(revertedState);
+        }, 0);
         return; 
     }
 
@@ -356,10 +359,6 @@ export default function InventoryPage() {
         const products = newData[brand][subCategory];
 
         if (isNameChange) {
-            if (products[value]) { // Check again inside the setter to be safe
-                // Do not update state if the new name already exists
-                return prevData;
-            }
             const productData = products[productName];
             delete products[productName];
             products[value] = productData;
@@ -755,7 +754,7 @@ export default function InventoryPage() {
                             <div className="flex justify-center mt-4">
                                 <TabsList>
                                     {Object.keys(localInventoryData[brand as keyof typeof localInventoryData]).map((subCategory) => (
-                                        <TabTriggerWithIndicator value={subCategory} key={subCategory} hasAlert={lowStockAlerts[brand]?.[subCategory]}>
+                                        <TabTriggerWithIndicator value={subCategory} key={subCategory} hasAlert={!!lowStockAlerts[brand]?.[subCategory]}>
                                             {subCategory}
                                         </TabTriggerWithIndicator>
                                     ))}
