@@ -714,7 +714,7 @@ export default function StoneflexCalculatorPage() {
     if (quote.isWarrantyVoid) {
         message += `*Nota Importante:* La no inclusión de adhesivo o sellante puede anular la garantía del producto.\n`;
     }
-    message += `_Esta es una cotización preliminar realizada sin confirmación de medidas y el costo final puede variar. No incluye costos de instalación si no se especifica._`;
+    message += `_Esta es una cotización preliminar realizada sin confirmación de medidas y el costo final puede variar. No incluye costos de instalación ni envío si no se especifica._`;
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
@@ -903,7 +903,7 @@ export default function StoneflexCalculatorPage() {
                      <h4 className="font-medium mb-4">Insumos (Adicional)</h4>
                      <div className="space-y-4">
                          <div className="grid grid-cols-[2fr_1fr] gap-2 items-end">
-                            <div className="space-y-2">
+                            <div className="space-y-1">
                                <Label>Insumo</Label>
                                <Combobox
                                  options={supplyOptions}
@@ -914,7 +914,7 @@ export default function StoneflexCalculatorPage() {
                                  emptyPlaceholder="No se encontraron insumos."
                                />
                              </div>
-                             <div className="space-y-2">
+                             <div className="space-y-1">
                                 <Label htmlFor="supply-units-input">Unidades</Label>
                                 <Input
                                   id="supply-units-input"
@@ -1103,7 +1103,7 @@ export default function StoneflexCalculatorPage() {
               </div>
               <div className="text-xs text-muted-foreground pt-2 space-y-1 text-center">
                   <p>
-                    Esta es una cotización preliminar realizada sin confirmación de medidas y el costo final puede variar. No incluye costos de instalación si no se especifica.
+                    Esta es una cotización preliminar realizada sin confirmación de medidas y el costo final puede variar. No incluye costos de instalación ni envío si no se especifica.
                   </p>
                   {currency === 'USD' && (
                     <p className="font-semibold">
