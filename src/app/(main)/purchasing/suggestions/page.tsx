@@ -8,15 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Lightbulb, PackagePlus, FileDown, AlertTriangle, TrendingUp, UserPlus, Send, PackageX } from 'lucide-react';
 import { InventoryContext, Suggestion } from '@/context/inventory-context';
-import { inventoryMovementData } from '@/lib/inventory-movement';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/app/(main)/layout';
 import { roles } from '@/lib/roles';
-import { Combobox } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Extend jsPDF type
 declare module 'jspdf' {
@@ -125,14 +124,18 @@ export default function PurchaseSuggestionsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label>Producto</Label>
-                        <Combobox
-                            options={productOptions}
-                            value={productName}
-                            onValueChange={setProductName}
-                            placeholder="Seleccione un producto"
-                            searchPlaceholder="Buscar producto..."
-                            emptyPlaceholder="No se encontró producto"
-                        />
+                        <Select value={productName} onValueChange={setProductName}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Seleccione un producto" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {productOptions.map(option => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="space-y-2">
                         <Label>Cantidad Sugerida</Label>
