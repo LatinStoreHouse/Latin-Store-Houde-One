@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -32,7 +33,6 @@ type ComboboxProps = {
   emptyPlaceholder?: string
   className?: string
   disabled?: boolean
-  allowFreeText?: boolean
 }
 
 export function Combobox({
@@ -44,33 +44,18 @@ export function Combobox({
   emptyPlaceholder = "No options found.",
   className,
   disabled,
-  allowFreeText = false, // Default to false
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState(value || "")
 
   const displayLabel = options.find((option) => option.value.toLowerCase() === value?.toLowerCase())?.label || value
 
-  React.useEffect(() => {
-    setInputValue(value || "")
-  }, [value])
-
-
   const handleSelect = (currentValue: string) => {
-    const newValue = options.find(option => option.label.toLowerCase() === currentValue.toLowerCase())?.value || ''
+    const option = options.find(option => option.label.toLowerCase() === currentValue.toLowerCase());
+    const newValue = option ? option.value : '';
     if (onValueChange) {
       onValueChange(newValue);
     }
-    setInputValue(newValue);
     setOpen(false)
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setInputValue(val);
-     if (allowFreeText && onValueChange) {
-        onValueChange(val);
-    }
   }
 
   return (
@@ -88,11 +73,9 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command shouldFilter={!allowFreeText}>
+        <Command>
           <CommandInput
             placeholder={searchPlaceholder}
-            value={allowFreeText ? inputValue : undefined}
-            onValueChange={allowFreeText ? setInputValue : undefined}
           />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
