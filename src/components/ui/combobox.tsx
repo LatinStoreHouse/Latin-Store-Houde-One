@@ -32,7 +32,6 @@ type ComboboxProps = {
   emptyPlaceholder?: string
   className?: string
   disabled?: boolean
-  allowFreeText?: boolean
 }
 
 export function Combobox({
@@ -44,7 +43,6 @@ export function Combobox({
   emptyPlaceholder = "No options found.",
   className,
   disabled,
-  allowFreeText = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -65,11 +63,9 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command shouldFilter={!allowFreeText}>
+        <Command>
           <CommandInput
             placeholder={searchPlaceholder}
-            onValueChange={allowFreeText ? onValueChange : undefined}
-            value={allowFreeText ? value : undefined}
           />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
