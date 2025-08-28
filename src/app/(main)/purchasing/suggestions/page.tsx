@@ -6,7 +6,6 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Lightbulb, PackagePlus, FileDown, AlertTriangle, TrendingUp, UserPlus, Send } from 'lucide-react';
 import { InventoryContext } from '@/context/inventory-context';
 import { inventoryMovementData } from '@/lib/inventory-movement';
@@ -51,7 +50,6 @@ export default function PurchaseSuggestionsPage() {
   const { currentUser } = useUser();
   const { toast } = useToast();
   
-  const [selectedSuggestions, setSelectedSuggestions] = useState<Record<string, boolean>>({});
   const [advisorSuggestions, setAdvisorSuggestions] = useState<AdvisorSuggestion[]>(initialAdvisorSuggestions);
   
   // Form state for new suggestions
@@ -115,41 +113,6 @@ export default function PurchaseSuggestionsPage() {
     }
     return options;
   }, [inventoryData]);
-  
-  const handleSelectionChange = (productName: string, checked: boolean) => {
-    setSelectedSuggestions(prev => ({ ...prev, [productName]: checked }));
-  }
-
-  const handleCreatePurchaseOrder = () => {
-    const selectedProducts = systemSuggestions.filter(s => selectedSuggestions[s.productName]);
-    if (selectedProducts.length === 0) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione al menos una sugerencia del sistema.'});
-        return;
-    }
-
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text('Pre-Orden de Compra Sugerida (Sistema)', 14, 22);
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text(`Generada: ${new Date().toLocaleDateString('es-CO')}`, 14, 30);
-
-    const tableBody = selectedProducts.map(item => [
-      item.productName,
-      item.currentStock,
-      item.monthlyMovement,
-      item.reason
-    ]);
-
-    doc.autoTable({
-      startY: 40,
-      head: [['Producto', 'Stock Actual', 'Mov. Mensual', 'Razón']],
-      body: tableBody
-    });
-
-    doc.save('Pre-Orden_Sugerida_Sistema.pdf');
-    toast({ title: 'Éxito', description: 'Se ha generado un PDF con la pre-orden de compra.'});
-  }
 
   const handleSendAdvisorSuggestion = () => {
     if (!productName || !quantity || !reason) {
@@ -220,29 +183,18 @@ export default function PurchaseSuggestionsPage() {
 
       {canViewSystemSuggestions && (
         <Card>
-            <CardHeader className="flex flex-row items-start justify-between">
-            <div>
+            <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                 <Lightbulb className="h-6 w-6" /> Sugerencias del Sistema
                 </CardTitle>
                 <CardDescription>
                 Recomendaciones automáticas de productos para reponer basadas en el inventario y las ventas.
                 </CardDescription>
-            </div>
-            <Button onClick={handleCreatePurchaseOrder} disabled={!Object.values(selectedSuggestions).some(Boolean)}>
-                <FileDown className="mr-2 h-4 w-4" />
-                Generar Pre-Orden
-            </Button>
             </CardHeader>
             <CardContent>
             <div className="space-y-4">
                 {systemSuggestions.map((suggestion) => (
                 <Card key={suggestion.productName} className="p-4 flex items-center gap-4">
-                    <Checkbox
-                        className="h-5 w-5"
-                        checked={selectedSuggestions[suggestion.productName] || false}
-                        onCheckedChange={(checked) => handleSelectionChange(suggestion.productName, Boolean(checked))}
-                    />
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
                     <p className="font-semibold">{suggestion.productName}</p>
                     <div className="text-sm">
