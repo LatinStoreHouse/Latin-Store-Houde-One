@@ -19,6 +19,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   Collapsible,
@@ -166,10 +167,175 @@ export function useUser() {
     return context;
 }
 
+const NavMenu = () => {
+    const pathname = usePathname();
+    const { currentUser } = useUser();
+    const inventoryContext = useContext(InventoryContext);
+    const { setOpenMobile } = useSidebar();
+
+    const userPermissions = useMemo(() => {
+        const permissions = new Set<string>();
+        currentUser.roles.forEach(userRole => {
+            const roleConfig = roles.find(r => r.name === userRole);
+            if (roleConfig) {
+                roleConfig.permissions.forEach(p => permissions.add(p));
+            }
+        });
+        return Array.from(permissions);
+    }, [currentUser.roles]);
+
+    const pendingValidations = useMemo(() => {
+        if (!inventoryContext) return 0;
+        const pendingReservations = inventoryContext.reservations.filter(r => r.status === 'En espera de validación').length;
+        const pendingDispatches = initialPendingDispatches.length;
+        return pendingReservations + pendingDispatches;
+    }, [inventoryContext]);
+
+    const pendingPrices = useMemo(() => {
+        if (!inventoryContext) return 0;
+        const allProducts = Object.values(inventoryContext.inventoryData).flatMap(brand =>
+            Object.values(brand).flatMap(line => Object.keys(line))
+        );
+        return allProducts.filter(productName => !(productName in initialProductPrices) || initialProductPrices[productName as keyof typeof initialProductPrices] === 0).length;
+    }, [inventoryContext?.inventoryData]);
+
+    const pendingReservationAlerts = useMemo(() => {
+        if (!inventoryContext) return 0;
+
+        const isAdmin = currentUser.roles.includes('Administrador');
+        const isAdvisor = currentUser.roles.includes('Asesor de Ventas');
+
+        if (!isAdmin && !isAdvisor) return 0;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+
+        return inventoryContext.reservations.filter(r => {
+            if (r.status !== 'Validada' || !r.expirationDate) {
+                return false;
+            }
+
+            if (isAdvisor && !isAdmin && r.advisor !== currentUser.name) {
+                return false;
+            }
+
+            const expiration = new Date(r.expirationDate);
+            expiration.setHours(0, 0, 0, 0);
+
+            return expiration <= tomorrow;
+        }).length;
+    }, [inventoryContext, currentUser]);
+
+    const hasLateContainersAlert = useMemo(() => {
+        if (!inventoryContext?.containers) return false;
+
+        const canSeeAlert = currentUser.roles.includes('Logística') || currentUser.roles.includes('Contador') || currentUser.roles.includes('Administrador');
+        if (!canSeeAlert) return false;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return inventoryContext.containers.some(c => {
+            const etaDate = new Date(c.eta);
+            return etaDate < today && c.status !== 'Ya llego';
+        });
+    }, [inventoryContext?.containers, currentUser.roles]);
+
+    const hasPurchaseSuggestions = useMemo(() => {
+        if (!inventoryContext?.systemSuggestions) return false;
+        const canSeeSuggestions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Tráfico');
+        if (!canSeeSuggestions) return false;
+
+        // Show notification if there are more suggestions than the last time the user saw them.
+        return inventoryContext.systemSuggestions.length > inventoryContext.seenSuggestionsCount;
+    }, [inventoryContext?.systemSuggestions, inventoryContext?.seenSuggestionsCount, currentUser.roles]);
+
+    const hasPermission = (item: any) => {
+        if (!item.permission) return true; // Items without a specific permission are public
+        return userPermissions.includes(item.permission);
+    };
+
+    const getVisibleNavItems = () => {
+        return navItems.filter(item => {
+            if (item.subItems) {
+                return item.subItems.some(subItem => hasPermission(subItem));
+            }
+            return hasPermission(item);
+        });
+    }
+
+    const visibleNavItems = getVisibleNavItems();
+    const canEditPrices = hasPermission({ permission: 'pricing:edit' });
+    const canViewReservationsAlert = hasPermission({ permission: 'reservations:view' });
+
+    return (
+        <SidebarMenu className="px-2">
+            {visibleNavItems.map((item) =>
+                item.subItems ? (
+                    <SidebarGroup key={item.label} className="p-0">
+                        <Collapsible>
+                            <CollapsibleTrigger asChild>
+                                <SidebarMenuButton className="w-full justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <item.icon />
+                                        <span>{item.label}</span>
+                                    </div>
+                                    <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                                </SidebarMenuButton>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                                <SidebarMenuSub>
+                                    {item.subItems.filter(hasPermission).map((subItem) => {
+                                        const SubIcon = getIconForSubItem(subItem.label);
+                                        return (
+                                            <SidebarMenuSubItem key={subItem.href}>
+                                                <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
+                                                    <Link href={subItem.href} onClick={() => setOpenMobile(false)}>
+                                                        <SubIcon />
+                                                        <span className="truncate">{subItem.label}</span>
+                                                        {subItem.href === '/reservations' && pendingReservationAlerts > 0 && canViewReservationsAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
+                                                        {subItem.href === '/transit' && hasLateContainersAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
+                                                        {subItem.href === '/purchasing/suggestions' && hasPurchaseSuggestions && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
+                                                    </Link>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                        )
+                                    })}
+                                </SidebarMenuSub>
+                            </CollapsibleContent>
+                        </Collapsible>
+                    </SidebarGroup>
+                ) : (
+                    <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                            asChild
+                            isActive={pathname === item.href}
+                            tooltip={item.label}
+                        >
+                            <Link href={item.href!} onClick={() => setOpenMobile(false)} className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-2">
+                                    <item.icon />
+                                    <span>{item.label}</span>
+                                </div>
+                                {item.href === '/validation' && pendingValidations > 0 && <div className="h-2 w-2 rounded-full bg-white" />}
+                                {item.href === '/pricing' && pendingPrices > 0 && canEditPrices && <div className="h-2 w-2 rounded-full bg-white" />}
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                )
+            )}
+        </SidebarMenu>
+    );
+};
+
+
 const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser, setCurrentUser } = useUser();
+  const { setOpenMobile } = useSidebar();
   const inventoryContext = useContext(InventoryContext);
 
   const userPermissions = useMemo(() => {
@@ -191,91 +357,11 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   
-  const pendingValidations = useMemo(() => {
-    if (!inventoryContext) return 0;
-    const pendingReservations = inventoryContext.reservations.filter(r => r.status === 'En espera de validación').length;
-    const pendingDispatches = initialPendingDispatches.length;
-    return pendingReservations + pendingDispatches;
-  }, [inventoryContext]);
-
-  const pendingPrices = useMemo(() => {
-    if (!inventoryContext) return 0;
-    const allProducts = Object.values(inventoryContext.inventoryData).flatMap(brand => 
-      Object.values(brand).flatMap(line => Object.keys(line))
-    );
-    return allProducts.filter(productName => !(productName in initialProductPrices) || initialProductPrices[productName as keyof typeof initialProductPrices] === 0).length;
-  }, [inventoryContext?.inventoryData]);
-
-  const pendingReservationAlerts = useMemo(() => {
-    if (!inventoryContext) return 0;
-    
-    const isAdmin = currentUser.roles.includes('Administrador');
-    const isAdvisor = currentUser.roles.includes('Asesor de Ventas');
-
-    if (!isAdmin && !isAdvisor) return 0;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); 
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    
-    return inventoryContext.reservations.filter(r => {
-        if (r.status !== 'Validada' || !r.expirationDate) {
-            return false;
-        }
-
-        if (isAdvisor && !isAdmin && r.advisor !== currentUser.name) {
-            return false;
-        }
-        
-        const expiration = new Date(r.expirationDate);
-        expiration.setHours(0,0,0,0);
-        
-        return expiration <= tomorrow;
-    }).length;
-  }, [inventoryContext, currentUser]);
-
-  const hasLateContainersAlert = useMemo(() => {
-    if (!inventoryContext?.containers) return false;
-    
-    const canSeeAlert = currentUser.roles.includes('Logística') || currentUser.roles.includes('Contador') || currentUser.roles.includes('Administrador');
-    if (!canSeeAlert) return false;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    return inventoryContext.containers.some(c => {
-        const etaDate = new Date(c.eta);
-        return etaDate < today && c.status !== 'Llegado';
-    });
-  }, [inventoryContext?.containers, currentUser.roles]);
-
- const hasPurchaseSuggestions = useMemo(() => {
-    if (!inventoryContext?.systemSuggestions) return false;
-    const canSeeSuggestions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Tráfico');
-    if (!canSeeSuggestions) return false;
-
-    // Show notification if there are more suggestions than the last time the user saw them.
-    return inventoryContext.systemSuggestions.length > inventoryContext.seenSuggestionsCount;
-  }, [inventoryContext?.systemSuggestions, inventoryContext?.seenSuggestionsCount, currentUser.roles]);
-
-
   const hasPermission = (item: any) => {
     if (!item.permission) return true; // Items without a specific permission are public
     return userPermissions.includes(item.permission);
   };
-  
-  const getVisibleNavItems = () => {
-    return navItems.filter(item => {
-        if (item.subItems) {
-            return item.subItems.some(subItem => hasPermission(subItem));
-        }
-        return hasPermission(item);
-    });
-  }
 
-  const visibleNavItems = getVisibleNavItems();
-  
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -316,11 +402,25 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   };
 
   const isSuperAdmin = initialUser.roles.includes('Administrador');
-  const canEditPrices = hasPermission({ permission: 'pricing:edit' });
-  const canViewReservationsAlert = hasPermission({ permission: 'reservations:view' });
+  
+  const expiringReservations = useMemo(() => {
+        if (!inventoryContext) return [];
+        if (currentUser.roles.includes('Asesor de Ventas')) return [];
+
+        const now = new Date();
+        return inventoryContext.reservations.filter(r => {
+            if (r.status !== 'Validada') return false;
+            
+            const validationDate = new Date(new Date().setDate(now.getDate() - (Math.random() * 10))); // Mock date
+            const diffTime = now.getTime() - validationDate.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays > 5;
+        });
+    }, [inventoryContext, currentUser.roles]);
+
 
   return (
-    <SidebarProvider>
+    <>
       <Sidebar>
         <SidebarHeader className="p-4">
           <div className="flex w-full items-center justify-center">
@@ -328,62 +428,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarMenu className="px-2">
-            {visibleNavItems.map((item) =>
-              item.subItems ? (
-                <SidebarGroup key={item.label} className="p-0">
-                  <Collapsible>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton className="w-full justify-between">
-                        <div className="flex items-center gap-2">
-                          <item.icon />
-                          <span>{item.label}</span>
-                        </div>
-                        <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {item.subItems.filter(hasPermission).map((subItem) => {
-                          const SubIcon = getIconForSubItem(subItem.label);
-                          return (
-                            <SidebarMenuSubItem key={subItem.href}>
-                              <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
-                                <Link href={subItem.href}>
-                                  <SubIcon />
-                                  <span className="truncate">{subItem.label}</span>
-                                   {subItem.href === '/reservations' && pendingReservationAlerts > 0 && canViewReservationsAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
-                                   {subItem.href === '/transit' && hasLateContainersAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
-                                   {subItem.href === '/purchasing/suggestions' && hasPurchaseSuggestions && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          )
-                        })}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </SidebarGroup>
-              ) : (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={item.label}
-                  >
-                    <Link href={item.href!} className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-2">
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </div>
-                       {item.href === '/validation' && pendingValidations > 0 && <div className="h-2 w-2 rounded-full bg-white" />}
-                       {item.href === '/pricing' && pendingPrices > 0 && canEditPrices && <div className="h-2 w-2 rounded-full bg-white" />}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )
-            )}
-          </SidebarMenu>
+          <NavMenu />
         </SidebarContent>
         <SidebarFooter className="p-4">
           <Dialog onOpenChange={(open) => !open && setIsEditingProfile(false)}>
@@ -492,7 +537,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
         {isSuperAdmin && <RoleSwitcher />}
       </SidebarInset>
-    </SidebarProvider>
+    </>
   );
 }
 
@@ -502,7 +547,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <UserContext.Provider value={{ currentUser, setCurrentUser }}>
       <InventoryProvider>
-        <LayoutContent>{children}</LayoutContent>
+          <SidebarProvider>
+            <LayoutContent>{children}</LayoutContent>
+          </SidebarProvider>
       </InventoryProvider>
     </UserContext.Provider>
   );
