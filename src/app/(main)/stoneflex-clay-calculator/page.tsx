@@ -200,6 +200,10 @@ export default function StoneflexCalculatorPage() {
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerTaxId, setCustomerTaxId] = useState('');
+
   const [sqMeters, setSqMeters] = useState<number | string>(1);
   const [sheets, setSheets] = useState<number | string>(1);
   const [discount, setDiscount] = useState<number | string>(0);
@@ -525,9 +529,21 @@ export default function StoneflexCalculatorPage() {
     let startY = 30;
     
     doc.setFontSize(10);
-    doc.text(`Cliente: ${customerName || 'N/A'}`, 14, startY);
+    doc.text(`Nombre/Razón Social: ${customerName || 'N/A'}`, 14, startY);
     doc.text(`Válida hasta: ${quote.expiryDate}`, pageWidth - 14, startY, { align: 'right' });
     startY += 5;
+    if (customerTaxId) {
+        doc.text(`NIT/Cédula: ${customerTaxId}`, 14, startY);
+    }
+    startY += 5;
+    if (customerEmail) {
+        doc.text(`Correo: ${customerEmail}`, 14, startY);
+    }
+    if (customerPhone) {
+        doc.text(`Teléfono: ${customerPhone}`, pageWidth / 2, startY);
+    }
+    startY += 5;
+
     doc.text(`Moneda: ${currency}`, 14, startY);
 
     const head = [['Item', 'Cantidad', 'Precio Unit.', 'Subtotal']];
@@ -663,6 +679,10 @@ export default function StoneflexCalculatorPage() {
 
     let message = `*Cotización de Latin Store House*\n\n`;
     message += `*Cliente:* ${customerName || 'N/A'}\n`;
+    if (customerTaxId) message += `*NIT/Cédula:* ${customerTaxId}\n`;
+    if (customerEmail) message += `*Correo:* ${customerEmail}\n`;
+    if (customerPhone) message += `*Teléfono:* ${customerPhone}\n`;
+
     message += `*Moneda:* ${currency}\n`;
     if (currency === 'USD') {
         message += `*TRM usada:* ${formatCurrency(parseDecimal(trm))}\n`;
@@ -746,7 +766,7 @@ export default function StoneflexCalculatorPage() {
       <CardContent className="space-y-4">
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
            <div className="space-y-2">
-                <Label htmlFor="customer-name">Nombre del Cliente (Opcional)</Label>
+                <Label htmlFor="customer-name">Nombre o Razón Social (Opcional)</Label>
                 <Input
                   id="customer-name"
                   value={customerName}
@@ -755,6 +775,37 @@ export default function StoneflexCalculatorPage() {
                 />
             </div>
              <div className="space-y-2">
+                <Label htmlFor="customer-tax-id">NIT o Cédula (Opcional)</Label>
+                <Input
+                  id="customer-tax-id"
+                  value={customerTaxId}
+                  onChange={(e) => setCustomerTaxId(e.target.value)}
+                  placeholder="Ingrese el NIT o cédula..."
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="customer-email">Correo Electrónico (Opcional)</Label>
+                <Input
+                  id="customer-email"
+                  type="email"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  placeholder="Ingrese el correo..."
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="customer-phone">Teléfono (Opcional)</Label>
+                <Input
+                  id="customer-phone"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="Ingrese el teléfono..."
+                />
+            </div>
+         </div>
+
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
                 <Label>Moneda de la Cotización</Label>
                  <div className="flex items-center gap-4">
                     <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as 'COP' | 'USD')} className="flex items-center gap-4">
