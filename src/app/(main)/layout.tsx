@@ -250,6 +250,14 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     });
   }, [inventoryContext?.containers, currentUser.roles]);
 
+  const hasPurchaseSuggestions = useMemo(() => {
+    if (!inventoryContext?.systemSuggestions) return false;
+    const canSeeSuggestions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Tráfico');
+    if (!canSeeSuggestions) return false;
+
+    return inventoryContext.systemSuggestions.length > 0;
+  }, [inventoryContext?.systemSuggestions, currentUser.roles]);
+
 
   const hasPermission = (item: any) => {
     if (!item.permission) return true; // Items without a specific permission are public
@@ -345,6 +353,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                                   <span className="truncate">{subItem.label}</span>
                                    {subItem.href === '/reservations' && pendingReservationAlerts > 0 && canViewReservationsAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
                                    {subItem.href === '/transit' && hasLateContainersAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
+                                   {subItem.href === '/purchasing/suggestions' && hasPurchaseSuggestions && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
                                 </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>

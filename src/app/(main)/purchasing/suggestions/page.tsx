@@ -6,7 +6,7 @@ import 'jspdf-autotable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lightbulb, PackagePlus, FileDown, AlertTriangle, TrendingUp, UserPlus, Send, PackageX } from 'lucide-react';
-import { InventoryContext } from '@/context/inventory-context';
+import { InventoryContext, Suggestion } from '@/context/inventory-context';
 import { inventoryMovementData } from '@/lib/inventory-movement';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -24,13 +24,6 @@ declare module 'jspdf' {
   }
 }
 
-interface Suggestion {
-  productName: string;
-  currentStock: number;
-  monthlyMovement: number;
-  reason: 'Stock Bajo' | 'Alta Demanda' | 'Sin Existencias';
-}
-
 interface AdvisorSuggestion {
     id: number;
     productName: string;
@@ -45,7 +38,7 @@ const initialAdvisorSuggestions: AdvisorSuggestion[] = [
 ];
 
 export default function PurchaseSuggestionsPage() {
-  const { inventoryData } = useContext(InventoryContext)!;
+  const { inventoryData, systemSuggestions } = useContext(InventoryContext)!;
   const { currentUser } = useUser();
   const { toast } = useToast();
   
@@ -59,64 +52,6 @@ export default function PurchaseSuggestionsPage() {
   const userPermissions = roles.find(r => r.name === currentUser.roles[0])?.permissions || [];
   const canCreateSuggestion = userPermissions.includes('purchasing:suggestions:create');
   const canViewSystemSuggestions = currentUser.roles[0] === 'Administrador' || currentUser.roles[0] === 'Tráfico';
-
-
-  const systemSuggestions: Suggestion[] = useMemo(() => {
-    const suggestionList: Suggestion[] = [];
-    const productSet = new Set<string>();
-
-    const allMonthKeys = Object.keys(inventoryMovementData).sort().reverse();
-    const lastMonthKey = allMonthKeys[0] || '';
-    const last6MonthsKeys = allMonthKeys.slice(0, 6);
-
-    const lastMonthMovers = inventoryMovementData[lastMonthKey]?.topMovers || [];
-    const last6MonthsMovers = last6MonthsKeys.flatMap(key => inventoryMovementData[key]?.topMovers || []);
-
-    for (const brand in inventoryData) {
-      for (const line in inventoryData[brand]) {
-        for (const name in inventoryData[brand][line]) {
-          if (productSet.has(name)) continue;
-
-          const product = inventoryData[brand][line][name];
-          const availableStock = (product.bodega - product.separadasBodega) + (product.zonaFranca - product.separadasZonaFranca);
-          const monthlyMovement = lastMonthMovers.find(m => m.name === name)?.moved || 0;
-          const soldInLast6Months = last6MonthsMovers.some(m => m.name === name && m.moved > 0);
-          
-          if (availableStock <= 0) {
-            if (soldInLast6Months) {
-                suggestionList.push({
-                    productName: name,
-                    currentStock: availableStock,
-                    monthlyMovement: monthlyMovement,
-                    reason: 'Sin Existencias',
-                });
-                productSet.add(name);
-            }
-            continue; // Don't process other rules if out of stock
-          }
-          
-          if (availableStock < 50 && monthlyMovement > 20) {
-            suggestionList.push({
-              productName: name,
-              currentStock: availableStock,
-              monthlyMovement: monthlyMovement,
-              reason: 'Stock Bajo',
-            });
-            productSet.add(name);
-          } else if (monthlyMovement > 100) {
-             suggestionList.push({
-              productName: name,
-              currentStock: availableStock,
-              monthlyMovement: monthlyMovement,
-              reason: 'Alta Demanda',
-            });
-            productSet.add(name);
-          }
-        }
-      }
-    }
-    return suggestionList;
-  }, [inventoryData]);
 
   const productOptions = useMemo(() => {
     const options: { value: string; label: string }[] = [];

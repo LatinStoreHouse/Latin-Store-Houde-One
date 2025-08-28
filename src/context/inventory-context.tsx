@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, ReactNode, useEffect, useMemo } from 'react';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { initialContainers as initialContainerData } from '@/lib/initial-containers';
 import { initialReservations } from '@/lib/sales-history';
@@ -7,6 +7,7 @@ import { TransferItem } from '@/components/transfer-inventory-form';
 import { productDimensions } from '@/lib/dimensions';
 import { initialProductPrices } from '@/lib/prices';
 import { useToast } from '@/hooks/use-toast';
+import { inventoryMovementData } from '@/lib/inventory-movement';
 
 export interface Product {
   name: string;
@@ -47,6 +48,13 @@ export interface AppNotification {
   date: string;
 }
 
+export interface Suggestion {
+  productName: string;
+  currentStock: number;
+  monthlyMovement: number;
+  reason: 'Stock Bajo' | 'Alta Demanda' | 'Sin Existencias';
+}
+
 export type InventoryData = typeof initialInventoryData;
 
 interface InventoryContextType {
@@ -61,6 +69,7 @@ interface InventoryContextType {
   setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
   notifications: AppNotification[];
   dismissNotification: (id: number) => void;
+  systemSuggestions: Suggestion[];
   transferFromFreeZone: (items: TransferItem[]) => void;
   receiveContainer: (containerId: string, reservations: Reservation[]) => void;
   dispatchReservation: (quoteNumber: string) => void;
@@ -97,6 +106,63 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     }
     return null;
   };
+  
+  const systemSuggestions: Suggestion[] = useMemo(() => {
+    const suggestionList: Suggestion[] = [];
+    const productSet = new Set<string>();
+
+    const allMonthKeys = Object.keys(inventoryMovementData).sort().reverse();
+    const lastMonthKey = allMonthKeys[0] || '';
+    const last6MonthsKeys = allMonthKeys.slice(0, 6);
+
+    const lastMonthMovers = inventoryMovementData[lastMonthKey]?.topMovers || [];
+    const last6MonthsMovers = last6MonthsKeys.flatMap(key => inventoryMovementData[key]?.topMovers || []);
+
+    for (const brand in inventoryData) {
+      for (const line in inventoryData[brand]) {
+        for (const name in inventoryData[brand][line]) {
+          if (productSet.has(name)) continue;
+
+          const product = inventoryData[brand][line][name];
+          const availableStock = (product.bodega - product.separadasBodega) + (product.zonaFranca - product.separadasZonaFranca);
+          const monthlyMovement = lastMonthMovers.find(m => m.name === name)?.moved || 0;
+          const soldInLast6Months = last6MonthsMovers.some(m => m.name === name && m.moved > 0);
+          
+          if (availableStock <= 0) {
+            if (soldInLast6Months) {
+                suggestionList.push({
+                    productName: name,
+                    currentStock: availableStock,
+                    monthlyMovement: monthlyMovement,
+                    reason: 'Sin Existencias',
+                });
+                productSet.add(name);
+            }
+            continue; // Don't process other rules if out of stock
+          }
+          
+          if (availableStock < 50 && monthlyMovement > 20) {
+            suggestionList.push({
+              productName: name,
+              currentStock: availableStock,
+              monthlyMovement: monthlyMovement,
+              reason: 'Stock Bajo',
+            });
+            productSet.add(name);
+          } else if (monthlyMovement > 100) {
+             suggestionList.push({
+              productName: name,
+              currentStock: availableStock,
+              monthlyMovement: monthlyMovement,
+              reason: 'Alta Demanda',
+            });
+            productSet.add(name);
+          }
+        }
+      }
+    }
+    return suggestionList;
+  }, [inventoryData]);
 
   const addProduct = (product: { name: string; brand: string; line: string; size?: string; price: number, stock: any }) => {
     const { name, brand, line, size, price, stock } = product;
@@ -461,6 +527,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       setReservations,
       notifications,
       dismissNotification,
+      systemSuggestions,
       transferFromFreeZone,
       receiveContainer,
       dispatchReservation,
