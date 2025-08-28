@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useContext } from 'react';
@@ -6,7 +5,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Lightbulb, PackagePlus, FileDown, AlertTriangle, TrendingUp, UserPlus, Send } from 'lucide-react';
+import { Lightbulb, PackagePlus, FileDown, AlertTriangle, TrendingUp, UserPlus, Send, PackageX } from 'lucide-react';
 import { InventoryContext } from '@/context/inventory-context';
 import { inventoryMovementData } from '@/lib/inventory-movement';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +28,7 @@ interface Suggestion {
   productName: string;
   currentStock: number;
   monthlyMovement: number;
-  reason: 'Stock Bajo' | 'Alta Demanda';
+  reason: 'Stock Bajo' | 'Alta Demanda' | 'Sin Existencias';
 }
 
 interface AdvisorSuggestion {
@@ -66,8 +65,12 @@ export default function PurchaseSuggestionsPage() {
     const suggestionList: Suggestion[] = [];
     const productSet = new Set<string>();
 
-    const lastMonthKey = Object.keys(inventoryMovementData).sort().pop() || '';
+    const allMonthKeys = Object.keys(inventoryMovementData).sort().reverse();
+    const lastMonthKey = allMonthKeys[0] || '';
+    const last6MonthsKeys = allMonthKeys.slice(0, 6);
+
     const lastMonthMovers = inventoryMovementData[lastMonthKey]?.topMovers || [];
+    const last6MonthsMovers = last6MonthsKeys.flatMap(key => inventoryMovementData[key]?.topMovers || []);
 
     for (const brand in inventoryData) {
       for (const line in inventoryData[brand]) {
@@ -77,8 +80,21 @@ export default function PurchaseSuggestionsPage() {
           const product = inventoryData[brand][line][name];
           const availableStock = (product.bodega - product.separadasBodega) + (product.zonaFranca - product.separadasZonaFranca);
           const monthlyMovement = lastMonthMovers.find(m => m.name === name)?.moved || 0;
-
-          // Suggestion logic
+          const soldInLast6Months = last6MonthsMovers.some(m => m.name === name && m.moved > 0);
+          
+          if (availableStock <= 0) {
+            if (soldInLast6Months) {
+                suggestionList.push({
+                    productName: name,
+                    currentStock: availableStock,
+                    monthlyMovement: monthlyMovement,
+                    reason: 'Sin Existencias',
+                });
+                productSet.add(name);
+            }
+            continue; // Don't process other rules if out of stock
+          }
+          
           if (availableStock < 50 && monthlyMovement > 20) {
             suggestionList.push({
               productName: name,
@@ -136,6 +152,19 @@ export default function PurchaseSuggestionsPage() {
     setQuantity('');
     setReason('');
   }
+  
+  const getReasonBadge = (reason: Suggestion['reason']) => {
+    switch (reason) {
+      case 'Stock Bajo':
+        return <Badge variant="destructive" className="flex items-center gap-2"><AlertTriangle className="h-4 w-4" />{reason}</Badge>;
+      case 'Alta Demanda':
+        return <Badge variant="default" className="flex items-center gap-2"><TrendingUp className="h-4 w-4" />{reason}</Badge>;
+      case 'Sin Existencias':
+        return <Badge variant="secondary" className="flex items-center gap-2 border border-amber-500/50 text-amber-700 bg-amber-100/80"><PackageX className="h-4 w-4" />{reason}</Badge>;
+      default:
+        return <Badge>{reason}</Badge>;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -196,24 +225,17 @@ export default function PurchaseSuggestionsPage() {
                 {systemSuggestions.map((suggestion) => (
                 <Card key={suggestion.productName} className="p-4 flex items-center gap-4">
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
-                    <p className="font-semibold">{suggestion.productName}</p>
-                    <div className="text-sm">
-                        <p className="text-muted-foreground">Stock Actual</p>
-                        <p className="font-medium">{suggestion.currentStock} unidades</p>
+                        <p className="font-semibold">{suggestion.productName}</p>
+                        <div className="text-sm">
+                            <p className="text-muted-foreground">Stock Actual</p>
+                            <p className="font-medium">{suggestion.currentStock} unidades</p>
+                        </div>
+                        <div className="text-sm">
+                            <p className="text-muted-foreground">Movimiento Último Mes</p>
+                            <p className="font-medium">{suggestion.monthlyMovement} unidades</p>
+                        </div>
                     </div>
-                    <div className="text-sm">
-                        <p className="text-muted-foreground">Movimiento Último Mes</p>
-                        <p className="font-medium">{suggestion.monthlyMovement} unidades</p>
-                    </div>
-                    </div>
-                    <Badge variant={suggestion.reason === 'Stock Bajo' ? 'destructive' : 'default'} className="flex items-center gap-2">
-                        {suggestion.reason === 'Stock Bajo' ? (
-                        <AlertTriangle className="h-4 w-4" />
-                        ) : (
-                        <TrendingUp className="h-4 w-4" />
-                        )}
-                        {suggestion.reason}
-                    </Badge>
+                     {getReasonBadge(suggestion.reason)}
                 </Card>
                 ))}
                 {systemSuggestions.length === 0 && (
