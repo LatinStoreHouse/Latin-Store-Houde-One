@@ -49,14 +49,7 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   
-  const displayLabel = options.find((option) => option.value.toLowerCase() === value?.toLowerCase())?.label || value
-
-  const handleSelect = (currentValue: string) => {
-    if (onValueChange) {
-      onValueChange(currentValue === value ? "" : currentValue);
-    }
-    setOpen(false);
-  }
+  const displayLabel = options.find((option) => option.value === value)?.label || value
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
