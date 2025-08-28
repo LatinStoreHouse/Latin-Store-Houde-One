@@ -222,7 +222,7 @@ const NavMenu = () => {
             }
 
             const expiration = new Date(r.expirationDate);
-            expiration.setHours(0, 0, 0, 0);
+            expiration.setHours(0,0,0,0);
 
             return expiration <= tomorrow;
         }).length;

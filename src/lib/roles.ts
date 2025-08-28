@@ -48,7 +48,7 @@ export type Permission =
   'purchasing:suggestions:view' |
   'purchasing:suggestions:create';
 
-export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico';
+export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor';
 
 export interface RoleConfig {
     id: string;
@@ -176,7 +176,18 @@ export const roles: RoleConfig[] = [
         permissions: [
             'dashboard:view',
             'inventory:view',
-            'calculators:use'
+            'calculators:use',
+            'invoices:view'
+        ]
+    },
+    {
+        id: 'distributor',
+        name: 'Distribuidor',
+        permissions: [
+            'dashboard:view',
+            'inventory:view',
+            'calculators:use',
+            'invoices:view'
         ]
     },
     {
