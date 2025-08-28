@@ -1,3 +1,4 @@
+
 'use client';
 import React, { createContext, useState, ReactNode, useEffect, useMemo } from 'react';
 import { initialInventoryData } from '@/lib/initial-inventory';
@@ -70,6 +71,8 @@ interface InventoryContextType {
   notifications: AppNotification[];
   dismissNotification: (id: number) => void;
   systemSuggestions: Suggestion[];
+  seenSuggestionsCount: number;
+  markSuggestionsAsSeen: () => void;
   transferFromFreeZone: (items: TransferItem[]) => void;
   receiveContainer: (containerId: string, reservations: Reservation[]) => void;
   dispatchReservation: (quoteNumber: string) => void;
@@ -93,6 +96,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [productSubscriptions, setProductSubscriptions] = useState<Record<string, string[]>>({});
+  const [seenSuggestionsCount, setSeenSuggestionsCount] = useState(0);
   const { toast } = useToast();
 
 
@@ -500,6 +504,10 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         return newSubs;
     });
   }
+  
+  const markSuggestionsAsSeen = () => {
+    setSeenSuggestionsCount(systemSuggestions.length);
+  };
 
   // Effect to show toast on unsubscribing, avoiding setState in render issue
   useEffect(() => {
@@ -528,6 +536,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       notifications,
       dismissNotification,
       systemSuggestions,
+      seenSuggestionsCount,
+      markSuggestionsAsSeen,
       transferFromFreeZone,
       receiveContainer,
       dispatchReservation,

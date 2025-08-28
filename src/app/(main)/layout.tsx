@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useRef, useMemo, useContext } from 'react';
+import React, { useState, useRef, useMemo, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -250,13 +250,14 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     });
   }, [inventoryContext?.containers, currentUser.roles]);
 
-  const hasPurchaseSuggestions = useMemo(() => {
+ const hasPurchaseSuggestions = useMemo(() => {
     if (!inventoryContext?.systemSuggestions) return false;
     const canSeeSuggestions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Tráfico');
     if (!canSeeSuggestions) return false;
 
-    return inventoryContext.systemSuggestions.length > 0;
-  }, [inventoryContext?.systemSuggestions, currentUser.roles]);
+    // Show notification if there are more suggestions than the last time the user saw them.
+    return inventoryContext.systemSuggestions.length > inventoryContext.seenSuggestionsCount;
+  }, [inventoryContext?.systemSuggestions, inventoryContext?.seenSuggestionsCount, currentUser.roles]);
 
 
   const hasPermission = (item: any) => {

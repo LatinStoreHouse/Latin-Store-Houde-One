@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +39,7 @@ const initialAdvisorSuggestions: AdvisorSuggestion[] = [
 ];
 
 export default function PurchaseSuggestionsPage() {
-  const { inventoryData, systemSuggestions } = useContext(InventoryContext)!;
+  const { inventoryData, systemSuggestions, markSuggestionsAsSeen } = useContext(InventoryContext)!;
   const { currentUser } = useUser();
   const { toast } = useToast();
   
@@ -51,7 +52,14 @@ export default function PurchaseSuggestionsPage() {
 
   const userPermissions = roles.find(r => r.name === currentUser.roles[0])?.permissions || [];
   const canCreateSuggestion = userPermissions.includes('purchasing:suggestions:create');
-  const canViewSystemSuggestions = currentUser.roles[0] === 'Administrador' || currentUser.roles[0] === 'Tráfico';
+  const canViewSystemSuggestions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Tráfico');
+  
+  useEffect(() => {
+    // When an authorized user visits this page, mark the suggestions as seen.
+    if (canViewSystemSuggestions) {
+      markSuggestionsAsSeen();
+    }
+  }, [canViewSystemSuggestions, markSuggestionsAsSeen]);
 
   const productOptions = useMemo(() => {
     const options: { value: string; label: string }[] = [];
