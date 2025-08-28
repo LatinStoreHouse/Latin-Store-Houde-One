@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { productDimensions } from '@/lib/dimensions';
 import { initialInventoryData } from '@/lib/initial-inventory';
+import { useUser } from '@/app/(main)/layout';
 
 
 const WhatsAppIcon = () => (
@@ -203,6 +204,7 @@ export default function StoneflexCalculatorPage() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerTaxId, setCustomerTaxId] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
 
   const [sqMeters, setSqMeters] = useState<number | string>(1);
   const [sheets, setSheets] = useState<number | string>(1);
@@ -218,10 +220,16 @@ export default function StoneflexCalculatorPage() {
   const [trm, setTrm] = useState<number | string>('');
   const [trmLoading, setTrmLoading] = useState(false);
   const { toast } = useToast();
+  const {currentUser} = useUser();
 
   const [supplyReference, setSupplyReference] = useState('');
   const [supplyUnits, setSupplyUnits] = useState<number | string>(1);
   const [notes, setNotes] = useState('');
+  
+  // New state for commercial terms
+  const [deliveryTerms, setDeliveryTerms] = useState('10 días despues de recibir su orden de compra o pedido');
+  const [paymentTerms, setPaymentTerms] = useState('Efectivo');
+  const [offerValidity, setOfferValidity] = useState('15 días a partir de la fecha');
 
   const referenceOptions = useMemo(() => {
     return allReferences.map(ref => ({ value: ref, label: `${ref} (${productDimensions[ref as keyof typeof productDimensions] || 'N/A'})` }));
@@ -518,121 +526,156 @@ export default function StoneflexCalculatorPage() {
 
   const quote = quoteItems.length > 0 ? calculateQuote() : null;
 
-  const handleDownloadPdf = async () => {
+    const handleDownloadPdf = async () => {
     if (!quote) return;
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+    
+    // Fetch and add logo
+    const logoUrl = 'https://www.latinstorehouse.com/wp-content/uploads/2021/02/LATIN-STORE-HOUSE.png';
+    const response = await fetch(logoUrl);
+    const blob = await response.blob();
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = () => {
+        const base64data = reader.result as string;
+        doc.addImage(base64data, 'PNG', 14, 10, 50, 15);
 
-    doc.setFontSize(18);
-    doc.text('Cotización StoneFlex', 14, 22);
+        // Continue with PDF generation after image is loaded
+        generatePdfContent(doc, quote, pageWidth);
+        doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
+    };
+  };
+  
+  const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
+    const today = new Date();
+    const quoteNumber = `V - 100 - ${Math.floor(Math.random() * 9000) + 1000}`;
 
-    let startY = 30;
+    let startY = 40;
     
     doc.setFontSize(10);
-    doc.text(`Nombre/Razón Social: ${customerName || 'N/A'}`, 14, startY);
-    doc.text(`Válida hasta: ${quote.expiryDate}`, pageWidth - 14, startY, { align: 'right' });
-    startY += 5;
-    if (customerTaxId) {
-        doc.text(`NIT/Cédula: ${customerTaxId}`, 14, startY);
-    }
-    startY += 5;
-    if (customerEmail) {
-        doc.text(`Correo: ${customerEmail}`, 14, startY);
-    }
-    if (customerPhone) {
-        doc.text(`Teléfono: ${customerPhone}`, pageWidth / 2, startY);
-    }
+    doc.setFont('helvetica', 'bold');
+    doc.text('Señores', 14, startY);
     startY += 5;
 
-    doc.text(`Moneda: ${currency}`, 14, startY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(customerName.toUpperCase() || 'CLIENTE GENERAL', 14, startY);
+    startY += 5;
+    
+    if (customerAddress) {
+        doc.text(`Atn: ${customerAddress}`, 14, startY);
+        startY += 5;
+    }
+    // Assuming Bogota for now, can be made dynamic
+    doc.text('Bogota D.C. Colombia', 14, startY);
+    startY += 8;
 
-    const head = [['Item', 'Cantidad', 'Precio Unit.', 'Subtotal']];
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Ref: ${quoteNumber}`, 14, startY);
+    startY += 8;
+
+    doc.setFont('helvetica', 'normal');
+    doc.text('Es grato para nosotros poner a su consideración la siguiente propuesta:', 14, startY);
+    startY += 8;
+    
+    const head = [['Item', 'Descripción', 'Unidad', 'Cantidad', 'Valor Unitario', '%Dto.', 'Valor Total']];
     const body: any[][] = [];
 
-    quote.items.forEach(item => {
+    quote.items.forEach((item, index) => {
         const dimensionText = productDimensions[item.reference as keyof typeof productDimensions] ? `(${productDimensions[item.reference as keyof typeof productDimensions]})` : '';
         const title = item.calculationMode === 'units' ? item.reference : `${item.reference} ${dimensionText}`;
-        const qty = item.sheets;
-        const price = item.hasPrice ? formatCurrency(item.pricePerSheet) : 'Precio Pendiente';
-        const total = item.hasPrice ? formatCurrency(item.itemTotal) : 'N/A';
-        body.push([title, qty, price, total]);
+        const qty = item.sheets.toFixed(2);
+        const price = item.hasPrice ? (item.pricePerSheet).toFixed(2) : '0.00';
+        const total = item.hasPrice ? (item.itemTotal).toFixed(2) : '0.00';
+        body.push([(index + 1).toString(), title, 'UND', qty, formatNumber(price), '0.00', formatNumber(total)]);
     });
-    
+
     if (quote.totalStandardAdhesiveCost > 0) {
-        body.push(['Adhesivo (Estándar)', quote.totalStandardAdhesiveUnits, formatCurrency(quote.adhesivePrice), formatCurrency(quote.totalStandardAdhesiveCost)]);
+        body.push([(body.length + 1).toString(), 'Adhesivo (Estándar)', 'UND', quote.totalStandardAdhesiveUnits, formatNumber(quote.adhesivePrice), '0.00', formatNumber(quote.totalStandardAdhesiveCost)]);
     }
     if (quote.totalTranslucentAdhesiveCost > 0) {
-        body.push(['Adhesivo (Translúcido)', quote.totalTranslucentAdhesiveUnits, formatCurrency(quote.translucentAdhesivePrice), formatCurrency(quote.totalTranslucentAdhesiveCost)]);
+        body.push([(body.length + 1).toString(), 'Adhesivo (Translúcido)', 'UND', quote.totalTranslucentAdhesiveUnits, formatNumber(quote.translucentAdhesivePrice), '0.00', formatNumber(quote.totalTranslucentAdhesiveCost)]);
     }
     if (quote.totalSealantCost > 0 && quote.sealantQuarters > 0) {
-        body.push([`Sellante (1/4 de galón)`, quote.sealantQuarters, formatCurrency(quote.sealantQuarterPrice), formatCurrency(quote.totalSealantCost)]);
+        body.push([(body.length + 1).toString(), 'Sellante (1/4 de galón)', 'UND', quote.sealantQuarters, formatNumber(quote.sealantQuarterPrice), '0.00', formatNumber(quote.totalSealantCost)]);
     }
-    
+
     doc.autoTable({
-        startY: startY + 5,
+        startY: startY,
         head: head,
         body: body,
-        theme: 'striped',
-        headStyles: { fillColor: [41, 171, 226] }
+        theme: 'grid',
+        headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' },
+        styles: { fontSize: 8 },
+        columnStyles: {
+            0: { halign: 'center' },
+            3: { halign: 'right' },
+            4: { halign: 'right' },
+            5: { halign: 'right' },
+            6: { halign: 'right' },
+        }
     });
-    
+
     let finalY = (doc as any).autoTable.previous.finalY;
     
-    const summaryX = 14;
-    let summaryY = finalY + 10;
+    // Totals table
+    const summaryData = [
+        ['Total Bruto', formatNumber(quote.subtotal + quote.totalDiscountAmount)],
+        ['IVA', formatNumber(quote.ivaAmount)],
+        ['Total a Pagar', formatCurrency(quote.totalCost)]
+    ];
+
+    doc.autoTable({
+        startY: finalY + 2,
+        body: summaryData,
+        theme: 'grid',
+        styles: { fontSize: 10 },
+        columnStyles: { 0: { fontStyle: 'bold', halign: 'right' }, 1: { halign: 'right' } },
+        margin: { left: 110 }
+    });
     
+    finalY = (doc as any).autoTable.previous.finalY;
+    startY = finalY + 15;
+
+    // Commercial Terms
     doc.setFontSize(10);
-    if (quote.totalDiscountAmount > 0) {
-        doc.text(`Subtotal Antes Descuento:`, summaryX, summaryY);
-        doc.text(formatCurrency(quote.subtotal + quote.totalDiscountAmount), pageWidth - 14, summaryY, { align: 'right' });
-        summaryY += 7;
-        doc.text(`Descuento (${discount}%):`, summaryX, summaryY);
-        doc.text(`-${formatCurrency(quote.totalDiscountAmount)}`, pageWidth - 14, summaryY, { align: 'right' });
-        summaryY += 7;
-    }
-    
-    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Subtotal:`, summaryX, summaryY);
-    doc.text(formatCurrency(quote.subtotal), pageWidth - 14, summaryY, { align: 'right' });
-    summaryY += 7;
-    
+    doc.text('Entrega:', 14, startY);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(`IVA (19%):`, summaryX, summaryY);
-    doc.text(formatCurrency(quote.ivaAmount), pageWidth - 14, summaryY, { align: 'right' });
-    summaryY += 7;
+    doc.text(deliveryTerms, 50, startY);
+    startY += 7;
 
-    if (quote.laborCost > 0) {
-        doc.text(`Costo Mano de Obra:`, summaryX, summaryY);
-        doc.text(formatCurrency(quote.laborCost), pageWidth - 14, summaryY, { align: 'right' });
-        summaryY += 7;
-    }
-    if (quote.transportationCost > 0) {
-        doc.text(`Costo Transporte:`, summaryX, summaryY);
-        doc.text(formatCurrency(quote.transportationCost), pageWidth - 14, summaryY, { align: 'right' });
-        summaryY += 7;
-    }
-    
-    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(`TOTAL A PAGAR (${currency}):`, summaryX, summaryY);
-    doc.text(formatCurrency(quote.totalCost), pageWidth - 14, summaryY, { align: 'right' });
-    summaryY += 10;
-
-    if (notes) {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Notas Adicionales:', summaryX, summaryY);
-        summaryY += 5;
-        doc.setFont('helvetica', 'normal');
-        const noteLines = doc.splitTextToSize(notes, 180);
-        doc.text(noteLines, summaryX, summaryY);
-    }
+    doc.text('Forma de Pago:', 14, startY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(paymentTerms, 50, startY);
+    startY += 7;
     
+    doc.setFont('helvetica', 'bold');
+    doc.text('Validez de la oferta:', 14, startY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(offerValidity + `, ${today.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric'})}`, 50, startY);
+    startY += 15;
 
-    doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
+    // Signature
+    doc.text('Cordialmente,', 14, startY);
+    startY += 15;
+    doc.text(currentUser.name, 14, startY);
+    startY += 5;
+    doc.setFont('helvetica', 'bold');
+    doc.text('LATIN STORE HOUSE S.A.S.', 14, startY);
+    
+    // Footer text
+    doc.setFontSize(7);
+    doc.setTextColor(150);
+    doc.text('Elaborado e Impreso por App Prototyper', pageWidth - 14, doc.internal.pageSize.height - 10, { align: 'right' });
   };
+  
+  const formatNumber = (value: number | string) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return num.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
 
   const handleExportXLSX = () => {
     if (!quote) return;
@@ -766,7 +809,7 @@ export default function StoneflexCalculatorPage() {
       <CardContent className="space-y-4">
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
            <div className="space-y-2">
-                <Label htmlFor="customer-name">Nombre o Razón Social (Opcional)</Label>
+                <Label htmlFor="customer-name">Nombre o Razón Social</Label>
                 <Input
                   id="customer-name"
                   value={customerName}
@@ -775,7 +818,7 @@ export default function StoneflexCalculatorPage() {
                 />
             </div>
              <div className="space-y-2">
-                <Label htmlFor="customer-tax-id">NIT o Cédula (Opcional)</Label>
+                <Label htmlFor="customer-tax-id">NIT o Cédula</Label>
                 <Input
                   id="customer-tax-id"
                   value={customerTaxId}
@@ -784,22 +827,31 @@ export default function StoneflexCalculatorPage() {
                 />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="customer-email">Correo Electrónico (Opcional)</Label>
+                <Label htmlFor="customer-address">Dirección</Label>
+                <Input
+                  id="customer-address"
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  placeholder="Ingrese la dirección..."
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="customer-phone">Teléfono</Label>
+                <Input
+                  id="customer-phone"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="Ingrese el teléfono..."
+                />
+            </div>
+             <div className="space-y-2 col-span-full">
+                <Label htmlFor="customer-email">Correo Electrónico</Label>
                 <Input
                   id="customer-email"
                   type="email"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
                   placeholder="Ingrese el correo..."
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="customer-phone">Teléfono (Opcional)</Label>
-                <Input
-                  id="customer-phone"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="Ingrese el teléfono..."
                 />
             </div>
          </div>
@@ -1116,14 +1168,33 @@ export default function StoneflexCalculatorPage() {
 
               <Separator />
 
-                <div className="space-y-2">
-                    <Label htmlFor="notes">Notas Adicionales</Label>
-                    <Textarea
-                        id="notes"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Especifique cualquier detalle, condición o nota importante para esta cotización..."
-                    />
+                <div className="space-y-4">
+                    <div>
+                        <h4 className="text-sm font-medium mb-2">Términos Comerciales</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-1">
+                                <Label htmlFor="delivery-terms">Entrega</Label>
+                                <Input id="delivery-terms" value={deliveryTerms} onChange={e => setDeliveryTerms(e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="payment-terms">Forma de Pago</Label>
+                                <Input id="payment-terms" value={paymentTerms} onChange={e => setPaymentTerms(e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="offer-validity">Validez de la Oferta</Label>
+                                <Input id="offer-validity" value={offerValidity} onChange={e => setOfferValidity(e.target.value)} />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="notes">Notas Adicionales</Label>
+                        <Textarea
+                            id="notes"
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Especifique cualquier detalle, condición o nota importante para esta cotización..."
+                        />
+                    </div>
                 </div>
 
               <Separator />
@@ -1174,3 +1245,5 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
+    
