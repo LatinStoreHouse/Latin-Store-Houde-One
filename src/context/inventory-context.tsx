@@ -75,6 +75,7 @@ interface InventoryContextType {
   markSuggestionsAsSeen: () => void;
   transferFromFreeZone: (items: TransferItem[]) => void;
   receiveContainer: (containerId: string, reservations: Reservation[]) => void;
+  revertContainerReception: (containerId: string) => void;
   dispatchReservation: (quoteNumber: string) => void;
   dispatchDirectFromInventory: (productsToDispatch: { name: string, quantity: number }[]) => void;
   releaseReservationStock: (reservation: Reservation) => void;
@@ -411,6 +412,54 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     };
     setNotifications(prev => [generalNotification, ...newNotifications, ...prev]);
   };
+
+  const revertContainerReception = (containerId: string) => {
+    const container = containers.find(c => c.id === containerId);
+    if (!container || container.status !== 'Ya llego') {
+        throw new Error("Solo se pueden revertir contenedores que ya han llegado.");
+    }
+    
+    const reservationsFromThisContainer = reservations.filter(r => r.sourceId === containerId && r.status === 'Validada');
+
+    setInventoryData(prevInventory => {
+      const newInventory = JSON.parse(JSON.stringify(prevInventory));
+      
+      for (const productInContainer of container.products) {
+        const location = findProductLocation(productInContainer.name);
+        if (!location) continue; // Should not happen if it was received correctly
+
+        const { brand, subCategory } = location;
+        const invProduct = newInventory[brand as keyof typeof newInventory][subCategory][productInContainer.name];
+
+        const reservedQuantity = reservationsFromThisContainer
+            .filter(r => r.product === productInContainer.name)
+            .reduce((sum, r) => sum + r.quantity, 0);
+
+        if (invProduct.zonaFranca < productInContainer.quantity || invProduct.separadasZonaFranca < reservedQuantity) {
+            throw new Error(`No se puede revertir ${productInContainer.name}: el stock en Zona Franca ya ha sido movido o despachado.`);
+        }
+        
+        invProduct.zonaFranca -= productInContainer.quantity;
+        invProduct.separadasZonaFranca -= reservedQuantity;
+      }
+      return newInventory;
+    });
+
+    setReservations(prevReservations =>
+      prevReservations.map(r => {
+        if (r.sourceId === containerId && r.source === 'Zona Franca') {
+          return { ...r, source: 'Contenedor', sourceId: containerId };
+        }
+        return r;
+      })
+    );
+
+    setContainers(prevContainers =>
+      prevContainers.map(c =>
+        c.id === containerId ? { ...c, status: 'En puerto' } : c
+      )
+    );
+  };
   
   const dispatchReservation = (quoteNumber: string) => {
     const reservationToDispatch = reservations.find(r => r.quoteNumber === quoteNumber && r.status === 'Validada');
@@ -540,6 +589,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       markSuggestionsAsSeen,
       transferFromFreeZone,
       receiveContainer,
+      revertContainerReception,
       dispatchReservation,
       dispatchDirectFromInventory,
       releaseReservationStock,

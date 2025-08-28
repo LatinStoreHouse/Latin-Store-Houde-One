@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -7,14 +8,18 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { Container } from '@/app/(main)/transit/page';
-import { CalendarIcon, Container as ContainerIcon } from 'lucide-react';
+import { Container } from '@/context/inventory-context';
+import { CalendarIcon, Container as ContainerIcon, Undo2 } from 'lucide-react';
+import { Button } from './ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 
 interface ContainerHistoryItemProps {
   container: Container;
+  onRevert: (containerId: string) => void;
+  canRevert: boolean;
 }
 
-export function ContainerHistoryItem({ container }: ContainerHistoryItemProps) {
+export function ContainerHistoryItem({ container, onRevert, canRevert }: ContainerHistoryItemProps) {
   return (
     <AccordionItem value={container.id}>
       <AccordionTrigger className="rounded-md border px-4 hover:no-underline">
@@ -37,7 +42,31 @@ export function ContainerHistoryItem({ container }: ContainerHistoryItemProps) {
       </AccordionTrigger>
       <AccordionContent>
         <div className="p-4 border border-t-0 rounded-b-md">
-            <h4 className="mb-2 font-medium">Productos en el Contenedor</h4>
+            <div className="flex justify-between items-center mb-2">
+                 <h4 className="font-medium">Productos en el Contenedor</h4>
+                 {canRevert && container.status === 'Ya llego' && (
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                             <Button variant="outline" size="sm">
+                                <Undo2 className="mr-2 h-4 w-4" />
+                                Revertir a Puerto
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>¿Está seguro de que desea revertir este contenedor?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta acción devolverá el contenedor al estado "En puerto" y descontará las unidades correspondientes del inventario de Zona Franca. Las reservas asociadas volverán a apuntar al contenedor.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => onRevert(container.id)}>Sí, revertir</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                 )}
+            </div>
             <Table>
                 <TableHeader>
                     <TableRow>

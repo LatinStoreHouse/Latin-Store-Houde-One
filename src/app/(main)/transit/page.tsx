@@ -444,7 +444,7 @@ export default function TransitPage() {
   if (!context) {
     throw new Error('InventoryContext must be used within an InventoryProvider');
   }
-  const { inventoryData, containers, addContainer, editContainer, receiveContainer } = context;
+  const { inventoryData, containers, addContainer, editContainer, receiveContainer, revertContainerReception } = context;
   const { currentUser } = useUser();
   const router = useRouter();
 
@@ -473,9 +473,9 @@ export default function TransitPage() {
 
   const canCreateContainer = userPermissions.includes('inventory:transit:create');
   const canEditContainer = userPermissions.includes('inventory:transit:edit');
-  const canEditStatus = userPermissions.includes('Administrador') || userPermissions.includes('Contador');
+  const canEditStatus = canEditContainer;
   const canCreateReservation = userPermissions.includes('reservations:create');
-  const canReceiveContainer = userPermissions.includes('Logística') || userPermissions.includes('Administrador') || userPermissions.includes('Contador');
+  const canReceiveContainer = userPermissions.includes('inventory:transit:receive');
 
   const { activeContainers, historyContainers, hasLateContainers } = useMemo(() => {
     const active = containers.filter(c => c.status !== 'Ya llego');
@@ -684,6 +684,22 @@ export default function TransitPage() {
           description: "El contenido ha sido agregado al inventario de Zona Franca. Se ha notificado al equipo sobre la llegada de nuevo material.",
       });
   };
+
+  const handleRevertContainer = (containerId: string) => {
+    try {
+        revertContainerReception(containerId);
+        toast({
+            title: `Contenedor ${containerId} Revertido`,
+            description: "El contenedor ha sido devuelto a 'En puerto' y el stock ha sido ajustado.",
+        });
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Error al Revertir',
+            description: error.message,
+        });
+    }
+  }
   
   const renderActiveList = (list: ContainerType[]) => (
       <div className="space-y-8">
@@ -710,7 +726,12 @@ export default function TransitPage() {
   const renderHistoryList = (list: ContainerType[]) => (
        <Accordion type="single" collapsible className="w-full space-y-4">
         {list.map((container) => (
-            <ContainerHistoryItem key={container.id} container={container} />
+            <ContainerHistoryItem 
+              key={container.id} 
+              container={container} 
+              onRevert={handleRevertContainer}
+              canRevert={canReceiveContainer}
+            />
         ))}
         {list.length === 0 && (
             <p className="text-center text-muted-foreground py-8">No hay contenedores en el historial.</p>
