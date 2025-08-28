@@ -32,6 +32,7 @@ type ComboboxProps = {
   emptyPlaceholder?: string
   className?: string
   disabled?: boolean
+  allowFreeText?: boolean;
 }
 
 export function Combobox({
@@ -43,6 +44,7 @@ export function Combobox({
   emptyPlaceholder = "No options found.",
   className,
   disabled,
+  allowFreeText = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -66,6 +68,11 @@ export function Combobox({
         <Command>
           <CommandInput
             placeholder={searchPlaceholder}
+            onValueChange={(search) => {
+              if (allowFreeText && onValueChange) {
+                onValueChange(search)
+              }
+            }}
           />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
