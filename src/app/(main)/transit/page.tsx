@@ -60,7 +60,7 @@ declare module 'jspdf' {
   }
 }
 
-const containerStatuses: ContainerStatus[] = ['En producción', 'En tránsito', 'En puerto', 'Atrasado', 'Llegado'];
+const containerStatuses: ContainerStatus[] = ['En producción', 'En tránsito', 'En puerto', 'Atrasado', 'Ya llego'];
 
 const TabTriggerWithIndicator = ({ value, hasAlert, children }: { value: string, hasAlert: boolean, children: React.ReactNode }) => {
     return (
@@ -89,7 +89,7 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
     const isDelayed = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        return new Date(container.eta) < today && container.status !== 'Llegado';
+        return new Date(container.eta) < today && container.status !== 'Ya llego';
     }, [container.eta, container.status]);
 
     const displayStatus = isDelayed ? 'Atrasado' : container.status;
@@ -110,7 +110,7 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
             case 'En tránsito': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
             case 'En puerto': return 'bg-purple-100 text-purple-800 border-purple-200';
             case 'Atrasado': return 'bg-red-100 text-red-800 border-red-200';
-            case 'Llegado': return 'bg-green-100 text-green-800 border-green-200';
+            case 'Ya llego': return 'bg-green-100 text-green-800 border-green-200';
             default: return 'bg-gray-100 text-gray-800 border-gray-200';
         }
     }
@@ -130,13 +130,13 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
                             </CardDescription>
                         </div>
                     </div>
-                     {canEditStatus && container.status !== 'Llegado' ? (
+                     {canEditStatus && container.status !== 'Ya llego' ? (
                         <Select value={container.status} onValueChange={(value) => onStatusChange(container.id, value as ContainerStatus)}>
                             <SelectTrigger className={cn("w-[180px]", getStatusBadgeColor(displayStatus))}>
                                 <SelectValue>{displayStatus}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                                {containerStatuses.filter(s => s !== 'Llegado' && s !== 'Atrasado').map(status => (
+                                {containerStatuses.filter(s => s !== 'Ya llego' && s !== 'Atrasado').map(status => (
                                     <SelectItem key={status} value={status}>{status}</SelectItem>
                                 ))}
                             </SelectContent>
@@ -205,7 +205,7 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
                 </TooltipProvider>
             </CardContent>
              <CardFooter className="flex justify-end p-4 gap-2">
-                {canCreateReservation && container.status !== 'Llegado' && (
+                {canCreateReservation && container.status !== 'Ya llego' && (
                      <Button variant="default" size="sm" onClick={() => onReserve(container.id)}>
                         <BookUser className="mr-2 h-4 w-4" />
                         Crear Reserva
@@ -217,7 +217,7 @@ const ContainerCard = ({ container, canEditStatus, canEditContainer, canCreateRe
                         Editar
                     </Button>
                 )}
-                 {canReceiveContainer && container.status !== 'Llegado' && (
+                 {canReceiveContainer && container.status !== 'Ya llego' && (
                    <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <Button size="sm" variant="outline">
@@ -475,15 +475,15 @@ export default function TransitPage() {
   const canEditContainer = userPermissions.includes('inventory:transit:edit');
   const canEditStatus = userPermissions.includes('Administrador') || userPermissions.includes('Contador');
   const canCreateReservation = userPermissions.includes('reservations:create');
-  const canReceiveContainer = userPermissions.includes('Logística') || userPermissions.includes('Administrador');
+  const canReceiveContainer = userPermissions.includes('Logística') || userPermissions.includes('Administrador') || userPermissions.includes('Contador');
 
   const { activeContainers, historyContainers, hasLateContainers } = useMemo(() => {
-    const active = containers.filter(c => c.status !== 'Llegado');
-    const history = containers.filter(c => c.status === 'Llegado');
+    const active = containers.filter(c => c.status !== 'Ya llego');
+    const history = containers.filter(c => c.status === 'Ya llego');
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const late = active.some(c => new Date(c.eta) < today && c.status !== 'Llegado');
+    const late = active.some(c => new Date(c.eta) < today && c.status !== 'Ya llego');
 
     return { activeContainers: active, historyContainers: history, hasLateContainers: late };
   }, [containers]);
@@ -545,7 +545,7 @@ export default function TransitPage() {
     const container = containers.find(c => c.id === containerId);
     if (!container) return;
     
-    if (newStatus === 'Llegado') {
+    if (newStatus === 'Ya llego') {
         const reservations = context.reservations.filter(r => r.source === 'Contenedor' && r.sourceId === containerId && r.status === 'Validada');
         receiveContainer(containerId, reservations);
         toast({

@@ -18,7 +18,7 @@ export interface Product {
   size?: string;
 }
 
-export type ContainerStatus = 'En producción' | 'En tránsito' | 'En puerto' | 'Atrasado' | 'Llegado';
+export type ContainerStatus = 'En producción' | 'En tránsito' | 'En puerto' | 'Atrasado' | 'Ya llego';
 
 export interface Container {
   id: string;
@@ -274,7 +274,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
             const product = newData[brand as keyof typeof newData][subCategory][productName];
             
             if (quantity > product.zonaFranca) {
-                throw new Error(`La cantidad a trasladar para ${productName} (${quantity}) excede el stock total en Zona Franca (${product.zonaFranca}).`);
+                throw new Error(`La cantidad a trasladar para ${productName} (${quantity}) excede el total en Zona Franca (${product.zonaFranca}).`);
             }
 
             // Move total stock
@@ -398,7 +398,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
 
     setContainers(prevContainers =>
       prevContainers.map(c =>
-        c.id === containerId ? { ...c, status: 'Llegado' } : c
+        c.id === containerId ? { ...c, status: 'Ya llego' } : c
       )
     );
     
