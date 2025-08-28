@@ -1,3 +1,4 @@
+
 'use client';
 
 export type Permission = 
@@ -8,6 +9,7 @@ export type Permission =
   'inventory:transit' |
   'inventory:transit:create' |
   'inventory:transit:edit' |
+  'inventory:transit:receive' |
   // Sales
   'invoices:view' |
   // Orders
@@ -74,6 +76,7 @@ export const roles: RoleConfig[] = [
             'inventory:transit',
             'inventory:transit:create',
             'inventory:transit:edit',
+            'inventory:transit:receive',
             'invoices:view',
             'orders:view',
             'orders:create',
@@ -128,6 +131,7 @@ export const roles: RoleConfig[] = [
             'dashboard:view',
             'inventory:view',
             'inventory:transit',
+            'inventory:transit:receive',
             'orders:view',
             'invoices:view',
             'orders:validate',
@@ -146,21 +150,10 @@ export const roles: RoleConfig[] = [
             'dashboard:view',
             'inventory:view',
             'inventory:transit',
+            'inventory:transit:receive',
             'orders:view',
+            'customers:view',
             'reservations:view',
-            'pricing:view'
-        ]
-    },
-     {
-        id: 'trafico',
-        name: 'Tráfico',
-        permissions: [
-            'dashboard:view',
-            'inventory:transit',
-            'inventory:transit:create',
-            'inventory:transit:edit',
-            'reservations:view',
-            'purchasing:suggestions:view'
         ]
     },
     {
@@ -168,14 +161,11 @@ export const roles: RoleConfig[] = [
         name: 'Marketing',
         permissions: [
             'dashboard:view',
+            'inventory:view',
             'customers:view',
-            'customers:create',
-            'customers:edit',
-            'reports:view',
-            'advisor:use',
             'marketing:view',
             'marketing:create',
-            'pricing:view'
+            'reports:view',
         ]
     },
     {
@@ -184,9 +174,18 @@ export const roles: RoleConfig[] = [
         permissions: [
             'dashboard:view',
             'inventory:view',
-            'calculators:use',
-            'invoices:view',
-            'pricing:view'
+            'calculators:use'
+        ]
+    },
+    {
+        id: 'traffic',
+        name: 'Tráfico',
+        permissions: [
+            'dashboard:view',
+            'inventory:transit',
+            'inventory:transit:create',
+            'inventory:transit:edit',
+            'purchasing:suggestions:view'
         ]
     }
 ];
