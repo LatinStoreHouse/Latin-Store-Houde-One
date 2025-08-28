@@ -301,7 +301,6 @@ export default function PurchaseSuggestionsPage() {
                                     <p>{suggestion.reason}</p>
                                 </div>
                              </div>
-                             {canViewSystemSuggestions && <Button size="sm" variant="outline">Crear Orden</Button>}
                         </div>
                     </Card>
                 ))}
