@@ -82,8 +82,8 @@ export function Combobox({
             {options.map((option) => (
               <CommandItem
                 key={option.value}
-                value={option.label}
-                onSelect={() => handleSelect(option.value)}
+                value={option.label} // Use label for filtering and display
+                onSelect={() => handleSelect(option.value)} // On select, use the actual value
               >
                 <Check
                   className={cn(
