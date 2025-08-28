@@ -532,7 +532,7 @@ export default function StoneflexCalculatorPage() {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
     // Fetch and add logo
-    const logoUrl = 'https://www.latinstorehouse.com/wp-content/uploads/2021/02/LATIN-STORE-HOUSE.png';
+    const logoUrl = 'https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp';
     const response = await fetch(logoUrl);
     const blob = await response.blob();
     const reader = new FileReader();

@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'www.latinstorehouse.com',
         port: '',
-        pathname: '/wp-content/uploads/**',
+        pathname: '/**',
       }
     ],
   },
