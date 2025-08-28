@@ -82,8 +82,13 @@ export function Combobox({
             {options.map((option) => (
               <CommandItem
                 key={option.value}
-                value={option.label} // Use label for filtering and display
-                onSelect={() => handleSelect(option.value)} // On select, use the actual value
+                value={option.value}
+                onSelect={(currentValue) => {
+                  if (onValueChange) {
+                    onValueChange(currentValue === value ? "" : currentValue)
+                  }
+                  setOpen(false)
+                }}
               >
                 <Check
                   className={cn(
