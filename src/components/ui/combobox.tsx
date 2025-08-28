@@ -48,28 +48,14 @@ export function Combobox({
   allowFreeText = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState(value || '')
-  
-  React.useEffect(() => {
-    setInputValue(value || '')
-  }, [value])
   
   const displayLabel = options.find((option) => option.value.toLowerCase() === value?.toLowerCase())?.label || value
 
   const handleSelect = (currentValue: string) => {
-    const option = options.find(option => option.label.toLowerCase() === currentValue.toLowerCase());
-    const newValue = option ? option.value : (allowFreeText ? currentValue : '');
-    
     if (onValueChange) {
-      onValueChange(newValue);
+      onValueChange(currentValue === value ? "" : currentValue);
     }
-    setInputValue(newValue);
-    setOpen(false)
-  }
-  
-  const handleMouseDown = (event: React.MouseEvent, itemValue: string) => {
-    event.preventDefault(); // Prevents the input from losing focus, which can cause issues on mobile.
-    handleSelect(itemValue);
+    setOpen(false);
   }
 
   return (
@@ -97,7 +83,7 @@ export function Combobox({
               <CommandItem
                 key={option.value}
                 value={option.label}
-                onMouseDown={(e) => handleMouseDown(e, option.label)}
+                onSelect={() => handleSelect(option.value)}
               >
                 <Check
                   className={cn(
