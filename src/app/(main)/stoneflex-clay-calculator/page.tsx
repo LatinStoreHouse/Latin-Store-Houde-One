@@ -532,7 +532,7 @@ export default function StoneflexCalculatorPage() {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
     // Fetch and add logo
-    const logoUrl = '/imagenes/Logo Latin Store House color.svg';
+    const logoUrl = '/imagenes/logos/Logo Latin Store House color.svg';
     const response = await fetch(logoUrl);
     const svgText = await response.text();
 
