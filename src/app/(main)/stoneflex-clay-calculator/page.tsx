@@ -112,6 +112,42 @@ const sealantPerformance = {
     'Sellante shyny 1/4 galon': { clay: 10, other: 18 },
 };
 
+// Utility function to safely get base64 from an image
+const getImageBase64 = (src: string): Promise<string | null> => {
+    return new Promise((resolve) => {
+        const img = new window.Image();
+        img.src = src;
+        img.crossOrigin = 'Anonymous'; // Important for fetching images from the same origin
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                resolve(null);
+                return;
+            }
+            ctx.drawImage(img, 0, 0);
+
+            try {
+                const dataURL = canvas.toDataURL('image/png');
+                resolve(dataURL);
+            } catch (e) {
+                console.error("Error converting canvas to data URL", e);
+                resolve(null);
+            }
+        };
+
+        img.onerror = (e) => {
+            console.error("Failed to load image for PDF conversion:", src, e);
+            resolve(null); // Resolve with null if the image fails to load
+        };
+    });
+};
+
+
 function AdhesiveReferenceTable() {
     return (
         <DialogContent className="max-w-2xl">
@@ -655,15 +691,22 @@ export default function StoneflexCalculatorPage() {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
-    // Add a title instead of the logo to avoid corruption issues.
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Cotización StoneFlex', 14, 22);
+    // Use the utility to get the base64 string of the logo
+    const logoBase64 = await getImageBase64('/imagenes/logos/Logo Stoneflex color.png');
+
+    if (logoBase64) {
+        doc.addImage(logoBase64, 'PNG', 14, 10, 50, 15);
+    } else {
+        // Fallback to text if image fails to load
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Cotización StoneFlex', 14, 22);
+    }
 
     // Generate the rest of the PDF content
     generatePdfContent(doc, quote, pageWidth);
     doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
-  };
+};
 
   
   const formatNumber = (value: number | string) => {
