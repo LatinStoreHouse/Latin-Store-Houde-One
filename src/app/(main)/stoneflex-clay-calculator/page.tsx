@@ -650,39 +650,21 @@ export default function StoneflexCalculatorPage() {
     doc.text('Elaborado e Impreso por App Prototyper', pageWidth - 14, doc.internal.pageSize.height - 10, { align: 'right' });
   };
   
-  const handleDownloadPdf = async () => {
+ const handleDownloadPdf = async () => {
     if (!quote) return;
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-    const logoUrl = '/imagenes/logos/Logo Stoneflex color.png';
 
-    try {
-        const response = await fetch(logoUrl);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = () => {
-            const base64data = reader.result;
-            if (typeof base64data === 'string') {
-                doc.addImage(base64data, 'PNG', 14, 10, 50, 15);
-                generatePdfContent(doc, quote, pageWidth);
-                doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
-            } else {
-                throw new Error("Failed to read image as base64.");
-            }
-        };
-        reader.onerror = () => {
-            console.error("Failed to load image for PDF");
-            // Fallback to text if image fails
-            generatePdfContent(doc, quote, pageWidth);
-            doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
-        };
-    } catch (error) {
-        console.error("Failed to load image for PDF", error);
-        generatePdfContent(doc, quote, pageWidth); // Fallback to no image
-        doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
-    }
+    // Add a title instead of the logo to avoid corruption issues.
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Cotización StoneFlex', 14, 22);
+
+    // Generate the rest of the PDF content
+    generatePdfContent(doc, quote, pageWidth);
+    doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
   };
+
   
   const formatNumber = (value: number | string) => {
     const num = typeof value === 'string' ? parseFloat(value) : value;
