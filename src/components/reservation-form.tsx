@@ -28,7 +28,11 @@ interface ReservationFormProps {
 }
 
 export function ReservationForm({ initialProduct, onSave, onCancel }: ReservationFormProps) {
-    const { inventoryData, containers } = useContext(InventoryContext)!;
+    const context = useContext(InventoryContext);
+    if (!context) {
+        throw new Error('ReservationForm must be used within an InventoryProvider');
+    }
+    const { inventoryData, containers, reservations } = context;
     const { currentUser } = useUser();
     const { toast } = useToast();
 
@@ -142,7 +146,7 @@ export function ReservationForm({ initialProduct, onSave, onCancel }: Reservatio
             return;
         }
         
-        const quoteExists = context.reservations.some(r => r.quoteNumber.toLowerCase() === quoteNumber.toLowerCase());
+        const quoteExists = reservations.some(r => r.quoteNumber.toLowerCase() === quoteNumber.toLowerCase());
         if (quoteExists) {
             toast({ variant: 'destructive', title: 'Error', description: 'El número de cotización ya existe.'});
             return;
@@ -287,4 +291,3 @@ export function ReservationForm({ initialProduct, onSave, onCancel }: Reservatio
         </div>
     );
 }
-
