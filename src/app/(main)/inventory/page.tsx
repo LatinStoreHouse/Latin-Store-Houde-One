@@ -2,7 +2,6 @@
 
 'use client';
 import React, { useState, useContext, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -46,6 +45,7 @@ import { cn } from '@/lib/utils';
 import { useBeforeUnload } from '@/hooks/use-before-unload';
 import { AddProductDialog } from '@/components/add-product-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ReservationForm } from '@/components/reservation-form';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -55,10 +55,9 @@ declare module 'jspdf' {
   }
 }
 
-const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMarketing, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, isPartner: boolean, isMarketing: boolean, onDataChange: Function, inventoryData: any }) => {
+const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMarketing, onDataChange, inventoryData, onReserve }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, isPartner: boolean, isMarketing: boolean, onDataChange: Function, inventoryData: any, onReserve: (productName: string) => void }) => {
   const context = useContext(InventoryContext);
   const { currentUser } = useUser();
-  const router = useRouter();
 
   if (!context || !currentUser) {
     throw new Error('ProductTable must be used within an InventoryProvider and UserProvider');
@@ -88,13 +87,6 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
   
   const canSubscribe = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
   const canCreateReservation = currentUser.roles.includes('Asesor de Ventas') || currentUser.roles.includes('Administrador');
-
-  const handleCreateReservation = (productName: string) => {
-      const params = new URLSearchParams();
-      params.set('action', 'create');
-      params.set('product', productName);
-      router.push(`/reservations?${params.toString()}`);
-  }
 
   if (Object.keys(products).length === 0) {
     return <p className="p-4 text-center text-muted-foreground">No hay productos en esta categoría.</p>;
@@ -148,7 +140,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                                 {canCreateReservation && (
-                                    <DropdownMenuItem onClick={() => handleCreateReservation(name)}>
+                                    <DropdownMenuItem onClick={() => onReserve(name)}>
                                         <BookUser className="mr-2 h-4 w-4" />
                                         Reservar
                                     </DropdownMenuItem>
@@ -311,7 +303,7 @@ export default function InventoryPage() {
   if (!context) {
     throw new Error('InventoryContext must be used within an InventoryProvider');
   }
-  const { inventoryData: initialData, transferFromFreeZone, setInventoryData: setGlobalInventoryData, updateProductName, addProduct } = context;
+  const { inventoryData: initialData, transferFromFreeZone, setInventoryData: setGlobalInventoryData, updateProductName, addProduct, setReservations } = context;
   const { currentUser } = useUser();
 
   const [localInventoryData, setLocalInventoryData] = useState(initialData);
@@ -319,6 +311,8 @@ export default function InventoryPage() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isReservationFormOpen, setIsReservationFormOpen] = useState(false);
+  const [initialProductForReservation, setInitialProductForReservation] = useState<string | undefined>(undefined);
   const [hasPendingChanges, setHasPendingChanges] = useState(false);
   
   useBeforeUnload(hasPendingChanges, 'Tiene cambios sin guardar. ¿Está seguro de que desea salir?');
@@ -634,6 +628,21 @@ export default function InventoryPage() {
     setIsAddDialogOpen(false);
   };
   
+  const handleOpenReservationDialog = (productName?: string) => {
+    setInitialProductForReservation(productName);
+    setIsReservationFormOpen(true);
+  };
+
+  const handleSaveReservations = (newReservations: Reservation[]) => {
+    setReservations(prev => [...prev, ...newReservations]);
+    setIsReservationFormOpen(false);
+    setInitialProductForReservation(undefined);
+    toast({
+        title: 'Reservas Creadas',
+        description: `Se han creado ${newReservations.length} nuevas reservas para la cotización ${newReservations[0].quoteNumber}.`
+    });
+  };
+  
   const columnLabels: Record<string, string> = {
     ...Object.fromEntries(Object.keys(detailedColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())])),
     ...Object.fromEntries(Object.keys(simplifiedColumns).map(key => [key, key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())])),
@@ -828,6 +837,7 @@ export default function InventoryPage() {
                                         isMarketing={isMarketing}
                                         onDataChange={handleDataChange}
                                         inventoryData={localInventoryData}
+                                        onReserve={handleOpenReservationDialog}
                                     />
                                 </TabsContent>
                             ))}
@@ -860,6 +870,7 @@ export default function InventoryPage() {
                                                 isMarketing={isMarketing}
                                                 onDataChange={handleDataChange}
                                                 inventoryData={localInventoryData}
+                                                onReserve={handleOpenReservationDialog}
                                             />
                                         </CardContent>
                                     </Card>
@@ -920,6 +931,22 @@ export default function InventoryPage() {
             return acc;
         }, {} as Record<string, string[]>)}
       />
+      
+      <Dialog open={isReservationFormOpen} onOpenChange={setIsReservationFormOpen}>
+        <DialogContent className="max-w-4xl">
+            <DialogHeader>
+                <DialogTitle>Crear Nueva Reserva</DialogTitle>
+                <DialogDescription>
+                    Construya una cotización con múltiples productos y cree las reservas correspondientes.
+                </DialogDescription>
+            </DialogHeader>
+            <ReservationForm 
+                initialProduct={initialProductForReservation}
+                onSave={handleSaveReservations}
+                onCancel={() => setIsReservationFormOpen(false)}
+            />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -932,5 +959,6 @@ export default function InventoryPage() {
     
 
     
+
 
 

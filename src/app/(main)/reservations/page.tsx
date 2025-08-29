@@ -6,56 +6,25 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, Truck, AlertTriangle, MoreHorizontal, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { PlusCircle, Search, Truck, MoreHorizontal, Edit, Trash2, CheckCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Combobox } from '@/components/ui/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { initialInventoryData } from '@/lib/initial-inventory';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { cn } from '@/lib/utils';
-import { Checkbox } from '@/components/ui/checkbox';
+import { ReservationForm } from '@/components/reservation-form';
 
-
-const getAllInventoryProducts = () => {
-    const products: { name: string; data: any; uniqueName: string }[] = [];
-    const productNames = new Set<string>();
-
-    for (const brand in initialInventoryData) {
-        const subcategories = initialInventoryData[brand as keyof typeof initialInventoryData];
-        for (const subCategory in subcategories) {
-            const productList = subcategories[subCategory as keyof typeof subcategories];
-            for (const productName in productList) {
-                let uniqueName = productName;
-                if (productNames.has(productName) && subCategory === 'Insumos') {
-                    uniqueName = `${productName} (Insumo)`;
-                }
-                products.push({
-                    name: productName,
-                    data: productList[productName as keyof typeof productList],
-                    uniqueName
-                });
-                productNames.add(productName);
-            }
-        }
-    }
-    return products;
-}
 
 export default function ReservationsPage() {
   const context = useContext(InventoryContext);
@@ -68,17 +37,7 @@ export default function ReservationsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
 
-  // Form fields state
-  const [customerName, setCustomerName] = useState('');
-  const [advisorName, setAdvisorName] = useState('');
-  const [productName, setProductName] = useState('');
-  const [quantity, setQuantity] = useState<number | string>(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [quoteNumber, setQuoteNumber] = useState('');
-  const [expirationDate, setExpirationDate] = useState('');
-  const [isPaid, setIsPaid] = useState(false);
-  const [reservationSource, setReservationSource] = useState<'Contenedor' | 'Bodega' | 'Zona Franca'>('Contenedor');
-  const [selectedContainerId, setSelectedContainerId] = useState('');
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -86,83 +45,11 @@ export default function ReservationsPage() {
 
   useEffect(() => {
     const action = searchParams.get('action');
-    const productParam = searchParams.get('product');
-
-    if (productParam) {
-      setProductName(productParam);
-      setReservationSource('Bodega'); // Default to warehouse when coming from inventory
-    }
-
     if (action === 'create') {
-      const cliente = searchParams.get('cliente') || '';
-      const asesor = searchParams.get('asesor') || (currentUser?.name || '');
-      const source = searchParams.get('source');
-      const containerId = searchParams.get('containerId');
-      
-      if (source === 'Contenedor' && containerId) {
-          setReservationSource('Contenedor');
-          setSelectedContainerId(containerId);
-      }
-
-      setCustomerName(cliente);
-      setAdvisorName(asesor);
       setIsFormOpen(true);
-      // Clean up URL params, keeping the main path
       router.replace('/reservations', {scroll: false});
     }
-  }, [searchParams, router, currentUser]);
-  
-  const resetFormFields = () => {
-    setCustomerName('');
-    setProductName('');
-    setQuantity(0);
-    setQuoteNumber('');
-    setAdvisorName('');
-    setExpirationDate('');
-    setIsPaid(false);
-    setSelectedContainerId('');
-    setReservationSource('Contenedor');
-    setEditingReservation(null);
-  };
-
-  const inventoryProducts = useMemo(() => getAllInventoryProducts(), []);
-  
-  const activeContainers = useMemo(() => containers.filter(c => c.status !== 'Ya llego'), [containers]);
-
-  const containerOptions = useMemo(() => {
-    return activeContainers.map(c => ({
-        value: c.id,
-        label: `${c.id} (Llegada: ${c.eta})`
-    }));
-  }, [activeContainers]);
-
-  const productOptions = useMemo(() => {
-    if (reservationSource === 'Contenedor') {
-        if (!selectedContainerId) return [];
-        const container = activeContainers.find(c => c.id === selectedContainerId);
-        if (!container) return [];
-        return container.products.map(p => ({ 
-            value: p.name, 
-            label: `${p.name}`, 
-            available: p.quantity,
-            sourceId: container.id 
-        }));
-    } else if (reservationSource === 'Bodega') {
-        return inventoryProducts.map(p => ({ 
-            value: p.name, 
-            label: p.uniqueName, 
-            available: p.data.bodega - p.data.separadasBodega, 
-            sourceId: 'Bodega' 
-        }));
-    } else { // Zona Franca
-        return inventoryProducts.map(p => ({ 
-            value: p.name, 
-            label: p.uniqueName, 
-            available: p.data.zonaFranca - p.data.separadasZonaFranca, 
-            sourceId: 'Zona Franca' 
-        }));
-    }
-  }, [reservationSource, inventoryProducts, activeContainers, selectedContainerId]);
+  }, [searchParams, router]);
   
   const filteredReservations = useMemo(() => reservations.filter(r => 
     r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -196,113 +83,29 @@ export default function ReservationsPage() {
 
 
   const pendingArrivalReservations = useMemo(() => {
-    const activeContainerIds = new Set(activeContainers.map(c => c.id));
+    const activeContainerIds = new Set(containers.filter(c => c.status !== 'Ya llego').map(c => c.id));
     return allValidatedReservations.filter(r => r.source === 'Contenedor' && activeContainerIds.has(r.sourceId));
-  }, [allValidatedReservations, activeContainers]);
+  }, [allValidatedReservations, containers]);
   
 
   const historyReservations = useMemo(() => filteredReservations.filter(r => r.status === 'Despachada' || r.status === 'Rechazada'), [filteredReservations]);
 
-
-  const handleSaveReservation = () => {
-    if (!customerName || !productName || Number(quantity) <= 0 || !quoteNumber || (!isPaid && !expirationDate)) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos requeridos. Si no está pago, debe incluir una fecha de vencimiento.'});
-        return;
-    }
-    
-    if (reservationSource === 'Contenedor' && !selectedContainerId) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione un contenedor.'});
-        return;
-    }
-
-    if (!editingReservation) {
-      const quoteExists = reservations.some(r => r.quoteNumber.toLowerCase() === quoteNumber.toLowerCase());
-      if (quoteExists) {
-          toast({ variant: 'destructive', title: 'Error', description: 'El número de cotización ya existe.'});
-          return;
-      }
-    }
-    
-    const productInfo = productOptions.find(p => p.value === productName);
-    if (!productInfo) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Producto no encontrado.'});
-        return;
-    }
-    
-    // For new reservations, check against available stock. For edits, we allow it but it needs re-validation.
-    if(!editingReservation && Number(quantity) > productInfo.available) {
-        toast({ variant: 'destructive', title: 'Error de Stock', description: `La cantidad solicitada (${quantity}) excede la disponible (${productInfo.available}).`});
-        return;
-    }
-    
-    if (editingReservation) {
-        const originalReservation = reservations.find(r => r.id === editingReservation.id);
-        if (!originalReservation) return;
-
-        const needsRevalidation = 
-            originalReservation.product !== productName ||
-            originalReservation.quantity !== Number(quantity) ||
-            originalReservation.isPaid !== isPaid ||
-            originalReservation.expirationDate !== expirationDate;
-        
-        if (needsRevalidation) {
-            // Release old stock if it was from warehouse/ZF
-            if(originalReservation.status === 'Validada' && (originalReservation.source === 'Bodega' || originalReservation.source === 'Zona Franca')) {
-                releaseReservationStock(originalReservation);
-            }
-        }
-
-        const updatedReservation: Reservation = {
-            ...originalReservation,
-            customer: customerName,
-            product: productName,
-            quantity: Number(quantity),
-            source: reservationSource,
-            sourceId: productInfo.sourceId,
-            quoteNumber: quoteNumber,
-            isPaid,
-            expirationDate: isPaid ? undefined : expirationDate,
-            status: needsRevalidation ? 'En espera de validación' : originalReservation.status
-        };
-
-        setReservations(prev => prev.map(r => r.id === editingReservation.id ? updatedReservation : r));
-        toast({ title: 'Reserva Actualizada', description: needsRevalidation ? 'La reserva debe ser validada nuevamente.' : 'La reserva ha sido actualizada.' });
-    } else {
-        const newReservation: Reservation = {
-            id: `RES-00${reservations.length + 1}`,
-            customer: customerName,
-            product: productName,
-            quantity: Number(quantity),
-            sourceId: productInfo.sourceId,
-            advisor: advisorName || currentUser.name || 'Admin',
-            quoteNumber: quoteNumber,
-            status: 'En espera de validación',
-            source: reservationSource,
-            isPaid,
-            expirationDate: isPaid ? undefined : expirationDate,
-        };
-        setReservations([...reservations, newReservation]);
-        toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
-    }
-    
-    resetFormFields();
+  const handleSaveReservations = (newReservations: Reservation[]) => {
+    setReservations(prev => [...prev, ...newReservations]);
     setIsFormOpen(false);
+    toast({
+        title: 'Reservas Creadas',
+        description: `Se han creado ${newReservations.length} nuevas reservas para la cotización ${newReservations[0].quoteNumber}.`
+    });
   };
   
   const handleOpenEditDialog = (reservation: Reservation) => {
-    setEditingReservation(reservation);
-    setCustomerName(reservation.customer);
-    setAdvisorName(reservation.advisor);
-    setProductName(reservation.product);
-    setQuantity(reservation.quantity);
-    setQuoteNumber(reservation.quoteNumber);
-    setReservationSource(reservation.source);
-    setExpirationDate(reservation.expirationDate || '');
-    setIsPaid(reservation.isPaid || false);
-    if (reservation.source === 'Contenedor') {
-        setSelectedContainerId(reservation.sourceId);
-    }
-    setIsFormOpen(true);
+    // This flow needs to be re-evaluated. For now, we'll just log it.
+    // Editing multi-product reservations might be complex.
+    console.log("Editing a reservation is not fully supported in this new flow yet.", reservation);
+    toast({ variant: 'destructive', title: 'Función no disponible', description: 'La edición de reservas individuales se debe re-evaluar con el nuevo sistema de cotizaciones.' });
+    // setEditingReservation(reservation);
+    // setIsFormOpen(true);
   };
   
   const handleDeleteReservation = (reservationId: string) => {
@@ -315,21 +118,6 @@ export default function ReservationsPage() {
 
     setReservations(prev => prev.filter(r => r.id !== reservationId));
     toast({ variant: 'destructive', title: 'Reserva Eliminada' });
-  };
-  
-  const getSelectedProductInfo = () => {
-    if (!productName) return null;
-    const product = productOptions.find(p => p.value === productName);
-    if (!product) return null;
-    
-    let sourceText = product.sourceId;
-    if (reservationSource === 'Contenedor') {
-        sourceText = `Contenedor ${product.sourceId}`;
-    } else {
-        sourceText = reservationSource;
-    }
-
-    return `Disponible: ${product.available} en ${sourceText}`;
   };
   
   const getStatusBadgeVariant = (status: Reservation['status']) => {
@@ -490,7 +278,7 @@ export default function ReservationsPage() {
             <CardTitle>Reservas de Productos</CardTitle>
             <CardDescription>Cree y gestione las reservas de productos en tránsito o en bodega.</CardDescription>
           </div>
-          <Button onClick={() => { setEditingReservation(null); setIsFormOpen(true); }}>
+          <Button onClick={() => setIsFormOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Crear Reserva
           </Button>
@@ -551,91 +339,19 @@ export default function ReservationsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Reusable Dialog for Create/Edit */}
-      <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) resetFormFields(); setIsFormOpen(open); }}>
-          <DialogContent>
-              <DialogHeader><DialogTitle>{editingReservation ? 'Editar Reserva' : 'Crear Nueva Reserva'}</DialogTitle></DialogHeader>
-              <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label>Origen del Producto</Label>
-                      <RadioGroup value={reservationSource} onValueChange={(value) => {
-                          setReservationSource(value as 'Contenedor' | 'Bodega' | 'Zona Franca');
-                          setProductName('');
-                          setSelectedContainerId('');
-                      }} className="flex gap-4">
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Contenedor" id="source-container" />
-                          <Label htmlFor="source-container">Contenedor en Tránsito</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Bodega" id="source-warehouse" />
-                          <Label htmlFor="source-warehouse">Bodega</Label>
-                        </div>
-                          <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Zona Franca" id="source-free-zone" />
-                          <Label htmlFor="source-free-zone">Zona Franca</Label>
-                        </div>
-                      </RadioGroup>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="quoteNumber"># Cotización</Label>
-                        <Input id="quoteNumber" value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" required />
-                    </div>
-                     <div className="flex items-center space-x-2 pt-8">
-                        <Checkbox id="is-paid" checked={isPaid} onCheckedChange={(checked) => setIsPaid(Boolean(checked))} />
-                        <Label htmlFor="is-paid">Ya está pago</Label>
-                    </div>
-                  </div>
-                  {!isPaid && (
-                      <div className="space-y-2">
-                        <Label htmlFor="expirationDate">Fecha Vencimiento</Label>
-                        <Input id="expirationDate" type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} required={!isPaid} />
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                      <Label htmlFor="customerName">Nombre del Cliente</Label>
-                      <Input id="customerName" value={customerName} onChange={e => setCustomerName(e.target.value)} required />
-                  </div>
-                  {reservationSource === 'Contenedor' && (
-                        <div className="space-y-2">
-                          <Label>Contenedor</Label>
-                          <Combobox
-                              options={containerOptions}
-                              value={selectedContainerId}
-                              onValueChange={(value) => {
-                                  setSelectedContainerId(value);
-                                  setProductName(''); // Reset product when container changes
-                              }}
-                              placeholder="Seleccione un contenedor"
-                              searchPlaceholder="Buscar contenedor..."
-                              emptyPlaceholder="No hay contenedores en tránsito"
-                          />
-                      </div>
-                  )}
-                  <div className="space-y-2">
-                      <Label>Producto</Label>
-                      <Combobox
-                          options={productOptions}
-                          value={productName}
-                          onValueChange={setProductName}
-                          placeholder="Seleccione un producto"
-                          searchPlaceholder="Buscar producto..."
-                          emptyPlaceholder="No se encontraron productos"
-                          disabled={reservationSource === 'Contenedor' && !selectedContainerId}
-                      />
-                      <p className="text-sm text-muted-foreground">{getSelectedProductInfo()}</p>
-                  </div>
-                    <div className="space-y-2">
-                      <Label>Cantidad</Label>
-                      <Input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} required />
-                  </div>
-              </div>
-              <DialogFooter>
-                  <DialogClose asChild><Button variant="ghost">Cancelar</Button></DialogClose>
-                  <Button onClick={handleSaveReservation}>{editingReservation ? 'Guardar Cambios' : 'Crear Reserva'}</Button>
-              </DialogFooter>
-          </DialogContent>
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-4xl">
+            <DialogHeader>
+                <DialogTitle>Crear Nueva Reserva</DialogTitle>
+                 <DialogDescription>
+                    Construya una cotización con múltiples productos y cree las reservas correspondientes.
+                </DialogDescription>
+            </DialogHeader>
+            <ReservationForm 
+                onSave={handleSaveReservations}
+                onCancel={() => setIsFormOpen(false)}
+            />
+        </DialogContent>
       </Dialog>
     </div>
   );
