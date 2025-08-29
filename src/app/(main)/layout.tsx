@@ -143,12 +143,14 @@ const getIconForSubItem = (label: string) => {
 
 const Logo = () => (
     <div className="relative h-24 w-full">
-        <Image 
-            src="/imagenes/logos/Logo ONE blanco.svg?v=1"
+        <img 
+            src="/imagenes/logos/Logo ONE blanco.svg"
             alt="One Logo"
-            fill
-            style={{ objectFit: 'contain' }}
-            priority
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'contain' 
+            }}
         />
     </div>
 );
@@ -462,7 +464,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="absolute bottom-0 right-0 rounded-full bg-background/80"
+                                  className="absolute bottom-0 right-0 bg-background/80 rounded-full"
                                   onClick={() => fileInputRef.current?.click()}
                                 >
                                   <Camera className="h-5 w-5" />
