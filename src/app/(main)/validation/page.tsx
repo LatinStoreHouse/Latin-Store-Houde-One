@@ -23,6 +23,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useUser } from '@/app/(main)/layout';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
 import type { DispatchData } from '@/app/(main)/orders/page';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -74,6 +76,8 @@ export default function ValidationPage() {
     const [pendingDispatches, setPendingDispatches] = useState(initialPendingDispatches);
     const [validationHistory, setValidationHistory] = useState<ValidatedItem[]>(initialHistory);
     const [facturaNumbers, setFacturaNumbers] = useState<Record<string, string>>({});
+    const [bulkFacturaNumber, setBulkFacturaNumber] = useState('');
+    const [selectedReservations, setSelectedReservations] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [date, setDate] = useState<DateRange | undefined>(undefined);
     const [activeTab, setActiveTab] = useState('todas');
@@ -102,56 +106,80 @@ export default function ValidationPage() {
     };
 
 
-    const handleReservationValidation = (reservation: Reservation, newStatus: 'Validada' | 'Rechazada') => {
-        const factura = facturaNumbers[reservation.id];
-        if (!factura) {
+    const handleReservationValidation = (reservationsToValidate: Reservation[], newStatus: 'Validada' | 'Rechazada', invoice: string) => {
+        if (!invoice) {
             toast({ variant: 'destructive', title: 'Error', description: 'Se requiere un número de factura para validar.' });
             return;
         }
 
-        // If validated, update the inventory's "separadas" count
-        if (newStatus === 'Validada' && (reservation.source === 'Bodega' || reservation.source === 'Zona Franca')) {
-            const location = findProductLocation(reservation.product);
-            if(location) {
-                const { brand, subCategory } = location;
-                setInventoryData(prevData => {
-                    const newData = JSON.parse(JSON.stringify(prevData));
-                    const productToUpdate = newData[brand][subCategory][reservation.product];
-                    
-                    if (reservation.source === 'Bodega') {
-                        productToUpdate.separadasBodega += reservation.quantity;
+        const updatedReservations = [...reservations];
+        const newHistoryEntries: ValidatedItem[] = [];
+        let inventoryUpdateSuccessful = true;
+
+        const inventoryUpdates = (currentInventory: typeof inventoryData) => {
+            const newInventory = JSON.parse(JSON.stringify(currentInventory));
+
+            for (const reservation of reservationsToValidate) {
+                if (newStatus === 'Validada' && (reservation.source === 'Bodega' || reservation.source === 'Zona Franca')) {
+                    const location = findProductLocation(reservation.product);
+                    if (location) {
+                        const { brand, subCategory } = location;
+                        const productToUpdate = newInventory[brand][subCategory][reservation.product];
+                        
+                        if (reservation.source === 'Bodega') {
+                            productToUpdate.separadasBodega += reservation.quantity;
+                        } else {
+                            productToUpdate.separadasZonaFranca += reservation.quantity;
+                        }
                     } else {
-                        productToUpdate.separadasZonaFranca += reservation.quantity;
+                        toast({ variant: 'destructive', title: 'Error de Inventario', description: `No se pudo encontrar el producto "${reservation.product}" para actualizar el stock.` });
+                        inventoryUpdateSuccessful = false;
+                        break; 
                     }
-                    return newData;
-                });
-            } else {
-                 toast({ variant: 'destructive', title: 'Error de Inventario', description: `No se pudo encontrar el producto "${reservation.product}" para actualizar el stock.` });
-                 return;
+                }
             }
+            return inventoryUpdateSuccessful ? newInventory : currentInventory;
         }
 
+        setInventoryData(inventoryUpdates);
 
-        // Update global reservation state
-        setReservations(prev => 
-            prev.map(r => r.id === reservation.id ? { ...r, status: newStatus } : r)
-        );
+        if (!inventoryUpdateSuccessful) return;
+
+        for (const reservation of reservationsToValidate) {
+             const index = updatedReservations.findIndex(r => r.id === reservation.id);
+             if (index !== -1) {
+                updatedReservations[index] = { ...updatedReservations[index], status: newStatus };
+             }
+
+            newHistoryEntries.push({
+                id: reservation.id,
+                quoteNumber: reservation.quoteNumber,
+                customer: reservation.customer,
+                advisor: reservation.advisor,
+                status: newStatus,
+                validatedBy: currentUser.name,
+                validationDate: new Date().toISOString().split('T')[0],
+                factura: invoice,
+                type: 'Reserva',
+            });
+        }
         
-        const newHistoryEntry: ValidatedItem = {
-            id: reservation.id,
-            quoteNumber: reservation.quoteNumber,
-            customer: reservation.customer,
-            advisor: reservation.advisor,
-            status: newStatus,
-            validatedBy: currentUser.name,
-            validationDate: new Date().toISOString().split('T')[0],
-            factura,
-            type: 'Reserva',
-        };
-        setValidationHistory([newHistoryEntry, ...validationHistory]);
+        setReservations(updatedReservations);
+        setValidationHistory(prevHistory => [...newHistoryEntries, ...prevHistory]);
+        setSelectedReservations([]);
+        setBulkFacturaNumber('');
 
-        toast({ title: 'Éxito', description: `Reserva ${reservation.quoteNumber} ha sido ${newStatus.toLowerCase()}.` });
+        toast({ title: 'Éxito', description: `${reservationsToValidate.length} reserva(s) han sido ${newStatus.toLowerCase()}s.` });
     };
+
+    const handleBulkValidate = (status: 'Validada' | 'Rechazada') => {
+        const reservationsToProcess = pendingReservations.filter(r => selectedReservations.includes(r.id));
+        if (reservationsToProcess.length === 0) {
+            toast({ variant: 'destructive', title: 'Error', description: 'No hay reservaciones seleccionadas.' });
+            return;
+        }
+        handleReservationValidation(reservationsToProcess, status, bulkFacturaNumber);
+    }
     
     const handleDispatchValidation = (dispatch: DispatchData, newStatus: 'Validada' | 'Rechazada') => {
         const factura = facturaNumbers[`dispatch-${dispatch.id}`];
@@ -246,6 +274,22 @@ export default function ValidationPage() {
             case 'Rechazada': return 'destructive';
         }
     }
+
+    const handleSelectReservation = (id: string, checked: boolean) => {
+        if (checked) {
+            setSelectedReservations(prev => [...prev, id]);
+        } else {
+            setSelectedReservations(prev => prev.filter(resId => resId !== id));
+        }
+    }
+
+    const handleSelectAllReservations = (checked: boolean) => {
+        if (checked) {
+            setSelectedReservations(pendingReservations.map(r => r.id));
+        } else {
+            setSelectedReservations([]);
+        }
+    }
     
      const handleExportPDF = async () => {
         const doc = new jsPDF();
@@ -321,9 +365,41 @@ export default function ValidationPage() {
                 </TabTriggerWithIndicator>
             </TabsList>
             <TabsContent value="reservations">
+                 {selectedReservations.length > 0 && (
+                    <div className="my-4 p-4 border rounded-lg bg-muted/50 flex flex-col sm:flex-row items-center gap-4">
+                        <div className="flex-1">
+                            <Label htmlFor="bulk-invoice" className="font-semibold">
+                                Validar {selectedReservations.length} {selectedReservations.length === 1 ? 'reserva seleccionada' : 'reservas seleccionadas'}
+                            </Label>
+                             <p className="text-sm text-muted-foreground">Asigne una factura y valide en lote.</p>
+                        </div>
+                        <div className="flex w-full sm:w-auto items-center gap-2">
+                             <Input 
+                                id="bulk-invoice"
+                                value={bulkFacturaNumber}
+                                onChange={(e) => setBulkFacturaNumber(e.target.value)}
+                                placeholder="Ingrese factura..."
+                                className="w-full sm:w-auto bg-background"
+                            />
+                            <Button size="sm" onClick={() => handleBulkValidate('Validada')} disabled={!bulkFacturaNumber}>
+                                <Check className="h-4 w-4 mr-2" /> Validar
+                            </Button>
+                             <Button size="sm" variant="destructive" onClick={() => handleBulkValidate('Rechazada')} disabled={!bulkFacturaNumber}>
+                                <X className="h-4 w-4 mr-2" /> Rechazar
+                            </Button>
+                        </div>
+                    </div>
+                 )}
                  <Table>
                     <TableHeader>
                     <TableRow>
+                        <TableHead className="w-12">
+                            <Checkbox 
+                                onCheckedChange={(checked) => handleSelectAllReservations(Boolean(checked))}
+                                checked={pendingReservations.length > 0 && selectedReservations.length === pendingReservations.length}
+                                aria-label="Seleccionar todo"
+                            />
+                        </TableHead>
                         <TableHead># Cotización</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Producto</TableHead>
@@ -334,8 +410,17 @@ export default function ValidationPage() {
                     </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {pendingReservations.map((reservation) => (
+                    {pendingReservations.map((reservation) => {
+                        const singleReservationArray = [reservation];
+                        return (
                         <TableRow key={reservation.id}>
+                        <TableCell>
+                             <Checkbox 
+                                onCheckedChange={(checked) => handleSelectReservation(reservation.id, Boolean(checked))}
+                                checked={selectedReservations.includes(reservation.id)}
+                                aria-label={`Seleccionar reserva ${reservation.quoteNumber}`}
+                            />
+                        </TableCell>
                         <TableCell>{reservation.quoteNumber}</TableCell>
                         <TableCell>{reservation.customer}</TableCell>
                         <TableCell>
@@ -355,20 +440,20 @@ export default function ValidationPage() {
                         <TableCell className="text-right">
                             {canValidate && (
                                 <div className="flex gap-2 justify-end">
-                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(reservation, 'Validada')} disabled={!facturaNumbers[reservation.id]}>
+                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(singleReservationArray, 'Validada', facturaNumbers[reservation.id] || '')} disabled={!facturaNumbers[reservation.id]}>
                                         <Check className="h-4 w-4 text-green-600" />
                                     </Button>
-                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(reservation, 'Rechazada')} disabled={!facturaNumbers[reservation.id]}>
+                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(singleReservationArray, 'Rechazada', facturaNumbers[reservation.id] || '')} disabled={!facturaNumbers[reservation.id]}>
                                         <X className="h-4 w-4 text-red-600" />
                                     </Button>
                                 </div>
                             )}
                         </TableCell>
                         </TableRow>
-                    ))}
+                    )})}
                     {pendingReservations.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={7} className="text-center text-muted-foreground">
+                            <TableCell colSpan={8} className="text-center text-muted-foreground">
                                 No hay reservas pendientes de validación.
                             </TableCell>
                         </TableRow>
