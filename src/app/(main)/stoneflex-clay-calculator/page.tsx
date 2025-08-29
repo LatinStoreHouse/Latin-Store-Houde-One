@@ -654,7 +654,7 @@ export default function StoneflexCalculatorPage() {
     // Commercial Terms
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('Entrega:', 14, startY);
+    doc.text('Despacho:', 14, startY);
     doc.setFont('helvetica', 'normal');
     doc.text(deliveryTerms, 50, startY);
     startY += 7;
@@ -693,8 +693,8 @@ export default function StoneflexCalculatorPage() {
     const logoData = await getImageBase64('/imagenes/logos/Logo-stoneflex-color-hz.png');
 
     if (logoData) {
-        const logoWidth = 60; // Set a fixed width
-        const logoHeight = logoData.height * (logoWidth / logoData.width); // Calculate height to maintain aspect ratio
+        const logoWidth = 60;
+        const logoHeight = logoData.height * (logoWidth / logoData.width);
         doc.addImage(logoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     } else {
         doc.setFontSize(18);
@@ -1209,7 +1209,7 @@ export default function StoneflexCalculatorPage() {
                         <h4 className="text-sm font-medium mb-2">Términos Comerciales</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-1">
-                                <Label htmlFor="delivery-terms">Entrega</Label>
+                                <Label htmlFor="delivery-terms">Despacho</Label>
                                 <Input id="delivery-terms" value={deliveryTerms} onChange={e => setDeliveryTerms(e.target.value)} />
                             </div>
                             <div className="space-y-1">
