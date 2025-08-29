@@ -418,6 +418,21 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         });
     }, [inventoryContext, currentUser.roles]);
 
+  const pageTitle = useMemo(() => {
+    if (pathname === '/stoneflex-clay-calculator') {
+      return (
+        <Image
+          src="/imagenes/logos/Logo-stoneflex-color-hz.png"
+          alt="StoneFlex Logo"
+          width={120}
+          height={30}
+          className="object-contain"
+        />
+      );
+    }
+    const currentNavItem = navItems.flatMap(item => item.subItems ? [{href: item.href, label: item.label}, ...item.subItems] : item).find((navItem) => navItem?.href === pathname);
+    return currentNavItem?.label || 'Inicio';
+  }, [pathname]);
 
   return (
     <>
@@ -531,7 +546,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         <header className="flex h-14 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur-sm">
           <SidebarTrigger />
           <h1 className="text-lg font-semibold md:text-xl">
-            {navItems.flatMap(item => item.subItems ? [{href: item.href, label: item.label}, ...item.subItems] : item).find((navItem) => navItem?.href === pathname)?.label || 'Inicio'}
+            {pageTitle}
           </h1>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
