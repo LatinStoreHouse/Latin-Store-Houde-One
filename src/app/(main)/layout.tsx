@@ -450,7 +450,17 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
           <NavMenu />
         </SidebarContent>
         <SidebarFooter className="p-4">
-          <Dialog onOpenChange={(open) => !open && setIsEditingProfile(false)}>
+          <Dialog onOpenChange={(open) => {
+              if (!open) {
+                setIsEditingProfile(false);
+              } else {
+                 // Reset state when opening dialog
+                setEditedName(currentUser.name);
+                setEditedAvatar(currentUser.avatar);
+                setAvatarError(null);
+                setAvatarFile(null);
+              }
+            }}>
             <DialogTrigger asChild>
                 <div className="flex w-full cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent/50">
                     <Avatar className="h-10 w-10">
