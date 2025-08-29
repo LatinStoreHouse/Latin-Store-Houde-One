@@ -39,7 +39,8 @@ export interface Reservation {
   quoteNumber: string;
   status: 'En espera de validación' | 'Validada' | 'Rechazada' | 'Despachada';
   source: 'Contenedor' | 'Bodega' | 'Zona Franca';
-  expirationDate: string;
+  expirationDate?: string;
+  isPaid?: boolean;
 }
 
 export interface AppNotification {

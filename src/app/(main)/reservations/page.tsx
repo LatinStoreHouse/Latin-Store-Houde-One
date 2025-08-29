@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Search, Truck, AlertTriangle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, Search, Truck, AlertTriangle, MoreHorizontal, Edit, Trash2, CheckCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ import { initialInventoryData } from '@/lib/initial-inventory';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
 import { useUser } from '@/app/(main)/layout';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 const getAllInventoryProducts = () => {
@@ -73,6 +75,7 @@ export default function ReservationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [quoteNumber, setQuoteNumber] = useState('');
   const [expirationDate, setExpirationDate] = useState('');
+  const [isPaid, setIsPaid] = useState(false);
   const [reservationSource, setReservationSource] = useState<'Contenedor' | 'Bodega' | 'Zona Franca'>('Contenedor');
   const [selectedContainerId, setSelectedContainerId] = useState('');
   const { toast } = useToast();
@@ -108,6 +111,7 @@ export default function ReservationsPage() {
     setQuoteNumber('');
     setAdvisorName('');
     setExpirationDate('');
+    setIsPaid(false);
     setSelectedContainerId('');
     setReservationSource('Contenedor');
     setEditingReservation(null);
@@ -115,7 +119,7 @@ export default function ReservationsPage() {
 
   const inventoryProducts = useMemo(() => getAllInventoryProducts(), []);
   
-  const activeContainers = useMemo(() => containers.filter(c => c.status !== 'Llegado'), [containers]);
+  const activeContainers = useMemo(() => containers.filter(c => c.status !== 'Ya llego'), [containers]);
 
   const containerOptions = useMemo(() => {
     return activeContainers.map(c => ({
@@ -171,6 +175,7 @@ export default function ReservationsPage() {
       tomorrow.setDate(today.getDate() + 1);
 
       return allValidatedReservations.filter(r => {
+          if (r.isPaid) return false; // Paid reservations don't expire
           if (isAdvisor && !isAdmin && r.advisor !== currentUser.name) {
             return false;
           }
@@ -192,8 +197,8 @@ export default function ReservationsPage() {
 
 
   const handleSaveReservation = () => {
-    if (!customerName || !productName || Number(quantity) <= 0 || !quoteNumber || !expirationDate) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos requeridos, incluyendo la fecha de vencimiento.'});
+    if (!customerName || !productName || Number(quantity) <= 0 || !quoteNumber || (!isPaid && !expirationDate)) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Por favor, complete todos los campos requeridos. Si no está pago, debe incluir una fecha de vencimiento.'});
         return;
     }
     
@@ -229,6 +234,7 @@ export default function ReservationsPage() {
         const needsRevalidation = 
             originalReservation.product !== productName ||
             originalReservation.quantity !== Number(quantity) ||
+            originalReservation.isPaid !== isPaid ||
             originalReservation.expirationDate !== expirationDate;
         
         if (needsRevalidation) {
@@ -246,7 +252,8 @@ export default function ReservationsPage() {
             source: reservationSource,
             sourceId: productInfo.sourceId,
             quoteNumber: quoteNumber,
-            expirationDate: expirationDate,
+            isPaid,
+            expirationDate: isPaid ? undefined : expirationDate,
             status: needsRevalidation ? 'En espera de validación' : originalReservation.status
         };
 
@@ -263,7 +270,8 @@ export default function ReservationsPage() {
             quoteNumber: quoteNumber,
             status: 'En espera de validación',
             source: reservationSource,
-            expirationDate: expirationDate,
+            isPaid,
+            expirationDate: isPaid ? undefined : expirationDate,
         };
         setReservations([...reservations, newReservation]);
         toast({ title: 'Éxito', description: 'Reserva creada y pendiente de validación.' });
@@ -282,6 +290,7 @@ export default function ReservationsPage() {
     setQuoteNumber(reservation.quoteNumber);
     setReservationSource(reservation.source);
     setExpirationDate(reservation.expirationDate || '');
+    setIsPaid(reservation.isPaid || false);
     if (reservation.source === 'Contenedor') {
         setSelectedContainerId(reservation.sourceId);
     }
@@ -344,10 +353,10 @@ export default function ReservationsPage() {
   
   const ReservationsTable = ({ data, showActions = false }: { data: Reservation[], showActions?: boolean }) => {
     
-    const isExpired = (dateString?: string) => {
-        if (!dateString) return false;
+    const isExpired = (reservation: Reservation) => {
+        if (reservation.isPaid || !reservation.expirationDate) return false;
         const today = new Date();
-        const expirationDate = new Date(dateString);
+        const expirationDate = new Date(reservation.expirationDate);
         today.setHours(0, 0, 0, 0);
         return expirationDate < today;
     }
@@ -362,14 +371,14 @@ export default function ReservationsPage() {
             <TableHead>Cantidad</TableHead>
             <TableHead>Origen</TableHead>
             <TableHead>Asesor</TableHead>
-            <TableHead>Vence</TableHead>
+            <TableHead>Vence / Estado Pago</TableHead>
             <TableHead>Estado</TableHead>
             {showActions && <TableHead className="text-right">Acciones</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((reservation) => {
-            const expired = isExpired(reservation.expirationDate);
+            const expired = isExpired(reservation);
             const isOwner = currentUser.name === reservation.advisor;
             const isAdmin = currentUser.roles.includes('Administrador');
             return (
@@ -381,7 +390,11 @@ export default function ReservationsPage() {
                 <TableCell>{renderOrigin(reservation)}</TableCell>
                 <TableCell>{reservation.advisor}</TableCell>
                 <TableCell className={cn(expired && 'text-destructive')}>
-                    {reservation.expirationDate ? (
+                    {reservation.isPaid ? (
+                         <Badge variant="success" className="gap-2">
+                            <CheckCircle className="h-4 w-4" /> Pagado
+                         </Badge>
+                    ) : reservation.expirationDate ? (
                         <div className="flex items-center gap-2">
                            <span>{reservation.expirationDate}</span>
                            {expired && <Badge variant="destructive">Expirada</Badge>}
@@ -561,11 +574,17 @@ export default function ReservationsPage() {
                         <Label htmlFor="quoteNumber"># Cotización</Label>
                         <Input id="quoteNumber" value={quoteNumber} onChange={e => setQuoteNumber(e.target.value)} placeholder="ej. COT-2024-001" required />
                     </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="expirationDate">Fecha Vencimiento</Label>
-                        <Input id="expirationDate" type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} required />
+                     <div className="flex items-center space-x-2 pt-8">
+                        <Checkbox id="is-paid" checked={isPaid} onCheckedChange={(checked) => setIsPaid(Boolean(checked))} />
+                        <Label htmlFor="is-paid">Ya está pago</Label>
                     </div>
                   </div>
+                  {!isPaid && (
+                      <div className="space-y-2">
+                        <Label htmlFor="expirationDate">Fecha Vencimiento</Label>
+                        <Input id="expirationDate" type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)} required={!isPaid} />
+                    </div>
+                  )}
                   <div className="space-y-2">
                       <Label htmlFor="customerName">Nombre del Cliente</Label>
                       <Input id="customerName" value={customerName} onChange={e => setCustomerName(e.target.value)} required />
