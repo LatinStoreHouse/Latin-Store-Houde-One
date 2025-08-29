@@ -694,7 +694,7 @@ export default function StoneflexCalculatorPage() {
     const logoBase64 = await getImageBase64('/imagenes/logos/Logo-stoneflex-color-hz.png');
 
     if (logoBase64) {
-        doc.addImage(logoBase64, 'PNG', 14, 10, 50, 15);
+        doc.addImage(logoBase64, 'PNG', 14, 10, 60, 15);
     } else {
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
