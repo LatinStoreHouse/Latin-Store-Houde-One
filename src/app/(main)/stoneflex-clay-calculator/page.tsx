@@ -113,10 +113,9 @@ const sealantPerformance = {
 };
 
 // Utility function to safely get base64 from an image
-const getImageBase64 = (src: string): Promise<string | null> => {
+const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
     return new Promise((resolve) => {
         const img = new window.Image();
-        img.crossOrigin = 'Anonymous';
         img.src = src;
 
         img.onload = () => {
@@ -133,7 +132,7 @@ const getImageBase64 = (src: string): Promise<string | null> => {
 
             try {
                 const dataURL = canvas.toDataURL('image/png');
-                resolve(dataURL);
+                resolve({ base64: dataURL, width: img.width, height: img.height });
             } catch (e) {
                 console.error("Error converting canvas to data URL", e);
                 resolve(null);
@@ -142,7 +141,7 @@ const getImageBase64 = (src: string): Promise<string | null> => {
 
         img.onerror = (e) => {
             console.error("Failed to load image for PDF conversion:", src, e);
-            resolve(null); // Resolve with null if the image fails to load
+            resolve(null);
         };
     });
 };
@@ -691,10 +690,12 @@ export default function StoneflexCalculatorPage() {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
-    const logoBase64 = await getImageBase64('/imagenes/logos/Logo-stoneflex-color-hz.png');
+    const logoData = await getImageBase64('/imagenes/logos/Logo-stoneflex-color-hz.png');
 
-    if (logoBase64) {
-        doc.addImage(logoBase64, 'PNG', 14, 10, 60, 15);
+    if (logoData) {
+        const logoWidth = 60; // Set a fixed width
+        const logoHeight = logoData.height * (logoWidth / logoData.width); // Calculate height to maintain aspect ratio
+        doc.addImage(logoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     } else {
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
