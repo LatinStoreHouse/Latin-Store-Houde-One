@@ -227,7 +227,7 @@ export default function StoneflexCalculatorPage() {
   const [notes, setNotes] = useState('');
   
   // New state for commercial terms
-  const [deliveryTerms, setDeliveryTerms] = useState('10 días despues de recibir su orden de compra o pedido');
+  const [deliveryTerms, setDeliveryTerms] = useState('');
   const [paymentTerms, setPaymentTerms] = useState('Efectivo');
   const [offerValidity, setOfferValidity] = useState('15 días a partir de la fecha');
 
@@ -553,7 +553,7 @@ export default function StoneflexCalculatorPage() {
         generatePdfContent(doc, quote, pageWidth);
         doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
     };
-    img.src = 'data:image/svg+xml;base64,' + btoa(svgText);
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgText)));
   };
   
   const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
