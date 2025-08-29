@@ -142,15 +142,11 @@ const getIconForSubItem = (label: string) => {
 }
 
 const Logo = () => (
-    <div className="relative h-24 w-full">
+    <div className="flex h-24 w-full items-center justify-center p-4 bg-sidebar-accent/10 rounded-md">
         <img 
-            src="/imagenes/logos/Logo ONE blanco.svg"
-            alt="One Logo"
-            style={{ 
-              width: '100%', 
-              height: '100%', 
-              objectFit: 'contain' 
-            }}
+            src="/imagenes/logos/Logo ONE blanco.svg" 
+            alt="One Logo" 
+            className="h-full w-full object-contain"
         />
     </div>
 );
