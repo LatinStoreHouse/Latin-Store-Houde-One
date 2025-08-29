@@ -1254,5 +1254,3 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
-
-    
