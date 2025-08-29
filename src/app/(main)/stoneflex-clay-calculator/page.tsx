@@ -28,6 +28,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { productDimensions } from '@/lib/dimensions';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { useUser } from '@/app/(main)/layout';
+import logoFile from '/public/imagenes/logos/Logo Stoneflex color.png';
 
 
 const WhatsAppIcon = () => (
@@ -117,7 +118,6 @@ const getImageBase64 = (src: string): Promise<string | null> => {
     return new Promise((resolve) => {
         const img = new window.Image();
         img.src = src;
-        img.crossOrigin = 'Anonymous'; // Important for fetching images from the same origin
 
         img.onload = () => {
             const canvas = document.createElement('canvas');
@@ -691,8 +691,8 @@ export default function StoneflexCalculatorPage() {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
-    // Use the utility to get the base64 string of the logo
-    const logoBase64 = await getImageBase64('/imagenes/logos/Logo Stoneflex color.png');
+    // Use the imported image file's src
+    const logoBase64 = await getImageBase64(logoFile.src);
 
     if (logoBase64) {
         doc.addImage(logoBase64, 'PNG', 14, 10, 50, 15);
