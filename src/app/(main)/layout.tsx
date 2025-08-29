@@ -144,7 +144,7 @@ const getIconForSubItem = (label: string) => {
 const Logo = () => (
     <div className="relative h-24 w-full">
         <Image 
-            src="https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp"
+            src="/imagenes/Logo Latin Store House blanco.svg"
             alt="Latin Store House Logo"
             fill
             style={{ objectFit: 'contain' }}
