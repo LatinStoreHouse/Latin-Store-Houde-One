@@ -28,7 +28,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { productDimensions } from '@/lib/dimensions';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { useUser } from '@/app/(main)/layout';
-import logoFile from '@/../public/imagenes/logos/Logo-stoneflex-color-hz.png';
 
 
 const WhatsAppIcon = () => (
@@ -691,20 +690,18 @@ export default function StoneflexCalculatorPage() {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
-    const logoBase64 = await getImageBase64(logoFile.src);
+    const logoBase64 = await getImageBase64('/imagenes/logos/Logo-stoneflex-color-hz.png');
 
     if (logoBase64) {
         doc.addImage(logoBase64, 'PNG', 14, 10, 50, 15);
-        generatePdfContent(doc, quote, pageWidth);
-        doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
     } else {
-        // Fallback to text if image fails
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
         doc.text('Cotización StoneFlex', 14, 22);
-        generatePdfContent(doc, quote, pageWidth);
-        doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
     }
+    
+    generatePdfContent(doc, quote, pageWidth);
+    doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
 };
 
   
@@ -1282,6 +1279,3 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
-
-
-    
