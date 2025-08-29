@@ -376,7 +376,11 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   };
 
   const handleProfileSave = () => {
-    // In a real app, this would be an API call. Here we just show a toast.
+    setCurrentUser(prevUser => ({
+      ...prevUser,
+      name: editedName,
+      avatar: editedAvatar,
+    }));
     toast({
         title: 'Perfil Actualizado',
         description: 'Tu información ha sido guardada exitosamente.'
