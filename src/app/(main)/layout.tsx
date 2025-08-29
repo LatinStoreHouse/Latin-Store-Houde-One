@@ -144,7 +144,7 @@ const getIconForSubItem = (label: string) => {
 const Logo = () => (
     <div className="relative h-24 w-full">
         <Image 
-            src="/imagenes/logos/Logo ONE blanco.svg"
+            src="/imagenes/logos/Logo ONE blanco.svg?v=1"
             alt="One Logo"
             fill
             style={{ objectFit: 'contain' }}
