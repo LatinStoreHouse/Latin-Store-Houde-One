@@ -116,6 +116,7 @@ const sealantPerformance = {
 const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
     return new Promise((resolve) => {
         const img = new window.Image();
+        img.crossOrigin = 'Anonymous';
         img.src = src;
 
         img.onload = () => {
@@ -141,7 +142,7 @@ const getImageBase64 = (src: string): Promise<{ base64: string; width: number; h
 
         img.onerror = (e) => {
             console.error("Failed to load image for PDF conversion:", src, e);
-            resolve(null);
+            resolve(null); // Resolve with null if the image fails to load
         };
     });
 };
@@ -576,11 +577,23 @@ export default function StoneflexCalculatorPage() {
     doc.text(customerName.toUpperCase() || 'CLIENTE GENERAL', 14, startY);
     startY += 5;
     
-    if (customerAddress) {
-        doc.text(`Atn: ${customerAddress}`, 14, startY);
+    if (customerTaxId) {
+        doc.text(`NIT/Cédula: ${customerTaxId}`, 14, startY);
         startY += 5;
     }
-    // Assuming Bogota for now, can be made dynamic
+    if (customerAddress) {
+        doc.text(`Dirección: ${customerAddress}`, 14, startY);
+        startY += 5;
+    }
+    if (customerPhone) {
+        doc.text(`Teléfono: ${customerPhone}`, 14, startY);
+        startY += 5;
+    }
+    if (customerEmail) {
+        doc.text(`Correo: ${customerEmail}`, 14, startY);
+        startY += 5;
+    }
+
     doc.text('Bogota D.C. Colombia', 14, startY);
     startY += 8;
 
@@ -592,26 +605,27 @@ export default function StoneflexCalculatorPage() {
     doc.text('Es grato para nosotros poner a su consideración la siguiente propuesta:', 14, startY);
     startY += 8;
     
-    const head = [['Item', 'Descripción', 'Unidad', 'Cantidad', 'Valor Unitario', '%Dto.', 'Valor Total']];
+    const head = [['Item', 'Descripción', 'Unidad', 'M²', 'Cantidad', 'Valor Unitario', '%Dto.', 'Valor Total']];
     const body: any[][] = [];
 
     quote.items.forEach((item, index) => {
         const dimensionText = productDimensions[item.reference as keyof typeof productDimensions] ? `(${productDimensions[item.reference as keyof typeof productDimensions]})` : '';
         const title = item.calculationMode === 'units' ? item.reference : `${item.reference} ${dimensionText}`;
+        const sqMetersText = item.calculationMode === 'sqm' ? item.sqMeters.toFixed(2) : '';
         const qty = item.sheets.toFixed(2);
         const price = item.hasPrice ? (item.pricePerSheet).toFixed(2) : '0.00';
         const total = item.hasPrice ? (item.itemTotal).toFixed(2) : '0.00';
-        body.push([(index + 1).toString(), title, 'UND', qty, formatNumber(price), '0.00', formatNumber(total)]);
+        body.push([(index + 1).toString(), title, 'UND', sqMetersText, qty, formatNumber(price), '0.00', formatNumber(total)]);
     });
 
     if (quote.totalStandardAdhesiveCost > 0) {
-        body.push([(body.length + 1).toString(), 'Adhesivo (Estándar)', 'UND', quote.totalStandardAdhesiveUnits, formatNumber(quote.adhesivePrice), '0.00', formatNumber(quote.totalStandardAdhesiveCost)]);
+        body.push([(body.length + 1).toString(), 'Adhesivo (Estándar)', 'UND', '', quote.totalStandardAdhesiveUnits, formatNumber(quote.adhesivePrice), '0.00', formatNumber(quote.totalStandardAdhesiveCost)]);
     }
     if (quote.totalTranslucentAdhesiveCost > 0) {
-        body.push([(body.length + 1).toString(), 'Adhesivo (Translúcido)', 'UND', quote.totalTranslucentAdhesiveUnits, formatNumber(quote.translucentAdhesivePrice), '0.00', formatNumber(quote.totalTranslucentAdhesiveCost)]);
+        body.push([(body.length + 1).toString(), 'Adhesivo (Translúcido)', 'UND', '', quote.totalTranslucentAdhesiveUnits, formatNumber(quote.translucentAdhesivePrice), '0.00', formatNumber(quote.totalTranslucentAdhesiveCost)]);
     }
     if (quote.totalSealantCost > 0 && quote.sealantQuarters > 0) {
-        body.push([(body.length + 1).toString(), 'Sellante (1/4 de galón)', 'UND', quote.sealantQuarters, formatNumber(quote.sealantQuarterPrice), '0.00', formatNumber(quote.totalSealantCost)]);
+        body.push([(body.length + 1).toString(), 'Sellante (1/4 de galón)', 'UND', '', quote.sealantQuarters, formatNumber(quote.sealantQuarterPrice), '0.00', formatNumber(quote.totalSealantCost)]);
     }
 
     doc.autoTable({
@@ -627,6 +641,7 @@ export default function StoneflexCalculatorPage() {
             4: { halign: 'right' },
             5: { halign: 'right' },
             6: { halign: 'right' },
+            7: { halign: 'right' },
         }
     });
 
