@@ -116,6 +116,7 @@ const sealantPerformance = {
 const getImageBase64 = (src: string): Promise<string | null> => {
     return new Promise((resolve) => {
         const img = new window.Image();
+        img.crossOrigin = 'Anonymous';
         img.src = src;
 
         img.onload = () => {
