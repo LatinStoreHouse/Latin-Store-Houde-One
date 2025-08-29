@@ -2,6 +2,7 @@
 
 'use client';
 import React, { useState, useContext, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -15,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle, XCircle, X, PlusCircle } from 'lucide-react';
+import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle, XCircle, X, PlusCircle, BookUser } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { roles } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,8 @@ declare module 'jspdf' {
 const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMarketing, onDataChange, inventoryData }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, isPartner: boolean, isMarketing: boolean, onDataChange: Function, inventoryData: any }) => {
   const context = useContext(InventoryContext);
   const { currentUser } = useUser();
+  const router = useRouter();
+
   if (!context || !currentUser) {
     throw new Error('ProductTable must be used within an InventoryProvider and UserProvider');
   }
@@ -83,6 +86,14 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
   };
   
   const canSubscribe = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
+  const canCreateReservation = currentUser.roles.includes('Asesor de Ventas') || currentUser.roles.includes('Administrador');
+
+  const handleCreateReservation = (productName: string) => {
+      const params = new URLSearchParams();
+      params.set('action', 'create');
+      params.set('product', productName);
+      router.push(`/reservations?${params.toString()}`);
+  }
 
   if (Object.keys(products).length === 0) {
     return <p className="p-4 text-center text-muted-foreground">No hay productos en esta categoría.</p>;
@@ -128,6 +139,17 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                 {!isPartner && (
                   <TableCell className="text-center p-2">
                     <div className="flex justify-center items-center gap-2">
+                        {canCreateReservation && totalDisponible > 0 && (
+                            <Button 
+                                variant="default"
+                                size="sm" 
+                                onClick={() => handleCreateReservation(name)}
+                                className="h-8"
+                            >
+                                <BookUser className="mr-2 h-4 w-4" />
+                                Reservar
+                            </Button>
+                        )}
                         {totalDisponible <= 0 && canSubscribe && (
                              <Button 
                                 variant={isSubscribed ? "secondary" : "outline"} 

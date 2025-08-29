@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -85,6 +86,13 @@ export default function ReservationsPage() {
 
   useEffect(() => {
     const action = searchParams.get('action');
+    const productParam = searchParams.get('product');
+
+    if (productParam) {
+      setProductName(productParam);
+      setReservationSource('Bodega'); // Default to warehouse when coming from inventory
+    }
+
     if (action === 'create') {
       const cliente = searchParams.get('cliente') || '';
       const asesor = searchParams.get('asesor') || (currentUser?.name || '');
