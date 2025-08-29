@@ -9,7 +9,7 @@ export default function RegisterPage() {
             <CardHeader className="text-center">
                  <div className="mx-auto mb-4 h-20 w-48 relative">
                    <Image 
-                     src="https://www.latinstorehouse.com/wp-content/uploads/2021/02/LATIN-STORE-HOUSE.png"
+                     src="/imagenes/Logo Latin Store House color.svg"
                      alt="Latin Store House Logo"
                      fill
                      style={{ objectFit: 'contain' }}
