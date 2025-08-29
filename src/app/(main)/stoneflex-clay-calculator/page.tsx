@@ -526,50 +526,6 @@ export default function StoneflexCalculatorPage() {
 
   const quote = quoteItems.length > 0 ? calculateQuote() : null;
 
-    const handleDownloadPdf = async () => {
-    if (!quote) return;
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-    
-    // Fetch and add logo
-    const logoUrl = '/imagenes/logos/Logo Latin Store House color.svg';
-    try {
-        const response = await fetch(logoUrl);
-        const svgText = await response.text();
-
-        // jsPDF can't add SVG directly, so we need to convert it to a data URL (PNG)
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        
-        const img = new window.Image();
-        img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            context?.drawImage(img, 0, 0);
-            const dataUrl = canvas.toDataURL('image/png');
-            
-            doc.addImage(dataUrl, 'PNG', 14, 10, 50, 15);
-
-            // Continue with PDF generation after image is loaded
-            generatePdfContent(doc, quote, pageWidth);
-            doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
-        };
-        img.onerror = () => {
-            console.error("Failed to load image for PDF");
-            // Fallback to text if image fails
-            generatePdfContent(doc, quote, pageWidth);
-            doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
-        }
-        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgText)));
-
-    } catch (error) {
-        console.error("Error fetching logo for PDF, proceeding without it.", error);
-        // If fetching fails, generate PDF without logo
-        generatePdfContent(doc, quote, pageWidth);
-        doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
-    }
-  };
-  
   const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
     const today = new Date();
     const quoteNumber = `V - 100 - ${Math.floor(Math.random() * 9000) + 1000}`;
@@ -693,6 +649,39 @@ export default function StoneflexCalculatorPage() {
     doc.setTextColor(150);
     doc.text('Elaborado e Impreso por App Prototyper', pageWidth - 14, doc.internal.pageSize.height - 10, { align: 'right' });
   };
+  
+    const handleDownloadPdf = async () => {
+        if (!quote) return;
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+        const logoUrl = '/imagenes/logos/Logo Latin Store House color.png';
+
+        try {
+            const response = await fetch(logoUrl);
+            const blob = await response.blob();
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => {
+                const base64data = reader.result;
+                if (typeof base64data === 'string') {
+                    doc.addImage(base64data, 'PNG', 14, 10, 50, 15);
+                    generatePdfContent(doc, quote, pageWidth);
+                    doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
+                } else {
+                    throw new Error("Failed to read image as base64.");
+                }
+            };
+            reader.onerror = () => {
+                console.error("FileReader error");
+                generatePdfContent(doc, quote, pageWidth); // Fallback to no image
+                doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
+            };
+        } catch (error) {
+            console.error("Failed to load image for PDF", error);
+            generatePdfContent(doc, quote, pageWidth); // Fallback to no image
+            doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
+        }
+    };
   
   const formatNumber = (value: number | string) => {
     const num = typeof value === 'string' ? parseFloat(value) : value;
