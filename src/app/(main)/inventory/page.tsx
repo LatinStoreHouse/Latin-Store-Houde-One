@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle, XCircle, X, PlusCircle, BookUser } from 'lucide-react';
+import { FileDown, Save, Truck, BadgeCheck, BellRing, AlertTriangle, XCircle, X, PlusCircle, BookUser, MoreHorizontal } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { roles } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import { useBeforeUnload } from '@/hooks/use-before-unload';
 import { AddProductDialog } from '@/components/add-product-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -139,28 +140,28 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                 {!isPartner && (
                   <TableCell className="text-center p-2">
                     <div className="flex justify-center items-center gap-2">
-                        {canCreateReservation && (
-                            <Button 
-                                variant="default"
-                                size="sm" 
-                                onClick={() => handleCreateReservation(name)}
-                                className="h-8"
-                            >
-                                <BookUser className="mr-2 h-4 w-4" />
-                                Reservar
-                            </Button>
-                        )}
-                        {totalDisponible <= 0 && canSubscribe && (
-                             <Button 
-                                variant={isSubscribed ? "secondary" : "outline"} 
-                                size="sm" 
-                                onClick={() => toggleProductSubscription(name, currentUser.name)}
-                                className="h-8"
-                            >
-                                <BellRing className="mr-2 h-4 w-4" />
-                                {isSubscribed ? "Suscrito" : "Notificar"}
-                            </Button>
-                        )}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                {canCreateReservation && (
+                                    <DropdownMenuItem onClick={() => handleCreateReservation(name)}>
+                                        <BookUser className="mr-2 h-4 w-4" />
+                                        Reservar
+                                    </DropdownMenuItem>
+                                )}
+                                {totalDisponible <= 0 && canSubscribe && (
+                                    <DropdownMenuItem onClick={() => toggleProductSubscription(name, currentUser.name)}>
+                                        <BellRing className="mr-2 h-4 w-4" />
+                                        {isSubscribed ? "Anular Suscripción" : "Notificar Stock"}
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
                         {totalReserved > 0 && (
                            <Tooltip>
                               <TooltipTrigger asChild>
@@ -931,4 +932,5 @@ export default function InventoryPage() {
     
 
     
+
 
