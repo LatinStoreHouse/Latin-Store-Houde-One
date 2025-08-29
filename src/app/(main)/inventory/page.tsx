@@ -139,7 +139,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
                 {!isPartner && (
                   <TableCell className="text-center p-2">
                     <div className="flex justify-center items-center gap-2">
-                        {canCreateReservation && totalDisponible > 0 && (
+                        {canCreateReservation && (
                             <Button 
                                 variant="default"
                                 size="sm" 
@@ -931,3 +931,4 @@ export default function InventoryPage() {
     
 
     
+
