@@ -533,27 +533,41 @@ export default function StoneflexCalculatorPage() {
     
     // Fetch and add logo
     const logoUrl = '/imagenes/logos/Logo Latin Store House color.svg';
-    const response = await fetch(logoUrl);
-    const svgText = await response.text();
+    try {
+        const response = await fetch(logoUrl);
+        const svgText = await response.text();
 
-    // jsPDF can't add SVG directly, so we need to convert it to a data URL (PNG)
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    
-    const img = new window.Image();
-    img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        context?.drawImage(img, 0, 0);
-        const dataUrl = canvas.toDataURL('image/png');
+        // jsPDF can't add SVG directly, so we need to convert it to a data URL (PNG)
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
         
-        doc.addImage(dataUrl, 'PNG', 14, 10, 50, 15);
+        const img = new window.Image();
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            context?.drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL('image/png');
+            
+            doc.addImage(dataUrl, 'PNG', 14, 10, 50, 15);
 
-        // Continue with PDF generation after image is loaded
+            // Continue with PDF generation after image is loaded
+            generatePdfContent(doc, quote, pageWidth);
+            doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
+        };
+        img.onerror = () => {
+            console.error("Failed to load image for PDF");
+            // Fallback to text if image fails
+            generatePdfContent(doc, quote, pageWidth);
+            doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
+        }
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgText)));
+
+    } catch (error) {
+        console.error("Error fetching logo for PDF, proceeding without it.", error);
+        // If fetching fails, generate PDF without logo
         generatePdfContent(doc, quote, pageWidth);
         doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
-    };
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgText)));
+    }
   };
   
   const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
@@ -580,7 +594,7 @@ export default function StoneflexCalculatorPage() {
     startY += 8;
 
     doc.setFont('helvetica', 'bold');
-    doc.text(`Ref: ${quoteNumber}`, 14, startY);
+    doc.text(`Ref: Cotización Stoneflex - ${quoteNumber}`, 14, startY);
     startY += 8;
 
     doc.setFont('helvetica', 'normal');
