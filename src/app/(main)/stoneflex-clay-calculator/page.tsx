@@ -532,19 +532,28 @@ export default function StoneflexCalculatorPage() {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
     // Fetch and add logo
-    const logoUrl = 'https://www.latinstorehouse.com/wp-content/uploads/2025/08/Logo-Latin-Store-House-blanco.webp';
+    const logoUrl = '/imagenes/Logo Latin Store House color.svg';
     const response = await fetch(logoUrl);
-    const blob = await response.blob();
-    const reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onloadend = () => {
-        const base64data = reader.result as string;
-        doc.addImage(base64data, 'PNG', 14, 10, 50, 15);
+    const svgText = await response.text();
+
+    // jsPDF can't add SVG directly, so we need to convert it to a data URL (PNG)
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    
+    const img = new window.Image();
+    img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        context?.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL('image/png');
+        
+        doc.addImage(dataUrl, 'PNG', 14, 10, 50, 15);
 
         // Continue with PDF generation after image is loaded
         generatePdfContent(doc, quote, pageWidth);
         doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
     };
+    img.src = 'data:image/svg+xml;base64,' + btoa(svgText);
   };
   
   const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
