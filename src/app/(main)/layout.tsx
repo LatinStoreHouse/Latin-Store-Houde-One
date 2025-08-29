@@ -142,7 +142,7 @@ const getIconForSubItem = (label: string) => {
 }
 
 const Logo = () => (
-    <div className="flex h-24 w-full items-center justify-center p-4 rounded-md">
+    <div className="flex h-24 w-full items-center justify-center p-4">
         <Image
             src="/imagenes/logos/Logo-ONE-blanco.png"
             alt="One Logo"
@@ -365,8 +365,8 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1024 * 1024) { // 1MB limit
-        setAvatarError('El archivo es demasiado grande. El tamaño máximo es 1MB.');
+      if (file.size > 500 * 1024) { // 500KB limit
+        setAvatarError('El archivo es demasiado grande. El tamaño máximo es 500KB.');
         return;
       }
       setAvatarError(null);
