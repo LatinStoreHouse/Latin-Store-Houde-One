@@ -164,12 +164,12 @@ export default function ReservationsPage() {
             <TableHead># Cotización</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Producto</TableHead>
-            <TableHead>Cantidad</TableHead>
+            <TableHead className="text-center">Cantidad</TableHead>
             <TableHead>Origen</TableHead>
             <TableHead>Asesor</TableHead>
             <TableHead className="text-center">Vence / Estado Pago</TableHead>
             <TableHead className="text-center">Estado</TableHead>
-            {showActions && <TableHead className="text-right">Acciones</TableHead>}
+            {showActions && <TableHead className="text-center">Acciones</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -182,7 +182,7 @@ export default function ReservationsPage() {
                 <TableCell>{reservation.quoteNumber}</TableCell>
                 <TableCell>{reservation.customer}</TableCell>
                 <TableCell>{reservation.product}</TableCell>
-                <TableCell>{reservation.quantity}</TableCell>
+                <TableCell className="text-center">{reservation.quantity}</TableCell>
                 <TableCell>{renderOrigin(reservation)}</TableCell>
                 <TableCell>{reservation.advisor}</TableCell>
                 <TableCell className={cn(expired && 'text-destructive', "text-center")}>
@@ -203,7 +203,7 @@ export default function ReservationsPage() {
                     </Badge>
                 </TableCell>
                 {showActions && (
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                        <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" disabled={!isAdmin && !isOwner}>
