@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -130,7 +131,7 @@ export default function UsersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Usuario</TableHead>
-                <TableHead>Roles</TableHead>
+                <TableHead className="text-center">Roles</TableHead>
                 <TableHead className="text-center">Estado</TableHead>
                 <TableHead className="text-center">Acciones</TableHead>
               </TableRow>
@@ -151,7 +152,7 @@ export default function UsersPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap justify-center gap-1">
                       {user.roles.map(role => (
                           <Badge key={role} variant={getRoleBadgeVariant(role)}>
                             {role}
