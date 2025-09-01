@@ -9,7 +9,6 @@ import { Partner } from '@/lib/partners';
 import { Switch } from './ui/switch';
 import { Combobox } from './ui/combobox';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { LocationCombobox } from './location-combobox';
 
 interface PartnerFormProps {
   partner?: Partner;
@@ -79,15 +78,6 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
     onSave({ name, taxId, contactName, phone, email, address, city, country, status, type, notes });
   };
   
-  const handlePlaceSelect = (place: google.maps.places.PlaceResult | null, manualInput: string | null) => {
-    if (place?.formatted_address) {
-        setCity(place.formatted_address);
-    } else if (manualInput !== null) {
-        setCity(manualInput);
-    }
-  };
-
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto p-1">
        <div className="space-y-2">
@@ -129,7 +119,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
        <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
                 <Label htmlFor="city">Ciudad / País</Label>
-                 <LocationCombobox onPlaceSelect={handlePlaceSelect} initialValue={city} />
+                 <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ej: Bogotá, Colombia" />
             </div>
             <div className="space-y-2 col-span-2">
                 <Label htmlFor="address">Dirección</Label>

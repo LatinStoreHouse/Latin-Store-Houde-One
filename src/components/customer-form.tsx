@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Customer, CustomerStatus, customerSources, customerStatuses } from '@/lib/customers';
 import { Textarea } from './ui/textarea';
 import { User } from '@/lib/roles';
-import { LocationCombobox } from './location-combobox';
 
 interface CustomerFormProps {
   customer?: Customer;
@@ -71,14 +70,6 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
     onSave({ name, phone, email, city, address, source, assignedTo, status, notes });
   };
 
-  const handlePlaceSelect = (place: google.maps.places.PlaceResult | null, manualInput: string | null) => {
-    if (place?.formatted_address) {
-        setCity(place.formatted_address);
-    } else if (manualInput !== null) {
-        setCity(manualInput);
-    }
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4">
       <div className="grid grid-cols-2 gap-4">
@@ -99,10 +90,12 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
        <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="city">Ciudad / País</Label>
-                 <LocationCombobox
-                    onPlaceSelect={handlePlaceSelect}
-                    initialValue={city}
-                 />
+                 <Input 
+                    id="city" 
+                    value={city} 
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="Ej: Bogotá, Colombia"
+                />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="address">Dirección (Opcional)</Label>
