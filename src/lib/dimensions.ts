@@ -97,8 +97,9 @@ export const productDimensions: { [key: string]: string } = {
 
     // Starwood Deck
     'Deck estandar coffee': '14.5x2.2cm - 2.21 Mts',
-    'Deck co-extrusion cf - wn': '13.8cm - 2.9 Mts',
-    'Deck co-extrusion eb - lg': '13.8cm - 2.9 Mts',
+    'Deck (teak/coffee)': '13.8cm - 2.9 Mts',
+    'Deck (ebony/light gray)': '13.8cm - 2.9 Mts',
+    'Deck (redwood/walnut)': '13.8cm - 2.9 Mts',
     'Deck teck': '13.5x2.5cm',
     
     // Insumos Starwood

@@ -85,8 +85,9 @@ export const initialInventoryData = {
   },
   Starwood: {
     'Deck': {
-      'Deck co-extrusion cf - wn': { bodega: 193, zonaFranca: 620, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
-      'Deck co-extrusion eb - lg': { bodega: 60, zonaFranca: 126, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'Deck (teak/coffee)': { bodega: 193, zonaFranca: 620, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'Deck (ebony/light gray)': { bodega: 60, zonaFranca: 126, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
+      'Deck (redwood/walnut)': { bodega: 150, zonaFranca: 500, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
       'Deck estandar coffee': { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
       'Deck teck': { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
     },
