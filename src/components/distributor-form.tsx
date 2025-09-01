@@ -79,9 +79,11 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
     onSave({ name, taxId, contactName, phone, email, address, city, country, status, type, notes });
   };
   
-  const handlePlaceSelect = (place: google.maps.places.PlaceResult | null) => {
+  const handlePlaceSelect = (place: google.maps.places.PlaceResult | null, manualInput: string | null) => {
     if (place?.formatted_address) {
         setCity(place.formatted_address);
+    } else if (manualInput !== null) {
+        setCity(manualInput);
     }
   };
 

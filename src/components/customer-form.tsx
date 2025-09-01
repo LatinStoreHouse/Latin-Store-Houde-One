@@ -71,9 +71,11 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
     onSave({ name, phone, email, city, address, source, assignedTo, status, notes });
   };
 
-  const handlePlaceSelect = (place: google.maps.places.PlaceResult | null) => {
+  const handlePlaceSelect = (place: google.maps.places.PlaceResult | null, manualInput: string | null) => {
     if (place?.formatted_address) {
         setCity(place.formatted_address);
+    } else if (manualInput !== null) {
+        setCity(manualInput);
     }
   };
 

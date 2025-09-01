@@ -5,7 +5,7 @@ import { APIProvider, Map, useMapsLibrary, useMap } from '@vis.gl/react-google-m
 import { Input } from './ui/input';
 
 interface LocationComboboxProps {
-    onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void;
+    onPlaceSelect: (place: google.maps.places.PlaceResult | null, manualInput: string | null) => void;
     initialValue?: string;
 }
 
@@ -24,7 +24,7 @@ const Autocomplete = ({ onPlaceSelect, initialValue }: LocationComboboxProps) =>
 
         autocompleteInstance.addListener('place_changed', () => {
             const place = autocompleteInstance.getPlace();
-            onPlaceSelect(place);
+            onPlaceSelect(place, null);
         });
 
         setAutocomplete(autocompleteInstance);
@@ -38,10 +38,13 @@ export function LocationCombobox(props: LocationComboboxProps) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     if (!apiKey) {
+        console.error("Google Maps API key is not configured. Falling back to text input.");
         return (
-            <div className="p-2 text-sm text-destructive border border-destructive/50 rounded-md">
-                La clave de API de Google Maps no está configurada. Agregue NEXT_PUBLIC_GOOGLE_MAPS_API_KEY a su archivo .env.local.
-            </div>
+             <Input 
+                defaultValue={props.initialValue} 
+                placeholder="Ej: Bogotá, Colombia"
+                onChange={(e) => props.onPlaceSelect(null, e.target.value)}
+            />
         );
     }
     
