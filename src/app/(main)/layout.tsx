@@ -62,7 +62,8 @@ import {
     ArrowUp,
     ArrowDown,
     ShoppingBag,
-    Lightbulb
+    Lightbulb,
+    Handshake
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -102,7 +103,7 @@ export const navItems = [
   },
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
   { href: '/customers', label: 'Clientes', icon: Users, permission: 'customers:view' },
-  { href: '/distributors', label: 'Distribuidores', icon: Store, permission: 'distributors:view' },
+  { href: '/partners', label: 'Socios', icon: Handshake, permission: 'partners:view' },
   {
     label: 'Calculadoras',
     icon: Calculator,

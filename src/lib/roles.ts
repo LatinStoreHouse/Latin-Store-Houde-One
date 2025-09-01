@@ -47,9 +47,9 @@ export type Permission =
   // Purchasing
   'purchasing:suggestions:view' |
   'purchasing:suggestions:create' |
-  // Distributors
-  'distributors:view' |
-  'distributors:manage';
+  // Partners
+  'partners:view' |
+  'partners:manage';
 
 export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor' | 'Líder de Asesores';
 
@@ -103,8 +103,8 @@ export const roles: RoleConfig[] = [
             'marketing:view',
             'marketing:create',
             'purchasing:suggestions:view',
-            'distributors:view',
-            'distributors:manage'
+            'partners:view',
+            'partners:manage'
         ]
     },
     {
@@ -141,8 +141,8 @@ export const roles: RoleConfig[] = [
             'calculators:use',
             'pricing:view',
             'advisor:use',
-            'distributors:view',
-            'distributors:manage',
+            'partners:view',
+            'partners:manage',
             'purchasing:suggestions:create',
             'purchasing:suggestions:view'
         ]

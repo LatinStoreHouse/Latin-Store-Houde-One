@@ -25,57 +25,65 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Store, PlusCircle, Edit, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Distributor, initialDistributorData } from '@/lib/distributors';
+import { MoreHorizontal, Search, Handshake, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Partner, initialPartnerData } from '@/lib/partners';
+import { initialDistributorData } from '@/lib/distributors';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { DistributorForm } from '@/components/distributor-form';
 
-export default function DistributorsPage() {
-  const [distributors, setDistributors] = useState<Distributor[]>(initialDistributorData);
+export default function PartnersPage() {
+  const [partners, setPartners] = useState<Partner[]>(() => [
+    ...initialDistributorData.map(d => ({ ...d, type: 'Distribuidor' as const })),
+    ...initialPartnerData
+  ]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDistributor, setSelectedDistributor] = useState<Distributor | undefined>(undefined);
+  const [selectedPartner, setSelectedPartner] = useState<Partner | undefined>(undefined);
   const { toast } = useToast();
 
-  const filteredDistributors = useMemo(() => {
-    return distributors.filter(distributor =>
-      distributor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      distributor.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      distributor.city.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPartners = useMemo(() => {
+    return partners.filter(partner =>
+      partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      partner.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      partner.city.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [distributors, searchTerm]);
+  }, [partners, searchTerm]);
 
-  const handleOpenModal = (distributor?: Distributor) => {
-    setSelectedDistributor(distributor);
+  const handleOpenModal = (partner?: Partner) => {
+    setSelectedPartner(partner);
     setIsModalOpen(true);
   };
   
-  const handleSaveDistributor = (distributorData: Omit<Distributor, 'id'>) => {
-    if (selectedDistributor) {
+  const handleSavePartner = (partnerData: Omit<Partner, 'id'>) => {
+    if (selectedPartner) {
       // Edit
-      setDistributors(distributors.map(d => d.id === selectedDistributor.id ? { ...d, ...distributorData } as Distributor : d));
-      toast({ title: 'Distribuidor Actualizado', description: 'Los datos del distribuidor se han actualizado.' });
+      setPartners(partners.map(p => p.id === selectedPartner.id ? { ...p, ...partnerData } as Partner : p));
+      toast({ title: 'Socio Actualizado', description: 'Los datos del socio comercial se han actualizado.' });
     } else {
       // Add
-      const newDistributor: Distributor = { 
-          ...distributorData, 
-          id: `DIST-${Date.now()}`
+      const newPartner: Partner = { 
+          ...partnerData, 
+          id: `SOCIO-${Date.now()}`
         };
-      setDistributors([...distributors, newDistributor]);
-      toast({ title: 'Distribuidor Agregado', description: 'El nuevo distribuidor se ha guardado.' });
+      setPartners([...partners, newPartner]);
+      toast({ title: 'Socio Agregado', description: 'El nuevo socio comercial se ha guardado.' });
     }
     setIsModalOpen(false);
   };
   
-  const handleDeleteDistributor = (id: string) => {
-     setDistributors(distributors.filter(d => d.id !== id));
-     toast({ title: 'Distribuidor Eliminado' });
+  const handleDeletePartner = (id: string) => {
+     setPartners(partners.filter(p => p.id !== id));
+     toast({ title: 'Socio Eliminado' });
   }
 
   const getStatusClasses = (status: 'Activo' | 'Inactivo') => {
     return status === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  }
+  
+  const getTypeBadgeClasses = (type: 'Partner' | 'Distribuidor') => {
+      return type === 'Distribuidor' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
   }
 
   return (
@@ -84,15 +92,15 @@ export default function DistributorsPage() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2"><Store className="h-6 w-6" />Gestión de Distribuidores</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Handshake className="h-6 w-6" />Gestión de Socios Comerciales</CardTitle>
             <CardDescription>
-              Añada, vea y gestione su red de distribuidores.
+              Añada, vea y gestione su red de distribuidores y partners.
             </CardDescription>
           </div>
           <div className="flex gap-2">
            <Button onClick={() => handleOpenModal()}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Agregar Distribuidor
+            Agregar Socio
           </Button>
           </div>
         </div>
@@ -112,26 +120,32 @@ export default function DistributorsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nombre del Distribuidor</TableHead>
+              <TableHead>Nombre del Socio</TableHead>
               <TableHead>Contacto</TableHead>
               <TableHead>Ubicación</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredDistributors.map((distributor) => (
-              <TableRow key={distributor.id}>
-                <TableCell className="font-medium">{distributor.name}</TableCell>
+            {filteredPartners.map((partner) => (
+              <TableRow key={partner.id}>
+                <TableCell className="font-medium">{partner.name}</TableCell>
                 <TableCell>
-                  <div>{distributor.contactName}</div>
-                  <div className="text-sm text-muted-foreground">{distributor.email}</div>
-                  <div className="text-sm text-muted-foreground">{distributor.phone}</div>
+                  <div>{partner.contactName}</div>
+                  <div className="text-sm text-muted-foreground">{partner.email}</div>
+                  <div className="text-sm text-muted-foreground">{partner.phone}</div>
                 </TableCell>
-                <TableCell>{distributor.city}, {distributor.country}</TableCell>
+                <TableCell>{partner.city}, {partner.country}</TableCell>
                 <TableCell>
-                  <Badge className={cn("border-transparent", getStatusClasses(distributor.status))}>
-                    {distributor.status}
+                  <Badge className={cn("border-transparent font-medium", getTypeBadgeClasses(partner.type))}>
+                    {partner.type}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge className={cn("border-transparent", getStatusClasses(partner.status))}>
+                    {partner.status}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -142,11 +156,11 @@ export default function DistributorsPage() {
                         </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleOpenModal(distributor)}>
+                        <DropdownMenuItem onClick={() => handleOpenModal(partner)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteDistributor(distributor.id)} className="text-destructive">
+                        <DropdownMenuItem onClick={() => handleDeletePartner(partner.id)} className="text-destructive">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Eliminar
                         </DropdownMenuItem>
@@ -163,14 +177,14 @@ export default function DistributorsPage() {
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>{selectedDistributor ? 'Editar Distribuidor' : 'Agregar Nuevo Distribuidor'}</DialogTitle>
+                <DialogTitle>{selectedPartner ? 'Editar Socio Comercial' : 'Agregar Nuevo Socio'}</DialogTitle>
                 <DialogDescription>
-                  {selectedDistributor ? 'Actualice los detalles del distribuidor.' : 'Complete el formulario para crear un nuevo socio comercial.'}
+                  {selectedPartner ? 'Actualice los detalles del socio.' : 'Complete el formulario para crear un nuevo socio comercial.'}
                 </DialogDescription>
             </DialogHeader>
             <DistributorForm
-                distributor={selectedDistributor}
-                onSave={handleSaveDistributor}
+                partner={selectedPartner}
+                onSave={handleSavePartner}
                 onCancel={() => setIsModalOpen(false)}
             />
         </DialogContent>
