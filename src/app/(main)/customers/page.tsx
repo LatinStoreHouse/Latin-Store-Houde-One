@@ -35,13 +35,13 @@ import {
   DropdownMenuSubTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, Globe, Calculator, StickyNote, BarChart, Download, DollarSign, Share2 } from 'lucide-react';
+import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, Globe, Calculator, StickyNote, BarChart, Download, DollarSign, Share2, Users } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Customer, CustomerStatus, statusColors, customerStatuses, customerSources, initialCustomerData } from '@/lib/customers';
+import { Customer, CustomerStatus, statusColors, customerStatuses, customerSources } from '@/lib/customers';
 import { Role, roles } from '@/lib/roles';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -54,6 +54,7 @@ import { Label } from '@/components/ui/label';
 import { Combobox } from '@/components/ui/combobox';
 import { initialDistributorData } from '@/lib/distributors';
 import { initialPartnerData } from '@/lib/partners';
+import { initialCustomerData } from '@/lib/customers';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -64,7 +65,7 @@ const sourceIcons: { [key: string]: React.ElementType } = {
   'Referido': UserPlus
 };
 
-const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones'];
+const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin'];
 const allPartners = [
     ...initialDistributorData.map(d => ({ value: d.name, label: d.name })),
     ...initialPartnerData.map(p => ({ value: p.name, label: p.name })),
@@ -77,9 +78,12 @@ export default function CustomersPage() {
   const [date, setDate] = useState<DateRange | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined);
   const [selectedPartner, setSelectedPartner] = useState('');
   const [redirectNotes, setRedirectNotes] = useState('');
+  const [transferAdvisor, setTransferAdvisor] = useState('');
+  const [transferNotes, setTransferNotes] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [sourceFilter, setSourceFilter] = useState<string[]>([]);
   const [advisorFilter, setAdvisorFilter] = useState<string[]>([]);
@@ -146,6 +150,11 @@ export default function CustomersPage() {
     setSelectedCustomer(customer);
     setIsRedirectModalOpen(true);
   };
+
+  const handleOpenTransferModal = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsTransferModalOpen(true);
+  };
   
   const handleSaveCustomer = (customerData: Omit<Customer, 'id' | 'registrationDate'>) => {
     if (!customerData.phone && !customerData.email) {
@@ -194,6 +203,26 @@ export default function CustomersPage() {
     setIsRedirectModalOpen(false);
     setRedirectNotes('');
     setSelectedPartner('');
+  };
+
+  const handleTransferCustomer = () => {
+    if (!selectedCustomer || !transferAdvisor) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione un asesor.' });
+      return;
+    }
+    
+    const newNote = `Cliente transferido de ${selectedCustomer.assignedTo} a ${transferAdvisor} por ${currentUser.name}. Nota: ${transferNotes}`;
+
+    setCustomers(customers.map(c => c.id === selectedCustomer.id ? { 
+        ...c, 
+        assignedTo: transferAdvisor,
+        notes: c.notes ? `${c.notes}\n---\n${newNote}` : newNote 
+    } : c));
+
+    toast({ title: 'Cliente Transferido', description: `${selectedCustomer.name} ha sido asignado a ${transferAdvisor}.` });
+    setIsTransferModalOpen(false);
+    setTransferAdvisor('');
+    setTransferNotes('');
   };
   
   const handleDeleteCustomer = (id: number) => {
@@ -261,6 +290,7 @@ export default function CustomersPage() {
     setDate(undefined);
   }
   
+  const advisorOptions = salesAdvisors.map(name => ({ value: name, label: name }));
 
   const areFiltersActive = sourceFilter.length > 0 || advisorFilter.length > 0 || statusFilter.length > 0 || date !== undefined;
 
@@ -498,6 +528,10 @@ export default function CustomersPage() {
                         <Edit className="mr-2 h-4 w-4" />
                         Editar
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleOpenTransferModal(customer)} disabled={!canEditThisCustomer}>
+                        <Users className="mr-2 h-4 w-4" />
+                        Transferir Cliente
+                    </DropdownMenuItem>
                     {currentUserRole === 'Líder de Asesores' && (
                         <DropdownMenuItem onClick={() => handleOpenRedirectModal(customer)}>
                             <Share2 className="mr-2 h-4 w-4" />
@@ -596,6 +630,42 @@ export default function CustomersPage() {
             <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsRedirectModalOpen(false)}>Cancelar</Button>
                 <Button onClick={handleRedirectCustomer}>Redireccionar Cliente</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+
+     <Dialog open={isTransferModalOpen} onOpenChange={setIsTransferModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Transferir Cliente a otro Asesor</DialogTitle>
+                <DialogDescription>
+                  Reasigne el cliente <span className="font-semibold">{selectedCustomer?.name}</span> a un nuevo asesor.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                    <Label>Nuevo Asesor Responsable</Label>
+                    <Combobox
+                        options={advisorOptions.filter(a => a.value !== selectedCustomer?.assignedTo)}
+                        value={transferAdvisor}
+                        onValueChange={setTransferAdvisor}
+                        placeholder="Seleccione un asesor"
+                        searchPlaceholder='Buscar asesor...'
+                        emptyPlaceholder='No se encontró el asesor.'
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label>Nota de Transferencia (Opcional)</Label>
+                    <Textarea 
+                        value={transferNotes}
+                        onChange={(e) => setTransferNotes(e.target.value)}
+                        placeholder="Ej: Cliente necesita seguimiento en su cotización..."
+                    />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setIsTransferModalOpen(false)}>Cancelar</Button>
+                <Button onClick={handleTransferCustomer}>Confirmar Transferencia</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
