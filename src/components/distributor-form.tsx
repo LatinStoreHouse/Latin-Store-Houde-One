@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { Switch } from './ui/switch';
 import { Combobox } from './ui/combobox';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { LocationCombobox } from './location-combobox';
+import { FileUp, Trash2 } from 'lucide-react';
 
 interface PartnerFormProps {
   partner?: Partner;
@@ -39,9 +40,10 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
   const [notes, setNotes] = useState('');
   const [commissionPercentage, setCommissionPercentage] = useState<number | string>('');
   const [startDate, setStartDate] = useState('');
-  const [contractNotes, setContractNotes] = useState('');
+  const [contractFile, setContractFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number; address: string; } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (partner) {
@@ -58,7 +60,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setNotes(partner.notes || '');
       setCommissionPercentage(partner.commissionPercentage || '');
       setStartDate(partner.startDate || '');
-      setContractNotes(partner.contractNotes || '');
+      // contractFile would need to be handled differently, e.g. storing a URL
       if (partner.address) {
         setLocation({ address: partner.address, lat: 0, lng: 0});
       }
@@ -77,7 +79,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setNotes('');
       setCommissionPercentage('');
       setStartDate('');
-      setContractNotes('');
+      setContractFile(null);
       setLocation(null);
     }
     setError(null);
@@ -104,7 +106,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
         notes,
         commissionPercentage: Number(commissionPercentage) || undefined,
         startDate,
-        contractNotes
+        contractNotes: contractFile?.name // Store file name as a string for now
     });
   };
 
@@ -123,6 +125,12 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
         }
     }
   }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setContractFile(e.target.files[0]);
+    }
+  };
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto p-1">
@@ -188,15 +196,28 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
                 />
             </div>
         </div>
-         <div className="space-y-2">
-            <Label htmlFor="contractNotes">Notas del Contrato</Label>
-            <Textarea
-                id="contractNotes"
-                value={contractNotes}
-                onChange={(e) => setContractNotes(e.target.value)}
-                placeholder="Detalles sobre el contrato, renovaciones, etc."
-                rows={3}
+        <div className="space-y-2">
+            <Label>Contrato (PDF)</Label>
+            <Input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="application/pdf"
+                onChange={handleFileChange} 
             />
+            {contractFile ? (
+                <div className="flex items-center justify-between rounded-md border p-2">
+                    <span className="text-sm truncate">{contractFile.name}</span>
+                    <Button variant="ghost" size="icon" onClick={() => setContractFile(null)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                </div>
+            ) : (
+                <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()}>
+                    <FileUp className="mr-2 h-4 w-4" />
+                    Subir Archivo de Contrato (PDF)
+                </Button>
+            )}
         </div>
        <div className="space-y-2">
             <Label htmlFor="notes">Notas Internas</Label>
