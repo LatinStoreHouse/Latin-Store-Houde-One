@@ -55,6 +55,8 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
     });
   };
 
+  const availableRoles = roles.filter(r => r.name !== 'Líder de Asesores');
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -79,7 +81,7 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
       <div className="space-y-2">
         <Label>Roles</Label>
         <div className="space-y-2 rounded-md border p-4">
-            {roles.map((r) => (
+            {availableRoles.map((r) => (
               <div key={r.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`role-${r.id}`}

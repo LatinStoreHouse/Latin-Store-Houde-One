@@ -179,7 +179,7 @@ export default function UsersPage() {
                             <UserCog className="mr-2 h-4 w-4" />
                             Editar Usuario
                         </DropdownMenuItem>
-                         {user.roles.includes('Asesor de Ventas') && (
+                         {(user.roles.includes('Asesor de Ventas') || user.roles.includes('Líder de Asesores')) && (
                             <DropdownMenuItem onClick={() => handleOpenSalesModal(user)}>
                                 <Calculator className="mr-2 h-4 w-4" />
                                 Registrar Ventas

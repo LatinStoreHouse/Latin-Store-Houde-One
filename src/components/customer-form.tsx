@@ -17,7 +17,7 @@ interface CustomerFormProps {
   currentUser: User;
 }
 
-const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin'];
+const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin', 'Laura Diaz'];
 
 
 export function CustomerForm({ customer, onSave, onCancel, currentUser }: CustomerFormProps) {

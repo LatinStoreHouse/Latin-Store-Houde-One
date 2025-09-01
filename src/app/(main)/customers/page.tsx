@@ -65,7 +65,7 @@ const sourceIcons: { [key: string]: React.ElementType } = {
   'Referido': UserPlus
 };
 
-const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin'];
+const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin', 'Laura Diaz'];
 const allPartners = [
     ...initialDistributorData.map(d => ({ value: d.name, label: d.name })),
     ...initialPartnerData.map(p => ({ value: p.name, label: p.name })),
@@ -137,6 +137,7 @@ export default function CustomersPage() {
   const canCreateDispatch = userPermissions.includes('orders:create');
   const canCreateReservation = userPermissions.includes('reservations:create');
   const canUseCalculators = userPermissions.includes('calculators:use');
+  const canManagePartners = userPermissions.includes('partners:manage');
   
   const handleOpenModal = (customer?: Customer) => {
     setSelectedCustomer(customer);
@@ -529,7 +530,7 @@ export default function CustomersPage() {
                         <Users className="mr-2 h-4 w-4" />
                         Transferir Cliente
                     </DropdownMenuItem>
-                    {currentUser.roles.includes('Líder de Asesores') && (
+                    {canManagePartners && (
                         <DropdownMenuItem onClick={() => handleOpenRedirectModal(customer)}>
                             <Share2 className="mr-2 h-4 w-4" />
                             Redireccionar a Socio
