@@ -167,8 +167,8 @@ export default function ReservationsPage() {
             <TableHead>Cantidad</TableHead>
             <TableHead>Origen</TableHead>
             <TableHead>Asesor</TableHead>
-            <TableHead>Vence / Estado Pago</TableHead>
-            <TableHead>Estado</TableHead>
+            <TableHead className="text-center">Vence / Estado Pago</TableHead>
+            <TableHead className="text-center">Estado</TableHead>
             {showActions && <TableHead className="text-right">Acciones</TableHead>}
           </TableRow>
         </TableHeader>
@@ -185,7 +185,7 @@ export default function ReservationsPage() {
                 <TableCell>{reservation.quantity}</TableCell>
                 <TableCell>{renderOrigin(reservation)}</TableCell>
                 <TableCell>{reservation.advisor}</TableCell>
-                <TableCell className={cn(expired && 'text-destructive')}>
+                <TableCell className={cn(expired && 'text-destructive', "text-center")}>
                     {reservation.isPaid ? (
                          <Badge variant="success" className="gap-2">
                             <CheckCircle className="h-4 w-4" /> Pagado
@@ -197,7 +197,7 @@ export default function ReservationsPage() {
                         </div>
                     ) : 'N/A'}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                     <Badge variant={getStatusBadgeVariant(reservation.status)}>
                         {reservation.status}
                     </Badge>
