@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from './ui/textarea';
 import { Distributor } from '@/lib/distributors';
 import { Switch } from './ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Combobox } from './ui/combobox';
 
 interface DistributorFormProps {
   distributor?: Distributor;
@@ -20,7 +20,7 @@ const countryOptions = [
   { value: 'Ecuador', label: 'Ecuador' },
   { value: 'Panamá', label: 'Panamá' },
   { value: 'Perú', label: 'Perú' },
-];
+].map(c => ({ value: c.label, label: c.label }));
 
 const colombianCities = [
   "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta", 
@@ -99,25 +99,23 @@ export function DistributorForm({ distributor, onSave, onCancel }: DistributorFo
        <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="country">País</Label>
-                <Select value={country} onValueChange={setCountry}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Seleccione un país" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {countryOptions.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                    </SelectContent>
-                </Select>
+                 <Combobox
+                    options={countryOptions}
+                    value={country}
+                    onValueChange={setCountry}
+                    placeholder="Seleccione un país"
+                />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="city">Ciudad</Label>
-                 <Select value={city} onValueChange={setCity}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Seleccione una ciudad" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {colombianCities.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                    </SelectContent>
-                </Select>
+                 <Combobox
+                    options={colombianCities}
+                    value={city}
+                    onValueChange={setCity}
+                    placeholder="Seleccione una ciudad"
+                    searchPlaceholder="Buscar ciudad..."
+                    emptyPlaceholder="No se encontró ciudad"
+                />
             </div>
             <div className="space-y-2 col-span-2">
                 <Label htmlFor="address">Dirección</Label>

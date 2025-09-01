@@ -52,7 +52,7 @@ import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Combobox } from '@/components/ui/combobox';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -567,16 +567,14 @@ export default function CustomersPage() {
             <div className="py-4 space-y-4">
                 <div className="space-y-2">
                     <Label>Distribuidor</Label>
-                    <Select value={selectedDistributor} onValueChange={setSelectedDistributor}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Seleccione un distribuidor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {distributors.map(d => (
-                                <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Combobox
+                        options={distributors}
+                        value={selectedDistributor}
+                        onValueChange={setSelectedDistributor}
+                        placeholder="Seleccione un distribuidor"
+                        searchPlaceholder='Buscando...'
+                        emptyPlaceholder='No se encontraron distribuidores.'
+                    />
                 </div>
                 <div className="space-y-2">
                     <Label>Nota de Redirección (Opcional)</Label>
