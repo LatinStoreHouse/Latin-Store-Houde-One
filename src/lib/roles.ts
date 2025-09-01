@@ -166,6 +166,7 @@ export const roles: RoleConfig[] = [
             'orders:view',
             'customers:view',
             'reservations:view',
+            'pricing:view',
         ]
     },
     {
