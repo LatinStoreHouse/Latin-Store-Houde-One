@@ -12,6 +12,9 @@ export interface Partner {
   status: 'Activo' | 'Inactivo';
   type: 'Partner' | 'Distribuidor';
   notes?: string;
+  commissionPercentage?: number;
+  startDate?: string;
+  contractNotes?: string;
 }
 
 export const initialPartnerData: Partner[] = [
@@ -27,7 +30,10 @@ export const initialPartnerData: Partner[] = [
     country: 'Colombia',
     status: 'Activo',
     type: 'Partner',
-    notes: 'Partner estratégico para proyectos de gran escala.'
+    notes: 'Partner estratégico para proyectos de gran escala.',
+    commissionPercentage: 10,
+    startDate: '2023-01-15',
+    contractNotes: 'Contrato estándar, renovación anual automática.'
   },
   {
     id: 'PART-002',
@@ -41,6 +47,8 @@ export const initialPartnerData: Partner[] = [
     country: 'Colombia',
     status: 'Activo',
     type: 'Partner',
-    notes: 'Especializados en diseño residencial de lujo.'
+    notes: 'Especializados en diseño residencial de lujo.',
+    commissionPercentage: 12,
+    startDate: '2022-11-01',
   }
 ];

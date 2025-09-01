@@ -190,7 +190,7 @@ export default function PartnersPage() {
             <TableRow>
               <TableHead>Nombre del Socio</TableHead>
               <TableHead>Contacto</TableHead>
-              <TableHead>Ubicación</TableHead>
+              <TableHead>Fecha de Entrada</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
@@ -206,7 +206,7 @@ export default function PartnersPage() {
                   <div className="text-sm text-muted-foreground">{partner.email}</div>
                   <div className="text-sm text-muted-foreground">{partner.phone}</div>
                 </TableCell>
-                <TableCell>{partner.city}, {partner.country}</TableCell>
+                <TableCell>{partner.startDate || 'N/A'}</TableCell>
                 <TableCell>
                   <Badge className={cn("border-transparent font-medium", getTypeBadgeClasses(partner.type))}>
                     {partner.type}

@@ -11,6 +11,9 @@ export interface Distributor {
   country: string;
   status: 'Activo' | 'Inactivo';
   notes?: string;
+  commissionPercentage?: number;
+  startDate?: string;
+  contractNotes?: string;
 }
 
 export const initialDistributorData: Distributor[] = [
@@ -25,7 +28,10 @@ export const initialDistributorData: Distributor[] = [
     city: 'Bogotá',
     country: 'Colombia',
     status: 'Activo',
-    notes: 'Distribuidor principal en la zona centro.'
+    notes: 'Distribuidor principal en la zona centro.',
+    commissionPercentage: 20,
+    startDate: '2021-05-20',
+    contractNotes: 'Contrato de exclusividad para la zona de Bogotá.'
   },
   {
     id: 'DIST-002',
@@ -38,6 +44,8 @@ export const initialDistributorData: Distributor[] = [
     city: 'Cali',
     country: 'Colombia',
     status: 'Activo',
+    commissionPercentage: 18,
+    startDate: '2022-02-10'
   },
   {
     id: 'DIST-003',
@@ -50,6 +58,8 @@ export const initialDistributorData: Distributor[] = [
     city: 'Medellín',
     country: 'Colombia',
     status: 'Inactivo',
-    notes: 'Contrato finalizado el mes pasado.'
+    notes: 'Contrato finalizado el mes pasado.',
+    commissionPercentage: 20,
+    startDate: '2020-01-01'
   }
 ];

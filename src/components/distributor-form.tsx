@@ -37,6 +37,9 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
   const [status, setStatus] = useState<'Activo' | 'Inactivo'>('Activo');
   const [type, setType] = useState<'Partner' | 'Distribuidor'>('Distribuidor');
   const [notes, setNotes] = useState('');
+  const [commissionPercentage, setCommissionPercentage] = useState<number | string>('');
+  const [startDate, setStartDate] = useState('');
+  const [contractNotes, setContractNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number; address: string; } | null>(null);
 
@@ -53,6 +56,9 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setStatus(partner.status);
       setType(partner.type);
       setNotes(partner.notes || '');
+      setCommissionPercentage(partner.commissionPercentage || '');
+      setStartDate(partner.startDate || '');
+      setContractNotes(partner.contractNotes || '');
       if (partner.address) {
         setLocation({ address: partner.address, lat: 0, lng: 0});
       }
@@ -69,6 +75,9 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setStatus('Activo');
       setType('Distribuidor');
       setNotes('');
+      setCommissionPercentage('');
+      setStartDate('');
+      setContractNotes('');
       setLocation(null);
     }
     setError(null);
@@ -92,7 +101,10 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
         country, 
         status, 
         type, 
-        notes 
+        notes,
+        commissionPercentage: Number(commissionPercentage) || undefined,
+        startDate,
+        contractNotes
     });
   };
 
@@ -160,6 +172,32 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
             />
        </div>
 
+        <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="startDate">Fecha de Entrada</Label>
+                <Input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="commissionPercentage">Porcentaje de Comisión (%)</Label>
+                <Input 
+                    id="commissionPercentage" 
+                    type="number"
+                    value={commissionPercentage} 
+                    onChange={(e) => setCommissionPercentage(e.target.value)}
+                    placeholder="Ej: 15"
+                />
+            </div>
+        </div>
+         <div className="space-y-2">
+            <Label htmlFor="contractNotes">Notas del Contrato</Label>
+            <Textarea
+                id="contractNotes"
+                value={contractNotes}
+                onChange={(e) => setContractNotes(e.target.value)}
+                placeholder="Detalles sobre el contrato, renovaciones, etc."
+                rows={3}
+            />
+        </div>
        <div className="space-y-2">
             <Label htmlFor="notes">Notas Internas</Label>
             <Textarea
