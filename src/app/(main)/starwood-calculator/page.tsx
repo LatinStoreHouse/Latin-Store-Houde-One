@@ -552,7 +552,7 @@ export default function StarwoodCalculatorPage() {
                         Descargar PDF
                     </Button>
                     <Button variant="outline" onClick={handleShareOnWhatsApp} className="gap-2">
-                        <WhatsAppIcon />
+                        <WhatsAppIcon width={16} height={16}/>
                         <span>Compartir</span>
                     </Button>
                 </div>
@@ -567,4 +567,5 @@ export default function StarwoodCalculatorPage() {
     </Card>
   );
 }
+
 

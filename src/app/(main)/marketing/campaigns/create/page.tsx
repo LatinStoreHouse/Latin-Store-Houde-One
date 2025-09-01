@@ -17,14 +17,8 @@ import { Customer, CustomerStatus, initialCustomerData, customerStatuses } from 
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { getCampaignMessageSuggestion } from '@/app/actions';
+import { WhatsAppIcon } from '@/components/social-icons';
 
-
-type AudienceType = 'all' | 'byStatus' | 'selected';
-type ChannelType = 'email' | 'whatsapp';
-
-const WhatsAppIcon = () => (
-    <Image src="/imagenes/logos/Logo Whatsapp.svg" alt="WhatsApp" width={32} height={32} />
-);
 
 
 export default function CreateCampaignPage() {
@@ -66,6 +60,9 @@ export default function CreateCampaignPage() {
     }, [audience, selectedStatuses, preselectedCustomerIds]);
     
     const audienceCount = selectedCustomers.length;
+    
+    type AudienceType = 'all' | 'byStatus' | 'selected';
+    type ChannelType = 'email' | 'whatsapp';
     
     const handleStatusChange = (status: CustomerStatus, checked: boolean) => {
         if (checked) {
