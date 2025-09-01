@@ -15,6 +15,9 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import Image from 'next/image';
 import { WhatsAppIcon } from '@/components/social-icons';
+import { Textarea } from '@/components/ui/textarea';
+import { LocationCombobox } from '@/components/location-combobox';
+import { useUser } from '@/app/(main)/layout';
 
 
 const starwoodProducts = [
@@ -75,14 +78,32 @@ export default function StarwoodCalculatorPage() {
   const [supplyUnits, setSupplyUnits] = useState<number | string>(1);
 
   const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerTaxId, setCustomerTaxId] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
+  const [location, setLocation] = useState<{ lat: number; lng: number; address: string; } | null>(null);
 
   const [includeClips, setIncludeClips] = useState(true);
   const [includeSleepers, setIncludeSleepers] = useState(true);
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
   const [includeSealant, setIncludeSealant] = useState(true);
 
+  const [laborCost, setLaborCost] = useState(0);
+  const [transportationCost, setTransportationCost] = useState(0);
+  const [notes, setNotes] = useState('');
+  
+  const [deliveryTerms, setDeliveryTerms] = useState('');
+  const [paymentTerms, setPaymentTerms] = useState('Efectivo');
+  const [offerValidity, setOfferValidity] = useState('15 días a partir de la fecha');
+  const {currentUser} = useUser();
+
+
   const selectedProductIsDeck = useMemo(() => productReference.toLowerCase().includes('deck'), [productReference]);
   const selectedProductIsListon = useMemo(() => productReference.toLowerCase().includes('liston'), [productReference]);
+  
+  const anyDeckInQuote = useMemo(() => quoteItems.some(item => item.reference.toLowerCase().includes('deck')), [quoteItems]);
+  const anyListonInQuote = useMemo(() => quoteItems.some(item => item.reference.toLowerCase().includes('liston')), [quoteItems]);
 
 
   const productOptions = useMemo(() => {
@@ -100,6 +121,12 @@ export default function StarwoodCalculatorPage() {
     }
   }, [searchParams]);
 
+  const handleLocationChange = (newLocation: { lat: number; lng: number; address: string } | null) => {
+    setLocation(newLocation);
+    if (newLocation) {
+        setCustomerAddress(newLocation.address);
+    }
+  }
 
   const handleAddProduct = (type: 'product' | 'supply') => {
     const reference = type === 'product' ? productReference : supplyReference;
@@ -138,6 +165,12 @@ export default function StarwoodCalculatorPage() {
       currency: 'COP',
       minimumFractionDigits: 0,
     }).format(value);
+  };
+  
+  const handleCurrencyInputChange = (setter: React.Dispatch<React.SetStateAction<number>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const numericValue = Number(value.replace(/[^0-9]/g, ''));
+    setter(numericValue);
   };
 
   const calculateQuote = () => {
@@ -209,7 +242,7 @@ export default function StarwoodCalculatorPage() {
 
 
     const iva = subtotal * IVA_RATE;
-    const total = subtotal + iva;
+    const total = subtotal + iva + laborCost + transportationCost;
     
     const creationDate = new Date();
     const expiryDate = new Date(creationDate);
@@ -220,6 +253,8 @@ export default function StarwoodCalculatorPage() {
       subtotal: subtotal,
       iva,
       total: total,
+      laborCost,
+      transportationCost,
       clips: { count: clipCount, cost: clipsCost, price: productPrices['Clip plastico para deck wpc'] || 0 },
       sleepers: { count: sleeperCount, cost: sleepersCost, price: productPrices['Durmiente plastico 3x3'] || 0 },
       adhesives: { count: adhesiveCount, cost: adhesiveCost, price: productPrices['Adhesivo'] || 0 },
@@ -277,12 +312,55 @@ export default function StarwoodCalculatorPage() {
       body: tableBody 
     });
     
-    const finalY = (doc as any).autoTable.previous.finalY || 150;
-    doc.setFontSize(12);
-    doc.text(`Subtotal: ${formatCurrency(quote.subtotal)}`, 14, finalY + 10);
-    doc.text(`IVA (19%): ${formatCurrency(quote.iva)}`, 14, finalY + 17);
-    doc.setFontSize(14);
-    doc.text(`Total: ${formatCurrency(quote.total)}`, 14, finalY + 24);
+    let finalY = (doc as any).autoTable.previous.finalY || 150;
+    
+    const summaryData = [
+        ['Subtotal', formatCurrency(quote.subtotal)],
+        ['IVA (19%)', formatCurrency(quote.iva)],
+        ['Mano de Obra', formatCurrency(quote.laborCost)],
+        ['Transporte', formatCurrency(quote.transportationCost)],
+        ['Total', formatCurrency(quote.total)]
+    ];
+
+    doc.autoTable({
+        startY: finalY + 2,
+        body: summaryData,
+        theme: 'grid',
+        styles: { fontSize: 10 },
+        columnStyles: { 0: { fontStyle: 'bold', halign: 'right' }, 1: { halign: 'right' } },
+        margin: { left: 110 }
+    });
+
+    finalY = (doc as any).autoTable.previous.finalY;
+    let startY = finalY + 15;
+
+    // Commercial Terms
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Despacho:', 14, startY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(deliveryTerms, 50, startY);
+    startY += 7;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Forma de Pago:', 14, startY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(paymentTerms, 50, startY);
+    startY += 7;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Validez de la oferta:', 14, startY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(offerValidity, 50, startY);
+    startY += 15;
+
+    // Signature
+    doc.text('Cordialmente,', 14, startY);
+    startY += 15;
+    doc.text(currentUser.name, 14, startY);
+    startY += 5;
+    doc.setFont('helvetica', 'bold');
+    doc.text('LATIN STORE HOUSE S.A.S.', 14, startY);
 
     doc.save('cotizacion_starwood.pdf');
   };
@@ -324,7 +402,18 @@ export default function StarwoodCalculatorPage() {
     message += `*Desglose de Costos (COP):*\n`;
     message += `- *Subtotal:* ${formatCurrency(quote.subtotal)}\n`;
     message += `- IVA (19%): ${formatCurrency(quote.iva)}\n`;
+    if (quote.laborCost > 0) {
+        message += `- Costo Mano de Obra: ${formatCurrency(quote.laborCost)}\n`;
+    }
+    if (quote.transportationCost > 0) {
+        message += `- Costo Transporte: ${formatCurrency(quote.transportationCost)}\n`;
+    }
     message += `\n*Total Estimado: ${formatCurrency(quote.total)}*\n\n`;
+
+     if (notes) {
+        message += `*Notas Adicionales:*\n${notes}\n\n`;
+    }
+
     message += `_Esta es una cotización preliminar y no incluye costos de instalación._`;
 
     const encodedMessage = encodeURIComponent(message);
@@ -336,19 +425,32 @@ export default function StarwoodCalculatorPage() {
       <CardHeader>
         <CardTitle>Calculadora de Cotizaciones - Starwood</CardTitle>
         <CardDescription>
-          Estime el costo para productos Starwood por unidad, con cálculo automático de insumos para deck.
+          Estime el costo para productos Starwood por unidad, con cálculo automático de insumos para deck y listones.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-         <div className="space-y-2">
-            <Label htmlFor="customer-name">Nombre del Cliente (Opcional)</Label>
-            <Input
-              id="customer-name"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Ingrese el nombre del cliente..."
-            />
-          </div>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           <div className="space-y-2">
+                <Label htmlFor="customer-name">Nombre o Razón Social</Label>
+                <Input id="customer-name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Ingrese el nombre del cliente..."/>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="customer-tax-id">NIT o Cédula</Label>
+                <Input id="customer-tax-id" value={customerTaxId} onChange={(e) => setCustomerTaxId(e.target.value)} placeholder="Ingrese el NIT o cédula..."/>
+            </div>
+            <div className="space-y-2 col-span-full">
+                <Label htmlFor="location">Dirección</Label>
+                <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="customer-phone">Teléfono</Label>
+                <Input id="customer-phone" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="Ingrese el teléfono..."/>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="customer-email">Correo Electrónico</Label>
+                <Input id="customer-email" type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="Ingrese el correo..."/>
+            </div>
+         </div>
           <Separator />
           <div>
             <h3 className="text-lg font-medium mb-4">Productos Principales</h3>
@@ -384,19 +486,11 @@ export default function StarwoodCalculatorPage() {
                 {selectedProductIsDeck && (
                     <>
                         <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="includeClips"
-                                checked={includeClips}
-                                onCheckedChange={(checked) => setIncludeClips(Boolean(checked))}
-                            />
+                            <Checkbox id="includeClips" checked={includeClips} onCheckedChange={(checked) => setIncludeClips(Boolean(checked))}/>
                             <Label htmlFor="includeClips">Incluir Clips (para Deck)</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="includeSleepers"
-                                checked={includeSleepers}
-                                onCheckedChange={(checked) => setIncludeSleepers(Boolean(checked))}
-                            />
+                            <Checkbox id="includeSleepers" checked={includeSleepers} onCheckedChange={(checked) => setIncludeSleepers(Boolean(checked))}/>
                             <Label htmlFor="includeSleepers">Incluir Durmientes (para Deck)</Label>
                         </div>
                     </>
@@ -404,19 +498,11 @@ export default function StarwoodCalculatorPage() {
                  {selectedProductIsListon && (
                     <>
                         <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="includeAdhesive"
-                                checked={includeAdhesive}
-                                onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))}
-                            />
+                            <Checkbox id="includeAdhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))}/>
                             <Label htmlFor="includeAdhesive">Incluir Adhesivo (para Listones)</Label>
                         </div>
                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="includeSealant"
-                                checked={includeSealant}
-                                onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))}
-                            />
+                            <Checkbox id="includeSealant" checked={includeSealant} onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))}/>
                             <Label htmlFor="includeSealant">Incluir Sellante (para Listones)</Label>
                         </div>
                     </>
@@ -541,7 +627,40 @@ export default function StarwoodCalculatorPage() {
                   <span className="text-muted-foreground">IVA (19%)</span>
                   <span>{formatCurrency(quote.iva)}</span>
                 </div>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="labor-cost" className="text-muted-foreground">Costo Mano de Obra</Label>
+                  <Input id="labor-cost" type="text" value={formatCurrency(laborCost)} onChange={(e) => handleCurrencyInputChange(setLaborCost)(e)} className="w-32 h-8 text-right" placeholder="0"/>
+                </div>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="transport-cost" className="text-muted-foreground">Costo Transporte</Label>
+                  <Input id="transport-cost" type="text" value={formatCurrency(transportationCost)} onChange={(e) => handleCurrencyInputChange(setTransportationCost)(e)} className="w-32 h-8 text-right" placeholder="0"/>
+                </div>
               </div>
+              
+               <Separator />
+                <div className="space-y-4">
+                    <div>
+                        <h4 className="text-sm font-medium mb-2">Términos Comerciales</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-1">
+                                <Label htmlFor="delivery-terms">Despacho</Label>
+                                <Input id="delivery-terms" value={deliveryTerms} onChange={e => setDeliveryTerms(e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="payment-terms">Forma de Pago</Label>
+                                <Input id="payment-terms" value={paymentTerms} onChange={e => setPaymentTerms(e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor="offer-validity">Validez de la Oferta</Label>
+                                <Input id="offer-validity" value={offerValidity} onChange={e => setOfferValidity(e.target.value)} />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="notes">Notas Adicionales</Label>
+                        <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Especifique cualquier detalle o condición..."/>
+                    </div>
+                </div>
 
               <Separator />
               
