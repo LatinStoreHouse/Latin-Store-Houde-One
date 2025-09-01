@@ -136,12 +136,15 @@ export const roles: RoleConfig[] = [
             'dashboard:view',
             'inventory:view',
             'customers:view',
+            'customers:create',
             'customers:edit',
             'calculators:use',
             'pricing:view',
             'advisor:use',
             'distributors:view',
-            'distributors:manage'
+            'distributors:manage',
+            'purchasing:suggestions:create',
+            'purchasing:suggestions:view'
         ]
     },
     {

@@ -41,7 +41,7 @@ import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Customer, CustomerStatus, statusColors, customerStatuses, customerSources } from '@/lib/customers';
+import { Customer, CustomerStatus, statusColors, customerStatuses, customerSources, initialCustomerData } from '@/lib/customers';
 import { Role, roles } from '@/lib/roles';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -52,7 +52,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Combobox } from '@/components/ui/combobox';
-import { initialCustomerData } from '@/lib/customers';
+
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -420,6 +420,10 @@ export default function CustomersPage() {
           <TableBody>
             {filteredCustomers.map((customer) => {
               const Icon = sourceIcons[customer.source];
+              const isOwner = currentUser.name === customer.assignedTo;
+              const isAdmin = currentUser.roles.includes('Administrador');
+              const canEditThisCustomer = isOwner || isAdmin;
+
               return (
               <TableRow key={customer.id} data-state={selectedCustomers.includes(customer.id) ? "selected" : ""}>
                 <TableCell className="p-2">
@@ -485,7 +489,7 @@ export default function CustomersPage() {
                         </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleOpenModal(customer)}>
+                        <DropdownMenuItem onClick={() => handleOpenModal(customer)} disabled={!canEditThisCustomer}>
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                         </DropdownMenuItem>
@@ -564,7 +568,7 @@ export default function CustomersPage() {
                   Seleccione un distribuidor y agregue una nota para el cliente <span className="font-semibold">{selectedCustomer?.name}</span>.
                 </DialogDescription>
             </DialogHeader>
-            <div className="py-4 space-y-4">
+            <div className="space-y-4 py-4">
                 <div className="space-y-2">
                     <Label>Distribuidor</Label>
                     <Combobox
