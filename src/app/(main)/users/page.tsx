@@ -48,7 +48,7 @@ const initialUsers: User[] = [
   { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false },
   { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', roles: ['Logística'], avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true },
   { id: '5', name: 'Carlos Ruiz', email: 'carlos.r@example.com', roles: ['Contador'], avatar: 'https://placehold.co/40x40/f44336/ffffff.png', active: true },
-  { id: '6', name: 'Laura Diaz', email: 'laura.d@example.com', roles: ['Asesor de Distribuidores'], avatar: 'https://placehold.co/40x40/4CAF50/ffffff.png', active: true },
+  { id: '6', name: 'Laura Diaz', email: 'laura.d@example.com', roles: ['Líder de Asesores'], avatar: 'https://placehold.co/40x40/4CAF50/ffffff.png', active: true },
 ];
 
 export default function UsersPage() {
@@ -96,7 +96,7 @@ export default function UsersPage() {
       switch(role.name) {
           case 'Administrador': return 'destructive';
           case 'Asesor de Ventas': return 'default';
-          case 'Asesor de Distribuidores': return 'default';
+          case 'Líder de Asesores': return 'default';
           case 'Contador': return 'outline';
           case 'Logística': return 'secondary';
           case 'Marketing': return 'secondary';

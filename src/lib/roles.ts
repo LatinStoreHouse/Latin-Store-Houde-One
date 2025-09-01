@@ -51,7 +51,7 @@ export type Permission =
   'distributors:view' |
   'distributors:manage';
 
-export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor' | 'Asesor de Distribuidores';
+export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor' | 'Líder de Asesores';
 
 export interface RoleConfig {
     id: string;
@@ -131,7 +131,7 @@ export const roles: RoleConfig[] = [
     },
     {
         id: 'distributor_advisor',
-        name: 'Asesor de Distribuidores',
+        name: 'Líder de Asesores',
         permissions: [
             'dashboard:view',
             'inventory:view',
