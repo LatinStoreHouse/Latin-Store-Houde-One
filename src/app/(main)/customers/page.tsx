@@ -5,7 +5,6 @@ import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import Image from 'next/image';
 import {
   Table,
   TableBody,
@@ -52,14 +51,14 @@ import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Combobox } from '@/components/ui/combobox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
   Instagram: Instagram,
   Email: Mail,
   WhatsApp: MessageSquare,
-  'Sitio Web': () => <Image src="/imagenes/logos/Logo-ONE-negro.png" alt="Sitio Web" width={16} height={16} />,
+  'Sitio Web': Globe,
   'Referido': UserPlus
 };
 
@@ -567,14 +566,16 @@ export default function CustomersPage() {
             <div className="py-4 space-y-4">
                 <div className="space-y-2">
                     <Label>Distribuidor</Label>
-                    <Combobox
-                        options={distributors}
-                        value={selectedDistributor}
-                        onValueChange={setSelectedDistributor}
-                        placeholder="Seleccione un distribuidor"
-                        searchPlaceholder='Buscando...'
-                        emptyPlaceholder='No se encontraron distribuidores.'
-                    />
+                    <Select value={selectedDistributor} onValueChange={setSelectedDistributor}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Seleccione un distribuidor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {distributors.map(d => (
+                                <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div className="space-y-2">
                     <Label>Nota de Redirección (Opcional)</Label>
