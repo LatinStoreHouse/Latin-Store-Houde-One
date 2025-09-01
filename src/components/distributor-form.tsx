@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from './ui/textarea';
-import { Combobox } from './ui/combobox';
 import { Distributor } from '@/lib/distributors';
 import { Switch } from './ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface DistributorFormProps {
   distributor?: Distributor;
@@ -99,22 +99,25 @@ export function DistributorForm({ distributor, onSave, onCancel }: DistributorFo
        <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="country">País</Label>
-                <Combobox
-                    options={countryOptions}
-                    value={country}
-                    onValueChange={setCountry}
-                />
+                <Select value={country} onValueChange={setCountry}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Seleccione un país" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {countryOptions.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="city">Ciudad</Label>
-                <Combobox
-                    options={colombianCities}
-                    value={city}
-                    onValueChange={setCity}
-                    placeholder="Seleccione una ciudad"
-                    searchPlaceholder="Buscar ciudad..."
-                    emptyPlaceholder="No se encontró ciudad."
-                />
+                 <Select value={city} onValueChange={setCity}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Seleccione una ciudad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {colombianCities.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
             </div>
             <div className="space-y-2 col-span-2">
                 <Label htmlFor="address">Dirección</Label>

@@ -42,7 +42,7 @@ import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { initialCustomerData, Customer, CustomerStatus, statusColors, customerStatuses, customerSources } from '@/lib/customers';
+import { Customer, CustomerStatus, statusColors, customerStatuses, customerSources } from '@/lib/customers';
 import { Role, roles } from '@/lib/roles';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -50,9 +50,9 @@ import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Combobox } from '@/components/ui/combobox';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -567,14 +567,16 @@ export default function CustomersPage() {
             <div className="py-4 space-y-4">
                 <div className="space-y-2">
                     <Label>Distribuidor</Label>
-                    <Combobox
-                        options={distributors}
-                        value={selectedDistributor}
-                        onValueChange={setSelectedDistributor}
-                        placeholder="Seleccione un distribuidor"
-                        searchPlaceholder="Buscar distribuidor..."
-                        emptyPlaceholder="No se encontró distribuidor."
-                    />
+                    <Select value={selectedDistributor} onValueChange={setSelectedDistributor}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Seleccione un distribuidor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {distributors.map(d => (
+                                <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div className="space-y-2">
                     <Label>Nota de Redirección (Opcional)</Label>
