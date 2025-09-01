@@ -42,7 +42,7 @@ import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { initialCustomerData, Customer, CustomerStatus, statusColors, customerSources, customerStatuses } from '@/lib/customers';
+import { initialCustomerData, Customer, CustomerStatus, statusColors, customerStatuses } from '@/lib/customers';
 import { Role, roles } from '@/lib/roles';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -410,11 +410,11 @@ export default function CustomersPage() {
                 />
               </TableHead>
               <TableHead className="p-2">Cliente</TableHead>
-              <TableHead className="p-2">Fuente</TableHead>
-              <TableHead className="p-2">Asesor Asignado</TableHead>
-              <TableHead className="p-2">Fecha Reg.</TableHead>
-              <TableHead className="p-2">Estado</TableHead>
-              {canEditCustomers && <TableHead className="text-right p-2">Acciones</TableHead>}
+              <TableHead className="p-2 text-center">Fuente</TableHead>
+              <TableHead className="p-2 text-center">Asesor Asignado</TableHead>
+              <TableHead className="p-2 text-center">Fecha Reg.</TableHead>
+              <TableHead className="p-2 text-center">Estado</TableHead>
+              {canEditCustomers && <TableHead className="text-center p-2">Acciones</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -450,15 +450,15 @@ export default function CustomersPage() {
                     {customer.city}
                   </div>
                 </TableCell>
-                <TableCell className="p-2">
-                  <Badge variant="outline" className="flex w-fit items-center gap-2">
+                <TableCell className="p-2 text-center">
+                  <Badge variant="outline" className="flex w-fit items-center gap-2 mx-auto">
                     <Icon />
                     {customer.source}
                   </Badge>
                 </TableCell>
-                <TableCell className="p-2">{customer.assignedTo}</TableCell>
-                <TableCell className="p-2">{customer.registrationDate}</TableCell>
-                <TableCell className="p-2">
+                <TableCell className="p-2 text-center">{customer.assignedTo}</TableCell>
+                <TableCell className="p-2 text-center">{customer.registrationDate}</TableCell>
+                <TableCell className="p-2 text-center">
                   {customer.status === 'Redireccionado' && customer.notes ? (
                     <Tooltip>
                         <TooltipTrigger>
@@ -477,7 +477,7 @@ export default function CustomersPage() {
                   )}
                 </TableCell>
                 {canEditCustomers && (
-                    <TableCell className="text-right p-2">
+                    <TableCell className="text-center p-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
