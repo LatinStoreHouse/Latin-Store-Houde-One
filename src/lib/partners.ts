@@ -12,7 +12,7 @@ export interface Partner {
   status: 'Activo' | 'Inactivo';
   type: 'Partner' | 'Distribuidor';
   notes?: string;
-  commissionPercentage?: number;
+  baseAmount?: number;
   startDate?: string;
   contractNotes?: string;
 }
@@ -31,7 +31,7 @@ export const initialPartnerData: Partner[] = [
     status: 'Activo',
     type: 'Partner',
     notes: 'Partner estratégico para proyectos de gran escala.',
-    commissionPercentage: 10,
+    baseAmount: 1000000,
     startDate: '2023-01-15',
     contractNotes: 'Contrato estándar, renovación anual automática.'
   },
@@ -48,7 +48,7 @@ export const initialPartnerData: Partner[] = [
     status: 'Activo',
     type: 'Partner',
     notes: 'Especializados en diseño residencial de lujo.',
-    commissionPercentage: 12,
+    baseAmount: 500000,
     startDate: '2022-11-01',
   }
 ];
