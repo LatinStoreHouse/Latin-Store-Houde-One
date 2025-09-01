@@ -9,6 +9,7 @@ import { Partner } from '@/lib/partners';
 import { Switch } from './ui/switch';
 import { Combobox } from './ui/combobox';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { LocationCombobox } from './location-combobox';
 
 interface PartnerFormProps {
   partner?: Partner;
@@ -37,6 +38,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
   const [type, setType] = useState<'Partner' | 'Distribuidor'>('Distribuidor');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [location, setLocation] = useState<{ lat: number; lng: number; address: string; } | null>(null);
 
   useEffect(() => {
     if (partner) {
@@ -51,6 +53,9 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setStatus(partner.status);
       setType(partner.type);
       setNotes(partner.notes || '');
+      if (partner.address) {
+        setLocation({ address: partner.address, lat: 0, lng: 0});
+      }
     } else {
       // Reset form for new
       setName('');
@@ -64,6 +69,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setStatus('Activo');
       setType('Distribuidor');
       setNotes('');
+      setLocation(null);
     }
     setError(null);
   }, [partner]);
@@ -75,8 +81,36 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       return;
     }
     setError(null);
-    onSave({ name, taxId, contactName, phone, email, address, city, country, status, type, notes });
+    onSave({ 
+        name, 
+        taxId, 
+        contactName, 
+        phone, 
+        email, 
+        address: location?.address || address, 
+        city: location ? location.address.split(',').slice(-2, -1)[0]?.trim() || city : city, 
+        country, 
+        status, 
+        type, 
+        notes 
+    });
   };
+
+  const handleLocationChange = (newLocation: { lat: number; lng: number; address: string } | null) => {
+    setLocation(newLocation);
+    if (newLocation) {
+        setAddress(newLocation.address);
+        const cityPart = newLocation.address.split(',').slice(-2, -1)[0]?.trim();
+        const countryPart = newLocation.address.split(',').pop()?.trim();
+        setCity(cityPart || '');
+        if (countryPart) {
+          const matchingCountry = countryOptions.find(c => c.label.toLowerCase() === countryPart.toLowerCase());
+          if (matchingCountry) {
+            setCountry(matchingCountry.value);
+          }
+        }
+    }
+  }
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto p-1">
@@ -116,20 +150,16 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
         </div>
       </div>
       {error && <p className="text-sm text-destructive -mt-2 text-center">{error}</p>}
-       <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 col-span-2">
-                <Label htmlFor="city">Ciudad / País</Label>
-                 <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ej: Bogotá, Colombia" />
-            </div>
-            <div className="space-y-2 col-span-2">
-                <Label htmlFor="address">Dirección</Label>
-                <Input 
-                    id="address" 
-                    value={address} 
-                    onChange={(e) => setAddress(e.target.value)}
-                />
-            </div>
+       
+       <div className="space-y-2">
+            <Label htmlFor="location">Dirección / Ciudad</Label>
+             <LocationCombobox
+                value={location}
+                onChange={handleLocationChange}
+                city={city}
+            />
        </div>
+
        <div className="space-y-2">
             <Label htmlFor="notes">Notas Internas</Label>
             <Textarea
