@@ -52,10 +52,10 @@ import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
-const sourceIcons: { [key: string]: React.ElementType | React.ReactNode } = {
+const sourceIcons: { [key: string]: React.ElementType } = {
   Instagram: Instagram,
   Email: Mail,
-  WhatsApp: <Image src="/imagenes/logos/Logo Whatsapp.svg" alt="WhatsApp" width={16} height={16} />,
+  WhatsApp: () => <Image src="/imagenes/logos/Logo Whatsapp.svg" alt="WhatsApp" width={16} height={16} />,
   'Sitio Web': () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>,
   'Referido': UserPlus
 };
@@ -385,7 +385,9 @@ export default function CustomersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCustomers.map((customer) => (
+            {filteredCustomers.map((customer) => {
+              const Icon = sourceIcons[customer.source];
+              return (
               <TableRow key={customer.id} data-state={selectedCustomers.includes(customer.id) ? "selected" : ""}>
                 <TableCell className="p-2">
                     <Checkbox 
@@ -419,7 +421,7 @@ export default function CustomersPage() {
                 </TableCell>
                 <TableCell className="p-2">
                   <Badge variant="outline" className="flex w-fit items-center gap-2">
-                    {typeof sourceIcons[customer.source] === 'function' ? React.createElement(sourceIcons[customer.source] as React.ElementType) : sourceIcons[customer.source]}
+                    {Icon && <Icon />}
                     {customer.source}
                   </Badge>
                 </TableCell>
@@ -482,7 +484,7 @@ export default function CustomersPage() {
                     </TableCell>
                 )}
               </TableRow>
-            ))}
+            )})}
           </TableBody>
         </Table>
       </CardContent>
@@ -512,4 +514,3 @@ export default function CustomersPage() {
     
 
     
-
