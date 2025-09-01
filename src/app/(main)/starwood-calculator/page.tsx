@@ -80,6 +80,8 @@ export default function StarwoodCalculatorPage() {
 
   const [includeClips, setIncludeClips] = useState(true);
   const [includeSleepers, setIncludeSleepers] = useState(true);
+  const [includeAdhesive, setIncludeAdhesive] = useState(true);
+  const [includeSealant, setIncludeSealant] = useState(true);
 
   const productOptions = useMemo(() => {
     return starwoodProducts.map(ref => ({ value: ref, label: ref }));
@@ -139,6 +141,7 @@ export default function StarwoodCalculatorPage() {
   const calculateQuote = () => {
     let subtotal = 0;
     let totalDeckSqm = 0;
+    let totalListonUnits = 0;
 
     const detailedItems = quoteItems.map(item => {
       const price = productPrices[item.reference as keyof typeof productPrices];
@@ -150,6 +153,9 @@ export default function StarwoodCalculatorPage() {
       }
       if (item.reference.toLowerCase().includes('deck')) {
           totalDeckSqm += item.sqMeters || 0;
+      }
+      if (item.reference.toLowerCase().includes('liston')) {
+          totalListonUnits += item.units;
       }
       
       return { 
@@ -163,6 +169,10 @@ export default function StarwoodCalculatorPage() {
     let sleepersCost = 0;
     let clipCount = 0;
     let sleeperCount = 0;
+    let adhesiveCost = 0;
+    let sealantCost = 0;
+    let adhesiveCount = 0;
+    let sealantCount = 0;
 
     if (totalDeckSqm > 0) {
         if (includeClips) {
@@ -177,6 +187,21 @@ export default function StarwoodCalculatorPage() {
             const sleeperPrice = productPrices['Durmiente plastico 3x3'] || 0;
             sleepersCost = sleeperCount * sleeperPrice;
             subtotal += sleepersCost;
+        }
+    }
+
+    if (totalListonUnits > 0) {
+        if (includeAdhesive) {
+            adhesiveCount = Math.ceil(totalListonUnits / 8);
+            const adhesivePrice = productPrices['Adhesivo'] || 0;
+            adhesiveCost = adhesiveCount * adhesivePrice;
+            subtotal += adhesiveCost;
+        }
+        if (includeSealant) {
+            sealantCount = Math.ceil(totalListonUnits / 30);
+            const sealantPrice = productPrices['Sellante wpc 1/4 galon'] || 0;
+            sealantCost = sealantCount * sealantPrice;
+            subtotal += sealantCost;
         }
     }
 
@@ -195,6 +220,8 @@ export default function StarwoodCalculatorPage() {
       total: total,
       clips: { count: clipCount, cost: clipsCost, price: productPrices['Clip plastico para deck wpc'] || 0 },
       sleepers: { count: sleeperCount, cost: sleepersCost, price: productPrices['Durmiente plastico 3x3'] || 0 },
+      adhesives: { count: adhesiveCount, cost: adhesiveCost, price: productPrices['Adhesivo'] || 0 },
+      sealants: { count: sealantCount, cost: sealantCost, price: productPrices['Sellante wpc 1/4 galon'] || 0 },
       creationDate: creationDate.toLocaleDateString('es-CO'),
       expiryDate: expiryDate.toLocaleDateString('es-CO'),
     };
@@ -233,6 +260,12 @@ export default function StarwoodCalculatorPage() {
     }
     if (quote.sleepers.count > 0) {
         tableBody.push(['Durmiente plastico 3x3', quote.sleepers.count, formatCurrency(quote.sleepers.price), formatCurrency(quote.sleepers.cost)]);
+    }
+    if (quote.adhesives.count > 0) {
+        tableBody.push(['Adhesivo', quote.adhesives.count, formatCurrency(quote.adhesives.price), formatCurrency(quote.adhesives.cost)]);
+    }
+    if (quote.sealants.count > 0) {
+        tableBody.push(['Sellante wpc 1/4 galon', quote.sealants.count, formatCurrency(quote.sealants.price), formatCurrency(quote.sealants.cost)]);
     }
 
 
@@ -276,6 +309,14 @@ export default function StarwoodCalculatorPage() {
      if (quote.sleepers.count > 0) {
         message += `*Insumo: Durmiente plastico 3x3*\n`;
         message += `- ${quote.sleepers.count} unidades (Calculado para la instalación)\n\n`;
+    }
+    if (quote.adhesives.count > 0) {
+        message += `*Insumo: Adhesivo*\n`;
+        message += `- ${quote.adhesives.count} unidades (Calculado para la instalación)\n\n`;
+    }
+    if (quote.sealants.count > 0) {
+        message += `*Insumo: Sellante wpc 1/4 galon*\n`;
+        message += `- ${quote.sealants.count} unidades (Calculado para la instalación)\n\n`;
     }
 
     message += `*Desglose de Costos (COP):*\n`;
@@ -337,14 +378,14 @@ export default function StarwoodCalculatorPage() {
                     Agregar
                   </Button>
               </div>
-              <div className="mt-4 flex items-center space-x-6">
+              <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
                 <div className="flex items-center space-x-2">
                     <Checkbox
                         id="includeClips"
                         checked={includeClips}
                         onCheckedChange={(checked) => setIncludeClips(Boolean(checked))}
                     />
-                    <Label htmlFor="includeClips">Incluir Clips (Automático)</Label>
+                    <Label htmlFor="includeClips">Incluir Clips (para Deck)</Label>
                 </div>
                  <div className="flex items-center space-x-2">
                     <Checkbox
@@ -352,7 +393,23 @@ export default function StarwoodCalculatorPage() {
                         checked={includeSleepers}
                         onCheckedChange={(checked) => setIncludeSleepers(Boolean(checked))}
                     />
-                    <Label htmlFor="includeSleepers">Incluir Durmientes (Automático)</Label>
+                    <Label htmlFor="includeSleepers">Incluir Durmientes (para Deck)</Label>
+                </div>
+                 <div className="flex items-center space-x-2">
+                    <Checkbox
+                        id="includeAdhesive"
+                        checked={includeAdhesive}
+                        onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))}
+                    />
+                    <Label htmlFor="includeAdhesive">Incluir Adhesivo (para Listones)</Label>
+                </div>
+                 <div className="flex items-center space-x-2">
+                    <Checkbox
+                        id="includeSealant"
+                        checked={includeSealant}
+                        onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))}
+                    />
+                    <Label htmlFor="includeSealant">Incluir Sellante (para Listones)</Label>
                 </div>
               </div>
           </div>
@@ -418,7 +475,7 @@ export default function StarwoodCalculatorPage() {
                 ))}
               </div>
 
-              {(quote.clips.count > 0 || quote.sleepers.count > 0) && (
+              {(quote.clips.count > 0 || quote.sleepers.count > 0 || quote.adhesives.count > 0 || quote.sealants.count > 0) && (
                 <>
                 <Separator />
                 <div className="space-y-2">
@@ -439,6 +496,24 @@ export default function StarwoodCalculatorPage() {
                                 <p className="text-sm text-muted-foreground">{quote.sleepers.count} unidades</p>
                             </div>
                             <p className="font-medium">{formatCurrency(quote.sleepers.cost)}</p>
+                        </div>
+                    )}
+                    {quote.adhesives.count > 0 && (
+                        <div className="flex justify-between items-center p-3 rounded-md bg-background">
+                            <div>
+                                <p className="font-semibold">Adhesivo</p>
+                                <p className="text-sm text-muted-foreground">{quote.adhesives.count} unidades</p>
+                            </div>
+                            <p className="font-medium">{formatCurrency(quote.adhesives.cost)}</p>
+                        </div>
+                    )}
+                    {quote.sealants.count > 0 && (
+                        <div className="flex justify-between items-center p-3 rounded-md bg-background">
+                            <div>
+                                <p className="font-semibold">Sellante wpc 1/4 galon</p>
+                                <p className="text-sm text-muted-foreground">{quote.sealants.count} unidades</p>
+                            </div>
+                            <p className="font-medium">{formatCurrency(quote.sealants.cost)}</p>
                         </div>
                     )}
                 </div>
