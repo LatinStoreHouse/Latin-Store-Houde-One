@@ -188,6 +188,7 @@ export default function PartnersPage() {
                 <TableCell className="font-medium">{partner.name}</TableCell>
                 <TableCell>
                   <div>{partner.contactName}</div>
+                  <div className="text-sm text-muted-foreground">NIT/Cédula: {partner.taxId}</div>
                   <div className="text-sm text-muted-foreground">{partner.email}</div>
                   <div className="text-sm text-muted-foreground">{partner.phone}</div>
                 </TableCell>

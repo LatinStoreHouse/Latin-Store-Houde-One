@@ -2,6 +2,7 @@
 export interface Partner {
   id: string;
   name: string;
+  taxId: string;
   contactName: string;
   phone: string;
   email: string;
@@ -17,6 +18,7 @@ export const initialPartnerData: Partner[] = [
   {
     id: 'PART-001',
     name: 'Constructora Capital',
+    taxId: '800.111.222-3',
     contactName: 'Sofia Vergara',
     phone: '3209876543',
     email: 'sofia.v@constructoracapital.com',
@@ -30,6 +32,7 @@ export const initialPartnerData: Partner[] = [
   {
     id: 'PART-002',
     name: 'Diseño Interior Pro',
+    taxId: '800.333.444-5',
     contactName: 'Andres Morales',
     phone: '3181239876',
     email: 'andres.m@disenopro.co',

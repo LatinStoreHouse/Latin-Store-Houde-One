@@ -30,6 +30,7 @@ const colombianCities = [
 
 export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps) {
   const [name, setName] = useState('');
+  const [taxId, setTaxId] = useState('');
   const [contactName, setContactName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -44,6 +45,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
   useEffect(() => {
     if (partner) {
       setName(partner.name);
+      setTaxId(partner.taxId);
       setContactName(partner.contactName);
       setPhone(partner.phone);
       setEmail(partner.email);
@@ -56,6 +58,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
     } else {
       // Reset form for new
       setName('');
+      setTaxId('');
       setContactName('');
       setPhone('');
       setEmail('');
@@ -71,12 +74,12 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !contactName || !phone || !email) {
-      setError('Nombre, Contacto, Teléfono y Email son campos requeridos.');
+    if (!name || !contactName || !phone || !email || !taxId) {
+      setError('Nombre, Contacto, Teléfono, Email y NIT/Cédula son campos requeridos.');
       return;
     }
     setError(null);
-    onSave({ name, contactName, phone, email, address, city, country, status, type, notes });
+    onSave({ name, taxId, contactName, phone, email, address, city, country, status, type, notes });
   };
 
   return (
@@ -95,9 +98,13 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
               </RadioGroup>
         </div>
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2 col-span-2">
+        <div className="space-y-2">
             <Label htmlFor="name">Nombre del Socio</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="taxId">NIT / Cédula</Label>
+            <Input id="taxId" value={taxId} onChange={(e) => setTaxId(e.target.value)} required />
         </div>
         <div className="space-y-2">
             <Label htmlFor="contactName">Nombre del Contacto</Label>
