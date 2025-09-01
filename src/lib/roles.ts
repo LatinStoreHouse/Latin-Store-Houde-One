@@ -48,7 +48,7 @@ export type Permission =
   'purchasing:suggestions:view' |
   'purchasing:suggestions:create';
 
-export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor';
+export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor' | 'Asesor de Distribuidores';
 
 export interface RoleConfig {
     id: string;
@@ -122,6 +122,19 @@ export const roles: RoleConfig[] = [
             'reservations:create',
             'purchasing:suggestions:view',
             'purchasing:suggestions:create'
+        ]
+    },
+    {
+        id: 'distributor_advisor',
+        name: 'Asesor de Distribuidores',
+        permissions: [
+            'dashboard:view',
+            'inventory:view',
+            'customers:view',
+            'customers:edit',
+            'calculators:use',
+            'pricing:view',
+            'advisor:use',
         ]
     },
     {

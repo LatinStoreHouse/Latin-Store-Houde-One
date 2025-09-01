@@ -36,7 +36,7 @@ import {
   DropdownMenuSubTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, MapPin, Calculator, StickyNote, BarChart, Download, DollarSign } from 'lucide-react';
+import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, MapPin, Calculator, StickyNote, BarChart, Download, DollarSign, Share2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -50,24 +50,31 @@ import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { useUser } from '@/app/(main)/layout';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Combobox } from '@/components/ui/combobox';
+import { Textarea } from '@/components/ui/textarea';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
   Instagram: Instagram,
   Email: Mail,
   WhatsApp: MessageSquare,
-  'Sitio Web': () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>,
+  'Sitio Web': () => <Image src="/imagenes/logos/Logo-ONE-negro.png" alt="Sitio Web" width={16} height={16} />,
   'Referido': UserPlus
 };
 
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones'];
+const distributors = [{ value: 'dist-1', label: 'Distribuidor Bogotá' }, { value: 'dist-2', label: 'Distribuidor Cali' }, { value: 'dist-3', label: 'Distribuidor Medellín' }];
+
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomerData);
   const [searchTerm, setSearchTerm] = useState('');
   const [date, setDate] = useState<DateRange | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined);
+  const [selectedDistributor, setSelectedDistributor] = useState('');
+  const [redirectNotes, setRedirectNotes] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [sourceFilter, setSourceFilter] = useState<string[]>([]);
   const [advisorFilter, setAdvisorFilter] = useState<string[]>([]);
@@ -129,6 +136,11 @@ export default function CustomersPage() {
     setSelectedCustomer(customer);
     setIsModalOpen(true);
   };
+
+  const handleOpenRedirectModal = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsRedirectModalOpen(true);
+  };
   
   const handleSaveCustomer = (customerData: Omit<Customer, 'id' | 'registrationDate'>) => {
     if (!customerData.phone && !customerData.email) {
@@ -156,6 +168,26 @@ export default function CustomersPage() {
       toast({ title: 'Cliente Agregado', description: 'El nuevo cliente se ha guardado.' });
     }
     setIsModalOpen(false);
+  };
+
+  const handleRedirectCustomer = () => {
+    if (!selectedCustomer || !selectedDistributor) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione un distribuidor.' });
+      return;
+    }
+    const distributorName = distributors.find(d => d.value === selectedDistributor)?.label;
+    const newNote = `Cliente redireccionado a ${distributorName}. Nota: ${redirectNotes}`;
+
+    setCustomers(customers.map(c => c.id === selectedCustomer.id ? { 
+        ...c, 
+        status: 'Redireccionado', 
+        notes: c.notes ? `${c.notes}\n---\n${newNote}` : newNote 
+    } : c));
+
+    toast({ title: 'Cliente Redireccionado', description: `${selectedCustomer.name} ha sido redireccionado y el estado actualizado.` });
+    setIsRedirectModalOpen(false);
+    setRedirectNotes('');
+    setSelectedDistributor('');
   };
   
   const handleDeleteCustomer = (id: number) => {
@@ -421,7 +453,7 @@ export default function CustomersPage() {
                 </TableCell>
                 <TableCell className="p-2">
                   <Badge variant="outline" className="flex w-fit items-center gap-2">
-                    {Icon && <Icon />}
+                    <Icon />
                     {customer.source}
                   </Badge>
                 </TableCell>
@@ -447,6 +479,12 @@ export default function CustomersPage() {
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                         </DropdownMenuItem>
+                         {currentUserRole === 'Asesor de Distribuidores' && (
+                            <DropdownMenuItem onClick={() => handleOpenRedirectModal(customer)}>
+                                <Share2 className="mr-2 h-4 w-4" />
+                                Redireccionar a Distribuidor
+                            </DropdownMenuItem>
+                        )}
                         {canCreateDispatch && (
                             <DropdownMenuItem onClick={() => handleCreateDispatch(customer)}>
                             <Truck className="mr-2 h-4 w-4" />
@@ -507,11 +545,43 @@ export default function CustomersPage() {
             />
         </DialogContent>
     </Dialog>
+
+     <Dialog open={isRedirectModalOpen} onOpenChange={setIsRedirectModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Redireccionar Cliente a Distribuidor</DialogTitle>
+                <DialogDescription>
+                  Seleccione un distribuidor y agregue una nota para el cliente <span className="font-semibold">{selectedCustomer?.name}</span>.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+                <div className="space-y-2">
+                    <Label>Distribuidor</Label>
+                    <Combobox
+                        options={distributors}
+                        value={selectedDistributor}
+                        onValueChange={setSelectedDistributor}
+                        placeholder="Seleccione un distribuidor"
+                        searchPlaceholder="Buscar distribuidor..."
+                        emptyPlaceholder="No se encontró distribuidor."
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label>Nota de Redirección (Opcional)</Label>
+                    <Textarea 
+                        value={redirectNotes}
+                        onChange={(e) => setRedirectNotes(e.target.value)}
+                        placeholder="Ej: Cliente interesado en compra al por mayor..."
+                    />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setIsRedirectModalOpen(false)}>Cancelar</Button>
+                <Button onClick={handleRedirectCustomer}>Redireccionar Cliente</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
     
     </>
   );
 }
-    
-
-    
-
