@@ -1,14 +1,21 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import ReCAPTCHA from 'react-google-recaptcha';
 import { AlertCircle } from 'lucide-react';
+import Script from 'next/script';
+
+declare global {
+    interface Window {
+        grecaptcha: any;
+        onloadCallback: () => void;
+    }
+}
 
 export function RegisterForm() {
   const [password, setPassword] = useState('');
@@ -16,14 +23,26 @@ export function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const router = useRouter();
+  const recaptchaRef = useRef<HTMLDivElement>(null);
 
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
-  const handleRecaptchaChange = (value: string | null) => {
-    if (value) {
-      setIsVerified(true);
+  useEffect(() => {
+    window.onloadCallback = () => {
+      if (window.grecaptcha && recaptchaRef.current) {
+        window.grecaptcha.render(recaptchaRef.current, {
+          sitekey: siteKey!,
+          callback: () => setIsVerified(true),
+        });
+      }
+    };
+
+    return () => {
+        // Clean up the callback
+        delete window.onloadCallback;
     }
-  };
+  }, [siteKey]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +67,13 @@ export function RegisterForm() {
   };
 
   return (
+    <>
+    {siteKey && (
+        <Script 
+            src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" 
+            strategy="afterInteractive" 
+        />
+    )}
     <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
             <Label htmlFor="fullname">Nombre Completo</Label>
@@ -79,12 +105,7 @@ export function RegisterForm() {
         </div>
 
         {siteKey ? (
-            <div className="flex justify-center">
-                <ReCAPTCHA
-                    sitekey={siteKey}
-                    onChange={handleRecaptchaChange}
-                />
-            </div>
+            <div ref={recaptchaRef} className="flex justify-center"></div>
         ) : (
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -111,5 +132,6 @@ export function RegisterForm() {
         </Link>
       </div>
     </form>
+    </>
   );
 }
