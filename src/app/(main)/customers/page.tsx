@@ -260,7 +260,7 @@ export default function CustomersPage() {
   const areFiltersActive = sourceFilter.length > 0 || advisorFilter.length > 0 || statusFilter.length > 0 || date !== undefined;
 
   return (
-    <>
+    <TooltipProvider>
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -433,16 +433,14 @@ export default function CustomersPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{customer.name}</span>
                     {canEditNotes && customer.notes && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <StickyNote className="h-4 w-4 text-muted-foreground" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">{customer.notes}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <StickyNote className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">{customer.notes}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     )}
                   </div>
                   <div className="text-sm text-muted-foreground">{customer.email}</div>
@@ -461,11 +459,22 @@ export default function CustomersPage() {
                 <TableCell className="p-2">{customer.assignedTo}</TableCell>
                 <TableCell className="p-2">{customer.registrationDate}</TableCell>
                 <TableCell className="p-2">
-                  <Badge
-                     className={cn("border", statusColors[customer.status])}
-                  >
-                    {customer.status}
-                  </Badge>
+                  {customer.status === 'Redireccionado' && customer.notes ? (
+                    <Tooltip>
+                        <TooltipTrigger>
+                           <Badge className={cn("border cursor-help", statusColors[customer.status])}>
+                                {customer.status}
+                           </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           <p className="max-w-xs">{customer.notes}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <Badge className={cn("border", statusColors[customer.status])}>
+                        {customer.status}
+                    </Badge>
+                  )}
                 </TableCell>
                 {canEditCustomers && (
                     <TableCell className="text-right p-2">
@@ -583,6 +592,6 @@ export default function CustomersPage() {
         </DialogContent>
     </Dialog>
     
-    </>
+    </TooltipProvider>
   );
 }
