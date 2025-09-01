@@ -1,7 +1,7 @@
 
 'use client';
-import React, { useState } from 'react';
-import { APIProvider, Map, useMapsLibrary, useMap } from '@vis.gl/react-google-maps';
+import React, { useState, useEffect } from 'react';
+import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Input } from './ui/input';
 
 interface LocationComboboxProps {
@@ -14,7 +14,7 @@ const Autocomplete = ({ onPlaceSelect, initialValue }: LocationComboboxProps) =>
     const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
     const inputRef = React.useRef<HTMLInputElement>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!places || !inputRef.current) return;
 
         const autocompleteInstance = new places.Autocomplete(inputRef.current, {
@@ -36,9 +36,26 @@ const Autocomplete = ({ onPlaceSelect, initialValue }: LocationComboboxProps) =>
 
 export function LocationCombobox(props: LocationComboboxProps) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    const [hasError, setHasError] = useState(false);
 
-    if (!apiKey) {
-        console.error("Google Maps API key is not configured. Falling back to text input.");
+    useEffect(() => {
+        const originalError = console.error;
+        console.error = (...args) => {
+            if (typeof args[0] === 'string' && args[0].includes('Google Maps JavaScript API error')) {
+               setHasError(true);
+            }
+            originalError(...args);
+        };
+
+        return () => {
+            console.error = originalError;
+        };
+    }, []);
+
+    if (!apiKey || hasError) {
+        if (hasError) {
+            console.log("Google Maps API key error detected. Falling back to text input.");
+        }
         return (
              <Input 
                 defaultValue={props.initialValue} 
