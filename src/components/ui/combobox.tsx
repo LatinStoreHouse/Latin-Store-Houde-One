@@ -74,7 +74,7 @@ export function Combobox({
                 {options.map((option) => (
                 <CommandItem
                     key={option.value}
-                    value={option.label} // Use label for filtering
+                    value={option.label} // Use label for filtering and unique key for value
                     onSelect={() => {
                         if (onValueChange) {
                             onValueChange(option.value === value ? "" : option.value)
