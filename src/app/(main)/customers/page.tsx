@@ -36,7 +36,7 @@ import {
   DropdownMenuSubTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, MapPin, Calculator, StickyNote, BarChart, Download, DollarSign, Share2 } from 'lucide-react';
+import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, Globe, Calculator, StickyNote, BarChart, Download, DollarSign, Share2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -446,7 +446,7 @@ export default function CustomersPage() {
                   <div className="text-sm text-muted-foreground">{customer.email}</div>
                   <div className="text-sm text-muted-foreground">{customer.phone}</div>
                   <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                    <MapPin className="h-3 w-3" />
+                    <Globe className="h-3 w-3" />
                     {customer.city}
                   </div>
                 </TableCell>
