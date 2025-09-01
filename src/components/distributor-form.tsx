@@ -38,7 +38,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
   const [status, setStatus] = useState<'Activo' | 'Inactivo'>('Activo');
   const [type, setType] = useState<'Partner' | 'Distribuidor'>('Distribuidor');
   const [notes, setNotes] = useState('');
-  const [baseAmount, setBaseAmount] = useState<number | string>('');
+  const [discountPercentage, setDiscountPercentage] = useState<number | string>('');
   const [startDate, setStartDate] = useState('');
   const [contractFile, setContractFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +58,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setStatus(partner.status);
       setType(partner.type);
       setNotes(partner.notes || '');
-      setBaseAmount(partner.baseAmount || '');
+      setDiscountPercentage(partner.discountPercentage || '');
       setStartDate(partner.startDate || '');
       // contractFile would need to be handled differently, e.g. storing a URL
       if (partner.address) {
@@ -77,7 +77,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setStatus('Activo');
       setType('Distribuidor');
       setNotes('');
-      setBaseAmount('');
+      setDiscountPercentage('');
       setStartDate('');
       setContractFile(null);
       setLocation(null);
@@ -104,7 +104,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
         status, 
         type, 
         notes,
-        baseAmount: Number(baseAmount) || undefined,
+        discountPercentage: Number(discountPercentage) || undefined,
         startDate,
         contractNotes: contractFile?.name // Store file name as a string for now
     });
@@ -186,13 +186,13 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
                 <Input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
             </div>
              <div className="space-y-2">
-                <Label htmlFor="baseAmount">Monto Base Asignado (COP)</Label>
+                <Label htmlFor="discountPercentage">Porcentaje de Descuento (%)</Label>
                 <Input 
-                    id="baseAmount" 
+                    id="discountPercentage" 
                     type="number"
-                    value={baseAmount} 
-                    onChange={(e) => setBaseAmount(e.target.value)}
-                    placeholder="Ej: 500000"
+                    value={discountPercentage} 
+                    onChange={(e) => setDiscountPercentage(e.target.value)}
+                    placeholder="Ej: 15"
                 />
             </div>
         </div>
