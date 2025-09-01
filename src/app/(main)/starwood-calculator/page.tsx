@@ -59,7 +59,10 @@ interface QuoteItem {
   id: number;
   reference: string;
   units: number;
+  sqMeters?: number;
 }
+
+const DECK_SQM_PER_UNIT = 2.9 * 0.138;
 
 export default function StarwoodCalculatorPage() {
   const searchParams = useSearchParams();
@@ -100,6 +103,10 @@ export default function StarwoodCalculatorPage() {
       reference,
       units,
     };
+
+    if (type === 'product' && reference.toLowerCase().includes('deck')) {
+        newItem.sqMeters = units * DECK_SQM_PER_UNIT;
+    }
 
     setQuoteItems([...quoteItems, newItem]);
 
@@ -212,7 +219,11 @@ export default function StarwoodCalculatorPage() {
 
     quote.items.forEach(item => {
         message += `*Producto: ${item.reference}*\n`;
-        message += `- ${item.units} unidades\n\n`;
+        message += `- ${item.units} unidades`;
+        if (item.sqMeters) {
+            message += ` (${item.sqMeters.toFixed(2)} M² aprox.)`;
+        }
+        message += `\n\n`;
     });
 
     message += `*Desglose de Costos (COP):*\n`;
@@ -320,7 +331,12 @@ export default function StarwoodCalculatorPage() {
                   <div key={item.id} className="flex justify-between items-center p-3 rounded-md bg-background">
                      <div>
                         <p className="font-semibold">{item.reference}</p>
-                        <p className="text-sm text-muted-foreground">{item.units} unidades</p>
+                        <p className="text-sm text-muted-foreground">
+                            {item.units} unidades
+                            {item.sqMeters && (
+                                <span className="text-primary font-medium ml-2">({item.sqMeters.toFixed(2)} M² aprox.)</span>
+                            )}
+                        </p>
                      </div>
                     <div className="flex items-center gap-4">
                        <p className="font-medium">{item.hasPrice ? formatCurrency(item.itemCost) : <span className="text-destructive">Precio Pendiente</span>}</p>
