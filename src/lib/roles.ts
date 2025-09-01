@@ -52,7 +52,7 @@ export type Permission =
   'partners:manage' |
   'partners:clients';
 
-export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor' | 'Líder de Asesores';
+export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor';
 
 export interface RoleConfig {
     id: string;
@@ -67,6 +67,7 @@ export interface User {
   roles: Role[];
   avatar: string;
   active: boolean;
+  individualPermissions?: Permission[];
 }
 
 
@@ -128,30 +129,6 @@ export const roles: RoleConfig[] = [
             'reservations:create',
             'purchasing:suggestions:view',
             'purchasing:suggestions:create'
-        ]
-    },
-    {
-        id: 'distributor_advisor',
-        name: 'Líder de Asesores',
-        permissions: [
-            'dashboard:view',
-            'inventory:view',
-            'inventory:transit',
-            'customers:view',
-            'customers:create',
-            'calculators:use',
-            'pricing:view',
-            'advisor:use',
-            'partners:view',
-            'partners:manage',
-            'purchasing:suggestions:create',
-            'purchasing:suggestions:view',
-            'customers:edit',
-            'reservations:view',
-            'reservations:create',
-            'orders:view',
-            'orders:create',
-            'invoices:view'
         ]
     },
     {

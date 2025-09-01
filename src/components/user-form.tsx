@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { User, Role, roles } from '@/lib/roles';
+import { User, Role, roles, Permission } from '@/lib/roles';
 import { Checkbox } from './ui/checkbox';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 
 interface UserFormProps {
   user?: User;
@@ -13,11 +14,29 @@ interface UserFormProps {
   onCancel: () => void;
 }
 
+const additionalPermissions: { group: string; permissions: { id: Permission; label: string }[] }[] = [
+    {
+        group: 'Gestión de Equipo y Socios',
+        permissions: [
+            { id: 'partners:manage', label: 'Gestionar Socios Comerciales' },
+            { id: 'users:view', label: 'Ver otros usuarios' },
+            { id: 'reports:view', label: 'Ver reportes de ventas generales' },
+        ]
+    },
+    {
+        group: 'Permisos de Marketing',
+        permissions: [
+            { id: 'marketing:create', label: 'Crear y enviar campañas' },
+        ]
+    }
+];
+
 export function UserForm({ user, onSave, onCancel }: UserFormProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
   const [active, setActive] = useState(true);
+  const [individualPermissions, setIndividualPermissions] = useState<Permission[]>([]);
 
   const isEditingAdmin = user?.roles.includes('Administrador') ?? false;
 
@@ -27,11 +46,13 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
       setEmail(user.email);
       setSelectedRoles(user.roles);
       setActive(user.active);
+      setIndividualPermissions(user.individualPermissions || []);
     } else {
       setName('');
       setEmail('');
       setSelectedRoles(['Asesor de Ventas']);
       setActive(true);
+      setIndividualPermissions([]);
     }
   }, [user]);
 
@@ -40,6 +61,14 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
     
     setSelectedRoles(prev => 
       checked ? [...prev, roleName] : prev.filter(r => r !== roleName)
+    );
+  };
+  
+  const handlePermissionChange = (permissionId: Permission, checked: boolean) => {
+    setIndividualPermissions(prev =>
+        checked
+            ? [...prev, permissionId]
+            : prev.filter(p => p !== permissionId)
     );
   };
 
@@ -52,13 +81,12 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
       roles: selectedRoles,
       active,
       avatar: user?.avatar || `https://placehold.co/40x40.png`,
+      individualPermissions,
     });
   };
 
-  const availableRoles = roles.filter(r => r.name !== 'Líder de Asesores');
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
       <div className="space-y-2">
         <Label htmlFor="name">Nombre Completo</Label>
         <Input
@@ -81,7 +109,7 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
       <div className="space-y-2">
         <Label>Roles</Label>
         <div className="space-y-2 rounded-md border p-4">
-            {availableRoles.map((r) => (
+            {roles.map((r) => (
               <div key={r.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`role-${r.id}`}
@@ -97,6 +125,34 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
         </div>
         {isEditingAdmin && <p className="text-xs text-muted-foreground">El rol de Administrador no se puede modificar.</p>}
       </div>
+
+       <div className="space-y-2">
+        <Label>Permisos Adicionales</Label>
+        <Accordion type="multiple" className="w-full">
+          {additionalPermissions.map(group => (
+            <AccordionItem value={group.group} key={group.group}>
+              <AccordionTrigger className="text-sm font-medium hover:no-underline p-3 bg-muted/50 rounded-md">
+                {group.group}
+              </AccordionTrigger>
+              <AccordionContent className="p-2 space-y-2">
+                {group.permissions.map(permission => (
+                  <div key={permission.id} className="flex items-center space-x-2 pl-2">
+                    <Checkbox
+                      id={`perm-${permission.id}`}
+                      checked={individualPermissions.includes(permission.id)}
+                      onCheckedChange={(checked) => handlePermissionChange(permission.id, Boolean(checked))}
+                    />
+                    <Label htmlFor={`perm-${permission.id}`} className="font-normal text-sm">
+                      {permission.label}
+                    </Label>
+                  </div>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+      
       <div className="flex items-center space-x-2">
         <Switch
           id="active"

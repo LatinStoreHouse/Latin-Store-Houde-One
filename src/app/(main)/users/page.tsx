@@ -43,12 +43,12 @@ import { initialSalesData, MonthlySales } from '@/lib/sales-data';
 
 
 const initialUsers: User[] = [
-  { id: '1', name: 'Admin Latin', email: 'admin@latinhouse.com', roles: ['Administrador'], avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true },
-  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png', active: true },
-  { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false },
-  { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', roles: ['Logística'], avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true },
-  { id: '5', name: 'Carlos Ruiz', email: 'carlos.r@example.com', roles: ['Contador'], avatar: 'https://placehold.co/40x40/f44336/ffffff.png', active: true },
-  { id: '6', name: 'Laura Diaz', email: 'laura.d@example.com', roles: ['Líder de Asesores'], avatar: 'https://placehold.co/40x40/4CAF50/ffffff.png', active: true },
+  { id: '1', name: 'Admin Latin', email: 'admin@latinhouse.com', roles: ['Administrador'], avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true, individualPermissions: [] },
+  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png', active: true, individualPermissions: ['partners:manage'] },
+  { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false, individualPermissions: [] },
+  { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', roles: ['Logística'], avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true, individualPermissions: [] },
+  { id: '5', name: 'Carlos Ruiz', email: 'carlos.r@example.com', roles: ['Contador'], avatar: 'https://placehold.co/40x40/f44336/ffffff.png', active: true, individualPermissions: [] },
+  { id: '6', name: 'Laura Diaz', email: 'laura.d@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/4CAF50/ffffff.png', active: true, individualPermissions: [] },
 ];
 
 export default function UsersPage() {
@@ -96,7 +96,6 @@ export default function UsersPage() {
       switch(role.name) {
           case 'Administrador': return 'destructive';
           case 'Asesor de Ventas': return 'default';
-          case 'Líder de Asesores': return 'default';
           case 'Contador': return 'outline';
           case 'Logística': return 'secondary';
           case 'Marketing': return 'secondary';
@@ -119,7 +118,7 @@ export default function UsersPage() {
             <Button variant="outline" asChild>
                 <Link href="/roles">
                     <ShieldCheck className="mr-2 h-4 w-4" />
-                    Gestionar Permisos
+                    Gestionar Permisos de Roles
                 </Link>
             </Button>
             <Button onClick={handleAddUser}>
@@ -160,6 +159,9 @@ export default function UsersPage() {
                             {role}
                           </Badge>
                       ))}
+                      {user.individualPermissions && user.individualPermissions.length > 0 && (
+                        <Badge variant="outline">+{user.individualPermissions.length} permisos</Badge>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
@@ -177,9 +179,9 @@ export default function UsersPage() {
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => handleEditUser(user)}>
                             <UserCog className="mr-2 h-4 w-4" />
-                            Editar Usuario
+                            Editar Usuario y Permisos
                         </DropdownMenuItem>
-                         {(user.roles.includes('Asesor de Ventas') || user.roles.includes('Líder de Asesores')) && (
+                         {user.roles.includes('Asesor de Ventas') && (
                             <DropdownMenuItem onClick={() => handleOpenSalesModal(user)}>
                                 <Calculator className="mr-2 h-4 w-4" />
                                 Registrar Ventas

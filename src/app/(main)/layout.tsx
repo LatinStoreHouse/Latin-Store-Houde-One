@@ -86,6 +86,7 @@ const initialUser: User = {
   roles: ['Administrador'], 
   avatar: 'https://placehold.co/40x40.png',
   active: true,
+  individualPermissions: [],
 };
 
 
@@ -184,8 +185,10 @@ const NavMenu = () => {
                 roleConfig.permissions.forEach(p => permissions.add(p));
             }
         });
+        // Add individual permissions
+        currentUser.individualPermissions?.forEach(p => permissions.add(p));
         return Array.from(permissions);
-    }, [currentUser.roles]);
+    }, [currentUser.roles, currentUser.individualPermissions]);
 
     const pendingValidations = useMemo(() => {
         if (!inventoryContext) return 0;
@@ -349,8 +352,10 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         roleConfig.permissions.forEach(p => permissions.add(p));
       }
     });
+    // Add individual permissions
+    currentUser.individualPermissions?.forEach(p => permissions.add(p));
     return Array.from(permissions);
-  }, [currentUser.roles]);
+  }, [currentUser.roles, currentUser.individualPermissions]);
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editedName, setEditedName] = useState(currentUser.name);
