@@ -1,5 +1,7 @@
+
 'use client';
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { Smartphone, Monitor } from 'lucide-react';
@@ -9,6 +11,10 @@ interface CampaignPreviewProps {
     campaignName: string;
     message: string;
 }
+
+const WhatsAppIcon = () => (
+    <Image src="/imagenes/logos/Logo Whatsapp.svg" alt="WhatsApp" width={32} height={32} />
+);
 
 export function CampaignPreview({ campaignName, message }: CampaignPreviewProps) {
     const [view, setView] = useState<'mobile' | 'desktop'>('mobile');

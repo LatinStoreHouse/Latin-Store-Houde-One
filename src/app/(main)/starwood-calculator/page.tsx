@@ -20,9 +20,16 @@ const WhatsAppIcon = () => (
 );
 
 const starwoodProducts = [
+  'Bocel decorativo blanco',
+  'Clip plastico para deck wpc',
+  'Daily clean',
+  'Daily clean galon',
   'Deck (ebony/light gray)',
   'Deck (redwood/walnut)',
   'Deck (teak/coffee)',
+  'Durmiente plastico 3x3',
+  'Durmiente plastico 6x6',
+  'Intensive clean',
   'Liston 10x5 camel',
   'Liston 10x5 chocolate',
   'Liston 10x5 coffee',
@@ -35,6 +42,12 @@ const starwoodProducts = [
   'Liston 9x4 camel',
   'Liston 9x4 chocolate',
   'Liston 9x4 coffee',
+  'Remate wall panel gris',
+  'Remate wall panel maple',
+  'Remate wall panel negro',
+  'Remate wall panel roble',
+  'Sellante wpc 1 galon',
+  'Sellante wpc 1/4 galon',
 ].sort();
 
 const starwoodSupplies = [
