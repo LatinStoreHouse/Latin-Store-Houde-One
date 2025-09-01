@@ -14,13 +14,25 @@ interface CustomerFormProps {
   customer?: Customer;
   onSave: (customer: Omit<Customer, 'id' | 'registrationDate'> & { registrationDate?: string }) => void;
   onCancel: () => void;
-  canEditNotes: boolean;
   currentUser: User;
 }
 
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin'];
 
-export function CustomerForm({ customer, onSave, onCancel, canEditNotes, currentUser }: CustomerFormProps) {
+const locationOptions = [
+    // Colombia
+    "Bogotá, Colombia", "Medellín, Colombia", "Cali, Colombia", "Barranquilla, Colombia", "Cartagena, Colombia", "Cúcuta, Colombia", "Bucaramanga, Colombia", "Pereira, Colombia", "Santa Marta, Colombia", "Ibagué, Colombia", "Manizales, Colombia", "Pasto, Colombia", "Neiva, Colombia", "Villavicencio, Colombia",
+    // Ecuador
+    "Quito, Ecuador", "Guayaquil, Ecuador", "Cuenca, Ecuador",
+    // Panamá
+    "Panama City, Panamá", "Colón, Panamá", "David, Panamá",
+    // Perú
+    "Lima, Perú", "Cusco, Perú", "Arequipa, Perú",
+    // USA
+    "Miami, FL, USA", "New York, NY, USA", "Los Angeles, CA, USA"
+].map(city => ({ value: city, label: city }));
+
+export function CustomerForm({ customer, onSave, onCancel, currentUser }: CustomerFormProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -91,11 +103,13 @@ export function CustomerForm({ customer, onSave, onCancel, canEditNotes, current
        <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="city">Ciudad / País</Label>
-                 <Input 
-                    id="city" 
-                    value={city} 
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="Ej: Bogotá, Colombia"
+                 <Combobox
+                    options={locationOptions}
+                    value={city}
+                    onValueChange={setCity}
+                    placeholder="Seleccione una ubicación"
+                    searchPlaceholder="Buscar ubicación..."
+                    emptyPlaceholder="No se encontró la ubicación."
                 />
             </div>
             <div className="space-y-2">
@@ -143,18 +157,16 @@ export function CustomerForm({ customer, onSave, onCancel, canEditNotes, current
               </SelectContent>
             </Select>
         </div>
-        {canEditNotes && (
-             <div className="space-y-2">
-                <Label htmlFor="notes">Notas Internas (Visible para Admin/Marketing)</Label>
-                <Textarea
-                    id="notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Añadir una nota sobre el cliente..."
-                    rows={3}
-                />
-             </div>
-        )}
+        <div className="space-y-2">
+            <Label htmlFor="notes">Notas Internas (Visible para Admin/Marketing)</Label>
+            <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Añadir una nota sobre el cliente..."
+                rows={3}
+            />
+        </div>
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="ghost" onClick={onCancel}>
           Cancelar

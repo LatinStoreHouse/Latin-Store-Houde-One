@@ -92,7 +92,6 @@ export default function CustomersPage() {
   const router = useRouter();
 
   const { currentUser } = useUser();
-  const currentUserRole = currentUser.roles[0];
   const userPermissions = useMemo(() => {
     const permissions = new Set<string>();
     currentUser.roles.forEach(userRole => {
@@ -138,8 +137,6 @@ export default function CustomersPage() {
   const canCreateDispatch = userPermissions.includes('orders:create');
   const canCreateReservation = userPermissions.includes('reservations:create');
   const canUseCalculators = userPermissions.includes('calculators:use');
-  const canEditCustomers = userPermissions.includes('customers:edit');
-  const canEditNotes = userPermissions.includes('customers:edit') || userPermissions.includes('marketing:view');
   
   const handleOpenModal = (customer?: Customer) => {
     setSelectedCustomer(customer);
@@ -471,7 +468,7 @@ export default function CustomersPage() {
                 <TableCell className="p-2">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{customer.name}</span>
-                    {canEditNotes && customer.notes && (
+                    {customer.notes && (
                       <Tooltip>
                         <TooltipTrigger>
                           <StickyNote className="h-4 w-4 text-muted-foreground" />
@@ -532,7 +529,7 @@ export default function CustomersPage() {
                         <Users className="mr-2 h-4 w-4" />
                         Transferir Cliente
                     </DropdownMenuItem>
-                    {currentUserRole === 'Líder de Asesores' && (
+                    {currentUser.roles.includes('Líder de Asesores') && (
                         <DropdownMenuItem onClick={() => handleOpenRedirectModal(customer)}>
                             <Share2 className="mr-2 h-4 w-4" />
                             Redireccionar a Socio
@@ -592,7 +589,6 @@ export default function CustomersPage() {
                 customer={selectedCustomer}
                 onSave={handleSaveCustomer}
                 onCancel={() => setIsModalOpen(false)}
-                canEditNotes={canEditNotes}
                 currentUser={currentUser}
             />
         </DialogContent>
