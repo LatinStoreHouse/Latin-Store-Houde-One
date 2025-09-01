@@ -105,7 +105,7 @@ export const navItems = [
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
   { href: '/customers', label: 'Clientes', icon: Users, permission: 'customers:view' },
   { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
-  { href: '/assigned-customers', label: 'Mis Clientes', icon: Users, permission: 'partners:clients' },
+  { href: '/assigned-customers', label: 'Mis Clientes', permission: 'partners:clients' },
   {
     label: 'Calculadoras',
     icon: Calculator,
@@ -436,6 +436,17 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         <Image
           src="/imagenes/logos/Logo-stoneflex-color-hz.png"
           alt="StoneFlex Logo"
+          width={120}
+          height={30}
+          className="object-contain"
+        />
+      );
+    }
+     if (pathname === '/starwood-calculator') {
+      return (
+        <Image
+          src="/imagenes/logos/logo-starwood-color-hz.png"
+          alt="Starwood Logo"
           width={120}
           height={30}
           className="object-contain"
