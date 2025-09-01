@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -48,7 +47,7 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   
-  const displayLabel = options.find((option) => option.value === value)?.label || value
+  const displayLabel = options.find((option) => option.value === value)?.label || placeholder
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -60,7 +59,7 @@ export function Combobox({
           className={cn("w-full justify-between font-normal", className)}
           disabled={disabled}
         >
-          <span className="truncate">{value ? displayLabel : placeholder}</span>
+          <span className="truncate">{displayLabel}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -75,12 +74,12 @@ export function Combobox({
                 {options.map((option) => (
                 <CommandItem
                     key={option.value}
-                    value={option.value}
-                    onSelect={(currentValue) => {
-                    if (onValueChange) {
-                        onValueChange(currentValue === value ? "" : currentValue)
-                    }
-                    setOpen(false)
+                    value={option.label} // Use label for filtering
+                    onSelect={() => {
+                        if (onValueChange) {
+                            onValueChange(option.value === value ? "" : option.value)
+                        }
+                        setOpen(false)
                     }}
                 >
                     <Check
