@@ -14,15 +14,8 @@ import { Separator } from './ui/separator';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryContext } from '@/context/inventory-context';
+import { LocationCombobox } from './location-combobox';
 
-const colombianCities = [
-  "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta", 
-  "Soacha", "Soledad", "Bucaramanga", "Ibagué", "Santa Marta", "Villavicencio", 
-  "Pereira", "Manizales", "Pasto", "Neiva", "Armenia", "Popayán", "Sincelejo", 
-  "Montería", "Valledupar", "Tunja", "Riohacha", "Florencia", "Yopal", 
-  "Quibdó", "Arauca", "San Andrés", "Mocoa", "Leticia", "Inírida", 
-  "San José del Guaviare", "Puerto Carreño", "Mitú"
-].map(city => ({ value: city, label: city }));
 
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin'];
 
@@ -57,11 +50,15 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
     // Product form state
     const [productName, setProductName] = useState('');
     const [productQuantity, setProductQuantity] = useState<number | string>(1);
+    const [location, setLocation] = useState<{ lat: number; lng: number; address: string; } | null>(null);
 
 
     useEffect(() => {
         if (dispatch) {
             setFormData(dispatch);
+             if (dispatch.direccion) {
+                setLocation({ address: dispatch.direccion, lat: 0, lng: 0});
+            }
         }
     }, [dispatch]);
     
@@ -119,7 +116,9 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
         }
         onSave({
             id: dispatch?.id || Date.now(),
-            ...formData
+            ...formData,
+            direccion: location?.address || formData.direccion,
+            ciudad: location ? location.address.split(',').slice(-2, -1)[0]?.trim() || formData.ciudad : formData.ciudad,
         });
     };
     
@@ -133,6 +132,15 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
             ciudad: customer?.city || '',
             direccion: customer?.address || '',
         }));
+        if (customer?.address) {
+            setLocation({ address: customer.address, lat: 0, lng: 0});
+        } else {
+            setLocation(null);
+        }
+    }
+    
+    const handleLocationChange = (newLocation: { lat: number; lng: number; address: string } | null) => {
+        setLocation(newLocation);
     }
 
     return (
@@ -161,20 +169,13 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
                     <Label>Fecha de Solicitud</Label>
                     <Input type="date" value={formData.fechaSolicitud} onChange={e => handleInputChange('fechaSolicitud', e.target.value)} />
                 </div>
-                <div className="space-y-2">
-                    <Label>Ciudad</Label>
-                    <Combobox
-                        options={colombianCities}
-                        value={formData.ciudad}
-                        onValueChange={(value) => handleInputChange('ciudad', value)}
-                        placeholder="Seleccione una ciudad"
-                        searchPlaceholder="Buscar ciudad..."
-                        emptyPlaceholder="No se encontró ciudad"
+                <div className="space-y-2 col-span-full">
+                    <Label htmlFor="location">Dirección / Ciudad</Label>
+                    <LocationCombobox
+                        value={location}
+                        onChange={handleLocationChange}
+                        city={formData.ciudad}
                     />
-                </div>
-                 <div className="space-y-2">
-                    <Label>Dirección</Label>
-                    <Input value={formData.direccion} onChange={e => handleInputChange('direccion', e.target.value)} />
                 </div>
             </div>
             
