@@ -103,7 +103,7 @@ export const navItems = [
   },
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
   { href: '/customers', label: 'Clientes', icon: Users, permission: 'customers:view' },
-  { href: '/partners', label: 'Socios', icon: Handshake, permission: 'partners:view' },
+  { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
   {
     label: 'Calculadoras',
     icon: Calculator,
