@@ -19,22 +19,22 @@ const WhatsAppIcon = () => (
 );
 
 const starwoodProducts = [
-  'Liston 9x4 coffee',
-  'Liston 9x4 chocolate',
-  'Liston 10x5 coffee',
-  'Liston 10x5 chocolate',
-  'Deck (teak/coffee)',
   'Deck (ebony/light gray)',
   'Deck (redwood/walnut)',
-  'Liston 6.8x2.5 camel',
-  'Liston 6.8x2.5 coffee',
-  'Liston 6.8x2.5 chocolate',
-  'Liston 9x4 camel',
+  'Deck (teak/coffee)',
   'Liston 10x5 camel',
+  'Liston 10x5 chocolate',
+  'Liston 10x5 coffee',
   'Liston 16x8 camel',
   'Liston 16x8 chocolate',
+  'Liston 6.8x2.5 camel',
+  'Liston 6.8x2.5 chocolate',
+  'Liston 6.8x2.5 coffee',
   'Liston 6x4 chocolate',
-];
+  'Liston 9x4 camel',
+  'Liston 9x4 chocolate',
+  'Liston 9x4 coffee',
+].sort();
 
 const starwoodSupplies = [
   'Bocel decorativo blanco',
@@ -50,7 +50,7 @@ const starwoodSupplies = [
   'Remate wall panel roble',
   'Sellante wpc 1 galon',
   'Sellante wpc 1/4 galon',
-];
+].sort();
 
 
 const IVA_RATE = 0.19;
