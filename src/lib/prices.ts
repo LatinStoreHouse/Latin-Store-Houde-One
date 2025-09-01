@@ -86,7 +86,6 @@ export const initialProductPrices: { [key: string]: number } = {
     'Liston 9x4 chocolate': 126788,
     'Liston 10x5 coffee': 165456,
     'Liston 10x5 chocolate': 165456,
-    'Deck estandar coffee': 127000,
     'Deck (teak/coffee)': 127000,
     'Deck (ebony/light gray)': 127000,
     'Deck (redwood/walnut)': 127000,

@@ -23,7 +23,6 @@ const starwoodProducts = [
   'Liston 9x4 chocolate',
   'Liston 10x5 coffee',
   'Liston 10x5 chocolate',
-  'Deck estandar coffee',
   'Deck (teak/coffee)',
   'Deck (ebony/light gray)',
   'Deck (redwood/walnut)',
@@ -33,7 +32,6 @@ const starwoodProducts = [
   'Liston 9x4 camel',
   'Liston 10x5 camel',
   'Liston 16x8 camel',
-  'Deck teck',
   'Liston 16x8 chocolate',
   'Liston 6x4 chocolate',
 ];
