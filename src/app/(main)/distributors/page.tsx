@@ -28,7 +28,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Handshake, PlusCircle, Edit, Trash2, ListFilter, X, Users } from 'lucide-react';
+import { MoreHorizontal, Search, Handshake, PlusCircle, Edit, Trash2, ListFilter, X, Users, Info } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Partner, initialPartnerData } from '@/lib/partners';
 import { initialDistributorData } from '@/lib/distributors';
@@ -48,6 +48,7 @@ export default function PartnersPage() {
   const [typeFilter, setTypeFilter] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClientsModalOpen, setIsClientsModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<Partner | undefined>(undefined);
   const { toast } = useToast();
 
@@ -79,6 +80,11 @@ export default function PartnersPage() {
   const handleOpenClientsModal = (partner: Partner) => {
     setSelectedPartner(partner);
     setIsClientsModalOpen(true);
+  };
+
+  const handleOpenDetailsModal = (partner: Partner) => {
+    setSelectedPartner(partner);
+    setIsDetailsModalOpen(true);
   };
 
   const handleSavePartner = (partnerData: Omit<Partner, 'id'>) => {
@@ -225,6 +231,10 @@ export default function PartnersPage() {
                         </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleOpenDetailsModal(partner)}>
+                            <Info className="mr-2 h-4 w-4" />
+                            Ver Detalles
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleOpenModal(partner)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
@@ -304,6 +314,41 @@ export default function PartnersPage() {
             </div>
         </DialogContent>
     </Dialog>
+
+    <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Detalles de {selectedPartner?.name}</DialogTitle>
+                <DialogDescription>
+                    Información completa del socio comercial.
+                </DialogDescription>
+            </DialogHeader>
+            {selectedPartner && (
+                <div className="space-y-4 py-4 text-sm">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div><span className="font-semibold text-muted-foreground">Tipo:</span> {selectedPartner.type}</div>
+                        <div><span className="font-semibold text-muted-foreground">Estado:</span> <Badge className={cn("border-transparent", getStatusClasses(selectedPartner.status))}>{selectedPartner.status}</Badge></div>
+                        <div><span className="font-semibold text-muted-foreground">NIT/Cédula:</span> {selectedPartner.taxId}</div>
+                        <div><span className="font-semibold text-muted-foreground">Fecha de Entrada:</span> {selectedPartner.startDate || 'N/A'}</div>
+                        <div><span className="font-semibold text-muted-foreground">Contacto:</span> {selectedPartner.contactName}</div>
+                        <div><span className="font-semibold text-muted-foreground">Teléfono:</span> {selectedPartner.phone}</div>
+                        <div className="col-span-2"><span className="font-semibold text-muted-foreground">Email:</span> {selectedPartner.email}</div>
+                        <div className="col-span-2"><span className="font-semibold text-muted-foreground">Dirección:</span> {selectedPartner.address}, {selectedPartner.city}, {selectedPartner.country}</div>
+                        <div><span className="font-semibold text-muted-foreground">Descuento:</span> {selectedPartner.discountPercentage || 0}%</div>
+                    </div>
+                    <div>
+                        <p className="font-semibold text-muted-foreground">Notas de Contrato:</p>
+                        <p className="p-2 bg-muted/50 rounded-md mt-1">{selectedPartner.contractNotes || 'Sin notas.'}</p>
+                    </div>
+                     <div>
+                        <p className="font-semibold text-muted-foreground">Notas Generales:</p>
+                        <p className="p-2 bg-muted/50 rounded-md mt-1">{selectedPartner.notes || 'Sin notas.'}</p>
+                    </div>
+                </div>
+            )}
+        </DialogContent>
+    </Dialog>
+
     </>
   );
 }
