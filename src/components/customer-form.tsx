@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Customer, CustomerStatus, customerSources, customerStatuses } from '@/lib/customers';
 import { Textarea } from './ui/textarea';
 import { User } from '@/lib/roles';
+import { LocationCombobox, LocationMap } from './location-combobox';
 
 interface CustomerFormProps {
   customer?: Customer;
@@ -30,6 +31,8 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
   const [status, setStatus] = useState<CustomerStatus>('Contactado');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  
+  const [mapPosition, setMapPosition] = useState<{lat: number, lng: number} | null>(null);
 
 
   useEffect(() => {
@@ -43,6 +46,7 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       setAssignedTo(customer.assignedTo);
       setStatus(customer.status);
       setNotes(customer.notes || '');
+      setMapPosition(null);
     } else {
       // Reset form for new customer
       setName('');
@@ -56,6 +60,7 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       setAssignedTo(isSalesAdvisor ? currentUser.name : '');
       setStatus('Contactado');
       setNotes('');
+      setMapPosition(null);
     }
     setError(null);
   }, [customer, currentUser]);
@@ -68,6 +73,14 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
     }
     setError(null);
     onSave({ name, phone, email, city, address, source, assignedTo, status, notes });
+  };
+  
+  const handleLocationSelect = (location: { address: string; city: string; country: string, lat: number, lng: number }) => {
+    setAddress(location.address);
+    setCity(`${location.city}, ${location.country}`);
+    if (location.lat && location.lng) {
+      setMapPosition({ lat: location.lat, lng: location.lng });
+    }
   };
 
   return (
@@ -87,26 +100,13 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
         </div>
       </div>
       {error && <p className="text-sm text-destructive -mt-2 text-center">{error}</p>}
-       <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <Label htmlFor="city">Ciudad / País</Label>
-                 <Input 
-                    id="city" 
-                    value={city} 
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="Ej: Bogotá, Colombia"
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="address">Dirección (Opcional)</Label>
-                <Input 
-                    id="address" 
-                    value={address} 
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Dirección para despachos"
-                />
-            </div>
-       </div>
+       
+        <div className="space-y-2">
+            <Label htmlFor="address">Dirección / Ubicación</Label>
+            <LocationCombobox onLocationSelect={handleLocationSelect} initialValue={address || city} />
+            {mapPosition && <LocationMap lat={mapPosition.lat} lng={mapPosition.lng} />}
+        </div>
+       
        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="source">Fuente</Label>

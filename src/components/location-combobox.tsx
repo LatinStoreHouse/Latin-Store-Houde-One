@@ -1,158 +1,153 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from './ui/textarea';
-import { Partner } from '@/lib/partners';
-import { Switch } from './ui/switch';
-import { Combobox } from './ui/combobox';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  useAutocomplete,
+  Pin,
+} from '@vis.gl/react-google-maps';
+import { Input } from './ui/input';
+import { Loader2 } from 'lucide-react';
 
-interface PartnerFormProps {
-  partner?: Partner;
-  onSave: (partner: Omit<Partner, 'id'>) => void;
-  onCancel: () => void;
+interface LocationComboboxProps {
+  apiKey: string;
+  onLocationSelect: (location: { address: string; city: string; country: string, lat: number, lng: number }) => void;
+  initialValue?: string;
 }
 
-const countryOptions = [
-  { value: 'Colombia', label: 'Colombia' },
-  { value: 'Ecuador', label: 'Ecuador' },
-  { value: 'Panamá', label: 'Panamá' },
-  { value: 'Perú', label: 'Perú' },
-].map(c => ({ value: c.label, label: c.label }));
+const FallbackInput = ({ onLocationSelect, initialValue }: Pick<LocationComboboxProps, 'onLocationSelect' | 'initialValue'>) => (
+     <Input 
+        defaultValue={initialValue}
+        onBlur={(e) => onLocationSelect({ address: e.target.value, city: '', country: '', lat: 0, lng: 0 })}
+        placeholder="No se pudo cargar Google Maps. Ingrese la dirección manualmente."
+     />
+)
 
-
-export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps) {
-  const [name, setName] = useState('');
-  const [taxId, setTaxId] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [country, setCountry] = useState('Colombia');
-  const [status, setStatus] = useState<'Activo' | 'Inactivo'>('Activo');
-  const [type, setType] = useState<'Partner' | 'Distribuidor'>('Distribuidor');
-  const [notes, setNotes] = useState('');
-  const [error, setError] = useState<string | null>(null);
+const LocationSearch = ({ onLocationSelect, initialValue }: Pick<LocationComboboxProps, 'onLocationSelect' | 'initialValue'>) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [inputValue, setInputValue] = useState(initialValue || '');
+  const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
+  
+  const { places, loading } = useAutocomplete({
+    inputField: inputRef.current,
+    onPlaceSelect: (place) => {
+      setSelectedPlace(place);
+    },
+    options: {
+        componentRestrictions: { country: ["co", "ec", "pa", "pe", "us"] }
+    }
+  });
 
   useEffect(() => {
-    if (partner) {
-      setName(partner.name);
-      setTaxId(partner.taxId);
-      setContactName(partner.contactName);
-      setPhone(partner.phone);
-      setEmail(partner.email);
-      setAddress(partner.address);
-      setCity(partner.city);
-      setCountry(partner.country);
-      setStatus(partner.status);
-      setType(partner.type);
-      setNotes(partner.notes || '');
-    } else {
-      // Reset form for new
-      setName('');
-      setTaxId('');
-      setContactName('');
-      setPhone('');
-      setEmail('');
-      setAddress('');
-      setCity('');
-      setCountry('Colombia');
-      setStatus('Activo');
-      setType('Distribuidor');
-      setNotes('');
-    }
-    setError(null);
-  }, [partner]);
+    if (selectedPlace?.geometry?.location && selectedPlace.formatted_address) {
+      const lat = selectedPlace.geometry.location.lat();
+      const lng = selectedPlace.geometry.location.lng();
+      
+      let city = '';
+      let country = '';
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !contactName || !phone || !email || !taxId) {
-      setError('Nombre, Contacto, Teléfono, Email y NIT/Cédula son campos requeridos.');
-      return;
+      selectedPlace.address_components?.forEach(component => {
+          if (component.types.includes('locality')) {
+              city = component.long_name;
+          }
+           if (component.types.includes('administrative_area_level_1')) {
+              city = city || component.long_name;
+          }
+          if (component.types.includes('country')) {
+              country = component.long_name;
+          }
+      });
+      
+      onLocationSelect({ address: selectedPlace.formatted_address, city, country, lat, lng });
+      setInputValue(selectedPlace.formatted_address);
     }
-    setError(null);
-    onSave({ name, taxId, contactName, phone, email, address, city, country, status, type, notes });
-  };
-  
+  }, [selectedPlace, onLocationSelect]);
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto p-1">
-       <div className="space-y-2">
-            <Label>Tipo de Socio</Label>
-             <RadioGroup value={type} onValueChange={(value) => setType(value as 'Partner' | 'Distribuidor')} className="flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Distribuidor" id="type-dist" />
-                  <Label htmlFor="type-dist">Distribuidor</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Partner" id="type-part" />
-                  <Label htmlFor="type-part">Partner</Label>
-                </div>
-              </RadioGroup>
-        </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-            <Label htmlFor="name">Nombre del Socio</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-        </div>
-        <div className="space-y-2">
-            <Label htmlFor="taxId">NIT / Cédula</Label>
-            <Input id="taxId" value={taxId} onChange={(e) => setTaxId(e.target.value)} required />
-        </div>
-        <div className="space-y-2">
-            <Label htmlFor="contactName">Nombre del Contacto</Label>
-            <Input id="contactName" value={contactName} onChange={(e) => setContactName(e.target.value)} required />
-        </div>
-        <div className="space-y-2">
-            <Label htmlFor="phone">Teléfono</Label>
-            <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-        </div>
-        <div className="space-y-2 col-span-2">
-            <Label htmlFor="email">Correo Electrónico</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-      </div>
-      {error && <p className="text-sm text-destructive -mt-2 text-center">{error}</p>}
-       <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 col-span-2">
-                <Label htmlFor="city">Ciudad / País</Label>
-                 <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ej: Bogotá, Colombia" />
-            </div>
-            <div className="space-y-2 col-span-2">
-                <Label htmlFor="address">Dirección</Label>
-                <Input 
-                    id="address" 
-                    value={address} 
-                    onChange={(e) => setAddress(e.target.value)}
-                />
-            </div>
-       </div>
-       <div className="space-y-2">
-            <Label htmlFor="notes">Notas Internas</Label>
-            <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Añadir una nota sobre el socio..."
-                rows={3}
-            />
-        </div>
-        <div className="flex items-center space-x-2">
-            <Switch
-                id="status"
-                checked={status === 'Activo'}
-                onCheckedChange={(checked) => setStatus(checked ? 'Activo' : 'Inactivo')}
-            />
-            <Label htmlFor="status">Socio {status}</Label>
-        </div>
-      <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="ghost" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button type="submit">{partner ? 'Guardar Cambios' : 'Crear Socio'}</Button>
-      </div>
-    </form>
+    <div className="w-full relative">
+       <Input
+        ref={inputRef}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder="Buscar dirección..."
+      />
+      {loading && <Loader2 className="animate-spin absolute right-2 top-2.5 h-5 w-5 text-muted-foreground" />}
+      {places && places.length > 0 && (
+         <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg">
+           {places.map((p) => (
+             <div
+                key={p.place_id}
+                onClick={() => setSelectedPlace(p)}
+                className="p-2 hover:bg-muted cursor-pointer"
+             >
+                {p.description}
+             </div>
+           ))}
+         </div>
+      )}
+    </div>
   );
+};
+
+export function LocationCombobox({ onLocationSelect, initialValue }: Omit<LocationComboboxProps, 'apiKey'>) {
+    const [apiKey, setApiKey] = useState<string | null>(null);
+    const [hasError, setHasError] = useState(false);
+
+    useEffect(() => {
+        const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        if (key) {
+            setApiKey(key);
+            
+            const originalError = console.error;
+            console.error = (...args) => {
+                if (typeof args[0] === 'string' && args[0].includes('Google Maps JavaScript API error: InvalidKeyMapError')) {
+                    setHasError(true);
+                }
+                originalError(...args);
+            };
+
+            return () => {
+                console.error = originalError;
+            };
+        } else {
+             setHasError(true);
+        }
+    }, []);
+    
+    if (hasError) {
+        return <FallbackInput onLocationSelect={onLocationSelect} initialValue={initialValue} />;
+    }
+    
+    if (!apiKey) {
+        return <Input placeholder="Cargando buscador de direcciones..." disabled />;
+    }
+
+    return (
+        <APIProvider apiKey={apiKey} libraries={['places']}>
+            <LocationSearch onLocationSelect={onLocationSelect} initialValue={initialValue} />
+        </APIProvider>
+    );
+}
+
+export function LocationMap({ lat, lng }: { lat: number, lng: number }) {
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!apiKey || !lat || !lng) return null;
+
+    return (
+        <div className="h-48 w-full rounded-md overflow-hidden border mt-2">
+            <APIProvider apiKey={apiKey}>
+                <Map
+                    defaultCenter={{ lat, lng }}
+                    defaultZoom={15}
+                    mapId="fc3b490d1eb9b413"
+                    gestureHandling={'greedy'}
+                >
+                    <AdvancedMarker position={{ lat, lng }}>
+                       <Pin />
+                    </AdvancedMarker>
+                </Map>
+            </APIProvider>
+        </div>
+    );
 }
