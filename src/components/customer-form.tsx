@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -16,15 +17,6 @@ interface CustomerFormProps {
   canEditNotes: boolean;
   currentUser: User;
 }
-
-const colombianCities = [
-  "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta", 
-  "Soacha", "Soledad", "Bucaramanga", "Ibagué", "Santa Marta", "Villavicencio", 
-  "Pereira", "Manizales", "Pasto", "Neiva", "Armenia", "Popayán", "Sincelejo", 
-  "Montería", "Valledupar", "Tunja", "Riohacha", "Florencia", "Yopal", 
-  "Quibdó", "Arauca", "San Andrés", "Mocoa", "Leticia", "Inírida", 
-  "San José del Guaviare", "Puerto Carreño", "Mitú"
-].map(city => ({ value: city, label: city }));
 
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin'];
 
@@ -61,7 +53,7 @@ export function CustomerForm({ customer, onSave, onCancel, canEditNotes, current
       setAddress('');
       setSource('Instagram');
       // Auto-assign to current user if they are a sales advisor
-      const isSalesAdvisor = currentUser.roles.includes('Asesor de Ventas');
+      const isSalesAdvisor = currentUser.roles.includes('Asesor de Ventas') || currentUser.roles.includes('Líder de Asesores');
       setAssignedTo(isSalesAdvisor ? currentUser.name : '');
       setStatus('Contactado');
       setNotes('');
@@ -99,13 +91,11 @@ export function CustomerForm({ customer, onSave, onCancel, canEditNotes, current
        <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="city">Ciudad / País</Label>
-                <Combobox
-                    options={colombianCities}
-                    value={city}
-                    onValueChange={setCity}
-                    placeholder="Seleccione una ubicación"
-                    searchPlaceholder="Buscar ubicación..."
-                    emptyPlaceholder="No se encontró la ubicación."
+                 <Input 
+                    id="city" 
+                    value={city} 
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="Ej: Bogotá, Colombia"
                 />
             </div>
             <div className="space-y-2">
