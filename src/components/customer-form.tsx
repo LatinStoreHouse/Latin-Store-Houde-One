@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -75,8 +74,8 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       name, 
       phone, 
       email, 
-      city: location ? location.address : city, 
-      address: location ? location.address : address, 
+      city: location ? location.address.split(',').slice(-2, -1)[0]?.trim() || '' : city,
+      address: location ? location.address : address,
       source, 
       assignedTo, 
       status, 
