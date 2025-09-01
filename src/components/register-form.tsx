@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { AlertCircle } from 'lucide-react';
 
 export function RegisterForm() {
   const [password, setPassword] = useState('');
@@ -15,6 +16,8 @@ export function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const router = useRouter();
+
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   const handleRecaptchaChange = (value: string | null) => {
     if (value) {
@@ -75,12 +78,22 @@ export function RegisterForm() {
             />
         </div>
 
-        <div className="flex justify-center">
-            <ReCAPTCHA
-                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
-                onChange={handleRecaptchaChange}
-            />
-        </div>
+        {siteKey ? (
+            <div className="flex justify-center">
+                <ReCAPTCHA
+                    sitekey={siteKey}
+                    onChange={handleRecaptchaChange}
+                />
+            </div>
+        ) : (
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Configuración Requerida</AlertTitle>
+                <AlertDescription>
+                    La clave de sitio de reCAPTCHA no está configurada. Por favor, añádala a su archivo .env para habilitar el registro.
+                </AlertDescription>
+            </Alert>
+        )}
         
         {error && (
             <Alert variant="destructive">
@@ -88,7 +101,7 @@ export function RegisterForm() {
             </Alert>
         )}
 
-      <Button type="submit" className="w-full" disabled={!isVerified}>
+      <Button type="submit" className="w-full" disabled={!isVerified || !siteKey}>
         Crear Cuenta
       </Button>
       <div className="mt-4 text-center text-sm">
