@@ -93,7 +93,7 @@ export function LocationCombobox({ value, onChange, city }: LocationComboboxProp
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Error al Cargar Google Maps</AlertTitle>
                 <AlertDescription>
-                    No se pudo cargar la API. Verifica que la clave sea válida y que las APIs correctas estén habilitadas.
+                    No se pudo cargar la API. Verifica que la clave sea válida y que las APIs correctas estén habilitadas. Se ha activado un campo de texto manual.
                 </AlertDescription>
             </Alert>
             <Input 
@@ -124,11 +124,17 @@ export function LocationCombobox({ value, onChange, city }: LocationComboboxProp
           placeholder="Buscar dirección..."
           className="w-full"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            // If user types manually, clear lat/lng
+            if (value) {
+                onChange({ address: e.target.value, lat: 0, lng: 0 });
+            }
+          }}
         />
       </StandaloneSearchBox>
 
-      {markerPosition && (
+      {markerPosition && markerPosition.lat !== 0 && (
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={markerPosition}

@@ -44,7 +44,9 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       setAssignedTo(customer.assignedTo);
       setStatus(customer.status);
       setNotes(customer.notes || '');
-      // Note: We are not setting location here as we don't store lat/lng in the customer data model yet.
+      if (customer.address) {
+        setLocation({ address: customer.address, lat: 0, lng: 0}); // We don't have lat/lng, but this keeps the value
+      }
     } else {
       // Reset form for new customer
       setName('');
@@ -74,7 +76,7 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       name, 
       phone, 
       email, 
-      city: location ? location.address.split(',').slice(-2, -1)[0]?.trim() || '' : city,
+      city: location ? location.address.split(',').slice(-2, -1)[0]?.trim() || city : city,
       address: location ? location.address : address,
       source, 
       assignedTo, 
