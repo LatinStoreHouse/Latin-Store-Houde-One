@@ -130,7 +130,8 @@ export const roles: RoleConfig[] = [
             'reservations:view',
             'reservations:create',
             'purchasing:suggestions:view',
-            'purchasing:suggestions:create'
+            'purchasing:suggestions:create',
+            'partners:manage',
         ]
     },
     {

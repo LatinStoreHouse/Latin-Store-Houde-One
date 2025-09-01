@@ -139,7 +139,7 @@ const getIconForSubItem = (label: string) => {
         case 'Despachos': return Truck;
         case 'Historial de Cotizaciones': return Receipt;
         case 'Sugerencias de Compra': return Lightbulb;
-        case 'Stoneflex': return Store;
+        case 'StoneFlex': return Store;
         case 'Starwood': return Store;
         default: return Warehouse;
     }

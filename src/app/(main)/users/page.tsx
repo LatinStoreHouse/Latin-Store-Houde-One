@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Card,
@@ -20,7 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal, UserPlus, ShieldCheck, UserCog, Trash2, Calculator } from 'lucide-react';
+import { MoreHorizontal, UserPlus, ShieldCheck, UserCog, Trash2, Calculator, CheckCircle, XCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,24 +40,32 @@ import { User, Role, roles } from '@/lib/roles';
 import { useUser } from '../layout';
 import { SetSalesForm } from '@/components/set-sales-form';
 import { initialSalesData, MonthlySales } from '@/lib/sales-data';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 
-const initialUsers: User[] = [
-  { id: '1', name: 'Admin Latin', email: 'admin@latinhouse.com', roles: ['Administrador'], avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true, individualPermissions: [] },
-  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png', active: true, individualPermissions: ['partners:manage'] },
-  { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false, individualPermissions: [] },
-  { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', roles: ['Logística'], avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true, individualPermissions: [] },
-  { id: '5', name: 'Carlos Ruiz', email: 'carlos.r@example.com', roles: ['Contador'], avatar: 'https://placehold.co/40x40/f44336/ffffff.png', active: true, individualPermissions: [] },
-  { id: '6', name: 'Laura Diaz', email: 'laura.d@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/4CAF50/ffffff.png', active: true, individualPermissions: [] },
+type UserStatus = 'active' | 'inactive' | 'pending';
+
+const initialUsers: (User & {status: UserStatus})[] = [
+  { id: '1', name: 'Admin Latin', email: 'admin@latinhouse.com', roles: ['Administrador'], avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true, status: 'active', individualPermissions: [] },
+  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png', active: true, status: 'active', individualPermissions: ['partners:manage'] },
+  { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false, status: 'inactive', individualPermissions: [] },
+  { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', roles: ['Logística'], avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true, status: 'active', individualPermissions: [] },
+  { id: '5', name: 'Carlos Ruiz', email: 'carlos.r@example.com', roles: ['Contador'], avatar: 'https://placehold.co/40x40/f44336/ffffff.png', active: true, status: 'active', individualPermissions: [] },
+  { id: '6', name: 'Laura Diaz', email: 'laura.d@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/4CAF50/ffffff.png', active: true, status: 'active', individualPermissions: [] },
+  { id: '7', name: 'Solicitante Partner', email: 'nuevo.socio@email.com', roles: ['Partner'], avatar: '', active: false, status: 'pending', individualPermissions: [] },
+  { id: '8', name: 'Solicitante Distribuidor', email: 'nuevo.dist@email.com', roles: ['Distribuidor'], avatar: '', active: false, status: 'pending', individualPermissions: [] },
 ];
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<(User & {status: UserStatus})[]>(initialUsers);
   const [salesData, setSalesData] = useState<MonthlySales>(initialSalesData);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
-  
+  const [activeTab, setActiveTab] = useState<UserStatus>('active');
+  const { toast } = useToast();
+
   const handleAddUser = () => {
     setSelectedUser(undefined);
     setIsUserModalOpen(true);
@@ -73,14 +81,24 @@ export default function UsersPage() {
     setIsSalesModalOpen(true);
   }
 
-  const handleSaveUser = (user: User) => {
+  const handleSaveUser = (user: User & {status?: UserStatus}) => {
     if (selectedUser) {
-      setUsers(users.map(u => (u.id === user.id ? user : u)));
+      setUsers(users.map(u => (u.id === user.id ? {...u, ...user} : u)));
     } else {
-      setUsers([...users, { ...user, id: String(Date.now()) }]);
+      setUsers([...users, { ...user, id: String(Date.now()), status: 'active' }]);
     }
     setIsUserModalOpen(false);
   };
+
+  const handleApproveUser = (userId: string) => {
+    setUsers(users.map(u => u.id === userId ? {...u, status: 'active', active: true} : u));
+    toast({ title: 'Usuario Aprobado', description: 'El usuario ahora tiene acceso a la aplicación.'});
+  }
+
+  const handleDeclineUser = (userId: string) => {
+    setUsers(users.filter(u => u.id !== userId));
+    toast({ variant: 'destructive', title: 'Solicitud Rechazada', description: 'La solicitud de registro ha sido eliminada.'});
+  }
   
   const handleSaveSales = (advisorName: string, newSales: { [month: string]: { sales: number } }) => {
     setSalesData(prev => ({
@@ -89,6 +107,10 @@ export default function UsersPage() {
     }));
     setIsSalesModalOpen(false);
   }
+  
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => user.status === activeTab);
+  }, [users, activeTab]);
 
   const getRoleBadgeVariant = (roleName: Role) => {
       const role = roles.find(r => r.name === roleName);
@@ -99,8 +121,18 @@ export default function UsersPage() {
           case 'Contador': return 'outline';
           case 'Logística': return 'secondary';
           case 'Marketing': return 'secondary';
+          case 'Partner': return 'success';
+          case 'Distribuidor': return 'success';
           default: return 'secondary';
       }
+  }
+
+  const getStatusBadge = (user: User & {status: UserStatus}) => {
+     switch(user.status) {
+        case 'active': return <Badge variant='success'>Activo</Badge>;
+        case 'inactive': return <Badge variant='secondary'>Inactivo</Badge>;
+        case 'pending': return <Badge variant='destructive'>Pendiente Aprobación</Badge>;
+     }
   }
 
 
@@ -128,6 +160,13 @@ export default function UsersPage() {
           </div>
         </CardHeader>
         <CardContent>
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as UserStatus)} className="mb-4">
+            <TabsList>
+                <TabsTrigger value="active">Activos</TabsTrigger>
+                <TabsTrigger value="inactive">Inactivos</TabsTrigger>
+                <TabsTrigger value="pending">Pendientes</TabsTrigger>
+            </TabsList>
+          </Tabs>
           <Table>
             <TableHeader>
               <TableRow>
@@ -138,7 +177,7 @@ export default function UsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -165,9 +204,7 @@ export default function UsersPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                     <Badge variant={user.active ? 'default' : 'secondary'}>
-                        {user.active ? 'Activo' : 'Inactivo'}
-                     </Badge>
+                    {getStatusBadge(user)}
                   </TableCell>
                   <TableCell className="text-center">
                     <DropdownMenu>
@@ -177,26 +214,48 @@ export default function UsersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleEditUser(user)}>
-                            <UserCog className="mr-2 h-4 w-4" />
-                            Editar Usuario y Permisos
-                        </DropdownMenuItem>
-                         {user.roles.includes('Asesor de Ventas') && (
-                            <DropdownMenuItem onClick={() => handleOpenSalesModal(user)}>
-                                <Calculator className="mr-2 h-4 w-4" />
-                                Registrar Ventas
+                        {user.status === 'pending' ? (
+                          <>
+                            <DropdownMenuItem onClick={() => handleApproveUser(user.id)}>
+                                <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                                Aprobar Usuario
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeclineUser(user.id)} className="text-red-600">
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Rechazar Solicitud
+                            </DropdownMenuItem>
+                          </>
+                        ) : (
+                          <>
+                            <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                                <UserCog className="mr-2 h-4 w-4" />
+                                Editar Usuario y Permisos
+                            </DropdownMenuItem>
+                             {user.roles.includes('Asesor de Ventas') && (
+                                <DropdownMenuItem onClick={() => handleOpenSalesModal(user)}>
+                                    <Calculator className="mr-2 h-4 w-4" />
+                                    Registrar Ventas
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-red-600">
+                               <Trash2 className="mr-2 h-4 w-4" />
+                               Eliminar Usuario
+                            </DropdownMenuItem>
+                          </>
                         )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
-                           <Trash2 className="mr-2 h-4 w-4" />
-                           Eliminar Usuario
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
+              {filteredUsers.length === 0 && (
+                 <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                        No se encontraron usuarios en esta categoría.
+                    </TableCell>
+                 </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
