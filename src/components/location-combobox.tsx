@@ -31,18 +31,25 @@ const Autocomplete = ({ onPlaceSelect, initialValue }: LocationComboboxProps) =>
 
     }, [places, onPlaceSelect]);
     
-    return <Input ref={inputRef} defaultValue={initialValue} placeholder="Buscar ciudad, país, dirección..." />;
+    // Handle manual input for when a place is not selected from the dropdown
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        if (!autocomplete?.getPlace()) {
+            onPlaceSelect(null, e.target.value);
+        }
+    }
+    
+    return <Input ref={inputRef} defaultValue={initialValue} placeholder="Buscar ciudad, país, dirección..." onBlur={handleBlur} />;
 };
 
 export function LocationCombobox(props: LocationComboboxProps) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     
     if (!apiKey) {
-        console.error("Google Maps API key is missing. Please add it to your .env file.");
+        console.error("Google Maps API key is missing. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env file.");
         return (
              <Input 
                 defaultValue={props.initialValue} 
-                placeholder="Ej: Bogotá, Colombia"
+                placeholder="Google API Key Faltante"
                 onChange={(e) => props.onPlaceSelect(null, e.target.value)}
                 disabled
             />
