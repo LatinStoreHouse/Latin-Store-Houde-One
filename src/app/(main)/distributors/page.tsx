@@ -28,10 +28,11 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Handshake, PlusCircle, Edit, Trash2, ListFilter, X } from 'lucide-react';
+import { MoreHorizontal, Search, Handshake, PlusCircle, Edit, Trash2, ListFilter, X, Users } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Partner, initialPartnerData } from '@/lib/partners';
 import { initialDistributorData } from '@/lib/distributors';
+import { initialCustomerData, Customer } from '@/lib/customers';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { DistributorForm } from '@/components/distributor-form';
@@ -46,6 +47,7 @@ export default function PartnersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isClientsModalOpen, setIsClientsModalOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<Partner | undefined>(undefined);
   const { toast } = useToast();
 
@@ -61,12 +63,24 @@ export default function PartnersPage() {
         return searchMatch && typeMatch;
     });
   }, [partners, searchTerm, typeFilter]);
+  
+  const assignedCustomers = useMemo(() => {
+    if (!selectedPartner) return [];
+    return initialCustomerData.filter(
+      (customer) => customer.redirectedTo === selectedPartner.name
+    );
+  }, [selectedPartner]);
 
   const handleOpenModal = (partner?: Partner) => {
     setSelectedPartner(partner);
     setIsModalOpen(true);
   };
   
+  const handleOpenClientsModal = (partner: Partner) => {
+    setSelectedPartner(partner);
+    setIsClientsModalOpen(true);
+  };
+
   const handleSavePartner = (partnerData: Omit<Partner, 'id'>) => {
     if (selectedPartner) {
       // Edit
@@ -215,6 +229,10 @@ export default function PartnersPage() {
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => handleOpenClientsModal(partner)}>
+                            <Users className="mr-2 h-4 w-4" />
+                            Ver Clientes Asignados
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDeletePartner(partner.id)} className="text-destructive">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Eliminar
@@ -242,6 +260,48 @@ export default function PartnersPage() {
                 onSave={handleSavePartner}
                 onCancel={() => setIsModalOpen(false)}
             />
+        </DialogContent>
+    </Dialog>
+
+    <Dialog open={isClientsModalOpen} onOpenChange={setIsClientsModalOpen}>
+        <DialogContent className="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>Clientes Asignados a {selectedPartner?.name}</DialogTitle>
+                <DialogDescription>
+                  Lista de clientes que han sido redireccionados a este socio comercial.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[60vh] overflow-y-auto">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Cliente</TableHead>
+                            <TableHead>Fecha de Redirección</TableHead>
+                            <TableHead>Nota</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {assignedCustomers.length > 0 ? (
+                            assignedCustomers.map((customer) => (
+                                <TableRow key={customer.id}>
+                                    <TableCell>
+                                        <div className="font-medium">{customer.name}</div>
+                                        <div className="text-sm text-muted-foreground">{customer.email}</div>
+                                    </TableCell>
+                                    <TableCell>{customer.registrationDate}</TableCell>
+                                    <TableCell className="text-sm text-muted-foreground">{customer.notes?.split('\n---\n').pop()}</TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={3} className="h-24 text-center">
+                                    No se han asignado clientes a este socio.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
         </DialogContent>
     </Dialog>
     </>

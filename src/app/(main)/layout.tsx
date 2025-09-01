@@ -64,7 +64,6 @@ import {
     ShoppingBag,
     Lightbulb,
     Handshake,
-    Briefcase
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -106,13 +105,6 @@ export const navItems = [
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
   { href: '/customers', label: 'Clientes', icon: Users, permission: 'customers:view' },
   { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
-  {
-    label: 'Liderazgo',
-    icon: Briefcase,
-    subItems: [
-      { href: '/leader/assignments', label: 'Mis Asignaciones', permission: 'leader:view:assignments' },
-    ]
-  },
   { href: '/assigned-customers', label: 'Mis Clientes', icon: Users, permission: 'partners:clients' },
   {
     label: 'Calculadoras',
@@ -149,7 +141,6 @@ const getIconForSubItem = (label: string) => {
         case 'Sugerencias de Compra': return Lightbulb;
         case 'Stoneflex': return Store;
         case 'Starwood': return Store;
-        case 'Mis Asignaciones': return Users;
         default: return Warehouse;
     }
 }
