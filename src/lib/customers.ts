@@ -12,6 +12,7 @@ export interface Customer {
   status: CustomerStatus;
   registrationDate: string;
   notes?: string;
+  redirectedTo?: string;
 }
 
 export const initialCustomerData: Customer[] = [

@@ -49,7 +49,8 @@ export type Permission =
   'purchasing:suggestions:create' |
   // Partners
   'partners:view' |
-  'partners:manage';
+  'partners:manage' |
+  'partners:clients';
 
 export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor' | 'Líder de Asesores';
 
@@ -200,7 +201,8 @@ export const roles: RoleConfig[] = [
             'dashboard:view',
             'inventory:view',
             'calculators:use',
-            'invoices:view'
+            'invoices:view',
+            'partners:clients'
         ]
     },
     {
@@ -210,7 +212,8 @@ export const roles: RoleConfig[] = [
             'dashboard:view',
             'inventory:view',
             'calculators:use',
-            'invoices:view'
+            'invoices:view',
+            'partners:clients'
         ]
     },
     {

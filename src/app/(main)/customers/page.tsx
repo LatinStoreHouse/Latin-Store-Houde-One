@@ -52,7 +52,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Combobox } from '@/components/ui/combobox';
-
+import { initialDistributorData } from '@/lib/distributors';
+import { initialPartnerData } from '@/lib/partners';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -64,7 +65,10 @@ const sourceIcons: { [key: string]: React.ElementType } = {
 };
 
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones'];
-const distributors = [{ value: 'dist-1', label: 'Distribuidor Bogotá' }, { value: 'dist-2', label: 'Distribuidor Cali' }, { value: 'dist-3', label: 'Distribuidor Medellín' }];
+const allPartners = [
+    ...initialDistributorData.map(d => ({ value: d.name, label: d.name })),
+    ...initialPartnerData.map(p => ({ value: p.name, label: p.name })),
+];
 
 
 export default function CustomersPage() {
@@ -74,7 +78,7 @@ export default function CustomersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRedirectModalOpen, setIsRedirectModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>(undefined);
-  const [selectedDistributor, setSelectedDistributor] = useState('');
+  const [selectedPartner, setSelectedPartner] = useState('');
   const [redirectNotes, setRedirectNotes] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [sourceFilter, setSourceFilter] = useState<string[]>([]);
@@ -172,23 +176,24 @@ export default function CustomersPage() {
   };
 
   const handleRedirectCustomer = () => {
-    if (!selectedCustomer || !selectedDistributor) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione un distribuidor.' });
+    if (!selectedCustomer || !selectedPartner) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Por favor, seleccione un socio.' });
       return;
     }
-    const distributorName = distributors.find(d => d.value === selectedDistributor)?.label;
-    const newNote = `Cliente redireccionado a ${distributorName}. Nota: ${redirectNotes}`;
+    const partnerName = allPartners.find(d => d.value === selectedPartner)?.label;
+    const newNote = `Cliente redireccionado a ${partnerName}. Nota: ${redirectNotes}`;
 
     setCustomers(customers.map(c => c.id === selectedCustomer.id ? { 
         ...c, 
-        status: 'Redireccionado', 
+        status: 'Redireccionado',
+        redirectedTo: partnerName,
         notes: c.notes ? `${c.notes}\n---\n${newNote}` : newNote 
     } : c));
 
     toast({ title: 'Cliente Redireccionado', description: `${selectedCustomer.name} ha sido redireccionado y el estado actualizado.` });
     setIsRedirectModalOpen(false);
     setRedirectNotes('');
-    setSelectedDistributor('');
+    setSelectedPartner('');
   };
   
   const handleDeleteCustomer = (id: number) => {
@@ -463,7 +468,7 @@ export default function CustomersPage() {
                 <TableCell className="p-2 text-center">{customer.assignedTo}</TableCell>
                 <TableCell className="p-2 text-center">{customer.registrationDate}</TableCell>
                 <TableCell className="p-2 text-center">
-                  {customer.status === 'Redireccionado' && customer.notes ? (
+                  {customer.status === 'Redireccionado' && customer.redirectedTo ? (
                     <Tooltip>
                         <TooltipTrigger>
                            <Badge className={cn("border cursor-help", statusColors[customer.status])}>
@@ -471,7 +476,8 @@ export default function CustomersPage() {
                            </Badge>
                         </TooltipTrigger>
                         <TooltipContent>
-                           <p className="max-w-xs">{customer.notes}</p>
+                           <p className="max-w-xs">Redirigido a: <strong>{customer.redirectedTo}</strong></p>
+                           {customer.notes && <p className="max-w-xs mt-2 text-muted-foreground">{customer.notes}</p>}
                         </TooltipContent>
                     </Tooltip>
                   ) : (
@@ -496,7 +502,7 @@ export default function CustomersPage() {
                          {currentUserRole === 'Líder de Asesores' && (
                             <DropdownMenuItem onClick={() => handleOpenRedirectModal(customer)}>
                                 <Share2 className="mr-2 h-4 w-4" />
-                                Redireccionar a Distribuidor
+                                Redireccionar a Socio
                             </DropdownMenuItem>
                         )}
                         {canCreateDispatch && (
@@ -563,21 +569,21 @@ export default function CustomersPage() {
      <Dialog open={isRedirectModalOpen} onOpenChange={setIsRedirectModalOpen}>
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Redireccionar Cliente a Distribuidor</DialogTitle>
+                <DialogTitle>Redireccionar Cliente a Socio Comercial</DialogTitle>
                 <DialogDescription>
-                  Seleccione un distribuidor y agregue una nota para el cliente <span className="font-semibold">{selectedCustomer?.name}</span>.
+                  Seleccione un socio y agregue una nota para el cliente <span className="font-semibold">{selectedCustomer?.name}</span>.
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                    <Label>Distribuidor</Label>
+                    <Label>Socio Comercial (Distribuidor/Partner)</Label>
                     <Combobox
-                        options={distributors}
-                        value={selectedDistributor}
-                        onValueChange={setSelectedDistributor}
-                        placeholder="Seleccione un distribuidor"
-                        searchPlaceholder='Buscar distribuidor...'
-                        emptyPlaceholder='No se encontró distribuidor.'
+                        options={allPartners}
+                        value={selectedPartner}
+                        onValueChange={setSelectedPartner}
+                        placeholder="Seleccione un socio"
+                        searchPlaceholder='Buscar socio...'
+                        emptyPlaceholder='No se encontró el socio.'
                     />
                 </div>
                 <div className="space-y-2">
