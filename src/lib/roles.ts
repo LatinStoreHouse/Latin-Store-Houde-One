@@ -136,16 +136,22 @@ export const roles: RoleConfig[] = [
         permissions: [
             'dashboard:view',
             'inventory:view',
+            'inventory:transit',
             'customers:view',
             'customers:create',
-            'customers:edit',
             'calculators:use',
             'pricing:view',
             'advisor:use',
             'partners:view',
             'partners:manage',
             'purchasing:suggestions:create',
-            'purchasing:suggestions:view'
+            'purchasing:suggestions:view',
+            'customers:edit',
+            'reservations:view',
+            'reservations:create',
+            'orders:view',
+            'orders:create',
+            'invoices:view'
         ]
     },
     {
