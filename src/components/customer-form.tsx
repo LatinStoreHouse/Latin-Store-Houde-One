@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Customer, CustomerStatus, customerSources, customerStatuses } from '@/lib/customers';
 import { Textarea } from './ui/textarea';
 import { User } from '@/lib/roles';
+import { LocationCombobox } from './location-combobox';
 
 interface CustomerFormProps {
   customer?: Customer;
@@ -30,6 +31,8 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
   const [status, setStatus] = useState<CustomerStatus>('Contactado');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [location, setLocation] = useState<{ lat: number; lng: number; address: string; } | null>(null);
+
 
   useEffect(() => {
     if (customer) {
@@ -42,6 +45,7 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       setAssignedTo(customer.assignedTo);
       setStatus(customer.status);
       setNotes(customer.notes || '');
+      // Note: We are not setting location here as we don't store lat/lng in the customer data model yet.
     } else {
       // Reset form for new customer
       setName('');
@@ -55,6 +59,7 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       setAssignedTo(isSalesAdvisor ? currentUser.name : '');
       setStatus('Contactado');
       setNotes('');
+      setLocation(null);
     }
     setError(null);
   }, [customer, currentUser]);
@@ -66,11 +71,31 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       return;
     }
     setError(null);
-    onSave({ name, phone, email, city, address, source, assignedTo, status, notes });
+    onSave({ 
+      name, 
+      phone, 
+      email, 
+      city: location ? location.address : city, 
+      address: location ? location.address : address, 
+      source, 
+      assignedTo, 
+      status, 
+      notes 
+    });
   };
 
+  const handleLocationChange = (newLocation: { lat: number; lng: number; address: string } | null) => {
+    setLocation(newLocation);
+    if (newLocation) {
+        setAddress(newLocation.address);
+        // Extract city from address if possible (this is a simple example)
+        const cityPart = newLocation.address.split(',').slice(-2, -1)[0]?.trim();
+        setCity(cityPart || '');
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 py-4">
+    <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[80vh] overflow-y-auto pr-2">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2 col-span-2">
             <Label htmlFor="name">Nombre Completo</Label>
@@ -87,14 +112,14 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       </div>
       {error && <p className="text-sm text-destructive -mt-2 text-center">{error}</p>}
        
-        <div className="space-y-2">
-            <Label htmlFor="address">Dirección</Label>
-            <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Ej: Calle 123 # 45-67" />
-        </div>
-        <div className="space-y-2">
-            <Label htmlFor="city">Ciudad / País</Label>
-            <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ej: Bogotá, Colombia" />
-        </div>
+      <div className="space-y-2">
+          <Label htmlFor="location">Dirección / Ciudad</Label>
+          <LocationCombobox
+              value={location}
+              onChange={handleLocationChange}
+              city={city}
+          />
+      </div>
        
        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
