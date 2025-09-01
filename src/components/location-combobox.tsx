@@ -36,31 +36,15 @@ const Autocomplete = ({ onPlaceSelect, initialValue }: LocationComboboxProps) =>
 
 export function LocationCombobox(props: LocationComboboxProps) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    const [hasError, setHasError] = useState(false);
-
-    useEffect(() => {
-        const originalError = console.error;
-        console.error = (...args) => {
-            if (typeof args[0] === 'string' && args[0].includes('Google Maps JavaScript API error')) {
-               setHasError(true);
-            }
-            originalError(...args);
-        };
-
-        return () => {
-            console.error = originalError;
-        };
-    }, []);
-
-    if (!apiKey || hasError) {
-        if (hasError) {
-            console.log("Google Maps API key error detected. Falling back to text input.");
-        }
+    
+    if (!apiKey) {
+        console.error("Google Maps API key is missing. Please add it to your .env file.");
         return (
              <Input 
                 defaultValue={props.initialValue} 
                 placeholder="Ej: Bogotá, Colombia"
                 onChange={(e) => props.onPlaceSelect(null, e.target.value)}
+                disabled
             />
         );
     }
