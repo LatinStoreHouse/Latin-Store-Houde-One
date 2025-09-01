@@ -1,6 +1,11 @@
 
+
 'use client';
 import Link from 'next/link';
+import React, { useState, useMemo, useContext } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -26,12 +31,19 @@ import {
     X,
     Receipt,
     Clock,
+    BarChart,
+    Download
 } from 'lucide-react';
 import { Role, roles } from '@/lib/roles';
-import { useContext, useMemo } from 'react';
 import { InventoryContext } from '@/context/inventory-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { navItems, useUser } from '@/app/(main)/layout';
+import { initialSalesData } from '@/lib/sales-data';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { MonthPicker } from '@/components/month-picker';
+import { Separator } from '@/components/ui/separator';
+import { ResponsiveContainer, Pie, Cell, Tooltip as RechartsTooltip, Legend, PieChart } from 'recharts';
+import { initialCustomerData } from '@/lib/customers';
 
 
 const inventoryOverviewItems = [
@@ -107,6 +119,8 @@ const QuickAccessItem = ({ href, icon: Icon, label }: { href: string; icon: Reac
     </Button>
 );
 
+const PIE_COLORS = ['#29ABE2', '#00BCD4', '#f44336', '#E2E229', '#E29ABE', '#FFC107', '#4CAF50'];
+
 export default function DashboardPage() {
     const inventoryContext = useContext(InventoryContext);
     const userContext = useUser();
@@ -115,6 +129,9 @@ export default function DashboardPage() {
     }
     const { notifications, dismissNotification, reservations } = inventoryContext;
     const { currentUser } = userContext;
+
+    const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+    const [statsDate, setStatsDate] = useState(new Date());
 
     const currentUserRole = currentUser.roles[0];
     const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
@@ -144,8 +161,72 @@ export default function DashboardPage() {
     const allNavItems = navItems.flatMap(item => item.subItems ? item.subItems.map(sub => ({...sub, icon: item.icon})) : [{ ...item, icon: item.icon }]);
     const accessibleNavItems = allNavItems.filter(item => item.href !== '/dashboard' && hasPermission(item.permission));
     const overviewItems = currentUserRole === 'Asesor de Ventas' ? salesOverviewItems : inventoryOverviewItems;
+    const isAdvisor = currentUserRole === 'Asesor de Ventas';
+  
+    const advisorStats = useMemo(() => {
+        if (!isAdvisor) return null;
+        
+        // Stats for the selected month
+        const year = statsDate.getFullYear();
+        const month = statsDate.getMonth();
+        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+        const newCustomersThisMonth = initialCustomerData.filter(c => {
+            const regDate = new Date(c.registrationDate);
+            return c.assignedTo === currentUser.name && regDate.getFullYear() === year && regDate.getMonth() === month;
+        });
+        
+        const monthlySales = initialSalesData[currentUser.name]?.[monthKey]?.sales || 0;
+
+        // Stats for all time for the pie chart
+        const allAdvisorCustomers = initialCustomerData.filter(c => c.assignedTo === currentUser.name);
+        const statusDistribution = allAdvisorCustomers.reduce((acc, customer) => {
+            acc[customer.status] = (acc[customer.status] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+
+        return {
+            newCustomersCount: newCustomersThisMonth.length,
+            newCustomersList: newCustomersThisMonth,
+            statusDistribution: Object.entries(statusDistribution).map(([name, value]) => ({ name, value })),
+            monthlySales: monthlySales,
+        }
+
+    }, [isAdvisor, statsDate, currentUser.name]);
+
+     const handleDownloadStats = () => {
+        if (!advisorStats) return;
+        const doc = new jsPDF();
+        const monthName = statsDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
+        
+        doc.setFontSize(18);
+        doc.text(`Reporte de Asesor - ${currentUser.name}`, 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Mes: ${monthName}`, 14, 30);
+
+        doc.setFontSize(12);
+        doc.text(`Nuevos Clientes en ${monthName}: ${advisorStats.newCustomersCount}`, 14, 45);
+
+        doc.autoTable({
+            startY: 50,
+            head: [['Nombre', 'Email', 'Teléfono', 'Fuente']],
+            body: advisorStats.newCustomersList.map(c => [c.name, c.email, c.phone, c.source]),
+        });
+        
+        doc.save(`Reporte_${currentUser.name}_${format(statsDate, 'yyyy-MM')}.pdf`);
+    }
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        }).format(value);
+    };
 
   return (
+    <>
     <div className="space-y-6">
       <div className="space-y-4">
         {expiringReservations.map(res => (
@@ -175,6 +256,15 @@ export default function DashboardPage() {
            </Alert>
         ))}
       </div>
+
+      {isAdvisor && (
+          <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setIsStatsModalOpen(true)}>
+                  <BarChart className="mr-2 h-4 w-4" />
+                  Mis Estadísticas
+              </Button>
+          </div>
+      )}
 
       {currentUserRole !== 'Partners' && currentUserRole !== 'Marketing' && (
         <div className="grid gap-6 md:grid-cols-3">
@@ -301,5 +391,94 @@ export default function DashboardPage() {
         </div>
       )}
     </div>
+
+    {isAdvisor && advisorStats && (
+        <Dialog open={isStatsModalOpen} onOpenChange={setIsStatsModalOpen}>
+            <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>Estadísticas de {currentUser.name}</DialogTitle>
+                    <DialogDescription>
+                        Revise su rendimiento de captación de clientes y el estado general de su cartera.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+                    <div className="space-y-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Rendimiento Mensual</CardTitle>
+                                <div className="flex items-center justify-between">
+                                 <p className="text-sm text-muted-foreground">Datos para el mes seleccionado.</p>
+                                 <MonthPicker date={statsDate} onDateChange={setStatsDate} />
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Nuevos Clientes</p>
+                                        <p className="text-2xl font-bold">{advisorStats.newCustomersCount}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Total Ventas</p>
+                                        <p className="text-2xl font-bold">{formatCurrency(advisorStats.monthlySales)}</p>
+                                    </div>
+                                </div>
+                                <Separator className="my-4" />
+                                <h4 className="font-semibold mb-2">Clientes Captados este Mes:</h4>
+                                {advisorStats.newCustomersList.length > 0 ? (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Nombre</TableHead>
+                                                <TableHead>Fuente</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {advisorStats.newCustomersList.map(c => (
+                                                <TableRow key={c.id}>
+                                                    <TableCell>{c.name}</TableCell>
+                                                    <TableCell>{c.source}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground text-center">No hay nuevos clientes este mes.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div className="space-y-4">
+                       <Card>
+                         <CardHeader>
+                            <CardTitle className="text-lg">Estado General de Clientes</CardTitle>
+                             <CardDescription>Distribución de todos sus clientes por estado.</CardDescription>
+                         </CardHeader>
+                         <CardContent>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <PieChart>
+                                    <Pie data={advisorStats.statusDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                                        {advisorStats.statusDistribution.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <RechartsTooltip />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                         </CardContent>
+                       </Card>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button onClick={handleDownloadStats}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Descargar Reporte del Mes
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )}
+    </>
   );
 }
+
