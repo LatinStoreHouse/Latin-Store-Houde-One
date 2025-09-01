@@ -131,8 +131,8 @@ export default function UsersPage() {
               <TableRow>
                 <TableHead>Usuario</TableHead>
                 <TableHead>Roles</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead className="text-center">Estado</TableHead>
+                <TableHead className="text-center">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -159,12 +159,12 @@ export default function UsersPage() {
                       ))}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                      <Badge variant={user.active ? 'default' : 'secondary'}>
                         {user.active ? 'Activo' : 'Inactivo'}
                      </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
