@@ -419,7 +419,7 @@ export default function CustomersPage() {
               <TableHead className="p-2 text-center">Asesor Asignado</TableHead>
               <TableHead className="p-2 text-center">Fecha Reg.</TableHead>
               <TableHead className="p-2 text-center">Estado</TableHead>
-              {canEditCustomers && <TableHead className="text-center p-2">Acciones</TableHead>}
+              <TableHead className="text-center p-2">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -486,61 +486,59 @@ export default function CustomersPage() {
                     </Badge>
                   )}
                 </TableCell>
-                {canEditCustomers && (
-                    <TableCell className="text-center p-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleOpenModal(customer)} disabled={!canEditThisCustomer}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
+                <TableCell className="text-center p-2">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleOpenModal(customer)} disabled={!canEditThisCustomer}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar
+                    </DropdownMenuItem>
+                    {currentUserRole === 'Líder de Asesores' && (
+                        <DropdownMenuItem onClick={() => handleOpenRedirectModal(customer)}>
+                            <Share2 className="mr-2 h-4 w-4" />
+                            Redireccionar a Socio
                         </DropdownMenuItem>
-                         {currentUserRole === 'Líder de Asesores' && (
-                            <DropdownMenuItem onClick={() => handleOpenRedirectModal(customer)}>
-                                <Share2 className="mr-2 h-4 w-4" />
-                                Redireccionar a Socio
-                            </DropdownMenuItem>
-                        )}
-                        {canCreateDispatch && (
-                            <DropdownMenuItem onClick={() => handleCreateDispatch(customer)}>
-                            <Truck className="mr-2 h-4 w-4" />
-                            Crear Despacho
-                            </DropdownMenuItem>
-                        )}
-                        {canCreateReservation && (
-                            <DropdownMenuItem onClick={() => handleCreateReservation(customer)}>
-                                <BookUser className="mr-2 h-4 w-4" />
-                                Crear Reserva
-                            </DropdownMenuItem>
-                        )}
-                        {canUseCalculators && (
-                            <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>
-                                <Calculator className="mr-2 h-4 w-4" />
-                                Crear Cotización
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                                <DropdownMenuItem onClick={() => handleCreateQuote(customer, 'stoneflex')}>
-                                Cotización StoneFlex
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleCreateQuote(customer, 'starwood')}>
-                                Cotización Starwood
-                                </DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                            </DropdownMenuSub>
-                        )}
-                        <DropdownMenuItem onClick={() => handleDeleteCustomer(customer.id)} className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Eliminar
+                    )}
+                    {canCreateDispatch && (
+                        <DropdownMenuItem onClick={() => handleCreateDispatch(customer)}>
+                        <Truck className="mr-2 h-4 w-4" />
+                        Crear Despacho
                         </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    </TableCell>
-                )}
+                    )}
+                    {canCreateReservation && (
+                        <DropdownMenuItem onClick={() => handleCreateReservation(customer)}>
+                            <BookUser className="mr-2 h-4 w-4" />
+                            Crear Reserva
+                        </DropdownMenuItem>
+                    )}
+                    {canUseCalculators && (
+                        <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                            <Calculator className="mr-2 h-4 w-4" />
+                            Crear Cotización
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                            <DropdownMenuItem onClick={() => handleCreateQuote(customer, 'stoneflex')}>
+                            Cotización StoneFlex
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleCreateQuote(customer, 'starwood')}>
+                            Cotización Starwood
+                            </DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                    )}
+                    <DropdownMenuItem onClick={() => handleDeleteCustomer(customer.id)} className="text-destructive" disabled={!canEditThisCustomer}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar
+                    </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                </TableCell>
               </TableRow>
             )})}
           </TableBody>
