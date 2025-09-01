@@ -42,7 +42,7 @@ import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { initialCustomerData, Customer, CustomerStatus, statusColors, customerStatuses } from '@/lib/customers';
+import { initialCustomerData, Customer, CustomerStatus, statusColors, customerStatuses, customerSources } from '@/lib/customers';
 import { Role, roles } from '@/lib/roles';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
