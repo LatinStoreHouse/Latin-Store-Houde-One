@@ -484,7 +484,7 @@ export default function StarwoodCalculatorPage() {
                         <div className="flex justify-between items-center p-3 rounded-md bg-background">
                             <div>
                                 <p className="font-semibold">Clip plastico para deck wpc</p>
-                                <p className="text-sm text-muted-foreground">{quote.clips.count} unidades</p>
+                                <p className="text-sm text-muted-foreground">{quote.clips.count} unidades @ {formatCurrency(quote.clips.price)}/u.</p>
                             </div>
                             <p className="font-medium">{formatCurrency(quote.clips.cost)}</p>
                         </div>
@@ -493,7 +493,7 @@ export default function StarwoodCalculatorPage() {
                         <div className="flex justify-between items-center p-3 rounded-md bg-background">
                             <div>
                                 <p className="font-semibold">Durmiente plastico 3x3</p>
-                                <p className="text-sm text-muted-foreground">{quote.sleepers.count} unidades</p>
+                                <p className="text-sm text-muted-foreground">{quote.sleepers.count} unidades @ {formatCurrency(quote.sleepers.price)}/u.</p>
                             </div>
                             <p className="font-medium">{formatCurrency(quote.sleepers.cost)}</p>
                         </div>
@@ -502,7 +502,7 @@ export default function StarwoodCalculatorPage() {
                         <div className="flex justify-between items-center p-3 rounded-md bg-background">
                             <div>
                                 <p className="font-semibold">Adhesivo</p>
-                                <p className="text-sm text-muted-foreground">{quote.adhesives.count} unidades</p>
+                                <p className="text-sm text-muted-foreground">{quote.adhesives.count} unidades @ {formatCurrency(quote.adhesives.price)}/u.</p>
                             </div>
                             <p className="font-medium">{formatCurrency(quote.adhesives.cost)}</p>
                         </div>
@@ -511,7 +511,7 @@ export default function StarwoodCalculatorPage() {
                         <div className="flex justify-between items-center p-3 rounded-md bg-background">
                             <div>
                                 <p className="font-semibold">Sellante wpc 1/4 galon</p>
-                                <p className="text-sm text-muted-foreground">{quote.sealants.count} unidades</p>
+                                <p className="text-sm text-muted-foreground">{quote.sealants.count} unidades @ {formatCurrency(quote.sealants.price)}/u.</p>
                             </div>
                             <p className="font-medium">{formatCurrency(quote.sealants.cost)}</p>
                         </div>
