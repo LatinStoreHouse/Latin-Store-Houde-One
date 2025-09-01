@@ -23,9 +23,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Handshake, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Search, Handshake, PlusCircle, Edit, Trash2, ListFilter, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Partner, initialPartnerData } from '@/lib/partners';
 import { initialDistributorData } from '@/lib/distributors';
@@ -33,23 +36,31 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { DistributorForm } from '@/components/distributor-form';
 
+const partnerTypes = ['Distribuidor', 'Partner'];
+
 export default function PartnersPage() {
   const [partners, setPartners] = useState<Partner[]>(() => [
     ...initialDistributorData.map(d => ({ ...d, type: 'Distribuidor' as const })),
     ...initialPartnerData
   ]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<Partner | undefined>(undefined);
   const { toast } = useToast();
 
   const filteredPartners = useMemo(() => {
-    return partners.filter(partner =>
-      partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.city.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [partners, searchTerm]);
+    return partners.filter(partner => {
+        const searchMatch =
+            partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            partner.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            partner.city.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const typeMatch = typeFilter.length === 0 || typeFilter.includes(partner.type);
+
+        return searchMatch && typeMatch;
+    });
+  }, [partners, searchTerm, typeFilter]);
 
   const handleOpenModal = (partner?: Partner) => {
     setSelectedPartner(partner);
@@ -85,6 +96,18 @@ export default function PartnersPage() {
   const getTypeBadgeClasses = (type: 'Partner' | 'Distribuidor') => {
       return type === 'Distribuidor' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
   }
+  
+  const toggleFilter = (filterSetter: React.Dispatch<React.SetStateAction<string[]>>, value: string) => {
+    filterSetter(prev => 
+      prev.includes(value) ? prev.filter(item => item !== value) : [...prev, value]
+    );
+  };
+
+  const clearFilters = () => {
+    setTypeFilter([]);
+  }
+
+  const areFiltersActive = typeFilter.length > 0;
 
   return (
     <>
@@ -106,8 +129,8 @@ export default function PartnersPage() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 flex items-center gap-2">
-          <div className="relative flex-1">
+        <div className="mb-4 flex flex-col sm:flex-row items-center gap-2">
+          <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nombre, contacto o ciudad..."
@@ -116,6 +139,37 @@ export default function PartnersPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+           <div className="flex w-full sm:w-auto items-center gap-2">
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="gap-2">
+                        <ListFilter className="h-4 w-4" />
+                        <span>Filtros</span>
+                        {areFiltersActive && <div className="h-2 w-2 rounded-full bg-primary" />}
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                    <DropdownMenuLabel>Filtrar por Tipo</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {partnerTypes.map(type => (
+                        <DropdownMenuCheckboxItem
+                            key={type}
+                            checked={typeFilter.includes(type)}
+                            onCheckedChange={() => toggleFilter(setTypeFilter, type)}
+                        >
+                            {type}
+                        </DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            {areFiltersActive && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 text-muted-foreground">
+                    <X className="h-4 w-4" />
+                    Limpiar
+                </Button>
+            )}
+           </div>
         </div>
         <Table>
           <TableHeader>
