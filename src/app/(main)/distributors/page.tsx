@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -56,6 +56,7 @@ export default function PartnersPage() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteType, setInviteType] = useState<InviteType>('distributor');
+  const [generatedLink, setGeneratedLink] = useState('');
   const [selectedPartner, setSelectedPartner] = useState<Partner | undefined>(undefined);
   const { toast } = useToast();
   const { currentUser } = useUser();
@@ -71,6 +72,12 @@ export default function PartnersPage() {
      currentUser.individualPermissions?.forEach(p => permissions.add(p));
     return Array.from(permissions);
   }, [currentUser]);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setGeneratedLink(`${window.location.origin}/register?type=${inviteType}`);
+    }
+  }, [inviteType]);
 
   const canManagePartners = userPermissions.includes('partners:manage');
 
@@ -151,11 +158,11 @@ export default function PartnersPage() {
 
   const areFiltersActive = typeFilter.length > 0;
   
-  const generatedLink = `${window.location.origin}/register?type=${inviteType}`;
-
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(generatedLink);
-    toast({ title: 'Enlace Copiado', description: 'El enlace de invitación ha sido copiado a tu portapapeles.' });
+    if (generatedLink) {
+        navigator.clipboard.writeText(generatedLink);
+        toast({ title: 'Enlace Copiado', description: 'El enlace de invitación ha sido copiado a tu portapapeles.' });
+    }
   }
 
   return (
@@ -424,7 +431,7 @@ export default function PartnersPage() {
                     <Label>Enlace de Invitación</Label>
                     <div className="flex items-center gap-2">
                         <Input value={generatedLink} readOnly />
-                        <Button size="icon" onClick={handleCopyLink}>
+                        <Button size="icon" onClick={handleCopyLink} disabled={!generatedLink}>
                             <Copy className="h-4 w-4" />
                         </Button>
                     </div>
