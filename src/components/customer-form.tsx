@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Customer, CustomerStatus, customerSources, customerStatuses } from '@/lib/customers';
 import { Textarea } from './ui/textarea';
-import { Combobox } from './ui/combobox';
 import { User } from '@/lib/roles';
+import { LocationCombobox } from './location-combobox';
 
 interface CustomerFormProps {
   customer?: Customer;
@@ -19,18 +19,6 @@ interface CustomerFormProps {
 
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin'];
 
-const locationOptions = [
-    // Colombia
-    "Bogotá, Colombia", "Medellín, Colombia", "Cali, Colombia", "Barranquilla, Colombia", "Cartagena, Colombia", "Cúcuta, Colombia", "Bucaramanga, Colombia", "Pereira, Colombia", "Santa Marta, Colombia", "Ibagué, Colombia", "Manizales, Colombia", "Pasto, Colombia", "Neiva, Colombia", "Villavicencio, Colombia",
-    // Ecuador
-    "Quito, Ecuador", "Guayaquil, Ecuador", "Cuenca, Ecuador",
-    // Panamá
-    "Panama City, Panamá", "Colón, Panamá", "David, Panamá",
-    // Perú
-    "Lima, Perú", "Cusco, Perú", "Arequipa, Perú",
-    // USA
-    "Miami, FL, USA", "New York, NY, USA", "Los Angeles, CA, USA"
-].map(city => ({ value: city, label: city }));
 
 export function CustomerForm({ customer, onSave, onCancel, currentUser }: CustomerFormProps) {
   const [name, setName] = useState('');
@@ -83,6 +71,12 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
     onSave({ name, phone, email, city, address, source, assignedTo, status, notes });
   };
 
+  const handlePlaceSelect = (place: google.maps.places.PlaceResult | null) => {
+    if (place?.formatted_address) {
+        setCity(place.formatted_address);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4">
       <div className="grid grid-cols-2 gap-4">
@@ -103,14 +97,10 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
        <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="city">Ciudad / País</Label>
-                 <Combobox
-                    options={locationOptions}
-                    value={city}
-                    onValueChange={setCity}
-                    placeholder="Seleccione una ubicación"
-                    searchPlaceholder="Buscar ubicación..."
-                    emptyPlaceholder="No se encontró la ubicación."
-                />
+                 <LocationCombobox
+                    onPlaceSelect={handlePlaceSelect}
+                    initialValue={city}
+                 />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="address">Dirección (Opcional)</Label>
