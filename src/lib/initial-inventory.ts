@@ -137,8 +137,5 @@ export const initialInventoryData = {
       'SIENA': { bodega: 4, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 },
     }
   },
-  '7walls': {},
-  Uvcovering: {},
-  glasswing: {},
-  Aluwall: {},
+  '7walls': {}
 };
