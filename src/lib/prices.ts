@@ -100,7 +100,7 @@ export const initialProductPrices: { [key: string]: number } = {
     'Daily clean': 0,
     'Intensive clean': 0,
     'Sellante wpc 1 galon': 60000,
-    'Sellante wpc 1/4 galon': 0, // No price provided
+    'Sellante wpc 1/4 galon': 72050,
     'Daily clean galon': 0, // No price provided
     'Remate wall panel roble': 0, // No price provided
     'Remate wall panel maple': 0, // No price provided
