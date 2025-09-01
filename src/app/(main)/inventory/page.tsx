@@ -676,6 +676,14 @@ export default function InventoryPage() {
     return Object.values(lowStockAlerts[brand] || {}).some(Boolean);
   }
 
+  const getSortedSubCategories = (brand: string) => {
+    const subCategories = Object.keys(localInventoryData[brand as keyof typeof localInventoryData]);
+    return subCategories.sort((a, b) => {
+        if (a === 'Insumos') return 1;
+        if (b === 'Insumos') return -1;
+        return a.localeCompare(b);
+    });
+  };
 
   return (
     <>
@@ -816,10 +824,10 @@ export default function InventoryPage() {
                 <TabsContent value={brand} key={brand} className="mt-4">
                     <Card>
                       <CardContent className="p-0">
-                        <Tabs defaultValue={Object.keys(localInventoryData[brand as keyof typeof localInventoryData])[0] || 'default'} className="w-full">
+                        <Tabs defaultValue={getSortedSubCategories(brand)[0] || 'default'} className="w-full">
                             <div className="flex justify-center mt-4">
                                 <TabsList>
-                                    {Object.keys(localInventoryData[brand as keyof typeof localInventoryData]).map((subCategory) => (
+                                    {getSortedSubCategories(brand).map((subCategory) => (
                                         <TabTriggerWithIndicator value={subCategory} key={subCategory} hasAlert={!!lowStockAlerts[brand]?.[subCategory]}>
                                             {subCategory}
                                         </TabTriggerWithIndicator>
@@ -959,3 +967,4 @@ export default function InventoryPage() {
     
 
     
+
