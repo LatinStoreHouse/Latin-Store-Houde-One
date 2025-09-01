@@ -4,11 +4,56 @@ import {
   APIProvider,
   Map,
   AdvancedMarker,
-  useAutocomplete,
   Pin,
+  useMap,
 } from '@vis.gl/react-google-maps';
 import { Input } from './ui/input';
 import { Loader2 } from 'lucide-react';
+
+
+function usePlacesAutocompleteService(
+  options?: google.maps.places.AutocompletionRequest
+) {
+  const [places, setPlaces] =
+    useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [autocompleteService, setAutocompleteService] =
+    useState<google.maps.places.AutocompleteService | null>(null);
+  const [sessionToken, setSessionToken] =
+    useState<google.maps.places.AutocompleteSessionToken>();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!window.google || !window.google.maps || !window.google.maps.places) {
+      return;
+    }
+    setAutocompleteService(new google.maps.places.AutocompleteService());
+    setSessionToken(new google.maps.places.AutocompleteSessionToken());
+  }, []);
+
+  const fetchPredictions = (inputValue: string) => {
+    if (!autocompleteService || !inputValue) {
+      setPlaces([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    autocompleteService.getPlacePredictions(
+      { ...options, input: inputValue, sessionToken },
+      (predictions, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          setPlaces(predictions || []);
+        } else {
+          setPlaces([]);
+        }
+        setLoading(false);
+      }
+    );
+  };
+
+  return { places, fetchPredictions, loading, setPlaces };
+}
+
 
 interface LocationComboboxProps {
   apiKey: string;
@@ -25,49 +70,63 @@ const FallbackInput = ({ onLocationSelect, initialValue }: Pick<LocationCombobox
 )
 
 const LocationSearch = ({ onLocationSelect, initialValue }: Pick<LocationComboboxProps, 'onLocationSelect' | 'initialValue'>) => {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(initialValue || '');
-  const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
+  const [placesService, setPlacesService] =
+    useState<google.maps.places.PlacesService | null>(null);
+  const map = useMap();
   
-  const { places, loading } = useAutocomplete({
-    inputField: inputRef.current,
-    onPlaceSelect: (place) => {
-      setSelectedPlace(place);
-    },
-    options: {
-        componentRestrictions: { country: ["co", "ec", "pa", "pe", "us"] }
-    }
+  useEffect(() => {
+    if (!map) return;
+    setPlacesService(new google.maps.places.PlacesService(map));
+  }, [map]);
+
+
+  const { places, fetchPredictions, loading, setPlaces } = usePlacesAutocompleteService({
+     componentRestrictions: { country: ["co", "ec", "pa", "pe", "us"] }
   });
 
   useEffect(() => {
-    if (selectedPlace?.geometry?.location && selectedPlace.formatted_address) {
-      const lat = selectedPlace.geometry.location.lat();
-      const lng = selectedPlace.geometry.location.lng();
-      
-      let city = '';
-      let country = '';
-
-      selectedPlace.address_components?.forEach(component => {
-          if (component.types.includes('locality')) {
-              city = component.long_name;
-          }
-           if (component.types.includes('administrative_area_level_1')) {
-              city = city || component.long_name;
-          }
-          if (component.types.includes('country')) {
-              country = component.long_name;
-          }
-      });
-      
-      onLocationSelect({ address: selectedPlace.formatted_address, city, country, lat, lng });
-      setInputValue(selectedPlace.formatted_address);
+    if (inputValue) {
+        fetchPredictions(inputValue);
+    } else {
+        setPlaces([]);
     }
-  }, [selectedPlace, onLocationSelect]);
+  }, [inputValue]);
+
+  const handlePlaceSelect = (place: google.maps.places.AutocompletePrediction) => {
+    setInputValue(place.description);
+    setPlaces([]);
+
+    if (!placesService) return;
+
+    placesService.getDetails({ placeId: place.place_id, fields: ['geometry.location', 'address_components', 'formatted_address'] }, (placeResult, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && placeResult) {
+            const lat = placeResult.geometry?.location?.lat() || 0;
+            const lng = placeResult.geometry?.location?.lng() || 0;
+            
+            let city = '';
+            let country = '';
+
+            placeResult.address_components?.forEach(component => {
+                if (component.types.includes('locality')) {
+                    city = component.long_name;
+                }
+                 if (component.types.includes('administrative_area_level_1') && !city) {
+                    city = component.long_name;
+                }
+                if (component.types.includes('country')) {
+                    country = component.long_name;
+                }
+            });
+
+            onLocationSelect({ address: placeResult.formatted_address || place.description, city, country, lat, lng });
+        }
+    });
+  }
 
   return (
     <div className="w-full relative">
        <Input
-        ref={inputRef}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         placeholder="Buscar dirección..."
@@ -78,7 +137,7 @@ const LocationSearch = ({ onLocationSelect, initialValue }: Pick<LocationCombobo
            {places.map((p) => (
              <div
                 key={p.place_id}
-                onClick={() => setSelectedPlace(p)}
+                onClick={() => handlePlaceSelect(p)}
                 className="p-2 hover:bg-muted cursor-pointer"
              >
                 {p.description}
@@ -100,8 +159,11 @@ export function LocationCombobox({ onLocationSelect, initialValue }: Omit<Locati
             setApiKey(key);
             
             const originalError = console.error;
+            const errorKeywords = ['Google Maps JavaScript API error', 'InvalidKeyMapError', 'ApiNotActivatedMapError'];
+            
             console.error = (...args) => {
-                if (typeof args[0] === 'string' && args[0].includes('Google Maps JavaScript API error: InvalidKeyMapError')) {
+                const errorMessage = args[0];
+                if (typeof errorMessage === 'string' && errorKeywords.some(keyword => errorMessage.includes(keyword))) {
                     setHasError(true);
                 }
                 originalError(...args);
