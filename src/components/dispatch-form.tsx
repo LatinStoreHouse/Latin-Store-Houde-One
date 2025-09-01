@@ -147,7 +147,6 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
                         placeholder="Seleccione un cliente"
                         searchPlaceholder="Buscar cliente..."
                         emptyPlaceholder="Cliente no encontrado"
-                        allowFreeText
                     />
                 </div>
                  <div className="space-y-2">
@@ -171,7 +170,6 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
                         placeholder="Seleccione una ciudad"
                         searchPlaceholder="Buscar ciudad..."
                         emptyPlaceholder="No se encontró ciudad"
-                        allowFreeText
                     />
                 </div>
                  <div className="space-y-2">

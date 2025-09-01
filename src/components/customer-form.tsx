@@ -106,7 +106,6 @@ export function CustomerForm({ customer, onSave, onCancel, canEditNotes, current
                     placeholder="Seleccione una ubicación"
                     searchPlaceholder="Buscar ubicación..."
                     emptyPlaceholder="No se encontró la ubicación."
-                    allowFreeText
                 />
             </div>
             <div className="space-y-2">

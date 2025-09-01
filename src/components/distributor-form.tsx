@@ -114,7 +114,6 @@ export function DistributorForm({ distributor, onSave, onCancel }: DistributorFo
                     placeholder="Seleccione una ciudad"
                     searchPlaceholder="Buscar ciudad..."
                     emptyPlaceholder="No se encontró ciudad."
-                    allowFreeText
                 />
             </div>
             <div className="space-y-2 col-span-2">

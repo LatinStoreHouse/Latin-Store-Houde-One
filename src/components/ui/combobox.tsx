@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import {
   Command,
   CommandEmpty,
+  CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
@@ -33,7 +34,6 @@ type ComboboxProps = {
   emptyPlaceholder?: string
   className?: string
   disabled?: boolean
-  allowFreeText?: boolean
 }
 
 export function Combobox({
@@ -45,7 +45,6 @@ export function Combobox({
   emptyPlaceholder = "No options found.",
   className,
   disabled,
-  allowFreeText = false,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   
@@ -72,26 +71,28 @@ export function Combobox({
           />
           <CommandList>
             <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
-            {options.map((option) => (
-              <CommandItem
-                key={option.value}
-                value={option.value}
-                onSelect={(currentValue) => {
-                  if (onValueChange) {
-                    onValueChange(currentValue === value ? "" : currentValue)
-                  }
-                  setOpen(false)
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === option.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {option.label}
-              </CommandItem>
-            ))}
+            <CommandGroup>
+                {options.map((option) => (
+                <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    onSelect={(currentValue) => {
+                    if (onValueChange) {
+                        onValueChange(currentValue === value ? "" : currentValue)
+                    }
+                    setOpen(false)
+                    }}
+                >
+                    <Check
+                    className={cn(
+                        "mr-2 h-4 w-4",
+                        value === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                    />
+                    {option.label}
+                </CommandItem>
+                ))}
+            </CommandGroup>
           </CommandList>
         </Command>
       </PopoverContent>
