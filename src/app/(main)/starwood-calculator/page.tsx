@@ -14,10 +14,8 @@ import { initialProductPrices as productPrices } from '@/lib/prices';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import Image from 'next/image';
+import { WhatsAppIcon } from '@/components/social-icons';
 
-const WhatsAppIcon = () => (
-    <Image src="/imagenes/logos/Logo Whatsapp.svg" alt="WhatsApp" width={16} height={16} />
-);
 
 const starwoodProducts = [
   'Deck (ebony/light gray)',
@@ -82,6 +80,10 @@ export default function StarwoodCalculatorPage() {
   const [includeSleepers, setIncludeSleepers] = useState(true);
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
   const [includeSealant, setIncludeSealant] = useState(true);
+
+  const hasDeckItems = useMemo(() => quoteItems.some(item => item.reference.toLowerCase().includes('deck')), [quoteItems]);
+  const hasListonItems = useMemo(() => quoteItems.some(item => item.reference.toLowerCase().includes('liston')), [quoteItems]);
+
 
   const productOptions = useMemo(() => {
     return starwoodProducts.map(ref => ({ value: ref, label: ref }));
@@ -174,7 +176,7 @@ export default function StarwoodCalculatorPage() {
     let adhesiveCount = 0;
     let sealantCount = 0;
 
-    if (totalDeckSqm > 0) {
+    if (totalDeckSqm > 0 && hasDeckItems) {
         if (includeClips) {
             clipCount = Math.ceil(totalDeckSqm * 21);
             const clipPrice = productPrices['Clip plastico para deck wpc'] || 0;
@@ -190,7 +192,7 @@ export default function StarwoodCalculatorPage() {
         }
     }
 
-    if (totalListonUnits > 0) {
+    if (totalListonUnits > 0 && hasListonItems) {
         if (includeAdhesive) {
             adhesiveCount = Math.ceil(totalListonUnits / 8);
             const adhesivePrice = productPrices['Adhesivo'] || 0;
@@ -379,38 +381,46 @@ export default function StarwoodCalculatorPage() {
                   </Button>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-                <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="includeClips"
-                        checked={includeClips}
-                        onCheckedChange={(checked) => setIncludeClips(Boolean(checked))}
-                    />
-                    <Label htmlFor="includeClips">Incluir Clips (para Deck)</Label>
-                </div>
-                 <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="includeSleepers"
-                        checked={includeSleepers}
-                        onCheckedChange={(checked) => setIncludeSleepers(Boolean(checked))}
-                    />
-                    <Label htmlFor="includeSleepers">Incluir Durmientes (para Deck)</Label>
-                </div>
-                 <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="includeAdhesive"
-                        checked={includeAdhesive}
-                        onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))}
-                    />
-                    <Label htmlFor="includeAdhesive">Incluir Adhesivo (para Listones)</Label>
-                </div>
-                 <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="includeSealant"
-                        checked={includeSealant}
-                        onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))}
-                    />
-                    <Label htmlFor="includeSealant">Incluir Sellante (para Listones)</Label>
-                </div>
+                {hasDeckItems && (
+                    <>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="includeClips"
+                                checked={includeClips}
+                                onCheckedChange={(checked) => setIncludeClips(Boolean(checked))}
+                            />
+                            <Label htmlFor="includeClips">Incluir Clips (para Deck)</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="includeSleepers"
+                                checked={includeSleepers}
+                                onCheckedChange={(checked) => setIncludeSleepers(Boolean(checked))}
+                            />
+                            <Label htmlFor="includeSleepers">Incluir Durmientes (para Deck)</Label>
+                        </div>
+                    </>
+                )}
+                 {hasListonItems && (
+                    <>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="includeAdhesive"
+                                checked={includeAdhesive}
+                                onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))}
+                            />
+                            <Label htmlFor="includeAdhesive">Incluir Adhesivo (para Listones)</Label>
+                        </div>
+                         <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="includeSealant"
+                                checked={includeSealant}
+                                onCheckedChange={(checked) => setIncludeSealant(Boolean(checked))}
+                            />
+                            <Label htmlFor="includeSealant">Incluir Sellante (para Listones)</Label>
+                        </div>
+                    </>
+                 )}
               </div>
           </div>
           <Separator />
@@ -557,3 +567,4 @@ export default function StarwoodCalculatorPage() {
     </Card>
   );
 }
+
