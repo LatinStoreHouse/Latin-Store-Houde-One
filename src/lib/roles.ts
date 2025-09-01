@@ -50,7 +50,8 @@ export type Permission =
   // Partners
   'partners:view' |
   'partners:manage' |
-  'partners:clients';
+  'partners:clients' |
+  'leader:view:assignments';
 
 
 export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor';

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import Script from 'next/script';
@@ -23,9 +23,22 @@ export function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const recaptchaRef = useRef<HTMLDivElement>(null);
 
+  const inviteType = searchParams.get('type');
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+  
+  const formTitle = inviteType === 'distributor' 
+    ? 'Solicitud de Cuenta de Distribuidor' 
+    : inviteType === 'partner' 
+    ? 'Solicitud de Cuenta de Partner' 
+    : 'Crear una Cuenta';
+    
+  const formDescription = inviteType 
+    ? `Complete el formulario para solicitar una cuenta de ${inviteType}. Su cuenta requerirá la aprobación de un administrador.`
+    : 'Complete el formulario para solicitar una cuenta. Su cuenta requerirá la aprobación de un administrador.';
+
 
   useEffect(() => {
     window.onloadCallback = () => {
@@ -60,7 +73,7 @@ export function RegisterForm() {
 
     // In a real app, you would handle the registration logic here,
     // like sending the data to your backend to create a user with a 'pending' status.
-    console.log('Registration submitted');
+    console.log('Registration submitted for type:', inviteType || 'standard');
 
     // Redirect to login page with a query param to show the toast
     router.push('/login?pending_approval=true');
@@ -75,6 +88,14 @@ export function RegisterForm() {
         />
     )}
     <form onSubmit={handleSubmit} className="space-y-4">
+        {inviteType && (
+            <Alert>
+                <AlertTitle>{formTitle}</AlertTitle>
+                <AlertDescription>
+                    {formDescription}
+                </AlertDescription>
+            </Alert>
+        )}
         <div className="space-y-2">
             <Label htmlFor="fullname">Nombre Completo</Label>
             <Input id="fullname" type="text" placeholder="John Doe" required />

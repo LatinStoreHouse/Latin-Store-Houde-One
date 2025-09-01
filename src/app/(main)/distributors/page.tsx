@@ -28,16 +28,21 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Handshake, PlusCircle, Edit, Trash2, ListFilter, X, Users, Info } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { MoreHorizontal, Search, Handshake, PlusCircle, Edit, Trash2, ListFilter, X, Users, Info, Link as LinkIcon, Copy } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Partner, initialPartnerData } from '@/lib/partners';
 import { initialDistributorData } from '@/lib/distributors';
 import { initialCustomerData, Customer } from '@/lib/customers';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { DistributorForm } from '@/components/distributor-form';
+import { useUser } from '@/app/(main)/layout';
+import { roles } from '@/lib/roles';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const partnerTypes = ['Distribuidor', 'Partner'];
+type InviteType = 'distributor' | 'partner';
 
 export default function PartnersPage() {
   const [partners, setPartners] = useState<Partner[]>(() => [
@@ -49,8 +54,25 @@ export default function PartnersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClientsModalOpen, setIsClientsModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteType, setInviteType] = useState<InviteType>('distributor');
   const [selectedPartner, setSelectedPartner] = useState<Partner | undefined>(undefined);
   const { toast } = useToast();
+  const { currentUser } = useUser();
+
+  const userPermissions = useMemo(() => {
+    const permissions = new Set<string>();
+    currentUser.roles.forEach(userRole => {
+      const roleConfig = roles.find(r => r.name === userRole);
+      if (roleConfig) {
+        roleConfig.permissions.forEach(p => permissions.add(p));
+      }
+    });
+     currentUser.individualPermissions?.forEach(p => permissions.add(p));
+    return Array.from(permissions);
+  }, [currentUser]);
+
+  const canManagePartners = userPermissions.includes('partners:manage');
 
   const filteredPartners = useMemo(() => {
     return partners.filter(partner => {
@@ -128,6 +150,13 @@ export default function PartnersPage() {
   }
 
   const areFiltersActive = typeFilter.length > 0;
+  
+  const generatedLink = `${window.location.origin}/register?type=${inviteType}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(generatedLink);
+    toast({ title: 'Enlace Copiado', description: 'El enlace de invitación ha sido copiado a tu portapapeles.' });
+  }
 
   return (
     <>
@@ -140,12 +169,18 @@ export default function PartnersPage() {
               Añada, vea y gestione su red de distribuidores y partners.
             </CardDescription>
           </div>
-          <div className="flex gap-2">
-           <Button onClick={() => handleOpenModal()}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Agregar Socio
-          </Button>
-          </div>
+          {canManagePartners && (
+             <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setIsInviteModalOpen(true)}>
+                    <LinkIcon className="mr-2 h-4 w-4" />
+                    Invitar Socio
+                </Button>
+                <Button onClick={() => handleOpenModal()}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Agregar Socio
+                </Button>
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -239,18 +274,22 @@ export default function PartnersPage() {
                             <Info className="mr-2 h-4 w-4" />
                             Ver Detalles
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleOpenModal(partner)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar
-                        </DropdownMenuItem>
-                         <DropdownMenuItem onClick={() => handleOpenClientsModal(partner)}>
-                            <Users className="mr-2 h-4 w-4" />
-                            Ver Clientes Asignados
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeletePartner(partner.id)} className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Eliminar
-                        </DropdownMenuItem>
+                         {canManagePartners && (
+                           <>
+                            <DropdownMenuItem onClick={() => handleOpenModal(partner)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenClientsModal(partner)}>
+                                <Users className="mr-2 h-4 w-4" />
+                                Ver Clientes Asignados
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeletePartner(partner.id)} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Eliminar
+                            </DropdownMenuItem>
+                           </>
+                         )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </TableCell>
@@ -356,6 +395,41 @@ export default function PartnersPage() {
                     </div>
                 </div>
             )}
+        </DialogContent>
+    </Dialog>
+
+    <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Generar Enlace de Invitación de Socio</DialogTitle>
+                <DialogDescription>
+                    Selecciona el tipo de socio que deseas invitar. Copia el enlace y envíalo a tu contacto para que pueda registrarse.
+                </DialogDescription>
+            </DialogHeader>
+             <div className="space-y-4 py-4">
+                 <div className="space-y-2">
+                    <Label>Tipo de Socio</Label>
+                     <RadioGroup value={inviteType} onValueChange={(value) => setInviteType(value as InviteType)} className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="distributor" id="type-dist" />
+                          <Label htmlFor="type-dist">Distribuidor</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="partner" id="type-part" />
+                          <Label htmlFor="type-part">Partner</Label>
+                        </div>
+                      </RadioGroup>
+                </div>
+                 <div className="space-y-2">
+                    <Label>Enlace de Invitación</Label>
+                    <div className="flex items-center gap-2">
+                        <Input value={generatedLink} readOnly />
+                        <Button size="icon" onClick={handleCopyLink}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
+                 </div>
+            </div>
         </DialogContent>
     </Dialog>
 
