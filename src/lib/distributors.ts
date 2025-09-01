@@ -1,11 +1,12 @@
 
+
 export interface Distributor {
   id: string;
   name: string;
   taxId: string;
   contactName: string;
-  phone: string;
-  email: string;
+  phone: string[];
+  email: string[];
   address: string;
   city: string;
   country: string;
@@ -22,8 +23,8 @@ export const initialDistributorData: Distributor[] = [
     name: 'Distribuidor Bogotá SAS',
     taxId: '900.123.456-7',
     contactName: 'Carlos Hernandez',
-    phone: '3101234567',
-    email: 'carlos.h@distribogota.com',
+    phone: ['3101234567'],
+    email: ['carlos.h@distribogota.com', 'ventas@distribogota.com'],
     address: 'Calle 100 # 10 - 20',
     city: 'Bogotá',
     country: 'Colombia',
@@ -38,8 +39,8 @@ export const initialDistributorData: Distributor[] = [
     name: 'Distribuciones Cali',
     taxId: '900.789.123-4',
     contactName: 'Ana Perez',
-    phone: '3117654321',
-    email: 'ana.p@districali.com',
+    phone: ['3117654321'],
+    email: ['ana.p@districali.com'],
     address: 'Av. Roosevelt # 25 - 50',
     city: 'Cali',
     country: 'Colombia',
@@ -52,8 +53,8 @@ export const initialDistributorData: Distributor[] = [
     name: 'Materiales Medellín',
     taxId: '800.456.789-1',
     contactName: 'Luis Rodriguez',
-    phone: '3159876543',
-    email: 'luis.r@matmedellin.co',
+    phone: ['3159876543'],
+    email: ['luis.r@matmedellin.co'],
     address: 'Carrera 43A # 1 - 50',
     city: 'Medellín',
     country: 'Colombia',

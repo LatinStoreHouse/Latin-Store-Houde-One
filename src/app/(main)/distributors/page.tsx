@@ -209,8 +209,12 @@ export default function PartnersPage() {
                 <TableCell>
                   <div>{partner.contactName}</div>
                   <div className="text-sm text-muted-foreground">NIT/Cédula: {partner.taxId}</div>
-                  <div className="text-sm text-muted-foreground">{partner.email}</div>
-                  <div className="text-sm text-muted-foreground">{partner.phone}</div>
+                   {partner.email.map((e, i) => (
+                      <div key={i} className="text-sm text-muted-foreground">{e}</div>
+                   ))}
+                   {partner.phone.map((p, i) => (
+                       <div key={i} className="text-sm text-muted-foreground">{p}</div>
+                   ))}
                 </TableCell>
                 <TableCell>{partner.startDate || 'N/A'}</TableCell>
                 <TableCell>
@@ -330,9 +334,15 @@ export default function PartnersPage() {
                         <div><span className="font-semibold text-muted-foreground">Estado:</span> <Badge className={cn("border-transparent", getStatusClasses(selectedPartner.status))}>{selectedPartner.status}</Badge></div>
                         <div><span className="font-semibold text-muted-foreground">NIT/Cédula:</span> {selectedPartner.taxId}</div>
                         <div><span className="font-semibold text-muted-foreground">Fecha de Entrada:</span> {selectedPartner.startDate || 'N/A'}</div>
-                        <div><span className="font-semibold text-muted-foreground">Contacto:</span> {selectedPartner.contactName}</div>
-                        <div><span className="font-semibold text-muted-foreground">Teléfono:</span> {selectedPartner.phone}</div>
-                        <div className="col-span-2"><span className="font-semibold text-muted-foreground">Email:</span> {selectedPartner.email}</div>
+                        <div className="col-span-2"><span className="font-semibold text-muted-foreground">Contacto Principal:</span> {selectedPartner.contactName}</div>
+                        <div className="col-span-2 space-y-1">
+                            <p className="font-semibold text-muted-foreground">Correos Electrónicos:</p>
+                            {selectedPartner.email.map((e, i) => <p key={i}>{e}</p>)}
+                        </div>
+                         <div className="col-span-2 space-y-1">
+                            <p className="font-semibold text-muted-foreground">Teléfonos:</p>
+                            {selectedPartner.phone.map((p, i) => <p key={i}>{p}</p>)}
+                        </div>
                         <div className="col-span-2"><span className="font-semibold text-muted-foreground">Dirección:</span> {selectedPartner.address}, {selectedPartner.city}, {selectedPartner.country}</div>
                         <div><span className="font-semibold text-muted-foreground">Descuento:</span> {selectedPartner.discountPercentage || 0}%</div>
                     </div>

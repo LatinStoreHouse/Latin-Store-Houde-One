@@ -1,11 +1,12 @@
 
+
 export interface Partner {
   id: string;
   name: string;
   taxId: string;
   contactName: string;
-  phone: string;
-  email: string;
+  phone: string[];
+  email: string[];
   address: string;
   city: string;
   country: string;
@@ -23,8 +24,8 @@ export const initialPartnerData: Partner[] = [
     name: 'Constructora Capital',
     taxId: '800.111.222-3',
     contactName: 'Sofia Vergara',
-    phone: '3209876543',
-    email: 'sofia.v@constructoracapital.com',
+    phone: ['3209876543'],
+    email: ['sofia.v@constructoracapital.com'],
     address: 'Carrera 7 # 71 - 21',
     city: 'Bogotá',
     country: 'Colombia',
@@ -40,8 +41,8 @@ export const initialPartnerData: Partner[] = [
     name: 'Diseño Interior Pro',
     taxId: '800.333.444-5',
     contactName: 'Andres Morales',
-    phone: '3181239876',
-    email: 'andres.m@disenopro.co',
+    phone: ['3181239876'],
+    email: ['andres.m@disenopro.co'],
     address: 'Calle 80 # 14 - 30',
     city: 'Medellín',
     country: 'Colombia',

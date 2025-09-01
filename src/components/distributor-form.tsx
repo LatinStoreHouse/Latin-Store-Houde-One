@@ -10,7 +10,7 @@ import { Switch } from './ui/switch';
 import { Combobox } from './ui/combobox';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { LocationCombobox } from './location-combobox';
-import { FileUp, Trash2 } from 'lucide-react';
+import { FileUp, Trash2, PlusCircle } from 'lucide-react';
 
 interface PartnerFormProps {
   partner?: Partner;
@@ -30,8 +30,8 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
   const [name, setName] = useState('');
   const [taxId, setTaxId] = useState('');
   const [contactName, setContactName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [phones, setPhones] = useState<string[]>(['']);
+  const [emails, setEmails] = useState<string[]>(['']);
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('Colombia');
@@ -50,8 +50,8 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setName(partner.name);
       setTaxId(partner.taxId);
       setContactName(partner.contactName);
-      setPhone(partner.phone);
-      setEmail(partner.email);
+      setPhones(partner.phone.length > 0 ? partner.phone : ['']);
+      setEmails(partner.email.length > 0 ? partner.email : ['']);
       setAddress(partner.address);
       setCity(partner.city);
       setCountry(partner.country);
@@ -60,17 +60,15 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setNotes(partner.notes || '');
       setDiscountPercentage(partner.discountPercentage || '');
       setStartDate(partner.startDate || '');
-      // contractFile would need to be handled differently, e.g. storing a URL
       if (partner.address) {
         setLocation({ address: partner.address, lat: 0, lng: 0});
       }
     } else {
-      // Reset form for new
       setName('');
       setTaxId('');
       setContactName('');
-      setPhone('');
-      setEmail('');
+      setPhones(['']);
+      setEmails(['']);
       setAddress('');
       setCity('');
       setCountry('Colombia');
@@ -87,8 +85,8 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !contactName || !phone || !email || !taxId) {
-      setError('Nombre, Contacto, Teléfono, Email y NIT/Cédula son campos requeridos.');
+    if (!name || !contactName || !taxId || phones.some(p => !p) || emails.some(em => !em)) {
+      setError('Nombre, Contacto, NIT/Cédula, y al menos un teléfono y correo son requeridos.');
       return;
     }
     setError(null);
@@ -96,8 +94,8 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
         name, 
         taxId, 
         contactName, 
-        phone, 
-        email, 
+        phone: phones.filter(p => p), 
+        email: emails.filter(em => em), 
         address: location?.address || address, 
         city: location ? location.address.split(',').slice(-2, -1)[0]?.trim() || city : city, 
         country, 
@@ -106,7 +104,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
         notes,
         discountPercentage: Number(discountPercentage) || undefined,
         startDate,
-        contractNotes: contractFile?.name // Store file name as a string for now
+        contractNotes: contractFile?.name
     });
   };
 
@@ -131,10 +129,42 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setContractFile(e.target.files[0]);
     }
   };
-  
+
+  const handleContactChange = (index: number, value: string, type: 'phone' | 'email') => {
+      if (type === 'phone') {
+          const newPhones = [...phones];
+          newPhones[index] = value;
+          setPhones(newPhones);
+      } else {
+          const newEmails = [...emails];
+          newEmails[index] = value;
+          setEmails(newEmails);
+      }
+  };
+
+  const addContactField = (type: 'phone' | 'email') => {
+      if (type === 'phone') {
+          setPhones([...phones, '']);
+      } else {
+          setEmails([...emails, '']);
+      }
+  };
+
+  const removeContactField = (index: number, type: 'phone' | 'email') => {
+      if (type === 'phone') {
+          if (phones.length > 1) {
+              setPhones(phones.filter((_, i) => i !== index));
+          }
+      } else {
+           if (emails.length > 1) {
+              setEmails(emails.filter((_, i) => i !== index));
+           }
+      }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto p-1">
-       <div className="space-y-2">
+      <div className="space-y-2">
             <Label>Tipo de Socio</Label>
              <RadioGroup value={type} onValueChange={(value) => setType(value as 'Partner' | 'Distribuidor')} className="flex gap-4">
                 <div className="flex items-center space-x-2">
@@ -156,20 +186,40 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
             <Label htmlFor="taxId">NIT / Cédula</Label>
             <Input id="taxId" value={taxId} onChange={(e) => setTaxId(e.target.value)} required />
         </div>
-        <div className="space-y-2">
-            <Label htmlFor="contactName">Nombre del Contacto</Label>
+        <div className="space-y-2 col-span-2">
+            <Label htmlFor="contactName">Nombre del Contacto Principal</Label>
             <Input id="contactName" value={contactName} onChange={(e) => setContactName(e.target.value)} required />
         </div>
-        <div className="space-y-2">
-            <Label htmlFor="phone">Teléfono</Label>
-            <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-        </div>
-        <div className="space-y-2 col-span-2">
-            <Label htmlFor="email">Correo Electrónico</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
       </div>
-      {error && <p className="text-sm text-destructive -mt-2 text-center">{error}</p>}
+      
+       <div className="space-y-2">
+            <Label>Teléfonos</Label>
+            {phones.map((phone, index) => (
+                <div key={index} className="flex items-center gap-2">
+                    <Input type="tel" value={phone} onChange={(e) => handleContactChange(index, e.target.value, 'phone')} />
+                    {index === phones.length - 1 ? (
+                        <Button type="button" size="icon" onClick={() => addContactField('phone')}><PlusCircle className="h-4 w-4" /></Button>
+                    ) : (
+                        <Button type="button" size="icon" variant="ghost" onClick={() => removeContactField(index, 'phone')}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    )}
+                </div>
+            ))}
+        </div>
+        <div className="space-y-2">
+            <Label>Correos Electrónicos</Label>
+            {emails.map((email, index) => (
+                <div key={index} className="flex items-center gap-2">
+                    <Input type="email" value={email} onChange={(e) => handleContactChange(index, e.target.value, 'email')} />
+                    {index === emails.length - 1 ? (
+                        <Button type="button" size="icon" onClick={() => addContactField('email')}><PlusCircle className="h-4 w-4" /></Button>
+                    ) : (
+                        <Button type="button" size="icon" variant="ghost" onClick={() => removeContactField(index, 'email')}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    )}
+                </div>
+            ))}
+        </div>
+        
+      {error && <p className="text-sm text-destructive text-center">{error}</p>}
        
        <div className="space-y-2">
             <Label htmlFor="location">Dirección / Ciudad</Label>
@@ -192,7 +242,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
                     type="number"
                     value={discountPercentage} 
                     onChange={(e) => setDiscountPercentage(e.target.value)}
-                    placeholder="Ej: 15"
+                    placeholder="Ej: 10"
                 />
             </div>
         </div>
