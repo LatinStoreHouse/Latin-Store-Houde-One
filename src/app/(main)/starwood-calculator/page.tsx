@@ -81,8 +81,8 @@ export default function StarwoodCalculatorPage() {
   const [includeAdhesive, setIncludeAdhesive] = useState(true);
   const [includeSealant, setIncludeSealant] = useState(true);
 
-  const hasDeckItems = useMemo(() => quoteItems.some(item => item.reference.toLowerCase().includes('deck')), [quoteItems]);
-  const hasListonItems = useMemo(() => quoteItems.some(item => item.reference.toLowerCase().includes('liston')), [quoteItems]);
+  const selectedProductIsDeck = useMemo(() => productReference.toLowerCase().includes('deck'), [productReference]);
+  const selectedProductIsListon = useMemo(() => productReference.toLowerCase().includes('liston'), [productReference]);
 
 
   const productOptions = useMemo(() => {
@@ -176,7 +176,7 @@ export default function StarwoodCalculatorPage() {
     let adhesiveCount = 0;
     let sealantCount = 0;
 
-    if (totalDeckSqm > 0 && hasDeckItems) {
+    if (totalDeckSqm > 0) {
         if (includeClips) {
             clipCount = Math.ceil(totalDeckSqm * 21);
             const clipPrice = productPrices['Clip plastico para deck wpc'] || 0;
@@ -192,7 +192,7 @@ export default function StarwoodCalculatorPage() {
         }
     }
 
-    if (totalListonUnits > 0 && hasListonItems) {
+    if (totalListonUnits > 0) {
         if (includeAdhesive) {
             adhesiveCount = Math.ceil(totalListonUnits / 8);
             const adhesivePrice = productPrices['Adhesivo'] || 0;
@@ -381,7 +381,7 @@ export default function StarwoodCalculatorPage() {
                   </Button>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-                {hasDeckItems && (
+                {selectedProductIsDeck && (
                     <>
                         <div className="flex items-center space-x-2">
                             <Checkbox
@@ -401,7 +401,7 @@ export default function StarwoodCalculatorPage() {
                         </div>
                     </>
                 )}
-                 {hasListonItems && (
+                 {selectedProductIsListon && (
                     <>
                         <div className="flex items-center space-x-2">
                             <Checkbox
@@ -552,7 +552,7 @@ export default function StarwoodCalculatorPage() {
                         Descargar PDF
                     </Button>
                     <Button variant="outline" onClick={handleShareOnWhatsApp} className="gap-2">
-                        <WhatsAppIcon width={16} height={16}/>
+                        <WhatsAppIcon />
                         <span>Compartir</span>
                     </Button>
                 </div>
@@ -567,5 +567,3 @@ export default function StarwoodCalculatorPage() {
     </Card>
   );
 }
-
-
