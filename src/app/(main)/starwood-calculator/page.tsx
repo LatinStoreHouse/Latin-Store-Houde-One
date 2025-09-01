@@ -38,6 +38,7 @@ const starwoodProducts = [
 ].sort();
 
 const starwoodSupplies = [
+  'Adhesivo',
   'Bocel decorativo blanco',
   'Clip plastico para deck wpc',
   'Daily clean',
