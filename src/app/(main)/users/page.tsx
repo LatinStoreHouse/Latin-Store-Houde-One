@@ -19,7 +19,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal, UserPlus, ShieldCheck, UserCog, Trash2 } from 'lucide-react';
+import { MoreHorizontal, UserPlus, ShieldCheck, UserCog, Trash2, Calculator } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +37,8 @@ import {
 import { UserForm } from '@/components/user-form';
 import { User, Role, roles } from '@/lib/roles';
 import { useUser } from '../layout';
+import { SetSalesForm } from '@/components/set-sales-form';
+import { initialSalesData, MonthlySales } from '@/lib/sales-data';
 
 
 const initialUsers: User[] = [
@@ -49,18 +51,25 @@ const initialUsers: User[] = [
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>(initialUsers);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [salesData, setSalesData] = useState<MonthlySales>(initialSalesData);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
-
+  
   const handleAddUser = () => {
     setSelectedUser(undefined);
-    setIsModalOpen(true);
+    setIsUserModalOpen(true);
   };
 
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
-    setIsModalOpen(true);
+    setIsUserModalOpen(true);
   };
+  
+  const handleOpenSalesModal = (user: User) => {
+    setSelectedUser(user);
+    setIsSalesModalOpen(true);
+  }
 
   const handleSaveUser = (user: User) => {
     if (selectedUser) {
@@ -68,9 +77,17 @@ export default function UsersPage() {
     } else {
       setUsers([...users, { ...user, id: String(Date.now()) }]);
     }
-    setIsModalOpen(false);
+    setIsUserModalOpen(false);
   };
   
+  const handleSaveSales = (advisorName: string, newSales: { [month: string]: { sales: number } }) => {
+    setSalesData(prev => ({
+        ...prev,
+        [advisorName]: newSales
+    }));
+    setIsSalesModalOpen(false);
+  }
+
   const getRoleBadgeVariant = (roleName: Role) => {
       const role = roles.find(r => r.name === roleName);
       if (!role) return 'secondary';
@@ -159,6 +176,12 @@ export default function UsersPage() {
                             <UserCog className="mr-2 h-4 w-4" />
                             Editar Usuario
                         </DropdownMenuItem>
+                         {user.roles.includes('Asesor de Ventas') && (
+                            <DropdownMenuItem onClick={() => handleOpenSalesModal(user)}>
+                                <Calculator className="mr-2 h-4 w-4" />
+                                Registrar Ventas
+                            </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-red-600">
                            <Trash2 className="mr-2 h-4 w-4" />
@@ -174,7 +197,7 @@ export default function UsersPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{selectedUser ? 'Editar Usuario' : 'Agregar Nuevo Usuario'}</DialogTitle>
@@ -182,9 +205,28 @@ export default function UsersPage() {
               {selectedUser ? 'Actualice los detalles del usuario y sus permisos.' : 'Complete el formulario para agregar un nuevo usuario.'}
             </DialogDescription>
           </DialogHeader>
-          <UserForm user={selectedUser} onSave={handleSaveUser} onCancel={() => setIsModalOpen(false)} />
+          <UserForm user={selectedUser} onSave={handleSaveUser} onCancel={() => setIsUserModalOpen(false)} />
         </DialogContent>
       </Dialog>
+      
+      {selectedUser && (
+        <Dialog open={isSalesModalOpen} onOpenChange={setIsSalesModalOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Registrar Ventas Mensuales</DialogTitle>
+                    <DialogDescription>
+                        Añada o actualice el total de ventas para <span className="font-semibold">{selectedUser.name}</span>.
+                    </DialogDescription>
+                </DialogHeader>
+                 <SetSalesForm
+                    advisorName={selectedUser.name}
+                    salesData={salesData[selectedUser.name] || {}}
+                    onSave={handleSaveSales}
+                    onCancel={() => setIsSalesModalOpen(false)}
+                />
+            </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

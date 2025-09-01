@@ -36,7 +36,7 @@ import {
   DropdownMenuSubTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, MapPin, Calculator, StickyNote, BarChart, Download } from 'lucide-react';
+import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, MapPin, Calculator, StickyNote, BarChart, Download, DollarSign } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -53,6 +53,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { MonthPicker } from '@/components/month-picker';
 import { ResponsiveContainer, Pie, Cell, Tooltip as RechartsTooltip, Legend, PieChart } from 'recharts';
 import { Separator } from '@/components/ui/separator';
+import { initialSalesData } from '@/lib/sales-data';
 
 
 const sourceIcons: { [key: string]: React.ElementType | React.ReactNode } = {
@@ -139,10 +140,14 @@ export default function CustomersPage() {
     // Stats for the selected month
     const year = statsDate.getFullYear();
     const month = statsDate.getMonth();
+    const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+
     const newCustomersThisMonth = customers.filter(c => {
         const regDate = new Date(c.registrationDate);
         return c.assignedTo === currentUser.name && regDate.getFullYear() === year && regDate.getMonth() === month;
     });
+    
+    const monthlySales = initialSalesData[currentUser.name]?.[monthKey]?.sales || 0;
 
     // Stats for all time for the pie chart
     const allAdvisorCustomers = customers.filter(c => c.assignedTo === currentUser.name);
@@ -155,6 +160,7 @@ export default function CustomersPage() {
         newCustomersCount: newCustomersThisMonth.length,
         newCustomersList: newCustomersThisMonth,
         statusDistribution: Object.entries(statusDistribution).map(([name, value]) => ({ name, value })),
+        monthlySales: monthlySales,
     }
 
   }, [isAdvisor, statsDate, customers, currentUser.name]);
@@ -279,6 +285,14 @@ export default function CustomersPage() {
     
     doc.save(`Reporte_${currentUser.name}_${format(statsDate, 'yyyy-MM')}.pdf`);
   }
+  
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
 
   const areFiltersActive = sourceFilter.length > 0 || advisorFilter.length > 0 || statusFilter.length > 0 || date !== undefined;
 
@@ -583,13 +597,21 @@ export default function CustomersPage() {
                             <CardHeader>
                                 <CardTitle className="text-lg">Rendimiento Mensual</CardTitle>
                                 <div className="flex items-center justify-between">
-                                 <p className="text-sm text-muted-foreground">Nuevos clientes en el mes seleccionado.</p>
+                                 <p className="text-sm text-muted-foreground">Datos para el mes seleccionado.</p>
                                  <MonthPicker date={statsDate} onDateChange={setStatsDate} />
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-4xl font-bold">{advisorStats.newCustomersCount}</p>
-                                <p className="text-muted-foreground">Nuevos clientes en {statsDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' })}</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Nuevos Clientes</p>
+                                        <p className="text-2xl font-bold">{advisorStats.newCustomersCount}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Total Ventas</p>
+                                        <p className="text-2xl font-bold">{formatCurrency(advisorStats.monthlySales)}</p>
+                                    </div>
+                                </div>
                                 <Separator className="my-4" />
                                 <h4 className="font-semibold mb-2">Clientes Captados este Mes:</h4>
                                 {advisorStats.newCustomersList.length > 0 ? (
