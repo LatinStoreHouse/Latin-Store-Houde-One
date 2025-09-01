@@ -56,7 +56,6 @@ function usePlacesAutocompleteService(
 
 
 interface LocationComboboxProps {
-  apiKey: string;
   onLocationSelect: (location: { address: string; city: string; country: string, lat: number, lng: number }) => void;
   initialValue?: string;
 }
@@ -86,12 +85,18 @@ const LocationSearch = ({ onLocationSelect, initialValue }: Pick<LocationCombobo
   });
 
   useEffect(() => {
-    if (inputValue) {
-        fetchPredictions(inputValue);
-    } else {
-        setPlaces([]);
-    }
-  }, [inputValue]);
+    const handler = setTimeout(() => {
+        if (inputValue) {
+            fetchPredictions(inputValue);
+        } else {
+            setPlaces([]);
+        }
+    }, 300); // Debounce API calls
+
+    return () => {
+        clearTimeout(handler);
+    };
+  }, [inputValue, fetchPredictions, setPlaces]);
 
   const handlePlaceSelect = (place: google.maps.places.AutocompletePrediction) => {
     setInputValue(place.description);
@@ -149,7 +154,7 @@ const LocationSearch = ({ onLocationSelect, initialValue }: Pick<LocationCombobo
   );
 };
 
-export function LocationCombobox({ onLocationSelect, initialValue }: Omit<LocationComboboxProps, 'apiKey'>) {
+export function LocationCombobox({ onLocationSelect, initialValue }: LocationComboboxProps) {
     const [apiKey, setApiKey] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
 
@@ -186,7 +191,7 @@ export function LocationCombobox({ onLocationSelect, initialValue }: Omit<Locati
     }
 
     return (
-        <APIProvider apiKey={apiKey} libraries={['places']}>
+        <APIProvider apiKey={apiKey} libraries={['places']} onError={() => setHasError(true)}>
             <LocationSearch onLocationSelect={onLocationSelect} initialValue={initialValue} />
         </APIProvider>
     );
