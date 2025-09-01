@@ -191,7 +191,7 @@ export default function ReservationsPage() {
                             <CheckCircle className="h-4 w-4" /> Pagado
                          </Badge>
                     ) : reservation.expirationDate ? (
-                        <div className="flex flex-col items-start gap-1">
+                        <div className="flex flex-col items-center gap-1">
                            <span>{reservation.expirationDate}</span>
                            {expired && <Badge variant="destructive">Expirada</Badge>}
                         </div>
