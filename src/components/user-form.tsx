@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ const additionalPermissions: { group: string; permissions: { id: Permission; lab
             { id: 'partners:manage', label: 'Gestionar Socios Comerciales' },
             { id: 'users:view', label: 'Ver otros usuarios' },
             { id: 'reports:view', label: 'Ver reportes de ventas generales' },
+            { id: 'leader:view:assignments', label: 'Ver página de "Mis Asignaciones"'}
         ]
     },
     {

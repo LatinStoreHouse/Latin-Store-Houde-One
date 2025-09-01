@@ -50,9 +50,11 @@ export type Permission =
   // Partners
   'partners:view' |
   'partners:manage' |
-  'partners:clients';
+  'partners:clients' |
+  // Leader
+  'leader:view:assignments';
 
-export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor';
+export type Role = 'Administrador' | 'Asesor de Ventas' | 'Líder de Asesores' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor';
 
 export interface RoleConfig {
     id: string;
@@ -106,7 +108,34 @@ export const roles: RoleConfig[] = [
             'marketing:create',
             'purchasing:suggestions:view',
             'partners:view',
-            'partners:manage'
+            'partners:manage',
+            'leader:view:assignments'
+        ]
+    },
+    {
+        id: 'sales_lead',
+        name: 'Líder de Asesores',
+        permissions: [
+            'dashboard:view',
+            'inventory:view',
+            'inventory:transit',
+            'invoices:view',
+            'orders:view',
+            'orders:create',
+            'customers:view',
+            'customers:create',
+            'customers:edit',
+            'calculators:use',
+            'pricing:view',
+            'users:view',
+            'reports:view',
+            'advisor:use',
+            'reservations:view',
+            'reservations:create',
+            'purchasing:suggestions:view',
+            'purchasing:suggestions:create',
+            'partners:manage',
+            'leader:view:assignments'
         ]
     },
     {
