@@ -1,7 +1,7 @@
 
 'use client';
 import React, { useState, useEffect } from 'react';
-import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { APIProvider, useMapsLibrary, APILoadingStatus } from '@vis.gl/react-google-maps';
 import { Input } from './ui/input';
 
 interface LocationComboboxProps {
@@ -33,31 +33,55 @@ const Autocomplete = ({ onPlaceSelect, initialValue }: LocationComboboxProps) =>
     
     // Handle manual input for when a place is not selected from the dropdown
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-        if (!autocomplete?.getPlace()) {
-            onPlaceSelect(null, e.target.value);
-        }
+        // A short delay to allow the place_changed event to fire first
+        setTimeout(() => {
+            if (!autocomplete?.getPlace()) {
+                onPlaceSelect(null, e.target.value);
+            }
+        }, 100);
     }
     
     return <Input ref={inputRef} defaultValue={initialValue} placeholder="Buscar ciudad, país, dirección..." onBlur={handleBlur} />;
 };
 
+// Fallback component for when the API fails to load
+const ManualInput = ({ onPlaceSelect, initialValue }: LocationComboboxProps) => {
+    return (
+        <Input 
+            defaultValue={initialValue} 
+            placeholder="Ciudad / País"
+            onChange={(e) => onPlaceSelect(null, e.target.value)}
+        />
+    );
+};
+
 export function LocationCombobox(props: LocationComboboxProps) {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    
-    if (!apiKey) {
-        console.error("Google Maps API key is missing. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env file.");
-        return (
-             <Input 
-                defaultValue={props.initialValue} 
-                placeholder="Google API Key Faltante"
-                onChange={(e) => props.onPlaceSelect(null, e.target.value)}
-                disabled
-            />
-        );
+    const [hasError, setHasError] = useState(false);
+
+    useEffect(() => {
+        const originalError = console.error;
+        console.error = (...args) => {
+            if (typeof args[0] === 'string' && args[0].includes('Google Maps JavaScript API error: InvalidKeyMapError')) {
+                setHasError(true);
+            }
+            originalError(...args);
+        };
+
+        return () => {
+            console.error = originalError;
+        };
+    }, []);
+
+    if (!apiKey || hasError) {
+        if (!apiKey) {
+          console.error("Google Maps API key is missing. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env file.");
+        }
+        return <ManualInput {...props} />;
     }
     
     return (
-        <APIProvider apiKey={apiKey}>
+        <APIProvider apiKey={apiKey} onLoad={() => setHasError(false)}>
             <Autocomplete {...props} />
         </APIProvider>
     )
