@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Combobox } from '@/components/ui/combobox';
 import { Separator } from '@/components/ui/separator';
 import { initialProductPrices as productPrices } from '@/lib/prices';
@@ -76,6 +77,9 @@ export default function StarwoodCalculatorPage() {
 
   const [customerName, setCustomerName] = useState('');
 
+  const [includeClips, setIncludeClips] = useState(true);
+  const [includeSleepers, setIncludeSleepers] = useState(true);
+
   const productOptions = useMemo(() => {
     return starwoodProducts.map(ref => ({ value: ref, label: ref }));
   }, []);
@@ -133,12 +137,18 @@ export default function StarwoodCalculatorPage() {
 
   const calculateQuote = () => {
     let subtotal = 0;
+    let totalDeckSqm = 0;
+
     const detailedItems = quoteItems.map(item => {
       const price = productPrices[item.reference as keyof typeof productPrices];
       const hasPrice = price !== undefined && price > 0;
       const itemCost = hasPrice ? item.units * price : 0;
+      
       if (hasPrice) {
         subtotal += itemCost;
+      }
+      if (item.reference.toLowerCase().includes('deck')) {
+          totalDeckSqm += item.sqMeters || 0;
       }
       
       return { 
@@ -147,6 +157,28 @@ export default function StarwoodCalculatorPage() {
         hasPrice
       };
     });
+    
+    let clipsCost = 0;
+    let sleepersCost = 0;
+    let clipCount = 0;
+    let sleeperCount = 0;
+
+    if (totalDeckSqm > 0) {
+        if (includeClips) {
+            clipCount = Math.ceil(totalDeckSqm * 21);
+            const clipPrice = productPrices['Clip plastico para deck wpc'] || 0;
+            clipsCost = clipCount * clipPrice;
+            subtotal += clipsCost;
+        }
+        if (includeSleepers) {
+            const sleeperLinearMeters = (totalDeckSqm * 3.5);
+            sleeperCount = Math.ceil(sleeperLinearMeters / 2.3);
+            const sleeperPrice = productPrices['Durmiente plastico 3x3'] || 0;
+            sleepersCost = sleeperCount * sleeperPrice;
+            subtotal += sleepersCost;
+        }
+    }
+
 
     const iva = subtotal * IVA_RATE;
     const total = subtotal + iva;
@@ -160,6 +192,8 @@ export default function StarwoodCalculatorPage() {
       subtotal: subtotal,
       iva,
       total: total,
+      clips: { count: clipCount, cost: clipsCost, price: productPrices['Clip plastico para deck wpc'] || 0 },
+      sleepers: { count: sleeperCount, cost: sleepersCost, price: productPrices['Durmiente plastico 3x3'] || 0 },
       creationDate: creationDate.toLocaleDateString('es-CO'),
       expiryDate: expiryDate.toLocaleDateString('es-CO'),
     };
@@ -192,6 +226,14 @@ export default function StarwoodCalculatorPage() {
             item.hasPrice ? formatCurrency(item.itemCost) : 'N/A'
         ];
     });
+
+    if (quote.clips.count > 0) {
+        tableBody.push(['Clip plastico para deck wpc', quote.clips.count, formatCurrency(quote.clips.price), formatCurrency(quote.clips.cost)]);
+    }
+    if (quote.sleepers.count > 0) {
+        tableBody.push(['Durmiente plastico 3x3', quote.sleepers.count, formatCurrency(quote.sleepers.price), formatCurrency(quote.sleepers.cost)]);
+    }
+
 
     doc.autoTable({ 
       startY: 55, 
@@ -226,11 +268,20 @@ export default function StarwoodCalculatorPage() {
         message += `\n\n`;
     });
 
+    if (quote.clips.count > 0) {
+        message += `*Insumo: Clip plastico para deck wpc*\n`;
+        message += `- ${quote.clips.count} unidades (Calculado para la instalación)\n\n`;
+    }
+     if (quote.sleepers.count > 0) {
+        message += `*Insumo: Durmiente plastico 3x3*\n`;
+        message += `- ${quote.sleepers.count} unidades (Calculado para la instalación)\n\n`;
+    }
+
     message += `*Desglose de Costos (COP):*\n`;
     message += `- *Subtotal:* ${formatCurrency(quote.subtotal)}\n`;
     message += `- IVA (19%): ${formatCurrency(quote.iva)}\n`;
     message += `\n*Total Estimado: ${formatCurrency(quote.total)}*\n\n`;
-    message += `_Esta es una cotización preliminar y no incluye costos de instalación o insumos._`;
+    message += `_Esta es una cotización preliminar y no incluye costos de instalación._`;
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
@@ -241,7 +292,7 @@ export default function StarwoodCalculatorPage() {
       <CardHeader>
         <CardTitle>Calculadora de Cotizaciones - Starwood</CardTitle>
         <CardDescription>
-          Estime el costo para productos Starwood por unidad.
+          Estime el costo para productos Starwood por unidad, con cálculo automático de insumos para deck.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -285,10 +336,28 @@ export default function StarwoodCalculatorPage() {
                     Agregar
                   </Button>
               </div>
+              <div className="mt-4 flex items-center space-x-6">
+                <div className="flex items-center space-x-2">
+                    <Checkbox
+                        id="includeClips"
+                        checked={includeClips}
+                        onCheckedChange={(checked) => setIncludeClips(Boolean(checked))}
+                    />
+                    <Label htmlFor="includeClips">Incluir Clips (Automático)</Label>
+                </div>
+                 <div className="flex items-center space-x-2">
+                    <Checkbox
+                        id="includeSleepers"
+                        checked={includeSleepers}
+                        onCheckedChange={(checked) => setIncludeSleepers(Boolean(checked))}
+                    />
+                    <Label htmlFor="includeSleepers">Incluir Durmientes (Automático)</Label>
+                </div>
+              </div>
           </div>
           <Separator />
           <div>
-            <h3 className="text-lg font-medium mb-4">Insumos y Accesorios</h3>
+            <h3 className="text-lg font-medium mb-4">Insumos y Accesorios (Adicional)</h3>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_auto] gap-4 items-end">
                 <div className="space-y-2">
                    <Label>Insumo</Label>
@@ -347,6 +416,33 @@ export default function StarwoodCalculatorPage() {
                   </div>
                 ))}
               </div>
+
+              {(quote.clips.count > 0 || quote.sleepers.count > 0) && (
+                <>
+                <Separator />
+                <div className="space-y-2">
+                    <p className="font-medium text-sm">Insumos Calculados</p>
+                    {quote.clips.count > 0 && (
+                        <div className="flex justify-between items-center p-3 rounded-md bg-background">
+                            <div>
+                                <p className="font-semibold">Clip plastico para deck wpc</p>
+                                <p className="text-sm text-muted-foreground">{quote.clips.count} unidades</p>
+                            </div>
+                            <p className="font-medium">{formatCurrency(quote.clips.cost)}</p>
+                        </div>
+                    )}
+                    {quote.sleepers.count > 0 && (
+                        <div className="flex justify-between items-center p-3 rounded-md bg-background">
+                            <div>
+                                <p className="font-semibold">Durmiente plastico 3x3</p>
+                                <p className="text-sm text-muted-foreground">{quote.sleepers.count} unidades</p>
+                            </div>
+                            <p className="font-medium">{formatCurrency(quote.sleepers.cost)}</p>
+                        </div>
+                    )}
+                </div>
+                </>
+              )}
 
               <Separator />
 
