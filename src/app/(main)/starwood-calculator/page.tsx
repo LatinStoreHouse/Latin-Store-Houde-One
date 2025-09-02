@@ -488,7 +488,7 @@ export default function StarwoodCalculatorPage() {
                   </Button>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-                {anyDeckInQuote && (
+                {selectedProductIsDeck && (
                     <>
                         <div className="flex items-center space-x-2">
                             <Checkbox id="includeClips" checked={includeClips} onCheckedChange={(checked) => setIncludeClips(Boolean(checked))}/>
@@ -500,7 +500,7 @@ export default function StarwoodCalculatorPage() {
                         </div>
                     </>
                 )}
-                 {anyListonInQuote && (
+                 {selectedProductIsListon && (
                     <>
                         <div className="flex items-center space-x-2">
                             <Checkbox id="includeAdhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))}/>

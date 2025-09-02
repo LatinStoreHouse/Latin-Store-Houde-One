@@ -431,28 +431,6 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     }, [inventoryContext, currentUser.roles]);
 
   const pageTitle = useMemo(() => {
-    if (pathname === '/stoneflex-clay-calculator') {
-      return (
-        <Image
-          src="/imagenes/logos/Logo-stoneflex-color-hz.png"
-          alt="StoneFlex Logo"
-          width={120}
-          height={30}
-          className="object-contain"
-        />
-      );
-    }
-     if (pathname === '/starwood-calculator') {
-      return (
-        <Image
-          src="/imagenes/logos/logo-starwood-color-hz.png"
-          alt="Starwood Logo"
-          width={120}
-          height={30}
-          className="object-contain"
-        />
-      );
-    }
     const currentNavItem = navItems.flatMap(item => item.subItems ? [{href: item.href, label: item.label}, ...item.subItems] : item).find((navItem) => navItem?.href === pathname);
     return currentNavItem?.label || 'Inicio';
   }, [pathname]);
