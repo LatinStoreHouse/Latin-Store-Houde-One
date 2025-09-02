@@ -712,16 +712,19 @@ export default function StoneflexCalculatorPage() {
     const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'letter' });
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
-    const logoData = await getImageBase64('/imagenes/logos/Logo-StoneFlex-v-color.png');
+    const stoneflexLogoData = await getImageBase64('/imagenes/logos/Logo-StoneFlex-v-color.png');
+    const latinLogoData = await getImageBase64('/imagenes/logos/Logo-Latin-Store-House-color.png');
 
-    if (logoData) {
+    if (stoneflexLogoData) {
         const logoWidth = 25;
-        const logoHeight = logoData.height * (logoWidth / logoData.width);
-        doc.addImage(logoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
-    } else {
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Cotización StoneFlex', 14, 22);
+        const logoHeight = stoneflexLogoData.height * (logoWidth / stoneflexLogoData.width);
+        doc.addImage(stoneflexLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
+    }
+    
+    if (latinLogoData) {
+        const logoWidth = 30;
+        const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
+        doc.addImage(latinLogoData.base64, 'PNG', pageWidth - logoWidth - 14, 10, logoWidth, logoHeight);
     }
     
     generatePdfContent(doc, quote, pageWidth);
@@ -1303,3 +1306,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
