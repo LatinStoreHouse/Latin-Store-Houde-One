@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Handshake } from 'lucide-react';
 import Script from 'next/script';
 
 declare global {
@@ -17,7 +17,11 @@ declare global {
     }
 }
 
-export function RegisterForm() {
+interface RegisterFormProps {
+    isDemo?: boolean;
+}
+
+export function RegisterForm({ isDemo = false }: RegisterFormProps) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +30,7 @@ export function RegisterForm() {
   const searchParams = useSearchParams();
   const recaptchaRef = useRef<HTMLDivElement>(null);
 
-  const inviteType = searchParams.get('type');
+  const inviteType = isDemo ? 'distributor' : searchParams.get('type');
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
   
   const formTitle = inviteType === 'distributor' 
@@ -89,9 +93,10 @@ export function RegisterForm() {
     )}
     <form onSubmit={handleSubmit} className="space-y-4">
         {inviteType && (
-            <Alert>
-                <AlertTitle>{formTitle}</AlertTitle>
-                <AlertDescription>
+            <Alert variant="default" className="border-primary/20 bg-primary/5">
+                <Handshake className="h-4 w-4 text-primary" />
+                <AlertTitle className="text-primary">{formTitle}</AlertTitle>
+                <AlertDescription className="text-primary/80">
                     {formDescription}
                 </AlertDescription>
             </Alert>

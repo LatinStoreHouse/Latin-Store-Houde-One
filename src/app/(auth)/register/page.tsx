@@ -10,7 +10,8 @@ export default function RegisterPage() {
                 <CardTitle className="text-2xl">Crear una Cuenta</CardTitle>
             </CardHeader>
             <CardContent>
-                <RegisterForm />
+                {/* Simulating invite link for demonstration */}
+                <RegisterForm isDemo={true} />
             </CardContent>
         </Card>
     );
