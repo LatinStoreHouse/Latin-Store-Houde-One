@@ -563,7 +563,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
         <footer className="p-4 text-center text-xs text-muted-foreground">
-          by Latin Store House
+          By Latin Store House
         </footer>
         {isSuperAdmin && <RoleSwitcher />}
       </SidebarInset>
