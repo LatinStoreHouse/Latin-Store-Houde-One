@@ -148,8 +148,8 @@ const getIconForSubItem = (label: string) => {
 const Logo = () => (
     <div className="flex h-24 w-full items-center justify-center p-4">
         <Image
-            src="/imagenes/logos/logo-starwood-color-hz.png"
-            alt="Starwood Logo"
+            src="/imagenes/logos/logo-one-color-hz.png"
+            alt="Latin Store House Logo"
             width={150}
             height={70}
             className="h-full w-full object-contain"

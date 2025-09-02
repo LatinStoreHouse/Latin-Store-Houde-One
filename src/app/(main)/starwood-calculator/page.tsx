@@ -423,10 +423,15 @@ export default function StarwoodCalculatorPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Calculadora de Cotizaciones - Starwood</CardTitle>
-        <CardDescription>
-          Estime el costo para productos Starwood por unidad, con cálculo automático de insumos para deck y listones.
-        </CardDescription>
+        <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Calculadora de Cotizaciones - Starwood</CardTitle>
+              <CardDescription>
+                Estime el costo para productos Starwood por unidad, con cálculo automático de insumos para deck y listones.
+              </CardDescription>
+            </div>
+            <Image src="/imagenes/logos/logo-starwood-color-hz.png" alt="Starwood Logo" width={150} height={40} className="object-contain"/>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -483,7 +488,7 @@ export default function StarwoodCalculatorPage() {
                   </Button>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-                {selectedProductIsDeck && (
+                {anyDeckInQuote && (
                     <>
                         <div className="flex items-center space-x-2">
                             <Checkbox id="includeClips" checked={includeClips} onCheckedChange={(checked) => setIncludeClips(Boolean(checked))}/>
@@ -495,7 +500,7 @@ export default function StarwoodCalculatorPage() {
                         </div>
                     </>
                 )}
-                 {selectedProductIsListon && (
+                 {anyListonInQuote && (
                     <>
                         <div className="flex items-center space-x-2">
                             <Checkbox id="includeAdhesive" checked={includeAdhesive} onCheckedChange={(checked) => setIncludeAdhesive(Boolean(checked))}/>
