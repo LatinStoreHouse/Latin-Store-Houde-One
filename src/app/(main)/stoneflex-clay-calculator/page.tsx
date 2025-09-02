@@ -689,14 +689,6 @@ export default function StoneflexCalculatorPage() {
     doc.text('Cordialmente,', 14, startY);
     startY += 15;
     doc.text(currentUser.name, 14, startY);
-    startY += 5;
-    doc.setFont('helvetica', 'bold');
-    doc.text('LATIN STORE HOUSE S.A.S.', 14, startY);
-    
-    // Footer text
-    doc.setFontSize(7);
-    doc.setTextColor(150);
-    doc.text('Elaborado e Impreso por App Prototyper', pageWidth - 14, doc.internal.pageSize.height - 10, { align: 'right' });
   };
   
  const handleDownloadPdf = async () => {
@@ -707,7 +699,7 @@ export default function StoneflexCalculatorPage() {
     const logoData = await getImageBase64('/imagenes/logos/Logo-StoneFlex-v-color.png');
 
     if (logoData) {
-        const logoWidth = 60;
+        const logoWidth = 40;
         const logoHeight = logoData.height * (logoWidth / logoData.width);
         doc.addImage(logoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     } else {

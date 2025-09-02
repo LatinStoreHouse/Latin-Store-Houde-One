@@ -358,9 +358,6 @@ export default function StarwoodCalculatorPage() {
     doc.text('Cordialmente,', 14, startY);
     startY += 15;
     doc.text(currentUser.name, 14, startY);
-    startY += 5;
-    doc.setFont('helvetica', 'bold');
-    doc.text('LATIN STORE HOUSE S.A.S.', 14, startY);
 
     doc.save('cotizacion_starwood.pdf');
   };
@@ -430,7 +427,7 @@ export default function StarwoodCalculatorPage() {
                 Estime el costo para productos Starwood por unidad, con cálculo automático de insumos para deck y listones.
               </CardDescription>
             </div>
-            <Image src="/imagenes/logos/Logo-Starwood-color.png" alt="Starwood Logo" width={120} height={32} className="object-contain"/>
+            <Image src="/imagenes/logos/Logo-Starwood-color.png" alt="Starwood Logo" width={100} height={26} className="object-contain"/>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
