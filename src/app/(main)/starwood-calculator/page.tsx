@@ -430,7 +430,7 @@ export default function StarwoodCalculatorPage() {
                 Estime el costo para productos Starwood por unidad, con cálculo automático de insumos para deck y listones.
               </CardDescription>
             </div>
-            <Image src="/imagenes/logos/logo-starwood-color-hz.png" alt="Starwood Logo" width={150} height={40} className="object-contain"/>
+            <Image src="/imagenes/logos/Logo-Starwood-color.png" alt="Starwood Logo" width={150} height={40} className="object-contain"/>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

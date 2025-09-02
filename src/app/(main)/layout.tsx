@@ -148,7 +148,7 @@ const getIconForSubItem = (label: string) => {
 const Logo = () => (
     <div className="flex h-24 w-full items-center justify-center p-4">
         <Image
-            src="/imagenes/logos/logo-one-color-hz.png"
+            src="/imagenes/logos/Logo-Latin-Store-House-blanco.png"
             alt="Latin Store House Logo"
             width={150}
             height={70}

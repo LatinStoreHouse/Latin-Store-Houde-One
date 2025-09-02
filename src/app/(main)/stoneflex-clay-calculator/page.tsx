@@ -704,7 +704,7 @@ export default function StoneflexCalculatorPage() {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
-    const logoData = await getImageBase64('/imagenes/logos/Logo-stoneflex-color-hz.png');
+    const logoData = await getImageBase64('/imagenes/logos/Logo-StoneFlex-h-color.png');
 
     if (logoData) {
         const logoWidth = 60;
