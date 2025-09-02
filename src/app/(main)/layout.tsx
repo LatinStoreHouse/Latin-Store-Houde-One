@@ -438,10 +438,11 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <Sidebar>
-        <SidebarHeader className="p-4">
+        <SidebarHeader className="p-4 text-center">
           <div className="flex w-full items-center justify-center">
             <Logo />
           </div>
+           <p className="text-xs text-sidebar-foreground/80 -mt-4">by Latin Store House</p>
         </SidebarHeader>
         <SidebarContent>
           <NavMenu />
