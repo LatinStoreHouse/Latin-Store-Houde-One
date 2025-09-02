@@ -97,11 +97,11 @@ const topMovers = [
 ];
 
 const bottomMovers = [
-    { name: 'MINT WHITE 1.22 X 0.61', moved: 2, change: 0 },
-    { name: 'COPPER 2.44 X 1.22', moved: 1, change: 0 },
-    { name: 'CONCRETO MEDIO 2.44 X 1.22', moved: 1, change: 0 },
-    { name: 'PANEL 3D - TAN 1.22 X 0.61', moved: 0, change: 0 },
-    { name: 'INDIAN AUTUMN TRANSLUCIDA 2.44 X 1.22', moved: 0, change: 0 },
+    { name: 'Mint white', moved: 2, change: 0 },
+    { name: 'Copper', moved: 1, change: 0 },
+    { name: 'Concreto medio', moved: 1, change: 0 },
+    { name: 'Panel 3d - tan', moved: 0, change: 0 },
+    { name: 'Indian autumn translucido', moved: 0, change: 0 },
 ];
 
 const latestQuotes = [
