@@ -268,7 +268,7 @@ export default function StarwoodCalculatorPage() {
   
   const handleDownloadPdf = async () => {
     if (!quote) return;
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'letter' });
     
     doc.setFontSize(18);
     doc.text('Latin Store House', 14, 22);
@@ -427,7 +427,7 @@ export default function StarwoodCalculatorPage() {
                 Estime el costo para productos Starwood por unidad, con cálculo automático de insumos para deck y listones.
               </CardDescription>
             </div>
-            <Image src="/imagenes/logos/Logo-Starwood-color.png" alt="Starwood Logo" width={100} height={26} className="object-contain"/>
+            <Image src="/imagenes/logos/Logo-Starwood-color.png" alt="Starwood Logo" width={80} height={26} className="object-contain"/>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

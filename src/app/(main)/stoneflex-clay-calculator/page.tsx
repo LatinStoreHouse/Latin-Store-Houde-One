@@ -602,8 +602,7 @@ export default function StoneflexCalculatorPage() {
         startY += 5;
     }
 
-    doc.text('Bogota D.C. Colombia', 14, startY);
-    startY += 8;
+    startY += 3;
 
     doc.setFont('helvetica', 'bold');
     doc.text(`Ref: Cotización Stoneflex - ${quoteNumber}`, 14, startY);
@@ -702,13 +701,13 @@ export default function StoneflexCalculatorPage() {
   
  const handleDownloadPdf = async () => {
     if (!quote) return;
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'letter' });
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
     const logoData = await getImageBase64('/imagenes/logos/Logo-StoneFlex-v-color.png');
 
     if (logoData) {
-        const logoWidth = 30;
+        const logoWidth = 25;
         const logoHeight = logoData.height * (logoWidth / logoData.width);
         doc.addImage(logoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     } else {
@@ -882,8 +881,8 @@ export default function StoneflexCalculatorPage() {
                   placeholder="Ingrese el NIT o cédula..."
                 />
             </div>
-            <div className="space-y-2">
-                <Label htmlFor="location">Dirección</Label>
+            <div className="space-y-2 col-span-full">
+                <Label htmlFor="location">Dirección / Ciudad</Label>
                 <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
             </div>
             <div className="space-y-2">
@@ -895,7 +894,7 @@ export default function StoneflexCalculatorPage() {
                   placeholder="Ingrese el teléfono..."
                 />
             </div>
-             <div className="space-y-2 col-span-full">
+             <div className="space-y-2">
                 <Label htmlFor="customer-email">Correo Electrónico</Label>
                 <Input
                   id="customer-email"
