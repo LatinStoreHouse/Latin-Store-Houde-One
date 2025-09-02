@@ -7,7 +7,7 @@ export interface Customer {
   email: string;
   address: string;
   city: string;
-  source: 'Instagram' | 'WhatsApp' | 'Email' | 'Sitio Web' | 'Referido';
+  source: 'Instagram' | 'WhatsApp' | 'Email' | 'Sitio Web' | 'Referido' | 'Oficina';
   assignedTo: string;
   status: CustomerStatus;
   registrationDate: string;
@@ -27,7 +27,7 @@ export const initialCustomerData: Customer[] = [
 ];
 
 
-export const customerSources: Customer['source'][] = ['Instagram', 'WhatsApp', 'Email', 'Sitio Web', 'Referido'];
+export const customerSources: Customer['source'][] = ['Instagram', 'WhatsApp', 'Email', 'Sitio Web', 'Referido', 'Oficina'];
 export const customerStatuses: CustomerStatus[] = ['Contactado', 'Cotizado', 'Facturado', 'Redireccionado', 'Declinado', 'Sin respuesta', 'Showroom'];
 
 export const statusColors: { [key in CustomerStatus]: string } = {

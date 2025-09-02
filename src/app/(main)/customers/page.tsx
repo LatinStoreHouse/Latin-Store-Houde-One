@@ -35,7 +35,7 @@ import {
   DropdownMenuSubTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, Globe, Calculator, StickyNote, BarChart, Download, DollarSign, Share2, Users } from 'lucide-react';
+import { MoreHorizontal, Search, Instagram, Mail, Trash2, Edit, UserPlus, MessageSquare, ChevronDown, ListFilter, X, Truck, BookUser, Calendar as CalendarIcon, Globe, Calculator, StickyNote, BarChart, Download, DollarSign, Share2, Users, Store } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -62,7 +62,8 @@ const sourceIcons: { [key: string]: React.ElementType } = {
   Email: Mail,
   WhatsApp: MessageSquare,
   'Sitio Web': Globe,
-  'Referido': UserPlus
+  'Referido': UserPlus,
+  'Oficina': Store
 };
 
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin', 'Laura Diaz'];
