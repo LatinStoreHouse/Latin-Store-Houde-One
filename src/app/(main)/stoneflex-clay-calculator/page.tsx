@@ -704,7 +704,7 @@ export default function StoneflexCalculatorPage() {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
-    const logoData = await getImageBase64('/imagenes/logos/Logo-StoneFlex-h-color.png');
+    const logoData = await getImageBase64('/imagenes/logos/Logo-StoneFlex-v-color.png');
 
     if (logoData) {
         const logoWidth = 60;
@@ -851,10 +851,15 @@ export default function StoneflexCalculatorPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Calculadora de Cotizaciones - StoneFlex</CardTitle>
-        <CardDescription>
-          Añada productos y estime el costo total de la cotización.
-        </CardDescription>
+        <div className="flex justify-between items-center">
+            <div>
+                <CardTitle>Calculadora de Cotizaciones - StoneFlex</CardTitle>
+                <CardDescription>
+                  Añada productos y estime el costo total de la cotización.
+                </CardDescription>
+            </div>
+            <Image src="/imagenes/logos/Logo-StoneFlex-v-color.png" alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
