@@ -30,7 +30,7 @@ import { useUser } from '@/app/(main)/layout';
 
 
 const WhatsAppIcon = () => (
-    <Image src="/imagenes/logos/Logo Whatsapp.svg" alt="WhatsApp" width={16} height={16} />
+    <Image src="/imagenes/logos/Logo Whatsapp.png" alt="WhatsApp" width={16} height={16} />
 );
 
 
