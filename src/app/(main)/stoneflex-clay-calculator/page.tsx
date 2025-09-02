@@ -27,6 +27,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { productDimensions } from '@/lib/dimensions';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { useUser } from '@/app/(main)/layout';
+import { LocationCombobox } from '@/components/location-combobox';
 
 
 const WhatsAppIcon = () => (
@@ -240,6 +241,7 @@ export default function StoneflexCalculatorPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerTaxId, setCustomerTaxId] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
+  const [location, setLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
 
   const [sqMeters, setSqMeters] = useState<number | string>(1);
   const [sheets, setSheets] = useState<number | string>(1);
@@ -325,6 +327,13 @@ export default function StoneflexCalculatorPage() {
     if (typeof value === 'number') return value;
     return parseFloat(value.toString().replace(',', '.')) || 0;
   };
+  
+  const handleLocationChange = (newLocation: { lat: number; lng: number; address: string } | null) => {
+    setLocation(newLocation);
+    if (newLocation) {
+        setCustomerAddress(newLocation.address);
+    }
+  }
 
   const handleAddProduct = () => {
     if (!reference) {
@@ -699,7 +708,7 @@ export default function StoneflexCalculatorPage() {
     const logoData = await getImageBase64('/imagenes/logos/Logo-StoneFlex-v-color.png');
 
     if (logoData) {
-        const logoWidth = 40;
+        const logoWidth = 30;
         const logoHeight = logoData.height * (logoWidth / logoData.width);
         doc.addImage(logoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     } else {
@@ -874,13 +883,8 @@ export default function StoneflexCalculatorPage() {
                 />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="customer-address">Dirección</Label>
-                <Input
-                  id="customer-address"
-                  value={customerAddress}
-                  onChange={(e) => setCustomerAddress(e.target.value)}
-                  placeholder="Ingrese la dirección..."
-                />
+                <Label htmlFor="location">Dirección</Label>
+                <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="customer-phone">Teléfono</Label>
