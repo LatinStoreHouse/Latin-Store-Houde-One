@@ -41,6 +41,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
   const [discountPercentage, setDiscountPercentage] = useState<number | string>('');
   const [startDate, setStartDate] = useState('');
   const [contractFile, setContractFile] = useState<File | null>(null);
+  const [existingContract, setExistingContract] = useState<string | undefined>('');
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number; address: string; } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +61,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setNotes(partner.notes || '');
       setDiscountPercentage(partner.discountPercentage || '');
       setStartDate(partner.startDate || '');
+      setExistingContract(partner.contractNotes);
       if (partner.address) {
         setLocation({ address: partner.address, lat: 0, lng: 0});
       }
@@ -78,6 +80,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
       setDiscountPercentage('');
       setStartDate('');
       setContractFile(null);
+      setExistingContract('');
       setLocation(null);
     }
     setError(null);
@@ -104,7 +107,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
         notes,
         discountPercentage: Number(discountPercentage) || undefined,
         startDate,
-        contractNotes: contractFile?.name
+        contractNotes: contractFile ? contractFile.name : existingContract
     });
   };
 
@@ -127,6 +130,7 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setContractFile(e.target.files[0]);
+      setExistingContract(e.target.files[0].name);
     }
   };
 
@@ -161,6 +165,12 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
            }
       }
   };
+
+  const handleRemoveFile = () => {
+    setContractFile(null);
+    setExistingContract('');
+    if(fileInputRef.current) fileInputRef.current.value = '';
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto p-1">
@@ -255,10 +265,10 @@ export function DistributorForm({ partner, onSave, onCancel }: PartnerFormProps)
                 accept="application/pdf"
                 onChange={handleFileChange} 
             />
-            {contractFile ? (
+            {existingContract ? (
                 <div className="flex items-center justify-between rounded-md border p-2">
-                    <span className="text-sm truncate">{contractFile.name}</span>
-                    <Button variant="ghost" size="icon" onClick={() => setContractFile(null)}>
+                    <span className="text-sm truncate">{existingContract}</span>
+                    <Button variant="ghost" size="icon" onClick={handleRemoveFile}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                 </div>

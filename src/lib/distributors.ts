@@ -32,7 +32,7 @@ export const initialDistributorData: Distributor[] = [
     notes: 'Distribuidor principal en la zona centro.',
     discountPercentage: 15,
     startDate: '2021-05-20',
-    contractNotes: 'Contrato de exclusividad para la zona de Bogotá.'
+    contractNotes: 'Contrato_Bogota_2021.pdf'
   },
   {
     id: 'DIST-002',
