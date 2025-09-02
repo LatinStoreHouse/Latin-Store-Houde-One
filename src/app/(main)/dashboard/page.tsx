@@ -89,11 +89,11 @@ const salesOverviewItems = [
 ]
 
 const topMovers = [
-    { name: 'KUND MULTY 1.22 X 0.61', moved: 152, change: 12.5 },
-    { name: 'CONCRETO GRIS 1.22 X 0.61', moved: 121, change: 8.2 },
-    { name: 'TAN 1.22 X 0.61', moved: 98, change: 5.1 },
-    { name: 'CARRARA 2.44 X 1.22', moved: 85, change: 15.3 },
-    { name: 'SILVER SHINE GOLD 1.22 X 0.61', moved: 76, change: -2.1 },
+    { name: 'Kund multy', moved: 152, change: 12.5 },
+    { name: 'Concreto gris', moved: 121, change: 8.2 },
+    { name: 'Tan', moved: 98, change: 5.1 },
+    { name: 'Carrara', moved: 85, change: 15.3 },
+    { name: 'Silver shine gold', moved: 76, change: -2.1 },
 ];
 
 const bottomMovers = [
