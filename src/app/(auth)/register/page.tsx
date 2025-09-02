@@ -11,7 +11,7 @@ export default function RegisterPage() {
             </CardHeader>
             <CardContent>
                 {/* Simulating invite link for demonstration */}
-                <RegisterForm isDemo={true} />
+                <RegisterForm />
             </CardContent>
         </Card>
     );
