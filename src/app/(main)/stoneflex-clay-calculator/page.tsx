@@ -241,7 +241,7 @@ export default function StoneflexCalculatorPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerTaxId, setCustomerTaxId] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
-  const [location, setLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
+  const [location, setLocation] = useState<{ lat: number; lng: number; address: string; } | null>(null);
 
   const [sqMeters, setSqMeters] = useState<number | string>(1);
   const [sheets, setSheets] = useState<number | string>(1);
@@ -655,11 +655,19 @@ export default function StoneflexCalculatorPage() {
     let finalY = (doc as any).autoTable.previous.finalY;
     
     // Totals table
-    const summaryData = [
+    const summaryData: (string | number)[][] = [
         ['Total Bruto', formatNumber(quote.subtotal + quote.totalDiscountAmount)],
         ['IVA', formatNumber(quote.ivaAmount)],
-        ['Total a Pagar', formatCurrency(quote.totalCost)]
     ];
+
+    if (quote.laborCost > 0) {
+        summaryData.push(['Mano de Obra', formatCurrency(quote.laborCost)]);
+    }
+    if (quote.transportationCost > 0) {
+        summaryData.push(['Transporte', formatCurrency(quote.transportationCost)]);
+    }
+    
+    summaryData.push(['Total a Pagar', formatCurrency(quote.totalCost)]);
 
     doc.autoTable({
         startY: finalY + 2,
