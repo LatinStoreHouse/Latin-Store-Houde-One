@@ -443,6 +443,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
             <Logo />
           </div>
            <p className="text-xs text-sidebar-foreground/80 -mt-4">by Latin Store House</p>
+           <p className="text-xs font-semibold tracking-widest text-sidebar-foreground/60 mt-1">TODOS EN UNO</p>
         </SidebarHeader>
         <SidebarContent>
           <NavMenu />
@@ -581,3 +582,5 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     </UserContext.Provider>
   );
 }
+
+    
