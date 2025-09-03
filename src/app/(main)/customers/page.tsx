@@ -171,7 +171,21 @@ export default function CustomersPage() {
       setCustomers(customers.map(c => c.id === selectedCustomer.id ? { ...c, ...customerData } as Customer : c));
       toast({ title: 'Cliente Actualizado', description: 'Los datos del cliente se han actualizado.' });
     } else {
-      // Add
+      // Add - Check for duplicates first
+      const isDuplicate = customers.some(c => 
+        (customerData.phone && c.phone === customerData.phone) ||
+        (customerData.email && c.email.toLowerCase() === customerData.email.toLowerCase())
+      );
+
+      if (isDuplicate) {
+        toast({
+            variant: "destructive",
+            title: "Cliente Duplicado",
+            description: "Ya existe un cliente con el mismo teléfono o correo electrónico.",
+        });
+        return;
+      }
+
       const newCustomer: Customer = { 
           ...customerData, 
           id: Date.now(), 
@@ -674,3 +688,5 @@ export default function CustomersPage() {
     </TooltipProvider>
   );
 }
+
+    
