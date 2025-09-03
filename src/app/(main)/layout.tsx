@@ -105,7 +105,7 @@ export const navItems = [
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
   { href: '/customers', label: 'Clientes', icon: Users, permission: 'customers:view' },
   { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
-  { href: '/assigned-customers', label: 'Mis Clientes', icon: BookUser, permission: 'partners:clients' },
+  { href: '/assigned-customers', label: 'Mis Clientes', icon: Users, permission: 'partners:clients' },
   {
     label: 'Calculadoras',
     icon: Calculator,
@@ -314,22 +314,24 @@ const NavMenu = () => {
                         </Collapsible>
                     </SidebarGroup>
                 ) : (
-                    <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton
-                            asChild
-                            isActive={pathname === item.href}
-                            tooltip={item.label}
-                        >
-                            <Link href={item.href!} onClick={() => setOpenMobile(false)} className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-2">
-                                    {item.icon && <item.icon />}
-                                    <span>{item.label}</span>
-                                </div>
-                                {item.href === '/validation' && pendingValidations > 0 && <div className="h-2 w-2 rounded-full bg-white" />}
-                                {item.href === '/pricing' && pendingPrices > 0 && canEditPrices && <div className="h-2 w-2 rounded-full bg-white" />}
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    item.href && item.icon && (
+                        <SidebarMenuItem key={item.href}>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={pathname === item.href}
+                                tooltip={item.label}
+                            >
+                                <Link href={item.href} onClick={() => setOpenMobile(false)} className="flex items-center justify-between w-full">
+                                    <div className="flex items-center gap-2">
+                                        <item.icon />
+                                        <span>{item.label}</span>
+                                    </div>
+                                    {item.href === '/validation' && pendingValidations > 0 && <div className="h-2 w-2 rounded-full bg-white" />}
+                                    {item.href === '/pricing' && pendingPrices > 0 && canEditPrices && <div className="h-2 w-2 rounded-full bg-white" />}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    )
                 )
             )}
         </SidebarMenu>

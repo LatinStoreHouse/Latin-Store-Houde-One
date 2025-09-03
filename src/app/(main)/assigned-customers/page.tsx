@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/card';
 import { initialCustomerData, Customer } from '@/lib/customers';
 import { useUser } from '@/app/(main)/layout';
-import { Users, StickyNote } from 'lucide-react';
+import { BookUser, StickyNote } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function AssignedCustomersPage() {
@@ -35,7 +35,7 @@ export default function AssignedCustomersPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-             <Users className="h-6 w-6" />
+             <BookUser className="h-6 w-6" />
              <div>
                 <CardTitle>Mis Clientes Asignados</CardTitle>
                 <CardDescription>
