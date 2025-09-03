@@ -28,11 +28,8 @@ import { productDimensions } from '@/lib/dimensions';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { useUser } from '@/app/(main)/layout';
 import { LocationCombobox } from '@/components/location-combobox';
+import { WhatsAppIcon } from '@/components/social-icons';
 
-
-const WhatsAppIcon = () => (
-    <Image src="/imagenes/logos/Logo Whatsapp.png" alt="WhatsApp" width={16} height={16} />
-);
 
 
 const referenceDetails: { [key: string]: { brand: string, line: string } } = {
@@ -911,7 +908,7 @@ export default function StoneflexCalculatorPage() {
                   id="customer-email"
                   type="email"
                   value={customerEmail}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
                   placeholder="Ingrese el correo..."
                 />
             </div>
