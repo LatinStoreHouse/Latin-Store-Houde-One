@@ -308,7 +308,7 @@ export default function StarwoodCalculatorPage() {
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('Señores', 14, startY);
+    doc.text('Estimado/a:', 14, startY);
     startY += 5;
 
     doc.setFont('helvetica', 'normal');
