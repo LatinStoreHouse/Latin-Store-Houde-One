@@ -32,7 +32,9 @@ import {
     Receipt,
     Clock,
     BarChart,
-    Download
+    Download,
+    DollarSign,
+    Package
 } from 'lucide-react';
 import { Role, roles } from '@/lib/roles';
 import { InventoryContext } from '@/context/inventory-context';
@@ -146,15 +148,12 @@ export default function DashboardPage() {
 
         const now = new Date();
         return reservations.filter(r => {
-            if (r.advisor !== currentUser.name || r.status !== 'Validada') return false;
+            if (r.advisor !== currentUser.name || r.status !== 'Validada' || !r.expirationDate) return false;
             
-            // This logic assumes a `validationDate` property exists. 
-            // Since it's not on the Reservation type, we'll simulate it for now.
-            // In a real app, this should be part of the reservation data.
-            const validationDate = new Date(new Date().setDate(now.getDate() - (Math.random() * 10))); // Mock date
-            const diffTime = now.getTime() - validationDate.getTime();
+            const expiration = new Date(r.expirationDate);
+            const diffTime = expiration.getTime() - now.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays > 5;
+            return diffDays <= 2 && diffDays >= 0; // Expires today, tomorrow, or in 2 days
         });
     }, [reservations, currentUser.name, currentUserRole]);
 
@@ -166,7 +165,6 @@ export default function DashboardPage() {
     const advisorStats = useMemo(() => {
         if (!isAdvisor) return null;
         
-        // Stats for the selected month
         const year = statsDate.getFullYear();
         const month = statsDate.getMonth();
         const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
@@ -178,7 +176,6 @@ export default function DashboardPage() {
         
         const monthlySales = initialSalesData[currentUser.name]?.[monthKey]?.sales || 0;
 
-        // Stats for all time for the pie chart
         const allAdvisorCustomers = initialCustomerData.filter(c => c.assignedTo === currentUser.name);
         const statusDistribution = allAdvisorCustomers.reduce((acc, customer) => {
             acc[customer.status] = (acc[customer.status] || 0) + 1;
@@ -234,7 +231,7 @@ export default function DashboardPage() {
              <Clock className="h-4 w-4" />
              <AlertTitle className="font-semibold">¡Reserva a Punto de Expirar!</AlertTitle>
              <AlertDescription>
-                Tu reserva para **{res.quantity} unidades** de **{res.product}** ({res.quoteNumber}) fue validada hace más de 5 días. Por favor, gestiona el despacho pronto para no perder el material separado.
+                Tu reserva para **{res.quantity} unidades** de **{res.product}** ({res.quoteNumber}) vence el **{res.expirationDate}**. Por favor, gestiona el despacho pronto.
              </AlertDescription>
            </Alert>
         ))}
@@ -331,7 +328,7 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      {currentUserRole !== 'Partners' && currentUserRole !== 'Asesor de Ventas' && (
+      {currentUserRole !== 'Partners' && currentUserRole !== 'Asesor de Ventas' && currentUserRole !== 'Marketing' &&(
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
                 <CardHeader>
@@ -481,4 +478,3 @@ export default function DashboardPage() {
     </>
   );
 }
-

@@ -49,12 +49,21 @@ export default function PurchaseSuggestionsPage() {
   const [quantity, setQuantity] = useState<number | string>('');
   const [reason, setReason] = useState('');
 
-  const userPermissions = roles.find(r => r.name === currentUser.roles[0])?.permissions || [];
+  const userPermissions = useMemo(() => {
+    const permissions = new Set<string>();
+    currentUser.roles.forEach(userRole => {
+      const roleConfig = roles.find(r => r.name === userRole);
+      if (roleConfig) {
+        roleConfig.permissions.forEach(p => permissions.add(p));
+      }
+    });
+    return Array.from(permissions);
+  }, [currentUser.roles]);
+
   const canCreateSuggestion = userPermissions.includes('purchasing:suggestions:create');
   const canViewSystemSuggestions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Tráfico');
   
   useEffect(() => {
-    // When an authorized user visits this page, mark the suggestions as seen.
     if (canViewSystemSuggestions) {
       markSuggestionsAsSeen();
     }
@@ -69,7 +78,7 @@ export default function PurchaseSuggestionsPage() {
              }
         }
     }
-    return options;
+    return options.sort((a, b) => a.label.localeCompare(b.label));
   }, [inventoryData]);
 
   const handleSendAdvisorSuggestion = () => {

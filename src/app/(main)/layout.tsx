@@ -105,7 +105,7 @@ export const navItems = [
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
   { href: '/customers', label: 'Clientes', icon: Users, permission: 'customers:view' },
   { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
-  { href: '/assigned-customers', label: 'Mis Clientes', icon: Users, permission: 'partners:clients' },
+  { href: '/assigned-customers', label: 'Mis Clientes', icon: BookUser, permission: 'partners:clients' },
   {
     label: 'Calculadoras',
     icon: Calculator,
@@ -113,7 +113,7 @@ export const navItems = [
     subItems: [
       { href: '/stoneflex-clay-calculator', label: 'StoneFlex' },
       { href: '/starwood-calculator', label: 'Starwood' },
-      { href: '/invoices', label: 'Historial de Cotizaciones' },
+      { href: '/invoices', label: 'Historial de Cotizaciones', permission: 'invoices:view' },
     ],
   },
    {
@@ -185,7 +185,6 @@ const NavMenu = () => {
                 roleConfig.permissions.forEach(p => permissions.add(p));
             }
         });
-        // Add individual permissions
         currentUser.individualPermissions?.forEach(p => permissions.add(p));
         return Array.from(permissions);
     }, [currentUser.roles, currentUser.individualPermissions]);
@@ -253,33 +252,39 @@ const NavMenu = () => {
         if (!inventoryContext?.systemSuggestions) return false;
         const canSeeSuggestions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Tráfico');
         if (!canSeeSuggestions) return false;
-
-        // Show notification if there are more suggestions than the last time the user saw them.
+        
         return inventoryContext.systemSuggestions.length > inventoryContext.seenSuggestionsCount;
     }, [inventoryContext?.systemSuggestions, inventoryContext?.seenSuggestionsCount, currentUser.roles]);
 
     const hasPermission = (item: any) => {
-        if (!item.permission) return true; // Items without a specific permission are public
+        if (!item.permission) return true;
         return userPermissions.includes(item.permission);
     };
 
     const getVisibleNavItems = () => {
-        return navItems.filter(item => {
-            if (item.subItems) {
-                return item.subItems.some(subItem => hasPermission(subItem));
-            }
-            return hasPermission(item);
-        });
+        return navItems
+            .map(item => {
+                if (!item.subItems) {
+                    return hasPermission(item) ? item : null;
+                }
+                const visibleSubItems = item.subItems.filter(hasPermission);
+                if (visibleSubItems.length > 0) {
+                    return { ...item, subItems: visibleSubItems };
+                }
+                return null;
+            })
+            .filter(Boolean);
     }
 
-    const visibleNavItems = getVisibleNavItems();
+    const visibleNavItems = getVisibleNavItems() as typeof navItems;
     const canEditPrices = hasPermission({ permission: 'pricing:edit' });
     const canViewReservationsAlert = hasPermission({ permission: 'reservations:view' });
 
     return (
         <SidebarMenu className="px-2">
-            {visibleNavItems.map((item) =>
-                item.subItems ? (
+            {visibleNavItems.map((item) => {
+                if (!item) return null;
+                return item.subItems ? (
                     <SidebarGroup key={item.label} className="p-0">
                         <Collapsible>
                             <CollapsibleTrigger asChild>
@@ -293,7 +298,7 @@ const NavMenu = () => {
                             </CollapsibleTrigger>
                             <CollapsibleContent>
                                 <SidebarMenuSub>
-                                    {item.subItems.filter(hasPermission).map((subItem) => {
+                                    {item.subItems.map((subItem) => {
                                         const SubIcon = getIconForSubItem(subItem.label, item.icon);
                                         return (
                                             <SidebarMenuSubItem key={subItem.href}>
@@ -333,7 +338,7 @@ const NavMenu = () => {
                         </SidebarMenuItem>
                     )
                 )
-            )}
+})}
         </SidebarMenu>
     );
 };
