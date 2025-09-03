@@ -30,6 +30,8 @@ import { initialInventoryData } from '@/lib/initial-inventory';
 import { useUser } from '@/app/(main)/layout';
 import { LocationCombobox } from '@/components/location-combobox';
 import { InventoryContext } from '@/context/inventory-context';
+import { CustomerSelector } from '@/components/customer-selector';
+import { Customer } from '@/lib/customers';
 
 
 
@@ -597,6 +599,28 @@ export default function StoneflexCalculatorPage() {
     });
   }
 
+  const handleSelectCustomer = (customer: Customer | null) => {
+    if (customer) {
+        setCustomerName(customer.name);
+        setCustomerEmail(customer.email);
+        setCustomerPhone(customer.phone);
+        setCustomerAddress(customer.address);
+        setCustomerTaxId(customer.taxId || '');
+        if (customer.address) {
+            setLocation({ address: customer.address, lat: 0, lng: 0 }); // Posición no es crucial aquí
+        } else {
+            setLocation(null);
+        }
+    } else {
+        // Reset fields if 'new customer' is chosen or cleared
+        setCustomerEmail('');
+        setCustomerPhone('');
+        setCustomerAddress('');
+        setCustomerTaxId('');
+        setLocation(null);
+    }
+  };
+
   const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
     const today = new Date();
     const quoteNumber = `V - 100 - ${Math.floor(Math.random() * 9000) + 1000}`;
@@ -908,48 +932,43 @@ export default function StoneflexCalculatorPage() {
       <CardContent className="space-y-4">
         {viewMode === 'internal' && (
             <>
+                <CustomerSelector
+                    onCustomerSelect={handleSelectCustomer}
+                    onNameChange={setCustomerName}
+                />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                        <Label htmlFor="customer-name">Nombre o Razón Social</Label>
-                        <Input
-                        id="customer-name"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Ingrese el nombre del cliente..."
-                        />
-                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="customer-tax-id">NIT o Cédula</Label>
                         <Input
-                        id="customer-tax-id"
-                        value={customerTaxId}
-                        onChange={(e) => setCustomerTaxId(e.target.value)}
-                        placeholder="Ingrese el NIT o cédula..."
+                            id="customer-tax-id"
+                            value={customerTaxId}
+                            onChange={(e) => setCustomerTaxId(e.target.value)}
+                            placeholder="Ingrese el NIT o cédula..."
                         />
                     </div>
-                    <div className="space-y-2 col-span-full">
-                        <Label htmlFor="location">Dirección / Ciudad</Label>
-                        <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
-                    </div>
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                         <Label htmlFor="customer-phone">Teléfono</Label>
                         <Input
-                        id="customer-phone"
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder="Ingrese el teléfono..."
+                            id="customer-phone"
+                            value={customerPhone}
+                            onChange={(e) => setCustomerPhone(e.target.value)}
+                            placeholder="Ingrese el teléfono..."
                         />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="customer-email">Correo Electrónico</Label>
                         <Input
-                        id="customer-email"
-                        type="email"
-                        value={customerEmail}
-                        onChange={(e) => setCustomerEmail(e.target.value)}
-                        placeholder="Ingrese el correo..."
+                            id="customer-email"
+                            type="email"
+                            value={customerEmail}
+                            onChange={(e) => setCustomerEmail(e.target.value)}
+                            placeholder="Ingrese el correo..."
                         />
                     </div>
+                </div>
+                 <div className="space-y-2 col-span-full">
+                    <Label htmlFor="location">Dirección / Ciudad</Label>
+                    <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
