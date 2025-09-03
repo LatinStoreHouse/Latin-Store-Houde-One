@@ -1,17 +1,21 @@
 
 'use client';
 
-import React, { useMemo, useContext } from 'react';
+import React, { useMemo, useContext, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { initialCustomerData, Customer } from '@/lib/customers';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Mail, Phone, MapPin, StickyNote } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, StickyNote, Edit } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { InventoryContext, Quote, Reservation } from '@/context/inventory-context';
 import { DispatchData, initialDispatchData } from '@/app/(main)/orders/page';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CustomerForm } from '@/components/customer-form';
+import { useUser } from '@/app/(main)/layout';
+import { useToast } from '@/hooks/use-toast';
 
 function CustomerQuotes({ quotes }: { quotes: Quote[] }) {
     return (
@@ -147,12 +151,15 @@ function CustomerDispatches({ dispatches }: { dispatches: DispatchData[] }) {
 export default function CustomerDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const { currentUser } = useUser();
+    const { toast } = useToast();
+
     const { quotes, reservations } = useContext(InventoryContext)!;
     const id = params.id as string;
     
-    const customer = useMemo(() => {
-        return initialCustomerData.find(c => c.id.toString() === id);
-    }, [id]);
+    // Simulate finding and updating the customer in a local state
+    const [customer, setCustomer] = useState(() => initialCustomerData.find(c => c.id.toString() === id));
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const customerQuotes = useMemo(() => {
         if (!customer) return [];
@@ -168,6 +175,23 @@ export default function CustomerDetailPage() {
         if (!customer) return [];
         return initialDispatchData.filter(d => d.cliente === customer.name);
     }, [customer]);
+
+    const handleSaveCustomer = (customerData: Omit<Customer, 'id' | 'registrationDate'>) => {
+        if (!customer) return;
+
+        const updatedCustomer = { ...customer, ...customerData } as Customer;
+        setCustomer(updatedCustomer);
+        
+        // Here you would also update the global state / database
+        // For now, we just update the local state of this page.
+        const index = initialCustomerData.findIndex(c => c.id === customer.id);
+        if (index > -1) {
+            initialCustomerData[index] = updatedCustomer;
+        }
+
+        toast({ title: 'Cliente Actualizado', description: 'Los datos del cliente se han actualizado.' });
+        setIsEditModalOpen(false);
+    };
 
     if (!customer) {
         return (
@@ -200,8 +224,12 @@ export default function CustomerDetailPage() {
             </div>
 
             <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Información de Contacto</CardTitle>
+                    <Button variant="outline" size="sm" onClick={() => setIsEditModalOpen(true)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar
+                    </Button>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
                     <div className="flex items-center gap-3">
@@ -241,6 +269,23 @@ export default function CustomerDetailPage() {
                     <CustomerDispatches dispatches={customerDispatches} />
                 </TabsContent>
             </Tabs>
+
+             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Editar Cliente</DialogTitle>
+                        <DialogDescription>
+                          Actualice los detalles del cliente.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <CustomerForm
+                        customer={customer}
+                        onSave={handleSaveCustomer}
+                        onCancel={() => setIsEditModalOpen(false)}
+                        currentUser={currentUser}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
