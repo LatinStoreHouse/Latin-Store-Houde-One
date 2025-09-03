@@ -908,7 +908,7 @@ export default function StoneflexCalculatorPage() {
                   id="customer-email"
                   type="email"
                   value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Ingrese el correo..."
                 />
             </div>
@@ -1303,4 +1303,3 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
-

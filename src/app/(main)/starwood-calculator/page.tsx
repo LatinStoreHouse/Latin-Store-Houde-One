@@ -67,6 +67,41 @@ interface QuoteItem {
 
 const DECK_SQM_PER_UNIT = 2.9 * 0.138;
 
+// Utility function to safely get base64 from an image
+const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
+    return new Promise((resolve) => {
+        const img = new window.Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = src;
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                resolve(null);
+                return;
+            }
+            ctx.drawImage(img, 0, 0);
+
+            try {
+                const dataURL = canvas.toDataURL('image/png');
+                resolve({ base64: dataURL, width: img.width, height: img.height });
+            } catch (e) {
+                console.error("Error converting canvas to data URL", e);
+                resolve(null);
+            }
+        };
+
+        img.onerror = (e) => {
+            console.error("Failed to load image for PDF conversion:", src, e);
+            resolve(null); // Resolve with null if the image fails to load
+        };
+    });
+};
+
 export default function StarwoodCalculatorPage() {
   const searchParams = useSearchParams();
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
@@ -259,68 +294,110 @@ export default function StarwoodCalculatorPage() {
       sleepers: { count: sleeperCount, cost: sleepersCost, price: productPrices['Durmiente plastico 3x3'] || 0 },
       adhesives: { count: adhesiveCount, cost: adhesiveCost, price: productPrices['Adhesivo'] || 0 },
       sealants: { count: sealantCount, cost: sealantCost, price: productPrices['Sellante wpc 1/4 galon'] || 0 },
-      creationDate: creationDate.toLocaleDateString('es-CO'),
+      creationDate: creationDate,
       expiryDate: expiryDate.toLocaleDateString('es-CO'),
     };
   };
 
   const quote = quoteItems.length > 0 ? calculateQuote() : null;
   
-  const handleDownloadPdf = async () => {
-    if (!quote) return;
-    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'letter' });
+   const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
+    const today = new Date();
+    const quoteNumber = `V - 200 - ${Math.floor(Math.random() * 9000) + 1000}`; // Different series for Starwood
+
+    let startY = 40;
     
-    doc.setFontSize(18);
-    doc.text('Latin Store House', 14, 22);
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text('Cotización Starwood', 14, 30);
-
-
     doc.setFontSize(10);
-    doc.text(`Cliente: ${customerName || 'N/A'}`, 14, 40);
-    doc.text(`Válida hasta: ${quote.expiryDate}`, 14, 45);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Señores', 14, startY);
+    startY += 5;
 
-    const tableBody = quote.items.map(item => {
+    doc.setFont('helvetica', 'normal');
+    doc.text(customerName.toUpperCase() || 'CLIENTE GENERAL', 14, startY);
+    startY += 5;
+    
+    if (customerTaxId) {
+        doc.text(`NIT/Cédula: ${customerTaxId}`, 14, startY);
+        startY += 5;
+    }
+    if (customerAddress) {
+        doc.text(`Dirección: ${customerAddress}`, 14, startY);
+        startY += 5;
+    }
+    if (customerPhone) {
+        doc.text(`Teléfono: ${customerPhone}`, 14, startY);
+        startY += 5;
+    }
+    if (customerEmail) {
+        doc.text(`Correo: ${customerEmail}`, 14, startY);
+        startY += 5;
+    }
+
+    startY += 3;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Ref: Cotización Starwood - ${quoteNumber}`, 14, startY);
+    startY += 8;
+
+    doc.setFont('helvetica', 'normal');
+    doc.text('Es grato para nosotros poner a su consideración la siguiente propuesta:', 14, startY);
+    startY += 8;
+    
+    const head = [['Item', 'Descripción', 'Unidad', 'M²', 'Cantidad', 'Valor Unitario', '%Dto.', 'Valor Total']];
+    const body: any[][] = [];
+
+    quote.items.forEach((item, index) => {
         const price = productPrices[item.reference as keyof typeof productPrices];
         const priceText = (price !== undefined && price > 0) ? formatCurrency(price) : 'Precio Pendiente';
-        return [
-            item.reference,
-            item.units,
-            priceText,
-            item.hasPrice ? formatCurrency(item.itemCost) : 'N/A'
-        ];
+        const sqMetersText = item.sqMeters ? item.sqMeters.toFixed(2) : '';
+        body.push([(index + 1).toString(), item.reference, 'UND', sqMetersText, item.units, priceText, '0.00', item.hasPrice ? formatCurrency(item.itemCost) : 'N/A']);
     });
 
     if (quote.clips.count > 0) {
-        tableBody.push(['Clip plastico para deck wpc', quote.clips.count, formatCurrency(quote.clips.price), formatCurrency(quote.clips.cost)]);
+        body.push([(body.length + 1).toString(), 'Clip plastico para deck wpc', 'UND', '', quote.clips.count, formatCurrency(quote.clips.price), '0.00', formatCurrency(quote.clips.cost)]);
     }
     if (quote.sleepers.count > 0) {
-        tableBody.push(['Durmiente plastico 3x3', quote.sleepers.count, formatCurrency(quote.sleepers.price), formatCurrency(quote.sleepers.cost)]);
+        body.push([(body.length + 1).toString(), 'Durmiente plastico 3x3', 'UND', '', quote.sleepers.count, formatCurrency(quote.sleepers.price), '0.00', formatCurrency(quote.sleepers.cost)]);
     }
     if (quote.adhesives.count > 0) {
-        tableBody.push(['Adhesivo', quote.adhesives.count, formatCurrency(quote.adhesives.price), formatCurrency(quote.adhesives.cost)]);
+        body.push([(body.length + 1).toString(), 'Adhesivo', 'UND', '', quote.adhesives.count, formatCurrency(quote.adhesives.price), '0.00', formatCurrency(quote.adhesives.cost)]);
     }
     if (quote.sealants.count > 0) {
-        tableBody.push(['Sellante wpc 1/4 galon', quote.sealants.count, formatCurrency(quote.sealants.price), formatCurrency(quote.sealants.cost)]);
+        body.push([(body.length + 1).toString(), 'Sellante wpc 1/4 galon', 'UND', '', quote.sealants.count, formatCurrency(quote.sealants.price), '0.00', formatCurrency(quote.sealants.cost)]);
     }
 
-
-    doc.autoTable({ 
-      startY: 55, 
-      head: [['Producto', 'Unidades', 'Precio Unitario', 'Total']], 
-      body: tableBody 
+    doc.autoTable({
+        startY: startY,
+        head: head,
+        body: body,
+        theme: 'grid',
+        headStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0], fontStyle: 'bold' },
+        styles: { fontSize: 8 },
+        columnStyles: {
+            0: { halign: 'center' },
+            3: { halign: 'right' },
+            4: { halign: 'right' },
+            5: { halign: 'right' },
+            6: { halign: 'right' },
+            7: { halign: 'right' },
+        }
     });
+
+    let finalY = (doc as any).autoTable.previous.finalY;
     
-    let finalY = (doc as any).autoTable.previous.finalY || 150;
-    
+    // Totals table
     const summaryData = [
-        ['Subtotal', formatCurrency(quote.subtotal)],
-        ['IVA (19%)', formatCurrency(quote.iva)],
-        ['Mano de Obra', formatCurrency(quote.laborCost)],
-        ['Transporte', formatCurrency(quote.transportationCost)],
-        ['Total', formatCurrency(quote.total)]
+        ['Total Bruto', formatCurrency(quote.subtotal)],
+        ['IVA', formatCurrency(quote.iva)],
     ];
+    if (quote.laborCost > 0) {
+        summaryData.push(['Mano de Obra', formatCurrency(quote.laborCost)]);
+    }
+    if (quote.transportationCost > 0) {
+        summaryData.push(['Transporte', formatCurrency(quote.transportationCost)]);
+    }
+    summaryData.push(['Total a Pagar', formatCurrency(quote.total)]);
+
 
     doc.autoTable({
         startY: finalY + 2,
@@ -330,9 +407,9 @@ export default function StarwoodCalculatorPage() {
         columnStyles: { 0: { fontStyle: 'bold', halign: 'right' }, 1: { halign: 'right' } },
         margin: { left: 110 }
     });
-
+    
     finalY = (doc as any).autoTable.previous.finalY;
-    let startY = finalY + 15;
+    startY = finalY + 15;
 
     // Commercial Terms
     doc.setFontSize(10);
@@ -351,14 +428,36 @@ export default function StarwoodCalculatorPage() {
     doc.setFont('helvetica', 'bold');
     doc.text('Validez de la oferta:', 14, startY);
     doc.setFont('helvetica', 'normal');
-    doc.text(offerValidity, 50, startY);
+    doc.text(offerValidity + `, ${today.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric'})}`, 50, startY);
     startY += 15;
 
     // Signature
     doc.text('Cordialmente,', 14, startY);
     startY += 15;
     doc.text(currentUser.name, 14, startY);
+  };
+  
+  const handleDownloadPdf = async () => {
+    if (!quote) return;
+    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'letter' });
+    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+    
+    const starwoodLogoData = await getImageBase64('/imagenes/logos/Logo-Starwood-color.png');
+    const latinLogoData = await getImageBase64('/imagenes/logos/Logo-Latin-Store-House-color.png');
 
+    if (starwoodLogoData) {
+        const logoWidth = 30; // Adjusted size for Starwood logo
+        const logoHeight = starwoodLogoData.height * (logoWidth / starwoodLogoData.width);
+        doc.addImage(starwoodLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
+    }
+    
+    if (latinLogoData) {
+        const logoWidth = 30;
+        const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
+        doc.addImage(latinLogoData.base64, 'PNG', pageWidth - logoWidth - 14, 10, logoWidth, logoHeight);
+    }
+    
+    generatePdfContent(doc, quote, pageWidth);
     doc.save('cotizacion_starwood.pdf');
   };
   
@@ -367,7 +466,7 @@ export default function StarwoodCalculatorPage() {
 
     let message = `*Cotización de Starwood - Latin Store House*\n\n`;
     message += `*Cliente:* ${customerName || 'N/A'}\n`;
-    message += `*Fecha de Cotización:* ${quote.creationDate}\n`;
+    message += `*Fecha de Cotización:* ${quote.creationDate.toLocaleDateString('es-CO')}\n`;
     message += `*Válida hasta:* ${quote.expiryDate}\n\n`;
 
     quote.items.forEach(item => {
@@ -548,7 +647,7 @@ export default function StarwoodCalculatorPage() {
           <Card className="bg-primary/5 mt-6">
             <CardHeader>
               <CardTitle>Resumen de la Cotización</CardTitle>
-              <CardDescription>Cliente: {customerName || 'N/A'} | Válida hasta: {quote.expiryDate}</CardDescription>
+              <CardDescription>Cliente: {customerName || 'N/A'} | Válida hasta: {quote.expiryDate.toLocaleString('es-CO')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
