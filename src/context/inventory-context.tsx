@@ -50,6 +50,7 @@ export interface AppNotification {
   message: string;
   date: string;
   read?: boolean;
+  user?: string; // Optional: To target a notification to a specific user by name
 }
 
 export interface Suggestion {
@@ -100,6 +101,7 @@ interface InventoryContextType {
   reservations: Reservation[];
   setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
   notifications: AppNotification[];
+  addNotification: (notification: Omit<AppNotification, 'id' | 'date' | 'read'>) => void;
   dismissNotification: (id: number) => void;
   systemSuggestions: Suggestion[];
   seenSuggestionsCount: number;
@@ -412,7 +414,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
                 message: `El producto "${productInContainer.name}" por el que te suscribiste ya está disponible en Zona Franca.`,
                 date: new Date().toISOString(),
                 read: false,
-                // We can add a 'user' property if notifications become user-specific
+                user: userName
             });
         }
          // Clear subscriptions for this product
@@ -625,6 +627,16 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const editContainer = (containerId: string, updatedContainer: Container) => {
      setContainers(prev => prev.map(c => c.id === containerId ? updatedContainer : c));
   };
+
+  const addNotification = (notification: Omit<AppNotification, 'id' | 'date' | 'read'>) => {
+    const newNotification: AppNotification = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      read: false,
+      ...notification,
+    };
+    setNotifications(prev => [newNotification, ...prev]);
+  };
   
   const dismissNotification = (id: number) => {
     setNotifications(prev =>
@@ -679,6 +691,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       reservations,
       setReservations,
       notifications,
+      addNotification,
       dismissNotification,
       systemSuggestions,
       seenSuggestionsCount,

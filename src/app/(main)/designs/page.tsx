@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { InventoryContext } from '@/context/inventory-context';
 
 
 const DesignRequestTable = ({ 
@@ -117,7 +118,7 @@ const DesignRequestTable = ({
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" disabled={!canManageRequest(req)}>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -163,23 +164,36 @@ export default function DesignRequestsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRequest, setEditingRequest] = useState<DesignRequest | null>(null);
   const { currentUser } = useUser();
+  const { addNotification } = useContext(InventoryContext)!;
   const { toast } = useToast();
   
   const canCreate = currentUser.roles.includes('Asesor de Ventas') || currentUser.roles.includes('Administrador');
 
   const pendingRequests = useMemo(() => requests.filter(r => r.status === 'Pendiente'), [requests]);
   const inProgressRequests = useMemo(() => requests.filter(r => r.status === 'En Proceso'), [requests]);
-  const historyRequests = useMemo(() => requests.filter(r => r.status === 'Completado' || r.status === 'Rechazado'), [requests]);
+  const rejectedRequests = useMemo(() => requests.filter(r => r.status === 'Rechazado'), [requests]);
+  const historyRequests = useMemo(() => requests.filter(r => r.status === 'Completado'), [requests]);
 
   const handleOpenModal = (request?: DesignRequest) => {
     setEditingRequest(request || null);
     setIsModalOpen(true);
   };
 
-  const handleSaveRequest = (requestData: Omit<DesignRequest, 'id' | 'requestDate' | 'advisor'>) => {
+  const handleSaveRequest = (requestData: Omit<DesignRequest, 'id' | 'requestDate' | 'advisor'>, originalRequest: DesignRequest | null) => {
     if (editingRequest) {
-      setRequests(prev => prev.map(r => r.id === editingRequest.id ? { ...editingRequest, ...requestData } : r));
+      const updatedRequest = { ...editingRequest, ...requestData };
+      setRequests(prev => prev.map(r => r.id === editingRequest.id ? updatedRequest : r));
       toast({ title: 'Solicitud Actualizada', description: 'Los detalles de la solicitud de diseño han sido actualizados.' });
+
+      // Notify advisor on rejection
+      if (originalRequest && originalRequest.status !== 'Rechazado' && updatedRequest.status === 'Rechazado') {
+        addNotification({
+            title: 'Solicitud de Diseño Rechazada',
+            message: `Tu solicitud para "${updatedRequest.customerName}" fue rechazada. Revisa las notas del diseñador.`,
+            user: updatedRequest.advisor
+        });
+      }
+
     } else {
       const newRequest: DesignRequest = {
         id: `DREQ-${Date.now()}`,
@@ -221,9 +235,10 @@ export default function DesignRequestsPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="pendientes" className="w-full">
-            <TabsList>
+            <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="pendientes">Pendientes ({pendingRequests.length})</TabsTrigger>
                 <TabsTrigger value="en-proceso">En Proceso ({inProgressRequests.length})</TabsTrigger>
+                <TabsTrigger value="rechazadas">Rechazadas ({rejectedRequests.length})</TabsTrigger>
                 <TabsTrigger value="historial">Historial ({historyRequests.length})</TabsTrigger>
             </TabsList>
             <TabsContent value="pendientes" className="pt-4">
@@ -237,6 +252,14 @@ export default function DesignRequestsPage() {
              <TabsContent value="en-proceso" className="pt-4">
                <DesignRequestTable 
                  requests={inProgressRequests}
+                 onOpenModal={handleOpenModal}
+                 onDeleteRequest={handleDeleteRequest}
+                 currentUser={currentUser}
+               />
+            </TabsContent>
+            <TabsContent value="rechazadas" className="pt-4">
+               <DesignRequestTable 
+                 requests={rejectedRequests}
                  onOpenModal={handleOpenModal}
                  onDeleteRequest={handleDeleteRequest}
                  currentUser={currentUser}
