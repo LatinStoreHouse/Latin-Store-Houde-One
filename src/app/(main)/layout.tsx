@@ -131,7 +131,7 @@ export const navItems = [
   { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare, permission: 'advisor:use' },
 ];
 
-const getIconForSubItem = (label: string) => {
+const getIconForSubItem = (label: string, parentIcon: React.ElementType) => {
     switch (label) {
         case 'Inventario': return Warehouse;
         case 'Contenedores': return Container;
@@ -141,7 +141,7 @@ const getIconForSubItem = (label: string) => {
         case 'Sugerencias de Compra': return Lightbulb;
         case 'StoneFlex': return Store;
         case 'Starwood': return Store;
-        default: return Warehouse;
+        default: return parentIcon;
     }
 }
 
@@ -285,7 +285,7 @@ const NavMenu = () => {
                             <CollapsibleTrigger asChild>
                                 <SidebarMenuButton className="w-full justify-between">
                                     <div className="flex items-center gap-2">
-                                        <item.icon />
+                                        {item.icon && <item.icon />}
                                         <span>{item.label}</span>
                                     </div>
                                     <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
@@ -294,12 +294,12 @@ const NavMenu = () => {
                             <CollapsibleContent>
                                 <SidebarMenuSub>
                                     {item.subItems.filter(hasPermission).map((subItem) => {
-                                        const SubIcon = getIconForSubItem(subItem.label);
+                                        const SubIcon = getIconForSubItem(subItem.label, item.icon);
                                         return (
                                             <SidebarMenuSubItem key={subItem.href}>
                                                 <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
-                                                    <Link href={subItem.href} onClick={() => setOpenMobile(false)}>
-                                                        <SubIcon />
+                                                    <Link href={subItem.href!} onClick={() => setOpenMobile(false)}>
+                                                        {SubIcon && <SubIcon />}
                                                         <span className="truncate">{subItem.label}</span>
                                                         {subItem.href === '/reservations' && pendingReservationAlerts > 0 && canViewReservationsAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
                                                         {subItem.href === '/transit' && hasLateContainersAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
@@ -322,7 +322,7 @@ const NavMenu = () => {
                         >
                             <Link href={item.href!} onClick={() => setOpenMobile(false)} className="flex items-center justify-between w-full">
                                 <div className="flex items-center gap-2">
-                                    <item.icon />
+                                    {item.icon && <item.icon />}
                                     <span>{item.label}</span>
                                 </div>
                                 {item.href === '/validation' && pendingValidations > 0 && <div className="h-2 w-2 rounded-full bg-white" />}
@@ -431,7 +431,10 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     }, [inventoryContext, currentUser.roles]);
 
   const pageTitle = useMemo(() => {
-    const currentNavItem = navItems.flatMap(item => item.subItems ? [{href: item.href, label: item.label}, ...item.subItems] : item).find((navItem) => navItem?.href === pathname);
+    const allItems = navItems.flatMap(item => 
+        item.subItems ? [item, ...item.subItems] : [item]
+    );
+    const currentNavItem = allItems.find(navItem => navItem?.href === pathname);
     return currentNavItem?.label || 'Inicio';
   }, [pathname]);
 
