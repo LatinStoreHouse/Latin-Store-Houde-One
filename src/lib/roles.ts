@@ -132,6 +132,7 @@ export const roles: RoleConfig[] = [
             'purchasing:suggestions:view',
             'purchasing:suggestions:create',
             'partners:manage',
+            'reports:view',
         ]
     },
     {

@@ -17,6 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import { initialCustomerData } from '@/lib/customers';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
+import { useUser } from '@/app/(main)/layout';
+import type { User } from '@/lib/roles';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -78,7 +80,9 @@ const ForecastCard = ({ forecast, loading, error, selectedMonth }: { forecast: F
     )
 }
 
-const MonthlyAnalysis = ({ date }: { date: Date }) => {
+const MonthlyAnalysis = ({ date, user }: { date: Date, user: User | null }) => {
+    const isAdvisor = user?.roles.includes('Asesor de Ventas');
+
     const { newCustomersCount, customersChangePercentage, salesFunnelData, funnelOutcomes } = useMemo(() => {
         const selectedYear = date.getFullYear();
         const selectedMonth = date.getMonth();
@@ -86,7 +90,9 @@ const MonthlyAnalysis = ({ date }: { date: Date }) => {
         const getCustomersInMonth = (year: number, month: number) => {
             return initialCustomerData.filter(c => {
                 const regDate = new Date(c.registrationDate);
-                return regDate.getFullYear() === year && regDate.getMonth() === month;
+                const isCorrectMonth = regDate.getFullYear() === year && regDate.getMonth() === month;
+                const isAssignedToAdvisor = isAdvisor ? c.assignedTo === user.name : true;
+                return isCorrectMonth && isAssignedToAdvisor;
             });
         };
 
@@ -128,7 +134,7 @@ const MonthlyAnalysis = ({ date }: { date: Date }) => {
             salesFunnelData,
             funnelOutcomes
         };
-    }, [date]);
+    }, [date, user, isAdvisor]);
 
     return (
         <>
@@ -205,11 +211,14 @@ const MonthlyAnalysis = ({ date }: { date: Date }) => {
 }
 
 export default function ReportsPage() {
+    const { currentUser } = useUser();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [forecast, setForecast] = useState<ForecastSalesOutput | null>(null);
     const [loadingForecast, setLoadingForecast] = useState(true);
     const [forecastError, setForecastError] = useState<string | null>(null);
     const { toast } = useToast();
+
+    const isAdvisor = currentUser.roles.includes('Asesor de Ventas');
 
     const formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
     const monthlyData = inventoryMovementData[formattedDate] || { topMovers: [], bottomMovers: [] };
@@ -224,7 +233,7 @@ export default function ReportsPage() {
 
     useEffect(() => {
         const fetchForecast = async () => {
-            if (isPastOrPresentMonth) {
+            if (isPastOrPresentMonth || isAdvisor) {
                 setForecast(null);
                 setLoadingForecast(false);
                 return;
@@ -248,7 +257,7 @@ export default function ReportsPage() {
         };
 
         fetchForecast();
-    }, [currentDate, isPastOrPresentMonth]);
+    }, [currentDate, isPastOrPresentMonth, isAdvisor]);
 
     const handleDownloadReport = async () => {
         const doc = new jsPDF();
@@ -258,11 +267,13 @@ export default function ReportsPage() {
         doc.setFontSize(11);
         doc.setTextColor(100);
         doc.text(`Reporte Mensual - ${monthName}`, 14, 30);
+        if (isAdvisor) {
+            doc.text(`Asesor: ${currentUser.name}`, 14, 35);
+        }
 
+        let startY = 40;
 
-        let startY = 35;
-
-        if (forecast) {
+        if (forecast && !isAdvisor) {
             doc.setFontSize(14);
             doc.text(`Pronóstico de Ventas con IA para ${monthName}`, 14, startY);
             startY += 8;
@@ -278,7 +289,7 @@ export default function ReportsPage() {
             startY += forecastSummaryLines.length * 5 + 10;
         }
         
-        if (isPastOrPresentMonth) {
+        if (isPastOrPresentMonth && !isAdvisor) {
             doc.setFontSize(14);
             doc.text(`Movimiento de Productos - ${monthName}`, 14, startY );
             startY += 8;
@@ -323,15 +334,15 @@ export default function ReportsPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <MonthlyAnalysis date={currentDate} />
+          <MonthlyAnalysis date={currentDate} user={currentUser} />
         </CardContent>
       </Card>
       
-      {!isPastOrPresentMonth && (
+      {!isPastOrPresentMonth && !isAdvisor && (
         <ForecastCard forecast={forecast} loading={loadingForecast} error={forecastError} selectedMonth={monthName} />
       )}
       
-      {isPastOrPresentMonth && (
+      {isPastOrPresentMonth && !isAdvisor && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
                 <CardHeader>
