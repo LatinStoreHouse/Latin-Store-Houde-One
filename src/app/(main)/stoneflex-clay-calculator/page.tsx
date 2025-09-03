@@ -265,8 +265,8 @@ export default function StoneflexCalculatorPage() {
   
   // New state for commercial terms
   const [deliveryTerms, setDeliveryTerms] = useState('');
-  const [paymentTerms, setPaymentTerms] = useState('Efectivo');
-  const [offerValidity, setOfferValidity] = useState('15 días a partir de la fecha');
+  const [paymentTerms, setPaymentTerms] = useState('');
+  const [offerValidity, setOfferValidity] = useState('');
 
   const referenceOptions = useMemo(() => {
     return allReferences.map(ref => ({ value: ref, label: `${ref} (${productDimensions[ref as keyof typeof productDimensions] || 'N/A'})` }));
@@ -911,7 +911,7 @@ export default function StoneflexCalculatorPage() {
                   id="customer-email"
                   type="email"
                   value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Ingrese el correo..."
                 />
             </div>

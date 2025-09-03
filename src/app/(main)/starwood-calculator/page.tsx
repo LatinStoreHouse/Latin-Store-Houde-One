@@ -94,8 +94,8 @@ export default function StarwoodCalculatorPage() {
   const [notes, setNotes] = useState('');
   
   const [deliveryTerms, setDeliveryTerms] = useState('');
-  const [paymentTerms, setPaymentTerms] = useState('Efectivo');
-  const [offerValidity, setOfferValidity] = useState('15 días a partir de la fecha');
+  const [paymentTerms, setPaymentTerms] = useState('');
+  const [offerValidity, setOfferValidity] = useState('');
   const {currentUser} = useUser();
 
 
