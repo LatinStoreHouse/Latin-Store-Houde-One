@@ -138,21 +138,11 @@ export default function StarwoodCalculatorPage() {
   const [offerValidity, setOfferValidity] = useState('');
   const {currentUser} = useUser();
   
-  const isDistributor = useMemo(() => 
-    currentUser.roles.includes('Distribuidor'), 
-    [currentUser.roles]
-  );
-  
-  const isPartner = useMemo(() => 
-    currentUser.roles.includes('Partner'), 
-    [currentUser.roles]
-  );
+  const isDistributor = useMemo(() => currentUser.roles.includes('Distribuidor'), [currentUser.roles]);
 
   const viewMode = useMemo(() => {
-    if (isDistributor) return 'distributor';
-    if (isPartner) return 'partner';
-    return 'internal';
-  }, [isDistributor, isPartner]);
+    return isDistributor ? 'distributor' : 'internal';
+  }, [isDistributor]);
 
 
   const selectedProductIsDeck = useMemo(() => productReference.toLowerCase().includes('deck'), [productReference]);
@@ -172,7 +162,7 @@ export default function StarwoodCalculatorPage() {
 
   useEffect(() => {
     const customerNameParam = searchParams.get('customerName');
-    if (customerNameParam && viewMode !== 'distributor') {
+    if (customerNameParam && viewMode === 'internal') {
         setCustomerName(decodeURIComponent(customerNameParam));
     }
   }, [searchParams, viewMode]);
@@ -817,7 +807,7 @@ export default function StarwoodCalculatorPage() {
               
               <div className="flex justify-between items-center pt-2">
                 <div className="flex gap-2">
-                    {viewMode !== 'distributor' && (
+                    {viewMode === 'internal' && (
                         <Button variant="outline" onClick={handleDownloadPdf}>
                             <Download className="mr-2 h-4 w-4" />
                             Descargar PDF

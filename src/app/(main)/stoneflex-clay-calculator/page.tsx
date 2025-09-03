@@ -1,12 +1,13 @@
 
+
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useContext } from 'react';
 import Image from 'next/image';
 import * as XLSX from 'xlsx';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle, ChevronDown, MessageSquare } from 'lucide-react';
+import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle, ChevronDown, MessageSquare, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -28,6 +29,7 @@ import { productDimensions } from '@/lib/dimensions';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { useUser } from '@/app/(main)/layout';
 import { LocationCombobox } from '@/components/location-combobox';
+import { InventoryContext } from '@/context/inventory-context';
 
 
 
@@ -230,6 +232,10 @@ function AdhesiveReferenceTable() {
 
 export default function StoneflexCalculatorPage() {
   const searchParams = useSearchParams();
+  const context = useContext(InventoryContext);
+  if (!context) throw new Error("Inventory context not found");
+  const { addQuote } = context;
+
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -264,10 +270,15 @@ export default function StoneflexCalculatorPage() {
   const [paymentTerms, setPaymentTerms] = useState('');
   const [offerValidity, setOfferValidity] = useState('');
 
-  const isDistributor = useMemo(() => 
-    currentUser.roles.includes('Distribuidor'), 
-    [currentUser.roles]
-  );
+  const isDistributor = useMemo(() => currentUser.roles.includes('Distribuidor'), [currentUser.roles]);
+  const isPartner = useMemo(() => currentUser.roles.includes('Partner'), [currentUser.roles]);
+  
+  const viewMode = useMemo(() => {
+    if (isDistributor) return 'distributor';
+    // Partners have the full view, same as internal
+    return 'internal';
+  }, [isDistributor]);
+
 
   const referenceOptions = useMemo(() => {
     return allReferences.map(ref => ({ value: ref, label: `${ref} (${productDimensions[ref as keyof typeof productDimensions] || 'N/A'})` }));
@@ -282,10 +293,10 @@ export default function StoneflexCalculatorPage() {
 
   useEffect(() => {
     const customerNameParam = searchParams.get('customerName');
-    if (customerNameParam && !isDistributor) {
+    if (customerNameParam && viewMode === 'internal') {
         setCustomerName(decodeURIComponent(customerNameParam));
     }
-  }, [searchParams, isDistributor]);
+  }, [searchParams, viewMode]);
 
   const fetchTrm = async () => {
     setTrmLoading(true);
@@ -571,6 +582,21 @@ export default function StoneflexCalculatorPage() {
 
   const quote = quoteItems.length > 0 ? calculateQuote() : null;
 
+  const handleSaveQuote = () => {
+    if (!quote) return;
+     addQuote({
+        quoteNumber: `V-100-${Date.now().toString().slice(-4)}`,
+        calculatorType: 'StoneFlex',
+        customerName: customerName,
+        advisorName: currentUser.name,
+        creationDate: new Date().toISOString(),
+        total: quote.totalCost,
+        currency: currency,
+        items: quote.items.map(i => ({ reference: i.reference, quantity: i.sheets, price: i.pricePerSheet })),
+        details: quote,
+    });
+  }
+
   const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
     const today = new Date();
     const quoteNumber = `V - 100 - ${Math.floor(Math.random() * 9000) + 1000}`;
@@ -783,7 +809,7 @@ export default function StoneflexCalculatorPage() {
     if (!quote) return;
 
     let message = `*Cotización de Latin Store House*\n\n`;
-    if (!isDistributor) {
+    if (viewMode === 'internal') {
         message += `*Cliente:* ${customerName || 'N/A'}\n`;
         if (customerTaxId) message += `*NIT/Cédula:* ${customerTaxId}\n`;
         if (customerEmail) message += `*Correo:* ${customerEmail}\n`;
@@ -796,7 +822,7 @@ export default function StoneflexCalculatorPage() {
         message += `*TRM usada:* ${formatCurrency(parseDecimal(trm))}\n`;
     }
 
-    if (!isDistributor) {
+    if (viewMode === 'internal') {
        message += `*Fecha de Cotización:* ${quote.creationDate.toLocaleDateString('es-CO')}\n`;
        message += `*Válida hasta:* ${quote.expiryDate}\n\n`;
     }
@@ -880,7 +906,7 @@ export default function StoneflexCalculatorPage() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!isDistributor && (
+        {viewMode === 'internal' && (
             <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -1116,7 +1142,7 @@ export default function StoneflexCalculatorPage() {
               <div className="flex justify-between items-start">
                   <div>
                       <CardTitle>Resumen de la Cotización</CardTitle>
-                      {!isDistributor && (
+                      {viewMode === 'internal' && (
                         <CardDescription>
                             Cliente: {customerName || 'N/A'} | Válida hasta {quote.expiryDate} | Moneda: {currency}
                         </CardDescription>
@@ -1136,12 +1162,12 @@ export default function StoneflexCalculatorPage() {
                             `${item.sheets} unidades`
                         }
                       </p>
-                      {item.hasPrice && !isDistributor && (
+                      {item.hasPrice && viewMode === 'internal' && (
                        <p className="text-sm text-muted-foreground font-medium">
                         Precio/Unidad: {formatCurrency(item.pricePerSheet)}
                        </p>
                       )}
-                      {currency !== 'USD' && item.calculationMode !== 'units' && !isDistributor && (
+                      {currency !== 'USD' && item.calculationMode !== 'units' && viewMode === 'internal' && (
                          <div className="flex items-center gap-2 mt-2">
                             <Label htmlFor={`price-${item.id}`} className="text-xs">Precio/Lámina (COP)</Label>
                              <Input 
@@ -1240,7 +1266,7 @@ export default function StoneflexCalculatorPage() {
                 </div>
               </div>
 
-              {!isDistributor && (
+              {viewMode === 'internal' && (
                 <>
                   <Separator />
                     <div className="space-y-4">
@@ -1278,7 +1304,7 @@ export default function StoneflexCalculatorPage() {
               
               <div className="flex justify-between items-center pt-2">
                 <div className="flex gap-2">
-                  {!isDistributor && (
+                  {viewMode === 'internal' && (
                       <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline">
@@ -1297,6 +1323,12 @@ export default function StoneflexCalculatorPage() {
                         <MessageSquare />
                         <span>Compartir</span>
                     </Button>
+                    {viewMode === 'internal' && (
+                        <Button onClick={handleSaveQuote}>
+                            <Save className="mr-2 h-4 w-4" />
+                            Guardar Cotización
+                        </Button>
+                    )}
                 </div>
                 <p className="text-lg font-bold text-right">
                   Costo Total Estimado: {formatCurrency(quote.totalCost)}
