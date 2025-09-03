@@ -1,6 +1,7 @@
 
+
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Card,
@@ -20,7 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal, UserPlus, ShieldCheck, UserCog, Trash2, Calculator, CheckCircle, XCircle } from 'lucide-react';
+import { MoreHorizontal, UserPlus, ShieldCheck, UserCog, Trash2, Calculator, CheckCircle, XCircle, Link as LinkIcon, Copy } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +43,9 @@ import { SetSalesForm } from '@/components/set-sales-form';
 import { initialSalesData, MonthlySales } from '@/lib/sales-data';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { Combobox } from '@/components/ui/combobox';
+import { Input } from '@/components/ui/input';
 
 
 type UserStatus = 'active' | 'inactive' | 'pending';
@@ -61,15 +65,17 @@ export default function UsersPage() {
   const [users, setUsers] = useState<(User & {status: UserStatus})[]>(initialUsers);
   const [salesData, setSalesData] = useState<MonthlySales>(initialSalesData);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
+  const [selectedInviteRole, setSelectedInviteRole] = useState<Role>('Asesor de Ventas');
+  const [generatedLink, setGeneratedLink] = useState('');
   const [activeTab, setActiveTab] = useState<UserStatus>('active');
   const { toast } = useToast();
 
-  const handleAddUser = () => {
-    setSelectedUser(undefined);
-    setIsUserModalOpen(true);
-  };
+  const handleOpenInviteModal = () => {
+    setIsInviteModalOpen(true);
+  }
 
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
@@ -116,6 +122,20 @@ export default function UsersPage() {
   const filteredUsers = useMemo(() => {
     return users.filter(user => user.status === activeTab);
   }, [users, activeTab]);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const encodedRole = encodeURIComponent(selectedInviteRole);
+      setGeneratedLink(`${window.location.origin}/register?role=${encodedRole}`);
+    }
+  }, [selectedInviteRole]);
+
+  const handleCopyLink = () => {
+    if (generatedLink) {
+        navigator.clipboard.writeText(generatedLink);
+        toast({ title: 'Enlace Copiado', description: 'El enlace de invitación ha sido copiado a tu portapapeles.' });
+    }
+  }
 
   const getRoleBadgeVariant = (roleName: Role) => {
       const role = roles.find(r => r.name === roleName);
@@ -139,6 +159,12 @@ export default function UsersPage() {
         case 'pending': return <Badge variant='destructive'>Pendiente Aprobación</Badge>;
      }
   }
+  
+  const roleOptions = useMemo(() => {
+    return roles
+        .filter(r => r.name !== 'Partner' && r.name !== 'Distribuidor')
+        .map(r => ({ value: r.name, label: r.name }))
+  }, []);
 
 
   return (
@@ -158,9 +184,9 @@ export default function UsersPage() {
                     Gestionar Permisos de Roles
                 </Link>
             </Button>
-            <Button onClick={handleAddUser}>
+            <Button onClick={handleOpenInviteModal}>
               <UserPlus className="mr-2 h-4 w-4" />
-              Agregar Usuario
+              Invitar Usuario
             </Button>
           </div>
         </CardHeader>
@@ -269,7 +295,7 @@ export default function UsersPage() {
       <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedUser ? 'Editar Usuario' : 'Agregar Nuevo Usuario'}</DialogTitle>
+            <DialogTitle>{selectedUser ? (selectedUser.status === 'pending' ? 'Aprobar Solicitud' : 'Editar Usuario') : 'Agregar Nuevo Usuario'}</DialogTitle>
             <DialogDescription>
               {selectedUser ? 'Actualice los detalles del usuario y sus permisos.' : 'Complete el formulario para agregar un nuevo usuario.'}
             </DialogDescription>
@@ -278,6 +304,37 @@ export default function UsersPage() {
         </DialogContent>
       </Dialog>
       
+      <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Generar Enlace de Invitación</DialogTitle>
+                <DialogDescription>
+                    Selecciona un rol y comparte el enlace para que un nuevo usuario se registre.
+                </DialogDescription>
+            </DialogHeader>
+             <div className="space-y-4 py-4">
+                 <div className="space-y-2">
+                    <Label>Rol para el nuevo usuario</Label>
+                    <Combobox
+                        options={roleOptions}
+                        value={selectedInviteRole}
+                        onValueChange={(value) => setSelectedInviteRole(value as Role)}
+                        placeholder="Seleccionar un rol"
+                    />
+                </div>
+                 <div className="space-y-2">
+                    <Label>Enlace de Invitación</Label>
+                    <div className="flex items-center gap-2">
+                        <Input value={generatedLink} readOnly />
+                        <Button size="icon" onClick={handleCopyLink} disabled={!generatedLink}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
+                 </div>
+            </div>
+        </DialogContent>
+    </Dialog>
+
       {selectedUser && (
         <Dialog open={isSalesModalOpen} onOpenChange={setIsSalesModalOpen}>
             <DialogContent>
