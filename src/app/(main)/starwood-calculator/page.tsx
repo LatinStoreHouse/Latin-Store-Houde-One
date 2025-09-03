@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2, Download } from 'lucide-react';
+import { PlusCircle, Trash2, Download, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,7 +14,6 @@ import { initialProductPrices as productPrices } from '@/lib/prices';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import Image from 'next/image';
-import { WhatsAppIcon } from '@/components/social-icons';
 import { Textarea } from '@/components/ui/textarea';
 import { LocationCombobox } from '@/components/location-combobox';
 import { useUser } from '@/app/(main)/layout';
@@ -772,7 +771,7 @@ export default function StarwoodCalculatorPage() {
                         Descargar PDF
                     </Button>
                     <Button variant="outline" onClick={handleShareOnWhatsApp} className="gap-2">
-                        <WhatsAppIcon />
+                        <MessageSquare />
                         <span>Compartir</span>
                     </Button>
                 </div>

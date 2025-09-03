@@ -6,7 +6,7 @@ import * as XLSX from 'xlsx';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle, ChevronDown } from 'lucide-react';
+import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle, ChevronDown, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -28,7 +28,6 @@ import { productDimensions } from '@/lib/dimensions';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { useUser } from '@/app/(main)/layout';
 import { LocationCombobox } from '@/components/location-combobox';
-import { WhatsAppIcon } from '@/components/social-icons';
 
 
 
@@ -908,7 +907,7 @@ export default function StoneflexCalculatorPage() {
                   id="customer-email"
                   type="email"
                   value={customerEmail}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
                   placeholder="Ingrese el correo..."
                 />
             </div>
@@ -1273,7 +1272,7 @@ export default function StoneflexCalculatorPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <Button variant="outline" onClick={handleShareOnWhatsApp} className="gap-2">
-                        <WhatsAppIcon />
+                        <MessageSquare />
                         <span>Compartir</span>
                     </Button>
                 </div>
