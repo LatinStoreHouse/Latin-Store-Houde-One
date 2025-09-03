@@ -49,6 +49,7 @@ export interface AppNotification {
   title: string;
   message: string;
   date: string;
+  read?: boolean;
 }
 
 export interface Suggestion {
@@ -410,6 +411,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
                 title: '¡Stock Disponible!',
                 message: `El producto "${productInContainer.name}" por el que te suscribiste ya está disponible en Zona Franca.`,
                 date: new Date().toISOString(),
+                read: false,
                 // We can add a 'user' property if notifications become user-specific
             });
         }
@@ -459,6 +461,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
               title: 'Precio Requerido para Nuevo Producto',
               message: `El nuevo producto "${name}" ha sido agregado al inventario pero no tiene un precio. Por favor, actualícelo en la página de Precios.`,
               date: new Date().toISOString(),
+              read: false,
             });
           }
 
@@ -491,6 +494,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         title: '¡Nuevo Material Disponible!',
         message: `El contenedor ${containerId} ha llegado y su contenido ha sido añadido al inventario de Zona Franca.`,
         date: new Date().toISOString(),
+        read: false,
     };
     setNotifications(prev => [generalNotification, ...newNotifications, ...prev]);
   };
@@ -623,7 +627,9 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const dismissNotification = (id: number) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications(prev =>
+      prev.map(n => (n.id === id ? { ...n, read: true } : n))
+    );
   }
 
   const toggleProductSubscription = (productName: string, userName: string) => {

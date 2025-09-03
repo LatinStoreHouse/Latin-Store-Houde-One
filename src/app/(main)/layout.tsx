@@ -64,6 +64,8 @@ import {
     ShoppingBag,
     Lightbulb,
     Handshake,
+    Bell,
+    X,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -76,6 +78,9 @@ import { InventoryProvider, InventoryContext } from '@/context/inventory-context
 import { RoleSwitcher } from '@/components/role-switcher';
 import { initialProductPrices } from '@/lib/prices';
 import { initialPendingDispatches } from '@/app/(main)/validation/page';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 
 // CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
@@ -105,7 +110,7 @@ export const navItems = [
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
   { href: '/customers', label: 'Clientes', icon: Users, permission: 'customers:view' },
   { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
-  { href: '/assigned-customers', label: 'Mis Clientes', icon: BookUser, permission: 'partners:clients' },
+  { href: '/assigned-customers', label: 'Mis Clientes', icon: Users, permission: 'partners:clients' },
   {
     label: 'Calculadoras',
     icon: Calculator,
@@ -350,6 +355,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, setCurrentUser } = useUser();
   const { setOpenMobile } = useSidebar();
   const inventoryContext = useContext(InventoryContext);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const userPermissions = useMemo(() => {
     const permissions = new Set<string>();
@@ -444,6 +450,8 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     const currentNavItem = allItems.find(navItem => navItem?.href === pathname);
     return currentNavItem?.label || 'Inicio';
   }, [pathname]);
+
+  const unreadNotificationsCount = inventoryContext?.notifications.filter(n => !n.read).length || 0;
 
   return (
     <>
@@ -565,11 +573,23 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b bg-background/95 px-6 backdrop-blur-sm">
-          <SidebarTrigger />
-          <h1 className="text-lg font-semibold md:text-xl">
-            {pageTitle}
-          </h1>
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-background/95 px-6 backdrop-blur-sm">
+            <div className="flex items-center gap-4">
+                <SidebarTrigger />
+                <h1 className="text-lg font-semibold md:text-xl">
+                    {pageTitle}
+                </h1>
+            </div>
+             <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" className="relative" onClick={() => setIsNotificationsOpen(true)}>
+                    <Bell className="h-5 w-5" />
+                    {unreadNotificationsCount > 0 && (
+                        <span className="absolute top-1 right-1 flex h-3 w-3 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">
+                            {unreadNotificationsCount}
+                        </span>
+                    )}
+                </Button>
+             </div>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
         <footer className="p-4 text-center text-xs text-muted-foreground">
@@ -577,6 +597,36 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         </footer>
         {isSuperAdmin && <RoleSwitcher />}
       </SidebarInset>
+       <Sheet open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+            <SheetContent className="flex flex-col">
+                <SheetHeader>
+                    <SheetTitle>Notificaciones</SheetTitle>
+                </SheetHeader>
+                <Separator />
+                <div className="flex-1 overflow-y-auto">
+                    {inventoryContext?.notifications && inventoryContext.notifications.length > 0 ? (
+                        <div className="space-y-3 p-1">
+                            {inventoryContext.notifications.map(n => (
+                                <div key={n.id} className={cn("rounded-lg border p-3 text-sm", !n.read && "bg-primary/5")}>
+                                    <div className="flex justify-between items-start">
+                                        <p className="font-semibold">{n.title}</p>
+                                        {!n.read && <div className="h-2 w-2 rounded-full bg-primary mt-1"></div>}
+                                    </div>
+                                    <p className="text-muted-foreground">{n.message}</p>
+                                    <p className="text-xs text-muted-foreground/70 mt-2">{new Date(n.date).toLocaleString()}</p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                         <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                            <Bell className="h-10 w-10 mb-4" />
+                            <p className="font-medium">Todo está al día</p>
+                            <p className="text-xs">No tienes notificaciones nuevas.</p>
+                        </div>
+                    )}
+                </div>
+            </SheetContent>
+        </Sheet>
     </>
   );
 }

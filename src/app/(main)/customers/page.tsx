@@ -55,6 +55,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { initialDistributorData } from '@/lib/distributors';
 import { initialPartnerData } from '@/lib/partners';
 import { initialCustomerData } from '@/lib/customers';
+import Link from 'next/link';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -469,7 +470,9 @@ export default function CustomersPage() {
                 </TableCell>
                 <TableCell className="p-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{customer.name}</span>
+                     <Link href={`/customers/${customer.id}`} className="font-medium hover:underline text-primary">
+                        {customer.name}
+                    </Link>
                     {customer.notes && (
                       <Tooltip>
                         <TooltipTrigger>
