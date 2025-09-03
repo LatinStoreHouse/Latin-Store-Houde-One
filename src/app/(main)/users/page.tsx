@@ -82,18 +82,23 @@ export default function UsersPage() {
   }
 
   const handleSaveUser = (user: User & {status?: UserStatus}) => {
-    if (selectedUser) {
-      setUsers(users.map(u => (u.id === user.id ? {...u, ...user} : u)));
-    } else {
+    const isNew = !selectedUser;
+    const wasPending = selectedUser?.status === 'pending';
+
+    if (isNew) {
       setUsers([...users, { ...user, id: String(Date.now()), status: 'active' }]);
+       toast({ title: 'Usuario Creado', description: 'El nuevo usuario ha sido agregado exitosamente.' });
+    } else {
+      setUsers(users.map(u => (u.id === user.id ? {...u, ...user, status: 'active'} : u)));
+      if (wasPending) {
+        toast({ title: 'Usuario Aprobado', description: 'El usuario ha sido aprobado y ahora tiene acceso.' });
+      } else {
+        toast({ title: 'Usuario Actualizado', description: 'Los datos del usuario han sido actualizados.' });
+      }
     }
     setIsUserModalOpen(false);
+    setSelectedUser(undefined);
   };
-
-  const handleApproveUser = (userId: string) => {
-    setUsers(users.map(u => u.id === userId ? {...u, status: 'active', active: true} : u));
-    toast({ title: 'Usuario Aprobado', description: 'El usuario ahora tiene acceso a la aplicación.'});
-  }
 
   const handleDeclineUser = (userId: string) => {
     setUsers(users.filter(u => u.id !== userId));
@@ -216,9 +221,9 @@ export default function UsersPage() {
                       <DropdownMenuContent>
                         {user.status === 'pending' ? (
                           <>
-                            <DropdownMenuItem onClick={() => handleApproveUser(user.id)}>
+                            <DropdownMenuItem onClick={() => handleEditUser(user)}>
                                 <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                                Aprobar Usuario
+                                Revisar y Aprobar
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDeclineUser(user.id)} className="text-red-600">
                                 <XCircle className="mr-2 h-4 w-4" />
