@@ -1,5 +1,4 @@
 
-
 'use client';
 import React, { useState, useMemo, useEffect, useContext } from 'react';
 import Image from 'next/image';
@@ -232,6 +231,14 @@ function AdhesiveReferenceTable() {
     );
 }
 
+const initialCustomerState = {
+  name: '',
+  email: '',
+  phone: '',
+  taxId: '',
+  address: '',
+};
+
 export default function StoneflexCalculatorPage() {
   const searchParams = useSearchParams();
   const context = useContext(InventoryContext);
@@ -240,11 +247,9 @@ export default function StoneflexCalculatorPage() {
 
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [customerTaxId, setCustomerTaxId] = useState('');
-  const [customerAddress, setCustomerAddress] = useState('');
+  
+  const [customerInfo, setCustomerInfo] = useState(initialCustomerState);
+  
   const [location, setLocation] = useState<{ lat: number; lng: number; address: string; } | null>(null);
 
   const [sqMeters, setSqMeters] = useState<number | string>(1);
@@ -296,7 +301,7 @@ export default function StoneflexCalculatorPage() {
   useEffect(() => {
     const customerNameParam = searchParams.get('customerName');
     if (customerNameParam && viewMode === 'internal') {
-        setCustomerName(decodeURIComponent(customerNameParam));
+        setCustomerInfo(prev => ({...prev, name: decodeURIComponent(customerNameParam)}));
     }
   }, [searchParams, viewMode]);
 
@@ -345,7 +350,7 @@ export default function StoneflexCalculatorPage() {
   const handleLocationChange = (newLocation: { lat: number; lng: number; address: string } | null) => {
     setLocation(newLocation);
     if (newLocation) {
-        setCustomerAddress(newLocation.address);
+        setCustomerInfo(prev => ({ ...prev, address: newLocation.address }));
     }
   }
 
@@ -589,7 +594,7 @@ export default function StoneflexCalculatorPage() {
      addQuote({
         quoteNumber: `V-100-${Date.now().toString().slice(-4)}`,
         calculatorType: 'StoneFlex',
-        customerName: customerName,
+        customerName: customerInfo.name,
         advisorName: currentUser.name,
         creationDate: new Date().toISOString(),
         total: quote.totalCost,
@@ -601,25 +606,26 @@ export default function StoneflexCalculatorPage() {
 
   const handleSelectCustomer = (customer: Customer | null) => {
     if (customer) {
-        setCustomerName(customer.name);
-        setCustomerEmail(customer.email || '');
-        setCustomerPhone(customer.phone || '');
-        setCustomerAddress(customer.address || '');
-        setCustomerTaxId(customer.taxId || '');
+        setCustomerInfo({
+            name: customer.name,
+            email: customer.email || '',
+            phone: customer.phone || '',
+            taxId: customer.taxId || '',
+            address: customer.address || '',
+        });
         if (customer.address) {
             setLocation({ address: customer.address, lat: 0, lng: 0 }); // Posición no es crucial aquí
         } else {
             setLocation(null);
         }
     } else {
-        // Reset fields if 'new customer' is chosen or cleared
-        setCustomerName('');
-        setCustomerEmail('');
-        setCustomerPhone('');
-        setCustomerAddress('');
-        setCustomerTaxId('');
+        setCustomerInfo(initialCustomerState);
         setLocation(null);
     }
+  };
+
+  const handleCustomerInfoChange = (field: keyof typeof customerInfo, value: string) => {
+      setCustomerInfo(prev => ({...prev, [field]: value}));
   };
   
    const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
@@ -634,23 +640,23 @@ export default function StoneflexCalculatorPage() {
     startY += 5;
 
     doc.setFont('helvetica', 'normal');
-    doc.text(customerName.toUpperCase() || 'CLIENTE GENERAL', 14, startY);
+    doc.text(customerInfo.name.toUpperCase() || 'CLIENTE GENERAL', 14, startY);
     startY += 5;
     
-    if (customerTaxId) {
-        doc.text(`NIT/Cédula: ${customerTaxId}`, 14, startY);
+    if (customerInfo.taxId) {
+        doc.text(`NIT/Cédula: ${customerInfo.taxId}`, 14, startY);
         startY += 5;
     }
-    if (customerAddress) {
-        doc.text(`Dirección: ${customerAddress}`, 14, startY);
+    if (customerInfo.address) {
+        doc.text(`Dirección: ${customerInfo.address}`, 14, startY);
         startY += 5;
     }
-    if (customerPhone) {
-        doc.text(`Teléfono: ${customerPhone}`, 14, startY);
+    if (customerInfo.phone) {
+        doc.text(`Teléfono: ${customerInfo.phone}`, 14, startY);
         startY += 5;
     }
-    if (customerEmail) {
-        doc.text(`Correo: ${customerEmail}`, 14, startY);
+    if (customerInfo.email) {
+        doc.text(`Correo: ${customerInfo.email}`, 14, startY);
         startY += 5;
     }
 
@@ -780,7 +786,7 @@ export default function StoneflexCalculatorPage() {
     }
     
     generatePdfContent(doc, quote, pageWidth);
-    doc.save(`Cotizacion_${customerName || 'Cliente'}_Stoneflex.pdf`);
+    doc.save(`Cotizacion_${customerInfo.name || 'Cliente'}_Stoneflex.pdf`);
 };
 
   
@@ -835,10 +841,10 @@ export default function StoneflexCalculatorPage() {
 
     let message = `*Cotización de Latin Store House*\n\n`;
     if (viewMode === 'internal') {
-        message += `*Cliente:* ${customerName || 'N/A'}\n`;
-        if (customerTaxId) message += `*NIT/Cédula:* ${customerTaxId}\n`;
-        if (customerEmail) message += `*Correo:* ${customerEmail}\n`;
-        if (customerPhone) message += `*Teléfono:* ${customerPhone}\n`;
+        message += `*Cliente:* ${customerInfo.name || 'N/A'}\n`;
+        if (customerInfo.taxId) message += `*NIT/Cédula:* ${customerInfo.taxId}\n`;
+        if (customerInfo.email) message += `*Correo:* ${customerInfo.email}\n`;
+        if (customerInfo.phone) message += `*Teléfono:* ${customerInfo.phone}\n`;
     }
 
 
@@ -935,42 +941,26 @@ export default function StoneflexCalculatorPage() {
             <div className="space-y-4">
                 <CustomerSelector
                     onCustomerSelect={handleSelectCustomer}
-                    onNameChange={setCustomerName}
+                    onNameChange={(name) => handleCustomerInfoChange('name', name)}
                 />
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                     <div className="space-y-2">
                         <Label htmlFor="customer-tax-id">NIT o Cédula</Label>
-                        <Input
-                            id="customer-tax-id"
-                            value={customerTaxId}
-                            onChange={(e) => setCustomerTaxId(e.target.value)}
-                            placeholder="Ingrese el NIT o cédula..."
-                        />
+                        <Input id="customer-tax-id" value={customerInfo.taxId} onChange={(e) => handleCustomerInfoChange('taxId', e.target.value)} placeholder="Ingrese el NIT o cédula..."/>
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="customer-phone">Teléfono</Label>
-                        <Input
-                            id="customer-phone"
-                            value={customerPhone}
-                            onChange={(e) => setCustomerPhone(e.target.value)}
-                            placeholder="Ingrese el teléfono..."
-                        />
+                        <Input id="customer-phone" value={customerInfo.phone} onChange={(e) => handleCustomerInfoChange('phone', e.target.value)} placeholder="Ingrese el teléfono..."/>
                     </div>
-                    <div className="space-y-2 col-span-full">
+                    <div className="space-y-2">
                         <Label htmlFor="customer-email">Correo Electrónico</Label>
-                        <Input
-                            id="customer-email"
-                            type="email"
-                            value={customerEmail}
-                            onChange={(e) => setCustomerEmail(e.target.value)}
-                            placeholder="Ingrese el correo..."
-                        />
+                        <Input id="customer-email" type="email" value={customerInfo.email} onChange={(e) => handleCustomerInfoChange('email', e.target.value)} placeholder="Ingrese el correo..."/>
                     </div>
                 </div>
                  <div className="space-y-2 col-span-full">
                     <Label htmlFor="location">Dirección / Ciudad</Label>
-                    <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
+                    <LocationCombobox value={location} onChange={handleLocationChange} city={customerInfo.address} />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1165,7 +1155,7 @@ export default function StoneflexCalculatorPage() {
                       <CardTitle>Resumen de la Cotización</CardTitle>
                       {viewMode === 'internal' && (
                         <CardDescription>
-                            Cliente: {customerName || 'N/A'} | Válida hasta {quote.expiryDate} | Moneda: {currency}
+                            Cliente: {customerInfo.name || 'N/A'} | Válida hasta {quote.expiryDate} | Moneda: {currency}
                         </CardDescription>
                       )}
                   </div>

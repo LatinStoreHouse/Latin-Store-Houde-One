@@ -14,9 +14,7 @@ interface CustomerSelectorProps {
 
 export function CustomerSelector({ onCustomerSelect, onNameChange }: CustomerSelectorProps) {
   const [customerType, setCustomerType] = useState<'existing' | 'new'>('new');
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | undefined>();
-  const [newCustomerName, setNewCustomerName] = useState('');
-
+  
   const customerOptions = useMemo(() => {
     return initialCustomerData.map(c => {
       const identifiers = [c.email, c.phone, c.taxId].filter(Boolean).join(' / ');
@@ -29,25 +27,20 @@ export function CustomerSelector({ onCustomerSelect, onNameChange }: CustomerSel
 
   const handleCustomerTypeChange = (type: 'existing' | 'new') => {
     setCustomerType(type);
-    setSelectedCustomerId(undefined);
-    setNewCustomerName('');
-    onCustomerSelect(null);
-    onNameChange('');
+    if (type === 'new') {
+        onCustomerSelect(null);
+    }
   };
 
   const handleExistingCustomerChange = (customerId: string) => {
-    setSelectedCustomerId(customerId);
     const customer = initialCustomerData.find(c => c.id.toString() === customerId);
     if (customer) {
         onCustomerSelect(customer);
-        onNameChange(customer.name);
     }
   };
   
   const handleNewCustomerNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewCustomerName(e.target.value);
     onNameChange(e.target.value);
-    onCustomerSelect(null);
   };
 
   return (
@@ -68,7 +61,6 @@ export function CustomerSelector({ onCustomerSelect, onNameChange }: CustomerSel
                 <Label>Seleccionar Cliente</Label>
                 <Combobox
                     options={customerOptions}
-                    value={selectedCustomerId}
                     onValueChange={handleExistingCustomerChange}
                     placeholder="Busque y seleccione un cliente..."
                     searchPlaceholder="Buscar por nombre, correo, tel..."
@@ -80,7 +72,6 @@ export function CustomerSelector({ onCustomerSelect, onNameChange }: CustomerSel
                 <Label htmlFor="customer-name">Nombre del Nuevo Cliente</Label>
                 <Input
                     id="customer-name"
-                    value={newCustomerName}
                     onChange={handleNewCustomerNameChange}
                     placeholder="Ingrese el nombre del cliente..."
                 />
