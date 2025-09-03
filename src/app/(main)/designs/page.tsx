@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { initialDesignRequests, DesignRequest, DesignStatus } from '@/lib/designs';
 import { DesignRequestForm } from '@/components/design-request-form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 export default function DesignRequestsPage() {
