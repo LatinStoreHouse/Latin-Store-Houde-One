@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, MoreHorizontal, Edit, Trash2, Palette, Link as LinkIcon, Download } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2, Palette, Link as LinkIcon, Download, Info } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useUser } from '@/app/(main)/layout';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +13,7 @@ import { initialDesignRequests, DesignRequest, DesignStatus } from '@/lib/design
 import { DesignRequestForm } from '@/components/design-request-form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 export default function DesignRequestsPage() {
@@ -63,7 +64,7 @@ export default function DesignRequestsPage() {
   };
 
   return (
-    <>
+    <TooltipProvider>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -103,7 +104,19 @@ export default function DesignRequestsPage() {
                   <TableCell>{req.requestDate}</TableCell>
                   <TableCell>{req.deliveryDate || 'N/A'}</TableCell>
                   <TableCell>
-                    <Badge variant={getStatusBadgeVariant(req.status)}>{req.status}</Badge>
+                    <div className="flex items-center gap-2">
+                        <Badge variant={getStatusBadgeVariant(req.status)}>{req.status}</Badge>
+                        {req.status === 'Rechazado' && req.designerNotes && (
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Info className="h-4 w-4 text-destructive" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="max-w-xs">{req.designerNotes}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-center space-x-2">
                     {req.mediaLink && (
@@ -184,6 +197,6 @@ export default function DesignRequestsPage() {
           />
         </DialogContent>
       </Dialog>
-    </>
+    </TooltipProvider>
   );
 }

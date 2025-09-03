@@ -25,6 +25,7 @@ export function DesignRequestForm({ request, onSave, onCancel, isDesigner }: Des
     const [deliveryDate, setDeliveryDate] = useState('');
     const [designFile, setDesignFile] = useState<File | null>(null);
     const [existingDesignFile, setExistingDesignFile] = useState<string | undefined>('');
+    const [designerNotes, setDesignerNotes] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
 
@@ -36,6 +37,7 @@ export function DesignRequestForm({ request, onSave, onCancel, isDesigner }: Des
             setStatus(request.status);
             setDeliveryDate(request.deliveryDate || '');
             setExistingDesignFile(request.designFile);
+            setDesignerNotes(request.designerNotes || '');
         } else {
             // Reset form for new request
             setCustomerName('');
@@ -45,6 +47,7 @@ export function DesignRequestForm({ request, onSave, onCancel, isDesigner }: Des
             setDeliveryDate('');
             setDesignFile(null);
             setExistingDesignFile('');
+            setDesignerNotes('');
         }
     }, [request]);
 
@@ -56,7 +59,8 @@ export function DesignRequestForm({ request, onSave, onCancel, isDesigner }: Des
             mediaLink,
             status,
             deliveryDate,
-            designFile: designFile ? `/uploads/${designFile.name}` : existingDesignFile
+            designFile: designFile ? `/uploads/${designFile.name}` : existingDesignFile,
+            designerNotes
         });
     };
     
@@ -135,6 +139,10 @@ export function DesignRequestForm({ request, onSave, onCancel, isDesigner }: Des
                                 Subir Propuesta
                             </Button>
                         )}
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="designerNotes">Notas del Diseñador (Visible para el asesor)</Label>
+                        <Textarea id="designerNotes" value={designerNotes} onChange={e => setDesignerNotes(e.target.value)} rows={3} placeholder="Si rechaza la solicitud, explique aquí el motivo o la información que falta..."/>
                     </div>
                 </div>
             )}
