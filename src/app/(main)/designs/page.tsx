@@ -14,77 +14,41 @@ import { DesignRequestForm } from '@/components/design-request-form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
-export default function DesignRequestsPage() {
-  const [requests, setRequests] = useState<DesignRequest[]>(initialDesignRequests);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingRequest, setEditingRequest] = useState<DesignRequest | null>(null);
-  const { currentUser } = useUser();
-  const { toast } = useToast();
-  
-  const canCreate = currentUser.roles.includes('Asesor de Ventas') || currentUser.roles.includes('Administrador');
-  const canEdit = currentUser.roles.includes('Diseño') || currentUser.roles.includes('Administrador');
+const DesignRequestTable = ({ 
+    requests,
+    onOpenModal,
+    onDeleteRequest,
+    canEdit
+}: {
+    requests: DesignRequest[];
+    onOpenModal: (request: DesignRequest) => void;
+    onDeleteRequest: (id: string) => void;
+    canEdit: boolean;
+}) => {
+    
+    const getStatusBadgeVariant = (status: DesignStatus) => {
+        switch (status) {
+          case 'Pendiente': return 'secondary';
+          case 'En Proceso': return 'default';
+          case 'Completado': return 'success';
+          case 'Rechazado': return 'destructive';
+          default: return 'outline';
+        }
+    };
 
-  const handleOpenModal = (request?: DesignRequest) => {
-    setEditingRequest(request || null);
-    setIsModalOpen(true);
-  };
-
-  const handleSaveRequest = (requestData: Omit<DesignRequest, 'id' | 'requestDate' | 'advisor'>) => {
-    if (editingRequest) {
-      setRequests(prev => prev.map(r => r.id === editingRequest.id ? { ...editingRequest, ...requestData } : r));
-      toast({ title: 'Solicitud Actualizada', description: 'Los detalles de la solicitud de diseño han sido actualizados.' });
-    } else {
-      const newRequest: DesignRequest = {
-        id: `DREQ-${Date.now()}`,
-        requestDate: new Date().toISOString().split('T')[0],
-        advisor: currentUser.name,
-        ...requestData
-      };
-      setRequests(prev => [newRequest, ...prev]);
-      toast({ title: 'Solicitud Creada', description: 'Tu solicitud de diseño ha sido enviada.' });
+    if (requests.length === 0) {
+        return (
+            <div className="text-center text-muted-foreground py-12">
+                No hay solicitudes en esta categoría.
+            </div>
+        );
     }
-    setIsModalOpen(false);
-  };
 
-  const handleDeleteRequest = (id: string) => {
-    setRequests(prev => prev.filter(r => r.id !== id));
-    toast({ variant: 'destructive', title: 'Solicitud Eliminada' });
-  };
-  
-  const getStatusBadgeVariant = (status: DesignStatus) => {
-    switch (status) {
-      case 'Pendiente': return 'secondary';
-      case 'En Proceso': return 'default';
-      case 'Completado': return 'success';
-      case 'Rechazado': return 'destructive';
-      default: return 'outline';
-    }
-  };
-
-  return (
-    <TooltipProvider>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Palette />
-              Gestión de Solicitudes de Diseño
-            </CardTitle>
-            <CardDescription>
-              Crea y gestiona las solicitudes de diseño para los clientes.
-            </CardDescription>
-          </div>
-          {canCreate && (
-            <Button onClick={() => handleOpenModal()}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Nueva Solicitud
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent>
-          <Table>
+    return (
+        <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Cliente</TableHead>
@@ -120,18 +84,28 @@ export default function DesignRequestsPage() {
                   </TableCell>
                   <TableCell className="text-center space-x-2">
                     {req.mediaLink && (
-                        <Button asChild variant="outline" size="icon">
-                            <a href={req.mediaLink} target="_blank" rel="noopener noreferrer">
-                                <LinkIcon className="h-4 w-4" />
-                            </a>
-                        </Button>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button asChild variant="outline" size="icon">
+                                    <a href={req.mediaLink} target="_blank" rel="noopener noreferrer">
+                                        <LinkIcon className="h-4 w-4" />
+                                    </a>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Ver archivos de referencia</TooltipContent>
+                        </Tooltip>
                     )}
                      {req.designFile && (
-                        <Button asChild variant="outline" size="icon">
-                            <a href={req.designFile} download>
-                                <Download className="h-4 w-4" />
-                            </a>
-                        </Button>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button asChild variant="outline" size="icon">
+                                    <a href={req.designFile} download>
+                                        <Download className="h-4 w-4" />
+                                    </a>
+                                </Button>
+                            </TooltipTrigger>
+                             <TooltipContent>Descargar propuesta</TooltipContent>
+                        </Tooltip>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -142,9 +116,9 @@ export default function DesignRequestsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleOpenModal(req)} disabled={!canEdit}>
+                        <DropdownMenuItem onClick={() => onOpenModal(req)} disabled={!canEdit}>
                           <Edit className="mr-2 h-4 w-4" />
-                          Editar
+                          Editar / Gestionar
                         </DropdownMenuItem>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -162,7 +136,7 @@ export default function DesignRequestsPage() {
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteRequest(req.id)} className="bg-destructive hover:bg-destructive/90">
+                                <AlertDialogAction onClick={() => onDeleteRequest(req.id)} className="bg-destructive hover:bg-destructive/90">
                                   Eliminar
                                 </AlertDialogAction>
                               </AlertDialogFooter>
@@ -173,15 +147,105 @@ export default function DesignRequestsPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {requests.length === 0 && (
-                <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
-                        No hay solicitudes de diseño.
-                    </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
+    );
+};
+
+export default function DesignRequestsPage() {
+  const [requests, setRequests] = useState<DesignRequest[]>(initialDesignRequests);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRequest, setEditingRequest] = useState<DesignRequest | null>(null);
+  const { currentUser } = useUser();
+  const { toast } = useToast();
+  
+  const canCreate = currentUser.roles.includes('Asesor de Ventas') || currentUser.roles.includes('Administrador');
+  const canEdit = currentUser.roles.includes('Diseño') || currentUser.roles.includes('Administrador');
+
+  const pendingRequests = useMemo(() => requests.filter(r => r.status === 'Pendiente'), [requests]);
+  const inProgressRequests = useMemo(() => requests.filter(r => r.status === 'En Proceso'), [requests]);
+  const historyRequests = useMemo(() => requests.filter(r => r.status === 'Completado' || r.status === 'Rechazado'), [requests]);
+
+  const handleOpenModal = (request?: DesignRequest) => {
+    setEditingRequest(request || null);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveRequest = (requestData: Omit<DesignRequest, 'id' | 'requestDate' | 'advisor'>) => {
+    if (editingRequest) {
+      setRequests(prev => prev.map(r => r.id === editingRequest.id ? { ...editingRequest, ...requestData } : r));
+      toast({ title: 'Solicitud Actualizada', description: 'Los detalles de la solicitud de diseño han sido actualizados.' });
+    } else {
+      const newRequest: DesignRequest = {
+        id: `DREQ-${Date.now()}`,
+        requestDate: new Date().toISOString().split('T')[0],
+        advisor: currentUser.name,
+        ...requestData
+      };
+      setRequests(prev => [newRequest, ...prev]);
+      toast({ title: 'Solicitud Creada', description: 'Tu solicitud de diseño ha sido enviada.' });
+    }
+    setIsModalOpen(false);
+  };
+
+  const handleDeleteRequest = (id: string) => {
+    setRequests(prev => prev.filter(r => r.id !== id));
+    toast({ variant: 'destructive', title: 'Solicitud Eliminada' });
+  };
+  
+
+  return (
+    <TooltipProvider>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Palette />
+              Gestión de Solicitudes de Diseño
+            </CardTitle>
+            <CardDescription>
+              Crea y gestiona las solicitudes de diseño para los clientes.
+            </CardDescription>
+          </div>
+          {canCreate && (
+            <Button onClick={() => handleOpenModal()}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Nueva Solicitud
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="pendientes" className="w-full">
+            <TabsList>
+                <TabsTrigger value="pendientes">Pendientes ({pendingRequests.length})</TabsTrigger>
+                <TabsTrigger value="en-proceso">En Proceso ({inProgressRequests.length})</TabsTrigger>
+                <TabsTrigger value="historial">Historial ({historyRequests.length})</TabsTrigger>
+            </TabsList>
+            <TabsContent value="pendientes" className="pt-4">
+               <DesignRequestTable 
+                 requests={pendingRequests}
+                 onOpenModal={handleOpenModal}
+                 onDeleteRequest={handleDeleteRequest}
+                 canEdit={canEdit}
+               />
+            </TabsContent>
+             <TabsContent value="en-proceso" className="pt-4">
+               <DesignRequestTable 
+                 requests={inProgressRequests}
+                 onOpenModal={handleOpenModal}
+                 onDeleteRequest={handleDeleteRequest}
+                 canEdit={canEdit}
+               />
+            </TabsContent>
+             <TabsContent value="historial" className="pt-4">
+               <DesignRequestTable 
+                 requests={historyRequests}
+                 onOpenModal={handleOpenModal}
+                 onDeleteRequest={handleDeleteRequest}
+                 canEdit={canEdit}
+               />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
