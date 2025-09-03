@@ -9,15 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DesignRequest, DesignStatus, designStatuses } from '@/lib/designs';
 import { FileUp, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/app/(main)/layout';
 
 interface DesignRequestFormProps {
     request?: DesignRequest | null;
     onSave: (request: Omit<DesignRequest, 'id' | 'requestDate' | 'advisor'>) => void;
     onCancel: () => void;
-    isDesigner: boolean;
+    currentUser: ReturnType<typeof useUser>['currentUser'];
 }
 
-export function DesignRequestForm({ request, onSave, onCancel, isDesigner }: DesignRequestFormProps) {
+export function DesignRequestForm({ request, onSave, onCancel, currentUser }: DesignRequestFormProps) {
     const [customerName, setCustomerName] = useState('');
     const [description, setDescription] = useState('');
     const [mediaLink, setMediaLink] = useState('');
@@ -28,6 +29,9 @@ export function DesignRequestForm({ request, onSave, onCancel, isDesigner }: Des
     const [designerNotes, setDesignerNotes] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
+    
+    const isDesigner = currentUser.roles.includes('Diseño') || currentUser.roles.includes('Administrador');
+    const isOwner = request ? currentUser.name === request.advisor : false;
 
     useEffect(() => {
         if (request) {
@@ -53,11 +57,18 @@ export function DesignRequestForm({ request, onSave, onCancel, isDesigner }: Des
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        let finalStatus = status;
+        if (isOwner && !isDesigner && request) {
+            finalStatus = 'Pendiente';
+            toast({ title: 'Solicitud Reenviada', description: 'Tus cambios han sido guardados y la solicitud fue enviada a revisión nuevamente.'})
+        }
+
         onSave({
             customerName,
             description,
             mediaLink,
-            status,
+            status: finalStatus,
             deliveryDate,
             designFile: designFile ? `/uploads/${designFile.name}` : existingDesignFile,
             designerNotes
@@ -81,20 +92,22 @@ export function DesignRequestForm({ request, onSave, onCancel, isDesigner }: Des
         setExistingDesignFile('');
         if (fileInputRef.current) fileInputRef.current.value = '';
     }
+    
+    const canEditAdvisorFields = isDesigner || !request || isOwner;
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
             <div className="space-y-2">
                 <Label htmlFor="customerName">Nombre del Cliente</Label>
-                <Input id="customerName" value={customerName} onChange={e => setCustomerName(e.target.value)} required disabled={!isDesigner && !!request} />
+                <Input id="customerName" value={customerName} onChange={e => setCustomerName(e.target.value)} required disabled={!canEditAdvisorFields} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="description">Descripción de la Solicitud</Label>
-                <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} required rows={4} disabled={!isDesigner && !!request} />
+                <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} required rows={4} disabled={!canEditAdvisorFields} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="mediaLink">Enlace a Fotos/Videos (WeTransfer, Drive, etc.)</Label>
-                <Input id="mediaLink" value={mediaLink} onChange={e => setMediaLink(e.target.value)} required disabled={!isDesigner && !!request} />
+                <Input id="mediaLink" value={mediaLink} onChange={e => setMediaLink(e.target.value)} required disabled={!canEditAdvisorFields} />
             </div>
 
             {isDesigner && (

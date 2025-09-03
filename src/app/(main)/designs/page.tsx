@@ -21,12 +21,12 @@ const DesignRequestTable = ({
     requests,
     onOpenModal,
     onDeleteRequest,
-    canEdit
+    currentUser
 }: {
     requests: DesignRequest[];
     onOpenModal: (request: DesignRequest) => void;
     onDeleteRequest: (id: string) => void;
-    canEdit: boolean;
+    currentUser: ReturnType<typeof useUser>['currentUser'];
 }) => {
     
     const getStatusBadgeVariant = (status: DesignStatus) => {
@@ -37,6 +37,12 @@ const DesignRequestTable = ({
           case 'Rechazado': return 'destructive';
           default: return 'outline';
         }
+    };
+    
+    const canManageRequest = (request: DesignRequest) => {
+        const isDesignerOrAdmin = currentUser.roles.includes('Diseño') || currentUser.roles.includes('Administrador');
+        const isOwner = currentUser.name === request.advisor;
+        return isDesignerOrAdmin || isOwner;
     };
 
     if (requests.length === 0) {
@@ -116,13 +122,13 @@ const DesignRequestTable = ({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => onOpenModal(req)} disabled={!canEdit}>
+                        <DropdownMenuItem onClick={() => onOpenModal(req)} disabled={!canManageRequest(req)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Editar / Gestionar
                         </DropdownMenuItem>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive" disabled={!canEdit}>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive" disabled={!canManageRequest(req)}>
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Eliminar
                             </DropdownMenuItem>
@@ -160,7 +166,6 @@ export default function DesignRequestsPage() {
   const { toast } = useToast();
   
   const canCreate = currentUser.roles.includes('Asesor de Ventas') || currentUser.roles.includes('Administrador');
-  const canEdit = currentUser.roles.includes('Diseño') || currentUser.roles.includes('Administrador');
 
   const pendingRequests = useMemo(() => requests.filter(r => r.status === 'Pendiente'), [requests]);
   const inProgressRequests = useMemo(() => requests.filter(r => r.status === 'En Proceso'), [requests]);
@@ -226,7 +231,7 @@ export default function DesignRequestsPage() {
                  requests={pendingRequests}
                  onOpenModal={handleOpenModal}
                  onDeleteRequest={handleDeleteRequest}
-                 canEdit={canEdit}
+                 currentUser={currentUser}
                />
             </TabsContent>
              <TabsContent value="en-proceso" className="pt-4">
@@ -234,7 +239,7 @@ export default function DesignRequestsPage() {
                  requests={inProgressRequests}
                  onOpenModal={handleOpenModal}
                  onDeleteRequest={handleDeleteRequest}
-                 canEdit={canEdit}
+                 currentUser={currentUser}
                />
             </TabsContent>
              <TabsContent value="historial" className="pt-4">
@@ -242,7 +247,7 @@ export default function DesignRequestsPage() {
                  requests={historyRequests}
                  onOpenModal={handleOpenModal}
                  onDeleteRequest={handleDeleteRequest}
-                 canEdit={canEdit}
+                 currentUser={currentUser}
                />
             </TabsContent>
           </Tabs>
@@ -257,7 +262,7 @@ export default function DesignRequestsPage() {
             request={editingRequest} 
             onSave={handleSaveRequest} 
             onCancel={() => setIsModalOpen(false)}
-            isDesigner={canEdit}
+            currentUser={currentUser}
           />
         </DialogContent>
       </Dialog>
