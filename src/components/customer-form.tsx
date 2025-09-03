@@ -24,6 +24,7 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [taxId, setTaxId] = useState('');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [source, setSource] = useState<Customer['source']>('Instagram');
@@ -39,6 +40,7 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       setName(customer.name);
       setPhone(customer.phone);
       setEmail(customer.email);
+      setTaxId(customer.taxId || '');
       setCity(customer.city);
       setAddress(customer.address);
       setSource(customer.source);
@@ -53,6 +55,7 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       setName('');
       setPhone('');
       setEmail('');
+      setTaxId('');
       setCity('');
       setAddress('');
       setSource('Instagram');
@@ -77,6 +80,7 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
       name, 
       phone, 
       email, 
+      taxId,
       city: location ? location.address.split(',').slice(-2, -1)[0]?.trim() || city : city,
       address: location ? location.address : address,
       source, 
@@ -100,14 +104,18 @@ export function CustomerForm({ customer, onSave, onCancel, currentUser }: Custom
     <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[80vh] overflow-y-auto pr-2">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2 col-span-2">
-            <Label htmlFor="name">Nombre Completo</Label>
+            <Label htmlFor="name">Nombre Completo / Razón Social</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="taxId">NIT / Cédula</Label>
+            <Input id="taxId" value={taxId} onChange={(e) => setTaxId(e.target.value)} />
         </div>
         <div className="space-y-2">
             <Label htmlFor="phone">Teléfono</Label>
             <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 col-span-2">
             <Label htmlFor="email">Correo Electrónico</Label>
             <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>

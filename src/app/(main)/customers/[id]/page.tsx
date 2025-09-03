@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { initialCustomerData, Customer } from '@/lib/customers';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Mail, Phone, MapPin, StickyNote, Edit } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, StickyNote, Edit, UserCircle, BadgeCent } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -240,9 +240,17 @@ export default function CustomerDetailPage() {
                         <Phone className="h-4 w-4 text-muted-foreground" />
                         <span>{customer.phone || 'No registrado'}</span>
                     </div>
-                    <div className="flex items-center gap-3">
+                     <div className="flex items-center gap-3">
+                        <BadgeCent className="h-4 w-4 text-muted-foreground" />
+                        <span>NIT/Cédula: {customer.taxId || 'No registrado'}</span>
+                    </div>
+                    <div className="flex items-center gap-3 col-span-1 md:col-span-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         <span>{customer.address || 'No registrada'}</span>
+                    </div>
+                     <div className="flex items-center gap-3">
+                        <UserCircle className="h-4 w-4 text-muted-foreground" />
+                        <span>Asesor: {customer.assignedTo || 'No asignado'}</span>
                     </div>
                      {customer.notes && (
                          <div className="flex items-start gap-3 col-span-full">
