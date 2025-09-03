@@ -336,9 +336,9 @@ export default function StarwoodCalculatorPage() {
   const handleSelectCustomer = (customer: Customer | null) => {
     if (customer) {
         setCustomerName(customer.name);
-        setCustomerEmail(customer.email);
-        setCustomerPhone(customer.phone);
-        setCustomerAddress(customer.address);
+        setCustomerEmail(customer.email || '');
+        setCustomerPhone(customer.phone || '');
+        setCustomerAddress(customer.address || '');
         setCustomerTaxId(customer.taxId || '');
         if (customer.address) {
             setLocation({ address: customer.address, lat: 0, lng: 0 }); // Posición no es crucial aquí
@@ -347,6 +347,7 @@ export default function StarwoodCalculatorPage() {
         }
     } else {
         // Reset fields if 'new customer' is chosen or cleared
+        setCustomerName('');
         setCustomerEmail('');
         setCustomerPhone('');
         setCustomerAddress('');
@@ -587,7 +588,7 @@ export default function StarwoodCalculatorPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         {viewMode === 'internal' && (
-            <>
+            <div className="space-y-4">
                 <CustomerSelector
                     onCustomerSelect={handleSelectCustomer}
                     onNameChange={setCustomerName}
@@ -601,7 +602,7 @@ export default function StarwoodCalculatorPage() {
                         <Label htmlFor="customer-phone">Teléfono</Label>
                         <Input id="customer-phone" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="Ingrese el teléfono..."/>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 col-span-full">
                         <Label htmlFor="customer-email">Correo Electrónico</Label>
                         <Input id="customer-email" type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="Ingrese el correo..."/>
                     </div>
@@ -611,7 +612,7 @@ export default function StarwoodCalculatorPage() {
                     <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
                 </div>
                 <Separator />
-            </>
+            </div>
         )}
           <div>
             <h3 className="text-lg font-medium mb-4">Productos Principales</h3>

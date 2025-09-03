@@ -602,9 +602,9 @@ export default function StoneflexCalculatorPage() {
   const handleSelectCustomer = (customer: Customer | null) => {
     if (customer) {
         setCustomerName(customer.name);
-        setCustomerEmail(customer.email);
-        setCustomerPhone(customer.phone);
-        setCustomerAddress(customer.address);
+        setCustomerEmail(customer.email || '');
+        setCustomerPhone(customer.phone || '');
+        setCustomerAddress(customer.address || '');
         setCustomerTaxId(customer.taxId || '');
         if (customer.address) {
             setLocation({ address: customer.address, lat: 0, lng: 0 }); // Posición no es crucial aquí
@@ -613,6 +613,7 @@ export default function StoneflexCalculatorPage() {
         }
     } else {
         // Reset fields if 'new customer' is chosen or cleared
+        setCustomerName('');
         setCustomerEmail('');
         setCustomerPhone('');
         setCustomerAddress('');
@@ -620,8 +621,8 @@ export default function StoneflexCalculatorPage() {
         setLocation(null);
     }
   };
-
-  const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
+  
+   const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
     const today = new Date();
     const quoteNumber = `V - 100 - ${Math.floor(Math.random() * 9000) + 1000}`;
 
@@ -931,12 +932,13 @@ export default function StoneflexCalculatorPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         {viewMode === 'internal' && (
-            <>
+            <div className="space-y-4">
                 <CustomerSelector
                     onCustomerSelect={handleSelectCustomer}
                     onNameChange={setCustomerName}
                 />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="customer-tax-id">NIT o Cédula</Label>
                         <Input
@@ -955,7 +957,7 @@ export default function StoneflexCalculatorPage() {
                             placeholder="Ingrese el teléfono..."
                         />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 col-span-full">
                         <Label htmlFor="customer-email">Correo Electrónico</Label>
                         <Input
                             id="customer-email"
@@ -1002,7 +1004,7 @@ export default function StoneflexCalculatorPage() {
                     </div>
                 </div>
                 <Separator />
-            </>
+            </div>
         )}
          
          <div>
