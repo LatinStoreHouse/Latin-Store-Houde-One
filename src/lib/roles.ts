@@ -199,7 +199,6 @@ export const roles: RoleConfig[] = [
             'dashboard:view',
             'inventory:view',
             'calculators:use',
-            'invoices:view',
             'partners:clients'
         ]
     },

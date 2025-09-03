@@ -265,7 +265,7 @@ export default function StoneflexCalculatorPage() {
   const [offerValidity, setOfferValidity] = useState('');
 
   const isDistributor = useMemo(() => 
-    currentUser.roles.includes('Distribuidor') || currentUser.roles.includes('Partners'), 
+    currentUser.roles.includes('Distribuidor'), 
     [currentUser.roles]
   );
 

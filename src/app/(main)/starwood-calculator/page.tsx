@@ -133,7 +133,7 @@ export default function StarwoodCalculatorPage() {
   const {currentUser} = useUser();
   
   const isDistributor = useMemo(() => 
-    currentUser.roles.includes('Distribuidor') || currentUser.roles.includes('Partners'), 
+    currentUser.roles.includes('Distribuidor'), 
     [currentUser.roles]
   );
 
