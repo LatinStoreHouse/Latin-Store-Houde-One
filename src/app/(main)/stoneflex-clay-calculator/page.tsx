@@ -264,6 +264,11 @@ export default function StoneflexCalculatorPage() {
   const [paymentTerms, setPaymentTerms] = useState('');
   const [offerValidity, setOfferValidity] = useState('');
 
+  const isDistributor = useMemo(() => 
+    currentUser.roles.includes('Distribuidor') || currentUser.roles.includes('Partners'), 
+    [currentUser.roles]
+  );
+
   const referenceOptions = useMemo(() => {
     return allReferences.map(ref => ({ value: ref, label: `${ref} (${productDimensions[ref as keyof typeof productDimensions] || 'N/A'})` }));
   }, []);
@@ -277,10 +282,10 @@ export default function StoneflexCalculatorPage() {
 
   useEffect(() => {
     const customerNameParam = searchParams.get('customerName');
-    if (customerNameParam) {
+    if (customerNameParam && !isDistributor) {
         setCustomerName(decodeURIComponent(customerNameParam));
     }
-  }, [searchParams]);
+  }, [searchParams, isDistributor]);
 
   const fetchTrm = async () => {
     setTrmLoading(true);
@@ -778,17 +783,23 @@ export default function StoneflexCalculatorPage() {
     if (!quote) return;
 
     let message = `*Cotización de Latin Store House*\n\n`;
-    message += `*Cliente:* ${customerName || 'N/A'}\n`;
-    if (customerTaxId) message += `*NIT/Cédula:* ${customerTaxId}\n`;
-    if (customerEmail) message += `*Correo:* ${customerEmail}\n`;
-    if (customerPhone) message += `*Teléfono:* ${customerPhone}\n`;
+    if (!isDistributor) {
+        message += `*Cliente:* ${customerName || 'N/A'}\n`;
+        if (customerTaxId) message += `*NIT/Cédula:* ${customerTaxId}\n`;
+        if (customerEmail) message += `*Correo:* ${customerEmail}\n`;
+        if (customerPhone) message += `*Teléfono:* ${customerPhone}\n`;
+    }
+
 
     message += `*Moneda:* ${currency}\n`;
     if (currency === 'USD') {
         message += `*TRM usada:* ${formatCurrency(parseDecimal(trm))}\n`;
     }
-    message += `*Fecha de Cotización:* ${quote.creationDate.toLocaleDateString('es-CO')}\n`;
-    message += `*Válida hasta:* ${quote.expiryDate}\n\n`;
+
+    if (!isDistributor) {
+       message += `*Fecha de Cotización:* ${quote.creationDate.toLocaleDateString('es-CO')}\n`;
+       message += `*Válida hasta:* ${quote.expiryDate}\n\n`;
+    }
     
     message += `*Resumen de Productos:*\n`;
     quote.items.forEach(item => {
@@ -869,82 +880,86 @@ export default function StoneflexCalculatorPage() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           <div className="space-y-2">
-                <Label htmlFor="customer-name">Nombre o Razón Social</Label>
-                <Input
-                  id="customer-name"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Ingrese el nombre del cliente..."
-                />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="customer-tax-id">NIT o Cédula</Label>
-                <Input
-                  id="customer-tax-id"
-                  value={customerTaxId}
-                  onChange={(e) => setCustomerTaxId(e.target.value)}
-                  placeholder="Ingrese el NIT o cédula..."
-                />
-            </div>
-            <div className="space-y-2 col-span-full">
-                <Label htmlFor="location">Dirección / Ciudad</Label>
-                <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="customer-phone">Teléfono</Label>
-                <Input
-                  id="customer-phone"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="Ingrese el teléfono..."
-                />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="customer-email">Correo Electrónico</Label>
-                <Input
-                  id="customer-email"
-                  type="email"
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  placeholder="Ingrese el correo..."
-                />
-            </div>
-         </div>
-
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <Label>Moneda de la Cotización</Label>
-                 <div className="flex items-center gap-4">
-                    <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as 'COP' | 'USD')} className="flex items-center gap-4">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="COP" id="currency-cop" />
-                        <Label htmlFor="currency-cop" className="font-normal">COP</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="USD" id="currency-usd" />
-                        <Label htmlFor="currency-usd" className="font-normal">USD</Label>
-                      </div>
-                    </RadioGroup>
-                    {currency === 'USD' && (
-                         <div className="flex items-center gap-2">
-                             <Label htmlFor="trm-input" className="text-sm shrink-0">TRM:</Label>
-                              <Input
-                                id="trm-input"
-                                type="text"
-                                value={trm}
-                                onChange={handleDecimalInputChange(setTrm)}
-                                className="w-full h-8"
-                                placeholder={trmLoading ? 'Cargando...' : ''}
-                              />
-                         </div>
-                    )}
+        {!isDistributor && (
+            <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                        <Label htmlFor="customer-name">Nombre o Razón Social</Label>
+                        <Input
+                        id="customer-name"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Ingrese el nombre del cliente..."
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="customer-tax-id">NIT o Cédula</Label>
+                        <Input
+                        id="customer-tax-id"
+                        value={customerTaxId}
+                        onChange={(e) => setCustomerTaxId(e.target.value)}
+                        placeholder="Ingrese el NIT o cédula..."
+                        />
+                    </div>
+                    <div className="space-y-2 col-span-full">
+                        <Label htmlFor="location">Dirección / Ciudad</Label>
+                        <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="customer-phone">Teléfono</Label>
+                        <Input
+                        id="customer-phone"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="Ingrese el teléfono..."
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="customer-email">Correo Electrónico</Label>
+                        <Input
+                        id="customer-email"
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="Ingrese el correo..."
+                        />
+                    </div>
                 </div>
-            </div>
-         </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label>Moneda de la Cotización</Label>
+                        <div className="flex items-center gap-4">
+                            <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as 'COP' | 'USD')} className="flex items-center gap-4">
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="COP" id="currency-cop" />
+                                <Label htmlFor="currency-cop" className="font-normal">COP</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="USD" id="currency-usd" />
+                                <Label htmlFor="currency-usd" className="font-normal">USD</Label>
+                            </div>
+                            </RadioGroup>
+                            {currency === 'USD' && (
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="trm-input" className="text-sm shrink-0">TRM:</Label>
+                                    <Input
+                                        id="trm-input"
+                                        type="text"
+                                        value={trm}
+                                        onChange={handleDecimalInputChange(setTrm)}
+                                        className="w-full h-8"
+                                        placeholder={trmLoading ? 'Cargando...' : ''}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                <Separator />
+            </>
+        )}
          
-         <Separator />
          <div>
             <h3 className="text-lg font-medium">Añadir Producto StoneFlex</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
@@ -1101,9 +1116,11 @@ export default function StoneflexCalculatorPage() {
               <div className="flex justify-between items-start">
                   <div>
                       <CardTitle>Resumen de la Cotización</CardTitle>
-                      <CardDescription>
-                          Cliente: {customerName || 'N/A'} | Válida hasta {quote.expiryDate} | Moneda: {currency}
-                      </CardDescription>
+                      {!isDistributor && (
+                        <CardDescription>
+                            Cliente: {customerName || 'N/A'} | Válida hasta {quote.expiryDate} | Moneda: {currency}
+                        </CardDescription>
+                      )}
                   </div>
               </div>
             </CardHeader>
@@ -1119,12 +1136,12 @@ export default function StoneflexCalculatorPage() {
                             `${item.sheets} unidades`
                         }
                       </p>
-                      {item.hasPrice && (
+                      {item.hasPrice && !isDistributor && (
                        <p className="text-sm text-muted-foreground font-medium">
                         Precio/Unidad: {formatCurrency(item.pricePerSheet)}
                        </p>
                       )}
-                      {currency !== 'USD' && item.calculationMode !== 'units' && (
+                      {currency !== 'USD' && item.calculationMode !== 'units' && !isDistributor && (
                          <div className="flex items-center gap-2 mt-2">
                             <Label htmlFor={`price-${item.id}`} className="text-xs">Precio/Lámina (COP)</Label>
                              <Input 
@@ -1223,42 +1240,46 @@ export default function StoneflexCalculatorPage() {
                 </div>
               </div>
 
-              <Separator />
-
-                <div className="space-y-4">
-                    <div>
-                        <h4 className="text-sm font-medium mb-2">Términos Comerciales</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-1">
-                                <Label htmlFor="delivery-terms">Despacho</Label>
-                                <Input id="delivery-terms" value={deliveryTerms} onChange={e => setDeliveryTerms(e.target.value)} />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="payment-terms">Forma de Pago</Label>
-                                <Input id="payment-terms" value={paymentTerms} onChange={e => setPaymentTerms(e.target.value)} />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="offer-validity">Validez de la Oferta</Label>
-                                <Input id="offer-validity" value={offerValidity} onChange={e => setOfferValidity(e.target.value)} />
+              {!isDistributor && (
+                <>
+                  <Separator />
+                    <div className="space-y-4">
+                        <div>
+                            <h4 className="text-sm font-medium mb-2">Términos Comerciales</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-1">
+                                    <Label htmlFor="delivery-terms">Despacho</Label>
+                                    <Input id="delivery-terms" value={deliveryTerms} onChange={e => setDeliveryTerms(e.target.value)} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="payment-terms">Forma de Pago</Label>
+                                    <Input id="payment-terms" value={paymentTerms} onChange={e => setPaymentTerms(e.target.value)} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="offer-validity">Validez de la Oferta</Label>
+                                    <Input id="offer-validity" value={offerValidity} onChange={e => setOfferValidity(e.target.value)} />
+                                </div>
                             </div>
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="notes">Notas Adicionales</Label>
+                            <Textarea
+                                id="notes"
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                placeholder="Especifique cualquier detalle, condición o nota importante para esta cotización..."
+                            />
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="notes">Notas Adicionales</Label>
-                        <Textarea
-                            id="notes"
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Especifique cualquier detalle, condición o nota importante para esta cotización..."
-                        />
-                    </div>
-                </div>
+                </>
+              )}
 
               <Separator />
               
               <div className="flex justify-between items-center pt-2">
                 <div className="flex gap-2">
-                    <DropdownMenu>
+                  {!isDistributor && (
+                      <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline">
                             <Download className="mr-2 h-4 w-4" />
@@ -1271,6 +1292,7 @@ export default function StoneflexCalculatorPage() {
                         <DropdownMenuItem onClick={handleExportXLSX}>Descargar como XLSX</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+                  )}
                     <Button variant="outline" onClick={handleShareOnWhatsApp} className="gap-2">
                         <MessageSquare />
                         <span>Compartir</span>

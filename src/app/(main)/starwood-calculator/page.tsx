@@ -131,6 +131,11 @@ export default function StarwoodCalculatorPage() {
   const [paymentTerms, setPaymentTerms] = useState('');
   const [offerValidity, setOfferValidity] = useState('');
   const {currentUser} = useUser();
+  
+  const isDistributor = useMemo(() => 
+    currentUser.roles.includes('Distribuidor') || currentUser.roles.includes('Partners'), 
+    [currentUser.roles]
+  );
 
 
   const selectedProductIsDeck = useMemo(() => productReference.toLowerCase().includes('deck'), [productReference]);
@@ -150,10 +155,10 @@ export default function StarwoodCalculatorPage() {
 
   useEffect(() => {
     const customerNameParam = searchParams.get('customerName');
-    if (customerNameParam) {
+    if (customerNameParam && !isDistributor) {
         setCustomerName(decodeURIComponent(customerNameParam));
     }
-  }, [searchParams]);
+  }, [searchParams, isDistributor]);
 
   const handleLocationChange = (newLocation: { lat: number; lng: number; address: string } | null) => {
     setLocation(newLocation);
@@ -464,9 +469,12 @@ export default function StarwoodCalculatorPage() {
     if (!quote) return;
 
     let message = `*Cotización de Starwood - Latin Store House*\n\n`;
-    message += `*Cliente:* ${customerName || 'N/A'}\n`;
-    message += `*Fecha de Cotización:* ${quote.creationDate.toLocaleDateString('es-CO')}\n`;
-    message += `*Válida hasta:* ${quote.expiryDate}\n\n`;
+    if (!isDistributor) {
+      message += `*Cliente:* ${customerName || 'N/A'}\n`;
+      message += `*Fecha de Cotización:* ${quote.creationDate.toLocaleDateString('es-CO')}\n`;
+      message += `*Válida hasta:* ${quote.expiryDate}\n\n`;
+    }
+
 
     quote.items.forEach(item => {
         message += `*Producto: ${item.reference}*\n`;
@@ -529,29 +537,33 @@ export default function StarwoodCalculatorPage() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           <div className="space-y-2">
-                <Label htmlFor="customer-name">Nombre o Razón Social</Label>
-                <Input id="customer-name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Ingrese el nombre del cliente..."/>
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="customer-tax-id">NIT o Cédula</Label>
-                <Input id="customer-tax-id" value={customerTaxId} onChange={(e) => setCustomerTaxId(e.target.value)} placeholder="Ingrese el NIT o cédula..."/>
-            </div>
-            <div className="space-y-2 col-span-full">
-                <Label htmlFor="location">Dirección</Label>
-                <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="customer-phone">Teléfono</Label>
-                <Input id="customer-phone" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="Ingrese el teléfono..."/>
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="customer-email">Correo Electrónico</Label>
-                <Input id="customer-email" type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="Ingrese el correo..."/>
-            </div>
-         </div>
-          <Separator />
+        {!isDistributor && (
+            <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                        <Label htmlFor="customer-name">Nombre o Razón Social</Label>
+                        <Input id="customer-name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Ingrese el nombre del cliente..."/>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="customer-tax-id">NIT o Cédula</Label>
+                        <Input id="customer-tax-id" value={customerTaxId} onChange={(e) => setCustomerTaxId(e.target.value)} placeholder="Ingrese el NIT o cédula..."/>
+                    </div>
+                    <div className="space-y-2 col-span-full">
+                        <Label htmlFor="location">Dirección</Label>
+                        <LocationCombobox value={location} onChange={handleLocationChange} city={customerAddress} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="customer-phone">Teléfono</Label>
+                        <Input id="customer-phone" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="Ingrese el teléfono..."/>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="customer-email">Correo Electrónico</Label>
+                        <Input id="customer-email" type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="Ingrese el correo..."/>
+                    </div>
+                </div>
+                <Separator />
+            </>
+        )}
           <div>
             <h3 className="text-lg font-medium mb-4">Productos Principales</h3>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_auto] gap-4 items-end">
@@ -646,7 +658,7 @@ export default function StarwoodCalculatorPage() {
           <Card className="bg-primary/5 mt-6">
             <CardHeader>
               <CardTitle>Resumen de la Cotización</CardTitle>
-              <CardDescription>Cliente: {customerName || 'N/A'} | Válida hasta: {quote.expiryDate.toLocaleString('es-CO')}</CardDescription>
+              {!isDistributor && <CardDescription>Cliente: {customerName || 'N/A'} | Válida hasta: {quote.expiryDate.toLocaleString('es-CO')}</CardDescription>}
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -737,39 +749,45 @@ export default function StarwoodCalculatorPage() {
                 </div>
               </div>
               
-               <Separator />
-                <div className="space-y-4">
-                    <div>
-                        <h4 className="text-sm font-medium mb-2">Términos Comerciales</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-1">
-                                <Label htmlFor="delivery-terms">Despacho</Label>
-                                <Input id="delivery-terms" value={deliveryTerms} onChange={e => setDeliveryTerms(e.target.value)} />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="payment-terms">Forma de Pago</Label>
-                                <Input id="payment-terms" value={paymentTerms} onChange={e => setPaymentTerms(e.target.value)} />
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor="offer-validity">Validez de la Oferta</Label>
-                                <Input id="offer-validity" value={offerValidity} onChange={e => setOfferValidity(e.target.value)} />
+              {!isDistributor && (
+                <>
+                    <Separator />
+                    <div className="space-y-4">
+                        <div>
+                            <h4 className="text-sm font-medium mb-2">Términos Comerciales</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-1">
+                                    <Label htmlFor="delivery-terms">Despacho</Label>
+                                    <Input id="delivery-terms" value={deliveryTerms} onChange={e => setDeliveryTerms(e.target.value)} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="payment-terms">Forma de Pago</Label>
+                                    <Input id="payment-terms" value={paymentTerms} onChange={e => setPaymentTerms(e.target.value)} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="offer-validity">Validez de la Oferta</Label>
+                                    <Input id="offer-validity" value={offerValidity} onChange={e => setOfferValidity(e.target.value)} />
+                                </div>
                             </div>
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="notes">Notas Adicionales</Label>
+                            <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Especifique cualquier detalle o condición..."/>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="notes">Notas Adicionales</Label>
-                        <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Especifique cualquier detalle o condición..."/>
-                    </div>
-                </div>
+                </>
+              )}
 
               <Separator />
               
               <div className="flex justify-between items-center pt-2">
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleDownloadPdf}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Descargar PDF
-                    </Button>
+                    {!isDistributor && (
+                        <Button variant="outline" onClick={handleDownloadPdf}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Descargar PDF
+                        </Button>
+                    )}
                     <Button variant="outline" onClick={handleShareOnWhatsApp} className="gap-2">
                         <MessageSquare />
                         <span>Compartir</span>
