@@ -51,10 +51,14 @@ export type Permission =
   'partners:view' |
   'partners:manage' |
   'partners:clients' |
-  'leader:view:assignments';
+  'leader:view:assignments' |
+  // Design
+  'designs:view' |
+  'designs:create' |
+  'designs:edit';
 
 
-export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor';
+export type Role = 'Administrador' | 'Asesor de Ventas' | 'Contador' | 'Logística' | 'Marketing' | 'Partners' | 'Tráfico' | 'Distribuidor' | 'Diseño';
 
 export interface RoleConfig {
     id: string;
@@ -109,6 +113,9 @@ export const roles: RoleConfig[] = [
             'purchasing:suggestions:view',
             'partners:view',
             'partners:manage',
+            'designs:view',
+            'designs:create',
+            'designs:edit'
         ]
     },
     {
@@ -133,6 +140,8 @@ export const roles: RoleConfig[] = [
             'purchasing:suggestions:create',
             'partners:manage',
             'reports:view',
+            'designs:view',
+            'designs:create'
         ]
     },
     {
@@ -212,6 +221,15 @@ export const roles: RoleConfig[] = [
             'inventory:transit:create',
             'inventory:transit:edit',
             'purchasing:suggestions:view'
+        ]
+    },
+    {
+        id: 'design',
+        name: 'Diseño',
+        permissions: [
+            'dashboard:view',
+            'designs:view',
+            'designs:edit'
         ]
     }
 ];

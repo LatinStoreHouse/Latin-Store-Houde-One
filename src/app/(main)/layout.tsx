@@ -66,6 +66,7 @@ import {
     Handshake,
     Bell,
     X,
+    Palette,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -128,6 +129,7 @@ export const navItems = [
       { href: '/purchasing/suggestions', label: 'Sugerencias de Compra', permission: 'purchasing:suggestions:view' },
     ],
   },
+  { href: '/designs', label: 'Diseño', icon: Palette, permission: 'designs:view' },
   { href: '/pricing', label: 'Precios', icon: Tags, permission: 'pricing:view' },
   { href: '/marketing/campaigns', label: 'Marketing', icon: Megaphone, permission: 'marketing:view' },
   { href: '/users', label: 'Usuarios', icon: UserCog, permission: 'users:manage' },
