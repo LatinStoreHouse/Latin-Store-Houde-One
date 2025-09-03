@@ -105,7 +105,7 @@ export const navItems = [
   { href: '/validation', label: 'Validación', icon: CheckSquare, permission: 'validation:view' },
   { href: '/customers', label: 'Clientes', icon: Users, permission: 'customers:view' },
   { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
-  { href: '/assigned-customers', label: 'Mis Clientes', permission: 'partners:clients' },
+  { href: '/assigned-customers', label: 'Mis Clientes', icon: BookUser, permission: 'partners:clients' },
   {
     label: 'Calculadoras',
     icon: Calculator,
@@ -113,7 +113,7 @@ export const navItems = [
     subItems: [
       { href: '/stoneflex-clay-calculator', label: 'StoneFlex' },
       { href: '/starwood-calculator', label: 'Starwood' },
-      { href: '/invoices', label: 'Historial de Cotizaciones', permission: 'invoices:view' },
+      { href: '/invoices', label: 'Historial de Cotizaciones' },
     ],
   },
    {
