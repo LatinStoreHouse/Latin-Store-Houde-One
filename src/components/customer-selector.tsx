@@ -18,7 +18,13 @@ export function CustomerSelector({ onCustomerSelect, onNameChange }: CustomerSel
   const [newCustomerName, setNewCustomerName] = useState('');
 
   const customerOptions = useMemo(() => {
-    return initialCustomerData.map(c => ({ value: c.id.toString(), label: c.name }));
+    return initialCustomerData.map(c => {
+      const identifiers = [c.email, c.phone, c.taxId].filter(Boolean).join(' / ');
+      return {
+        value: c.id.toString(),
+        label: `${c.name} (${identifiers})`
+      };
+    });
   }, []);
 
   const handleCustomerTypeChange = (type: 'existing' | 'new') => {
@@ -65,7 +71,7 @@ export function CustomerSelector({ onCustomerSelect, onNameChange }: CustomerSel
                     value={selectedCustomerId}
                     onValueChange={handleExistingCustomerChange}
                     placeholder="Busque y seleccione un cliente..."
-                    searchPlaceholder="Buscar por nombre..."
+                    searchPlaceholder="Buscar por nombre, correo, tel..."
                     emptyPlaceholder="No se encontró el cliente."
                 />
             </div>
