@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown, Filter } from 'lucide-react';
+import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown, Filter, DollarSign } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { MonthPicker } from '@/components/month-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
 import { useUser } from '@/app/(main)/layout';
 import type { User } from '@/lib/roles';
+import { initialSalesData } from '@/lib/sales-data';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -83,7 +84,9 @@ const ForecastCard = ({ forecast, loading, error, selectedMonth }: { forecast: F
 const MonthlyAnalysis = ({ date, user }: { date: Date, user: User | null }) => {
     const isAdvisor = user?.roles.includes('Asesor de Ventas');
 
-    const { newCustomersCount, customersChangePercentage, salesFunnelData, funnelOutcomes } = useMemo(() => {
+    const { newCustomersCount, customersChangePercentage, salesFunnelData, funnelOutcomes, monthlySales } = useMemo(() => {
+        if (!user) return { newCustomersCount: 0, customersChangePercentage: 0, salesFunnelData: [], funnelOutcomes: [], monthlySales: 0 };
+
         const selectedYear = date.getFullYear();
         const selectedMonth = date.getMonth();
 
@@ -127,14 +130,25 @@ const MonthlyAnalysis = ({ date, user }: { date: Date, user: User | null }) => {
             { name: 'Redireccionado', value: statusCounts['Redireccionado'] || 0 },
         ].filter(outcome => outcome.value > 0);
 
+        const monthKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+        const sales = isAdvisor ? (initialSalesData[user.name]?.[monthKey]?.sales || 0) : 0;
 
         return { 
             newCustomersCount: currentMonthCustomers.length,
             customersChangePercentage: changePercentage,
             salesFunnelData,
-            funnelOutcomes
+            funnelOutcomes,
+            monthlySales: sales,
         };
     }, [date, user, isAdvisor]);
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        }).format(value);
+    };
 
     return (
         <>
@@ -152,16 +166,29 @@ const MonthlyAnalysis = ({ date, user }: { date: Date, user: User | null }) => {
                 </p>
                 </CardContent>
             </Card>
-            <Card>
-                <CardHeader className="flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Pedidos Completados</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                <div className="text-2xl font-bold">+1,286</div>
-                <p className="text-xs text-muted-foreground">+12.2% desde el mes pasado</p>
-                </CardContent>
-            </Card>
+            {isAdvisor ? (
+                <Card>
+                    <CardHeader className="flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Ventas del Mes</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{formatCurrency(monthlySales)}</div>
+                        <p className="text-xs text-muted-foreground">Total registrado para este mes.</p>
+                    </CardContent>
+                </Card>
+            ) : (
+                <Card>
+                    <CardHeader className="flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium">Pedidos Completados</CardTitle>
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                    <div className="text-2xl font-bold">+1,286</div>
+                    <p className="text-xs text-muted-foreground">+12.2% desde el mes pasado</p>
+                    </CardContent>
+                </Card>
+            )}
         </div>
         <Card>
              <CardHeader>
