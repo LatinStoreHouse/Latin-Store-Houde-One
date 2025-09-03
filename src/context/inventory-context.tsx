@@ -9,6 +9,7 @@ import { productDimensions } from '@/lib/dimensions';
 import { initialProductPrices } from '@/lib/prices';
 import { useToast } from '@/hooks/use-toast';
 import { inventoryMovementData } from '@/lib/inventory-movement';
+import type { User } from '@/lib/roles';
 
 export interface Product {
   name: string;
@@ -59,9 +60,37 @@ export interface Suggestion {
 
 export type InventoryData = typeof initialInventoryData;
 
+export interface InventoryHistoryEntry {
+  id: string;
+  productName: string;
+  location: 'bodega' | 'zonaFranca' | 'muestras';
+  oldValue: number;
+  newValue: number;
+  changedBy: string;
+  date: string;
+}
+
+export interface Quote {
+    id: string;
+    quoteNumber: string;
+    calculatorType: 'StoneFlex' | 'Starwood';
+    customerName: string;
+    advisorName: string;
+    creationDate: string;
+    total: number;
+    currency: 'COP' | 'USD';
+    items: {
+        reference: string;
+        quantity: number;
+        price: number;
+    }[];
+    details: any; // To store the full quote object for later view
+}
+
 interface InventoryContextType {
   inventoryData: InventoryData;
-  setInventoryData: React.Dispatch<React.SetStateAction<InventoryData>>;
+  setInventoryData: (updater: (data: InventoryData) => InventoryData, user: User | null) => void;
+  inventoryHistory: InventoryHistoryEntry[];
   productPrices: { [key: string]: number };
   setProductPrices: React.Dispatch<React.SetStateAction<{ [key: string]: number }>>;
   productDimensions: { [key: string]: string };
@@ -78,7 +107,7 @@ interface InventoryContextType {
   receiveContainer: (containerId: string, reservations: Reservation[]) => void;
   revertContainerReception: (containerId: string) => void;
   dispatchReservation: (quoteNumber: string) => void;
-  dispatchDirectFromInventory: (productsToDispatch: { name: string, quantity: number }[]) => void;
+  dispatchDirectFromInventory: (productsToDispatch: { name: string, quantity: number, origin: 'Bodega' | 'Zona Franca'}[]) => void;
   releaseReservationStock: (reservation: Reservation) => void;
   addProduct: (product: { name: string; brand: string; line: string; size?: string; price: number, stock: any }) => void;
   addContainer: (container: Container) => void;
@@ -86,12 +115,15 @@ interface InventoryContextType {
   updateProductName: (oldName: string, newName: string) => void;
   productSubscriptions: Record<string, string[]>;
   toggleProductSubscription: (productName: string, userName: string) => void;
+  quotes: Quote[];
+  addQuote: (quote: Omit<Quote, 'id'>) => void;
 }
 
 export const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
 
 export const InventoryProvider = ({ children }: { children: ReactNode }) => {
-  const [inventoryData, setInventoryData] = useState<InventoryData>(initialInventoryData);
+  const [inventoryData, setInventoryDataState] = useState<InventoryData>(initialInventoryData);
+  const [inventoryHistory, setInventoryHistory] = useState<InventoryHistoryEntry[]>([]);
   const [productPrices, setProductPrices] = useState(initialProductPrices);
   const [localProductDimensions, setLocalProductDimensions] = useState(productDimensions);
   const [containers, setContainers] = useState<Container[]>(initialContainerData);
@@ -99,18 +131,67 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [productSubscriptions, setProductSubscriptions] = useState<Record<string, string[]>>({});
   const [seenSuggestionsCount, setSeenSuggestionsCount] = useState(0);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
   const { toast } = useToast();
 
+    const addQuote = (quote: Omit<Quote, 'id'>) => {
+        const newQuote: Quote = { ...quote, id: `QT-${Date.now()}` };
+        setQuotes(prev => [newQuote, ...prev]);
+        toast({
+            title: 'Cotización Guardada',
+            description: `La cotización #${quote.quoteNumber} ha sido guardada en el historial.`
+        })
+    }
 
-  const findProductLocation = (productName: string) => {
-    for (const brand in inventoryData) {
-      for (const subCategory in inventoryData[brand as keyof typeof inventoryData]) {
-        if (inventoryData[brand as keyof typeof inventoryData][subCategory][productName]) {
+  const findProductLocation = (productName: string, data: InventoryData) => {
+    for (const brand in data) {
+      for (const subCategory in data[brand as keyof typeof data]) {
+        if (data[brand as keyof typeof data][subCategory][productName]) {
           return { brand, subCategory };
         }
       }
     }
     return null;
+  };
+
+  const setInventoryData = (updater: (data: InventoryData) => InventoryData, user: User | null) => {
+    const oldData = inventoryData;
+    const newData = updater(oldData);
+    
+    // Generate history
+    const newHistoryEntries: InventoryHistoryEntry[] = [];
+    const date = new Date().toISOString();
+
+    for(const brand in newData) {
+        for(const line in newData[brand as keyof typeof newData]) {
+            for(const productName in newData[brand as keyof typeof newData][line]) {
+                const oldProduct = oldData[brand as keyof typeof newData]?.[line]?.[productName];
+                const newProduct = newData[brand as keyof typeof newData][line][productName];
+
+                if (oldProduct) {
+                    (Object.keys(newProduct) as Array<keyof typeof newProduct>).forEach(key => {
+                        if (['bodega', 'zonaFranca', 'muestras'].includes(key) && oldProduct[key] !== newProduct[key]) {
+                            newHistoryEntries.push({
+                                id: `${date}-${productName}-${key}`,
+                                productName,
+                                location: key as 'bodega' | 'zonaFranca' | 'muestras',
+                                oldValue: oldProduct[key],
+                                newValue: newProduct[key],
+                                changedBy: user?.name || 'Sistema',
+                                date: date,
+                            });
+                        }
+                    });
+                }
+            }
+        }
+    }
+    
+    if (newHistoryEntries.length > 0) {
+        setInventoryHistory(prev => [...newHistoryEntries, ...prev]);
+    }
+    
+    setInventoryDataState(newData);
   };
   
   const systemSuggestions: Suggestion[] = useMemo(() => {
@@ -175,7 +256,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
 
     // Update inventory data
     setInventoryData(prev => {
-        const newData = { ...prev };
+        const newData = JSON.parse(JSON.stringify(prev));
         if (!newData[brand as keyof typeof newData]) {
             newData[brand as keyof typeof newData] = {};
         }
@@ -184,7 +265,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         }
         newData[brand as keyof typeof newData][line][name] = stock;
         return newData;
-    });
+    }, null);
 
     // Update prices
     setProductPrices(prev => ({ ...prev, [name]: price }));
@@ -201,7 +282,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
 
     setInventoryData(prev => {
         const newData = JSON.parse(JSON.stringify(prev));
-        const location = findProductLocation(oldName);
+        const location = findProductLocation(oldName, prev);
         if (location) {
             const { brand, subCategory } = location;
             if (newData[brand][subCategory][newName]) {
@@ -213,7 +294,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
             newData[brand][subCategory][newName] = productData;
         }
         return newData;
-    });
+    }, null);
 
     setProductPrices(prev => {
         const newPrices = {...prev};
@@ -244,7 +325,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const releaseReservationStock = (reservation: Reservation) => {
-    const location = findProductLocation(reservation.product);
+    const location = findProductLocation(reservation.product, inventoryData);
     if (!location) return;
 
     const { brand, subCategory } = location;
@@ -258,7 +339,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
             product.separadasZonaFranca -= reservation.quantity;
         }
         return newData;
-    });
+    }, null);
   };
 
   const transferFromFreeZone = (items: TransferItem[]) => {
@@ -267,7 +348,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
 
         for (const item of items) {
             const { productName, quantity, reservationsToTransfer } = item;
-            const location = findProductLocation(productName);
+            const location = findProductLocation(productName, newData);
             if (!location) {
                 throw new Error(`Producto ${productName} no encontrado en el inventario.`);
             }
@@ -295,7 +376,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         }
 
         return newData;
-    });
+    }, null);
 
     // Update the source of all transferred reservations from all items
     const allReservationsToTransfer = items.flatMap(item => item.reservationsToTransfer);
@@ -345,7 +426,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
             .filter(r => r.product === productInContainer.name)
             .reduce((sum, r) => sum + r.quantity, 0);
 
-        const location = findProductLocation(productInContainer.name);
+        const location = findProductLocation(productInContainer.name, newInventory);
         
         if (location) {
           const { brand, subCategory } = location;
@@ -386,7 +467,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         }
       }
       return newInventory;
-    });
+    }, null);
     
     // Change reservation source from 'Container' to 'Zona Franca'
     setReservations(prevReservations =>
@@ -426,7 +507,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       const newInventory = JSON.parse(JSON.stringify(prevInventory));
       
       for (const productInContainer of container.products) {
-        const location = findProductLocation(productInContainer.name);
+        const location = findProductLocation(productInContainer.name, newInventory);
         if (!location) continue; // Should not happen if it was received correctly
 
         const { brand, subCategory } = location;
@@ -444,7 +525,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         invProduct.separadasZonaFranca -= reservedQuantity;
       }
       return newInventory;
-    });
+    }, null);
 
     setReservations(prevReservations =>
       prevReservations.map(r => {
@@ -469,7 +550,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         throw new Error(`No se encontró una reserva validada para la cotización ${quoteNumber}.`);
     }
 
-    const location = findProductLocation(reservationToDispatch.product);
+    const location = findProductLocation(reservationToDispatch.product, inventoryData);
     if (!location) {
         throw new Error(`Producto ${reservationToDispatch.product} de la reserva no encontrado en inventario.`);
     }
@@ -494,7 +575,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
             product.separadasZonaFranca -= reservationToDispatch.quantity;
         }
         return newData;
-    });
+    }, null);
     
     // Update the reservation status to 'Despachada'
     setReservations(prev => 
@@ -502,28 +583,35 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  const dispatchDirectFromInventory = (productsToDispatch: { name: string, quantity: number }[]) => {
+  const dispatchDirectFromInventory = (productsToDispatch: { name: string, quantity: number, origin: 'Bodega' | 'Zona Franca' }[]) => {
      setInventoryData(prevData => {
         const newData = JSON.parse(JSON.stringify(prevData));
         
         for (const productToDispatch of productsToDispatch) {
-            const location = findProductLocation(productToDispatch.name);
+            const location = findProductLocation(productToDispatch.name, newData);
             if (!location) {
                 throw new Error(`Producto ${productToDispatch.name} no encontrado en inventario.`);
             }
             const { brand, subCategory } = location;
             const product = newData[brand as keyof typeof prevData][subCategory][productToDispatch.name];
             
-            const availableInBodega = product.bodega - product.separadasBodega;
-            if (availableInBodega < productToDispatch.quantity) {
-                 throw new Error(`Stock insuficiente en bodega para despachar ${productToDispatch.quantity} de ${productToDispatch.name}. Disponible: ${availableInBodega}`);
+            if (productToDispatch.origin === 'Bodega') {
+                const availableInBodega = product.bodega - product.separadasBodega;
+                if (availableInBodega < productToDispatch.quantity) {
+                     throw new Error(`Stock insuficiente en bodega para despachar ${productToDispatch.quantity} de ${productToDispatch.name}. Disponible: ${availableInBodega}`);
+                }
+                product.bodega -= productToDispatch.quantity;
+            } else { // Zona Franca
+                const availableInZF = product.zonaFranca - product.separadasZonaFranca;
+                if (availableInZF < productToDispatch.quantity) {
+                    throw new Error(`Stock insuficiente en Zona Franca para despachar ${productToDispatch.quantity} de ${productToDispatch.name}. Disponible: ${availableInZF}`);
+                }
+                product.zonaFranca -= productToDispatch.quantity;
             }
-            
-            product.bodega -= productToDispatch.quantity;
         }
         
         return newData;
-    });
+    }, null);
   }
   
   const addContainer = (container: Container) => {
@@ -576,6 +664,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     <InventoryContext.Provider value={{ 
       inventoryData, 
       setInventoryData,
+      inventoryHistory,
       productPrices,
       setProductPrices,
       productDimensions: localProductDimensions, 
@@ -599,7 +688,9 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       editContainer,
       updateProductName,
       productSubscriptions,
-      toggleProductSubscription
+      toggleProductSubscription,
+      quotes,
+      addQuote
     }}>
       {children}
     </InventoryContext.Provider>

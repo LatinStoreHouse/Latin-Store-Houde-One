@@ -404,38 +404,37 @@ export default function InventoryPage() {
   };
   
  const handleSaveChanges = () => {
-    // Check for renames
-    const initialNames = new Set(Object.values(initialData).flatMap(b => Object.values(b).flatMap(l => Object.keys(l))));
-    const localNames = new Set(Object.values(localInventoryData).flatMap(b => Object.values(b).flatMap(l => Object.keys(l))));
-    
-    const addedNames = [...localNames].filter(name => !initialNames.has(name));
-    const removedNames = [...initialNames].filter(name => !localNames.has(name));
+    setGlobalInventoryData((currentData: InventoryData) => {
+      // Logic to compare and update
+      const initialNames = new Set(Object.values(initialData).flatMap(b => Object.values(b).flatMap(l => Object.keys(l))));
+      const localNames = new Set(Object.values(localInventoryData).flatMap(b => Object.values(b).flatMap(l => Object.keys(l))));
+      
+      const addedNames = [...localNames].filter(name => !initialNames.has(name));
+      const removedNames = [...initialNames].filter(name => !localNames.has(name));
 
-    if (addedNames.length > 0 && removedNames.length > 0) {
-        // Simple 1-to-1 rename detection. Could be more robust.
-        const removedName = removedNames[0];
-        const addedName = addedNames[0];
-        
-        const oldLocation = findProductLocation(removedName, initialData);
-        const newLocation = findProductLocation(addedName, localInventoryData);
-        
-        if (oldLocation && newLocation) {
-            const oldData = initialData[oldLocation.brand as keyof typeof initialData][oldLocation.subCategory][removedName];
-            const newData = localInventoryData[newLocation.brand as keyof typeof localInventoryData][newLocation.subCategory][addedName];
+      if (addedNames.length > 0 && removedNames.length > 0) {
+          // Simple 1-to-1 rename detection. Could be more robust.
+          const removedName = removedNames[0];
+          const addedName = addedNames[0];
+          
+          const oldLocation = findProductLocation(removedName, initialData);
+          const newLocation = findProductLocation(addedName, localInventoryData);
+          
+          if (oldLocation && newLocation) {
+              const oldData = initialData[oldLocation.brand as keyof typeof initialData][oldLocation.subCategory][removedName];
+              const newData = localInventoryData[newLocation.brand as keyof typeof localInventoryData][newLocation.subCategory][addedName];
 
-            // Compare data excluding name to confirm it's likely a rename
-            const { ...oldDataWithoutName } = oldData;
-            const { ...newDataWithoutName } = newData;
-            
-            // This is a weak check, but better than nothing.
-            // A more robust solution would be to track renames explicitly.
-            if (JSON.stringify(oldDataWithoutName) === JSON.stringify(newDataWithoutName)) {
-                 updateProductName(removedName, addedName);
-            }
-        }
-    }
+              const { ...oldDataWithoutName } = oldData;
+              const { ...newDataWithoutName } = newData;
+              
+              if (JSON.stringify(oldDataWithoutName) === JSON.stringify(newDataWithoutName)) {
+                   updateProductName(removedName, addedName);
+              }
+          }
+      }
+      return localInventoryData;
+    }, currentUser);
     
-    setGlobalInventoryData(localInventoryData);
     setHasPendingChanges(false);
     toast({
         title: 'Inventario Guardado',
@@ -967,4 +966,5 @@ export default function InventoryPage() {
     
 
     
+
 

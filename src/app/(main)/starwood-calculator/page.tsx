@@ -1,10 +1,11 @@
 
+
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2, Download, MessageSquare } from 'lucide-react';
+import { PlusCircle, Trash2, Download, MessageSquare, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,6 +18,7 @@ import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
 import { LocationCombobox } from '@/components/location-combobox';
 import { useUser } from '@/app/(main)/layout';
+import { InventoryContext } from '@/context/inventory-context';
 
 
 const starwoodProducts = [
@@ -103,6 +105,10 @@ const getImageBase64 = (src: string): Promise<{ base64: string; width: number; h
 
 export default function StarwoodCalculatorPage() {
   const searchParams = useSearchParams();
+  const context = useContext(InventoryContext);
+  if (!context) throw new Error("Inventory context not found");
+  const { addQuote } = context;
+
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   
   const [productReference, setProductReference] = useState('');
@@ -136,6 +142,17 @@ export default function StarwoodCalculatorPage() {
     currentUser.roles.includes('Distribuidor'), 
     [currentUser.roles]
   );
+  
+  const isPartner = useMemo(() => 
+    currentUser.roles.includes('Partner'), 
+    [currentUser.roles]
+  );
+
+  const viewMode = useMemo(() => {
+    if (isDistributor) return 'distributor';
+    if (isPartner) return 'partner';
+    return 'internal';
+  }, [isDistributor, isPartner]);
 
 
   const selectedProductIsDeck = useMemo(() => productReference.toLowerCase().includes('deck'), [productReference]);
@@ -155,10 +172,10 @@ export default function StarwoodCalculatorPage() {
 
   useEffect(() => {
     const customerNameParam = searchParams.get('customerName');
-    if (customerNameParam && !isDistributor) {
+    if (customerNameParam && viewMode !== 'distributor') {
         setCustomerName(decodeURIComponent(customerNameParam));
     }
-  }, [searchParams, isDistributor]);
+  }, [searchParams, viewMode]);
 
   const handleLocationChange = (newLocation: { lat: number; lng: number; address: string } | null) => {
     setLocation(newLocation);
@@ -234,6 +251,7 @@ export default function StarwoodCalculatorPage() {
       
       return { 
         ...item,
+        price,
         itemCost,
         hasPrice
       };
@@ -287,7 +305,10 @@ export default function StarwoodCalculatorPage() {
     const expiryDate = new Date(creationDate);
     expiryDate.setDate(expiryDate.getDate() + 7);
 
+    const quoteNumber = `V-200-${Date.now().toString().slice(-4)}`;
+
     return {
+      quoteNumber,
       items: detailedItems,
       subtotal: subtotal,
       iva,
@@ -304,10 +325,24 @@ export default function StarwoodCalculatorPage() {
   };
 
   const quote = quoteItems.length > 0 ? calculateQuote() : null;
+
+  const handleSaveQuote = () => {
+    if (!quote) return;
+     addQuote({
+        quoteNumber: quote.quoteNumber,
+        calculatorType: 'Starwood',
+        customerName: customerName,
+        advisorName: currentUser.name,
+        creationDate: new Date().toISOString(),
+        total: quote.total,
+        currency: 'COP',
+        items: quote.items.map(i => ({ reference: i.reference, quantity: i.units, price: i.price })),
+        details: quote,
+    });
+  }
   
    const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
     const today = new Date();
-    const quoteNumber = `V - 200 - ${Math.floor(Math.random() * 9000) + 1000}`; // Different series for Starwood
 
     let startY = 40;
     
@@ -340,7 +375,7 @@ export default function StarwoodCalculatorPage() {
     startY += 3;
 
     doc.setFont('helvetica', 'bold');
-    doc.text(`Ref: Cotización Starwood - ${quoteNumber}`, 14, startY);
+    doc.text(`Ref: Cotización Starwood - ${quote.quoteNumber}`, 14, startY);
     startY += 8;
 
     doc.setFont('helvetica', 'normal');
@@ -469,7 +504,7 @@ export default function StarwoodCalculatorPage() {
     if (!quote) return;
 
     let message = `*Cotización de Starwood - Latin Store House*\n\n`;
-    if (!isDistributor) {
+    if (viewMode !== 'distributor') {
       message += `*Cliente:* ${customerName || 'N/A'}\n`;
       message += `*Fecha de Cotización:* ${quote.creationDate.toLocaleDateString('es-CO')}\n`;
       message += `*Válida hasta:* ${quote.expiryDate}\n\n`;
@@ -537,7 +572,7 @@ export default function StarwoodCalculatorPage() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!isDistributor && (
+        {viewMode === 'internal' && (
             <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -658,7 +693,7 @@ export default function StarwoodCalculatorPage() {
           <Card className="bg-primary/5 mt-6">
             <CardHeader>
               <CardTitle>Resumen de la Cotización</CardTitle>
-              {!isDistributor && <CardDescription>Cliente: {customerName || 'N/A'} | Válida hasta: {quote.expiryDate.toLocaleString('es-CO')}</CardDescription>}
+              {viewMode !== 'distributor' && <CardDescription>Cliente: {customerName || 'N/A'} | Válida hasta: {quote.expiryDate.toLocaleString('es-CO')}</CardDescription>}
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -749,7 +784,7 @@ export default function StarwoodCalculatorPage() {
                 </div>
               </div>
               
-              {!isDistributor && (
+              {viewMode === 'internal' && (
                 <>
                     <Separator />
                     <div className="space-y-4">
@@ -782,7 +817,7 @@ export default function StarwoodCalculatorPage() {
               
               <div className="flex justify-between items-center pt-2">
                 <div className="flex gap-2">
-                    {!isDistributor && (
+                    {viewMode !== 'distributor' && (
                         <Button variant="outline" onClick={handleDownloadPdf}>
                             <Download className="mr-2 h-4 w-4" />
                             Descargar PDF
@@ -792,6 +827,12 @@ export default function StarwoodCalculatorPage() {
                         <MessageSquare />
                         <span>Compartir</span>
                     </Button>
+                     {viewMode === 'internal' && (
+                        <Button onClick={handleSaveQuote}>
+                            <Save className="mr-2 h-4 w-4" />
+                            Guardar Cotización
+                        </Button>
+                    )}
                 </div>
                 <p className="text-lg font-bold text-right">
                   Total: {formatCurrency(quote.total)}
