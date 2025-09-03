@@ -11,10 +11,12 @@ import { initialCustomerData } from '@/lib/customers';
 import { useUser } from '@/app/(main)/layout';
 import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, Warehouse, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryContext } from '@/context/inventory-context';
 import { LocationCombobox } from './location-combobox';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { cn } from '@/lib/utils';
 
 
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin'];
@@ -50,6 +52,7 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
     // Product form state
     const [productName, setProductName] = useState('');
     const [productQuantity, setProductQuantity] = useState<number | string>(1);
+    const [productOrigin, setProductOrigin] = useState<'Bodega' | 'Zona Franca'>('Bodega');
     const [location, setLocation] = useState<{ lat: number; lng: number; address: string; } | null>(null);
 
 
@@ -63,16 +66,23 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
     }, [dispatch]);
     
     const productOptions = useMemo(() => {
-        const options: { value: string; label: string }[] = [];
+        const options: { value: string; label: string; available: number }[] = [];
         for (const brand in inventoryData) {
             for (const line in inventoryData[brand]) {
                  for (const name in inventoryData[brand][line]) {
-                    options.push({ value: name, label: name });
+                     const item = inventoryData[brand][line][name];
+                     const availableStock = productOrigin === 'Bodega' 
+                        ? item.bodega - item.separadasBodega 
+                        : item.zonaFranca - item.separadasZonaFranca;
+                    
+                     if (availableStock > 0) {
+                        options.push({ value: name, label: `${name} (Disp: ${availableStock})`, available: availableStock });
+                     }
                  }
             }
         }
         return options;
-    }, [inventoryData]);
+    }, [inventoryData, productOrigin]);
 
     const handleInputChange = (field: keyof Omit<DispatchData, 'id' | 'products'>, value: string) => {
         setFormData(prev => ({...prev, [field]: value}));
@@ -84,14 +94,20 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
             return;
         }
 
+        const selectedProductInfo = productOptions.find(p => p.value === productName);
+        if (!selectedProductInfo || selectedProductInfo.available < Number(productQuantity)) {
+            toast({ variant: 'destructive', title: 'Error de Stock', description: `No hay suficiente stock disponible en ${productOrigin}.`});
+            return;
+        }
+
         setFormData(prev => {
-            const existingProductIndex = prev.products.findIndex(p => p.name === productName);
             const newProducts = [...prev.products];
-            
+            const existingProductIndex = newProducts.findIndex(p => p.name === productName && p.origin === productOrigin);
+
             if (existingProductIndex > -1) {
                 newProducts[existingProductIndex].quantity += Number(productQuantity);
             } else {
-                newProducts.push({ name: productName, quantity: Number(productQuantity) });
+                newProducts.push({ name: productName, quantity: Number(productQuantity), origin: productOrigin });
             }
             
             return {...prev, products: newProducts};
@@ -101,10 +117,10 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
         setProductQuantity(1);
     };
     
-    const handleRemoveProduct = (name: string) => {
+    const handleRemoveProduct = (name: string, origin: 'Bodega' | 'Zona Franca') => {
         setFormData(prev => ({
             ...prev,
-            products: prev.products.filter(p => p.name !== name)
+            products: prev.products.filter(p => !(p.name === name && p.origin === origin))
         }));
     };
 
@@ -184,6 +200,20 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
             <div>
                 <h4 className="font-medium mb-2">Productos a Despachar</h4>
                 <div className="p-4 border rounded-md space-y-4">
+                    <div className='space-y-2'>
+                        <Label>Origen del Despacho</Label>
+                         <RadioGroup value={productOrigin} onValueChange={(v) => setProductOrigin(v as 'Bodega' | 'Zona Franca')} className="flex gap-4">
+                            <Label htmlFor="origin-bodega" className={cn("flex items-center gap-2 rounded-md border p-2 cursor-pointer", productOrigin === 'Bodega' && 'border-primary')}>
+                                <RadioGroupItem value="Bodega" id="origin-bodega"/>
+                                <Warehouse className="h-4 w-4" /> Bodega
+                            </Label>
+                             <Label htmlFor="origin-zf" className={cn("flex items-center gap-2 rounded-md border p-2 cursor-pointer", productOrigin === 'Zona Franca' && 'border-primary')}>
+                                <RadioGroupItem value="Zona Franca" id="origin-zf"/>
+                                <Building className="h-4 w-4" /> Zona Franca
+                            </Label>
+                        </RadioGroup>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_auto] gap-2 items-end">
                         <div className="space-y-1">
                             <Label>Producto</Label>
@@ -193,7 +223,7 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
                                 onValueChange={setProductName}
                                 placeholder="Seleccione un producto"
                                 searchPlaceholder="Buscar producto..."
-                                emptyPlaceholder="No hay productos"
+                                emptyPlaceholder="No hay productos disponibles en este origen."
                             />
                         </div>
                         <div className="space-y-1">
@@ -206,12 +236,19 @@ export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) 
                     </div>
 
                     <div className="space-y-2">
-                        {formData.products.map(p => (
-                            <div key={p.name} className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded-md">
-                                <span>{p.name}</span>
+                        {formData.products.map((p, i) => (
+                            <div key={`${p.name}-${p.origin}-${i}`} className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded-md">
+                                <div>
+                                    <span className="font-semibold">{p.name}</span>
+                                    <div className="flex items-center text-xs text-muted-foreground gap-1">
+                                        {p.origin === 'Bodega' ? <Warehouse className="h-3 w-3" /> : <Building className="h-3 w-3" />}
+                                        <span>Desde {p.origin}</span>
+                                    </div>
+                                </div>
+
                                 <div className="flex items-center gap-4">
                                     <span>Cantidad: <span className="font-semibold">{p.quantity}</span></span>
-                                    <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveProduct(p.name)}>
+                                    <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveProduct(p.name, p.origin)}>
                                         <Trash2 className="h-4 w-4 text-destructive" />
                                     </Button>
                                 </div>

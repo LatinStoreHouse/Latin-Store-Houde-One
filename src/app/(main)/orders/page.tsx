@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy, Edit, Calendar as CalendarIcon, PackageOpen } from 'lucide-react';
+import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy, Edit, Calendar as CalendarIcon, PackageOpen, Warehouse, Building } from 'lucide-react';
 import { Role } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import {
@@ -76,6 +76,7 @@ const getConventionClasses = (value: string) => {
 export interface DispatchProduct {
     name: string;
     quantity: number;
+    origin: 'Bodega' | 'Zona Franca';
 }
 export interface DispatchData {
     id: number;
@@ -109,7 +110,7 @@ export const initialDispatchData: DispatchData[] = [
     fechaDespacho: '',
     guia: '',
     convencion: 'Prealistamiento de pedido',
-    products: [{ name: 'Cut stone', quantity: 10 }, { name: 'Adhesivo', quantity: 5 }]
+    products: [{ name: 'Cut stone', quantity: 10, origin: 'Bodega' }, { name: 'Adhesivo', quantity: 5, origin: 'Bodega' }]
   },
   {
     id: 2,
@@ -125,7 +126,7 @@ export const initialDispatchData: DispatchData[] = [
     fechaDespacho: '2024-07-30',
     guia: 'TCC-98765',
     convencion: 'Despachado',
-    products: [{ name: 'Black', quantity: 20 }]
+    products: [{ name: 'Black', quantity: 20, origin: 'Bodega' }]
   },
   {
     id: 3,
@@ -141,7 +142,7 @@ export const initialDispatchData: DispatchData[] = [
     fechaDespacho: '2024-06-18',
     guia: 'ENV-12345',
     convencion: 'Entrega parcial',
-    products: [{ name: 'Concreto gris', quantity: 15 }],
+    products: [{ name: 'Concreto gris', quantity: 15, origin: 'Zona Franca' }],
   },
 ];
 
@@ -310,7 +311,7 @@ export default function DispatchPage() {
       ],
       body: filteredData.map(item => {
         const { status, factura } = getValidationStatus(item.cotizacion);
-        const productString = item.products.map(p => `${p.name} (x${p.quantity})`).join(', ');
+        const productString = item.products.map(p => `${p.name} (x${p.quantity} - ${p.origin})`).join(', ');
         return [
           item.vendedor,
           item.fechaSolicitud,
@@ -343,7 +344,7 @@ export default function DispatchPage() {
     
     const dataToExport = filteredData.map(item => {
         const { status, factura } = getValidationStatus(item.cotizacion);
-        const productString = item.products.map(p => `${p.name} (x${p.quantity})`).join(', ');
+        const productString = item.products.map(p => `${p.name} (x${p.quantity} - ${p.origin})`).join(', ');
         return {
             'Vendedor': item.vendedor,
             'Fecha Sol.': item.fechaSolicitud,
@@ -617,19 +618,26 @@ export default function DispatchPage() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>Producto</TableHead>
+                        <TableHead>Origen</TableHead>
                         <TableHead className="text-right">Cantidad</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {viewingDispatch?.products.map(p => (
-                        <TableRow key={p.name}>
+                    {viewingDispatch?.products.map((p, i) => (
+                        <TableRow key={`${p.name}-${i}`}>
                             <TableCell>{p.name}</TableCell>
+                            <TableCell>
+                                <Badge variant="outline" className="flex items-center gap-1.5 w-fit">
+                                     {p.origin === 'Bodega' ? <Warehouse className="h-3 w-3" /> : <Building className="h-3 w-3" />}
+                                    {p.origin}
+                                </Badge>
+                            </TableCell>
                             <TableCell className="text-right">{p.quantity}</TableCell>
                         </TableRow>
                     ))}
                      {viewingDispatch?.products.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={2} className="text-center text-muted-foreground">
+                            <TableCell colSpan={3} className="text-center text-muted-foreground">
                                 No se especificaron productos.
                             </TableCell>
                         </TableRow>
