@@ -93,21 +93,22 @@ export function DesignRequestForm({ request, onSave, onCancel, currentUser }: De
         if (fileInputRef.current) fileInputRef.current.value = '';
     }
     
-    const canEditAdvisorFields = isDesigner || !request || isOwner;
+    const canEditAdvisorFields = !request || (isOwner && !isDesigner);
+
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
             <div className="space-y-2">
                 <Label htmlFor="customerName">Nombre del Cliente</Label>
-                <Input id="customerName" value={customerName} onChange={e => setCustomerName(e.target.value)} required disabled={!canEditAdvisorFields} />
+                <Input id="customerName" value={customerName} onChange={e => setCustomerName(e.target.value)} required disabled={!!request && !isOwner || isDesigner} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="description">Descripción de la Solicitud</Label>
-                <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} required rows={4} disabled={!canEditAdvisorFields} />
+                <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} required rows={4} disabled={!!request && !isOwner || isDesigner} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="mediaLink">Enlace a Fotos/Videos (WeTransfer, Drive, etc.)</Label>
-                <Input id="mediaLink" value={mediaLink} onChange={e => setMediaLink(e.target.value)} required disabled={!canEditAdvisorFields} />
+                <Input id="mediaLink" value={mediaLink} onChange={e => setMediaLink(e.target.value)} required disabled={!!request && !isOwner || isDesigner} />
             </div>
 
             {isDesigner && (
