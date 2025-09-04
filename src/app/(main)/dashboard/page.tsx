@@ -129,7 +129,7 @@ export default function DashboardPage() {
     if (!inventoryContext || !userContext) {
       throw new Error('DashboardPage must be used within an InventoryProvider and UserProvider');
     }
-    const { notifications, dismissNotification, reservations } = inventoryContext;
+    const { notifications, dismissNotification, reservations, addNotification } = inventoryContext;
     const { currentUser } = userContext;
 
     const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
@@ -260,14 +260,22 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {isAdvisor && (
-          <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => addNotification({
+              title: 'Notificación de Prueba',
+              message: `Hola ${currentUser.name}, ¡así es como se ve una notificación!`,
+              user: currentUser.name
+          })}>
+            <Bell className="mr-2 h-4 w-4" />
+            Probar Notificación
+          </Button>
+          {isAdvisor && (
               <Button variant="outline" onClick={() => setIsStatsModalOpen(true)}>
                   <BarChart className="mr-2 h-4 w-4" />
                   Mis Estadísticas
               </Button>
-          </div>
-      )}
+          )}
+      </div>
 
       {currentUserRole !== 'Partners' && currentUserRole !== 'Marketing' && (
         <div className="grid gap-6 md:grid-cols-3">
