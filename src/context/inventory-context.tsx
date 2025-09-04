@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { createContext, useState, ReactNode, useEffect, useMemo } from 'react';
 import { initialInventoryData } from '@/lib/initial-inventory';
@@ -9,7 +10,7 @@ import { productDimensions } from '@/lib/dimensions';
 import { initialProductPrices } from '@/lib/prices';
 import { useToast } from '@/hooks/use-toast';
 import { inventoryMovementData } from '@/lib/inventory-movement';
-import type { User } from '@/lib/roles';
+import type { User, Role } from '@/lib/roles';
 
 export interface Product {
   name: string;
@@ -50,7 +51,8 @@ export interface AppNotification {
   message: string;
   date: string;
   read?: boolean;
-  user?: string; // Optional: To target a notification to a specific user by name
+  user?: string; // To target a notification to a specific user by name
+  role?: Role; // To target a notification to a specific role
 }
 
 export interface Suggestion {
@@ -491,14 +493,16 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     );
     
     // Add general and price-specific notifications
-     const generalNotification: AppNotification = {
-        id: Date.now(),
+     const generalNotification: Omit<AppNotification, 'id' | 'date' | 'read'> = {
         title: '¡Nuevo Material Disponible!',
         message: `El contenedor ${containerId} ha llegado y su contenido ha sido añadido al inventario de Zona Franca.`,
-        date: new Date().toISOString(),
-        read: false,
+        role: 'Logística',
     };
-    setNotifications(prev => [generalNotification, ...newNotifications, ...prev]);
+    addNotification(generalNotification);
+    addNotification({...generalNotification, role: 'Contador'});
+    addNotification({...generalNotification, role: 'Administrador'});
+    
+    newNotifications.forEach(addNotification);
   };
 
   const revertContainerReception = (containerId: string) => {
@@ -630,7 +634,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
 
   const addNotification = (notification: Omit<AppNotification, 'id' | 'date' | 'read'>) => {
     const newNotification: AppNotification = {
-      id: Date.now(),
+      id: Date.now() + Math.random(), // Add random number to avoid collision
       date: new Date().toISOString(),
       read: false,
       ...notification,

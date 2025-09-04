@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useRef, useMemo, useContext, useEffect } from 'react';
 import Link from 'next/link';
@@ -75,7 +76,7 @@ import { Role, roles, User } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { InventoryProvider, InventoryContext } from '@/context/inventory-context';
+import { InventoryProvider, InventoryContext, AppNotification } from '@/context/inventory-context';
 import { RoleSwitcher } from '@/components/role-switcher';
 import { initialProductPrices } from '@/lib/prices';
 import { initialPendingDispatches } from '@/app/(main)/validation/page';
@@ -430,20 +431,16 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
 
   const isSuperAdmin = initialUser.roles.includes('Administrador');
   
-  const expiringReservations = useMemo(() => {
-        if (!inventoryContext) return [];
-        if (currentUser.roles.includes('Asesor de Ventas')) return [];
+  const relevantNotifications = useMemo(() => {
+    if (!inventoryContext?.notifications) return [];
+    return inventoryContext.notifications.filter(n => {
+        // Show if no specific user/role, or if it matches current user/role
+        return (!n.user && !n.role) || (n.user === currentUser.name) || (n.role && currentUser.roles.includes(n.role));
+    });
+  }, [inventoryContext?.notifications, currentUser.name, currentUser.roles]);
 
-        const now = new Date();
-        return inventoryContext.reservations.filter(r => {
-            if (r.status !== 'Validada') return false;
-            
-            const validationDate = new Date(new Date().setDate(now.getDate() - (Math.random() * 10))); // Mock date
-            const diffTime = now.getTime() - validationDate.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays > 5;
-        });
-    }, [inventoryContext, currentUser.roles]);
+  const unreadNotificationsCount = relevantNotifications.filter(n => !n.read).length;
+
 
   const pageTitle = useMemo(() => {
     const allItems = navItems.flatMap(item => 
@@ -453,7 +450,6 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     return currentNavItem?.label || 'Inicio';
   }, [pathname]);
 
-  const unreadNotificationsCount = inventoryContext?.notifications.filter(n => !n.read).length || 0;
 
   return (
     <>
@@ -606,9 +602,9 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                 </SheetHeader>
                 <Separator />
                 <div className="flex-1 overflow-y-auto">
-                    {inventoryContext?.notifications && inventoryContext.notifications.length > 0 ? (
+                    {relevantNotifications.length > 0 ? (
                         <div className="space-y-3 p-1">
-                            {inventoryContext.notifications.map(n => (
+                            {relevantNotifications.map(n => (
                                 <div key={n.id} className={cn("rounded-lg border p-3 text-sm", !n.read && "bg-primary/5")}>
                                     <div className="flex justify-between items-start">
                                         <p className="font-semibold">{n.title}</p>
@@ -635,6 +631,15 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState(initialUser);
+  
+  const inventoryContextValue = useContext(InventoryContext);
+  
+  const userNotifications = useMemo(() => {
+    if (!inventoryContextValue) return [];
+    return inventoryContextValue.notifications.filter(n => {
+        return !n.user || n.user === currentUser.name;
+    });
+  }, [inventoryContextValue, currentUser.name]);
 
   return (
     <UserContext.Provider value={{ currentUser, setCurrentUser }}>

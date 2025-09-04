@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useMemo, useContext } from 'react';
@@ -47,7 +48,7 @@ interface ValidatedItem {
 }
 
 export const initialPendingDispatches: DispatchData[] = [
-    { id: 1, cotizacion: 'COT-001', cliente: 'ConstruCali', vendedor: 'John Doe', factura: '', products: [{name: 'Cut stone', quantity: 10}, {name: 'Adhesivo', quantity: 5}], fechaSolicitud: '2024-07-28', ciudad: 'Cali', direccion: 'Calle Falsa 123', remision: 'REM-001', observacion: '', rutero: 'Transportadora', fechaDespacho: '', guia: '', convencion: 'Prealistamiento de pedido' },
+    { id: 1, cotizacion: 'COT-001', cliente: 'ConstruCali', vendedor: 'John Doe', products: [{name: 'Cut stone', quantity: 10, origin: 'Bodega'}, {name: 'Adhesivo', quantity: 5, origin: 'Bodega'}], fechaSolicitud: '2024-07-28', ciudad: 'Cali', direccion: 'Calle Falsa 123', remision: 'REM-001', observacion: '', rutero: 'Transportadora', fechaDespacho: '', guia: '', convencion: 'Prealistamiento de pedido' },
 ]
 
 const initialHistory: ValidatedItem[] = [
@@ -71,7 +72,7 @@ export default function ValidationPage() {
     if (!context) {
         throw new Error('ValidationPage must be used within an InventoryProvider');
     }
-    const { inventoryData, setInventoryData, reservations, setReservations, dispatchReservation, dispatchDirectFromInventory } = context;
+    const { inventoryData, setInventoryData, reservations, setReservations, dispatchReservation, dispatchDirectFromInventory, addNotification } = context;
 
     const [pendingDispatches, setPendingDispatches] = useState(initialPendingDispatches);
     const [validationHistory, setValidationHistory] = useState<ValidatedItem[]>(initialHistory);
@@ -141,7 +142,7 @@ export default function ValidationPage() {
             return inventoryUpdateSuccessful ? newInventory : currentInventory;
         }
 
-        setInventoryData(inventoryUpdates);
+        setInventoryData(inventoryUpdates, currentUser);
 
         if (!inventoryUpdateSuccessful) return;
 
@@ -161,6 +162,13 @@ export default function ValidationPage() {
                 validationDate: new Date().toISOString().split('T')[0],
                 factura: invoice,
                 type: 'Reserva',
+            });
+            
+             // Notify the advisor
+            addNotification({
+                title: `Reserva ${newStatus}`,
+                message: `Tu reserva para "${reservation.product}" (${reservation.quoteNumber}) fue ${newStatus.toLowerCase()}. Factura: ${invoice}.`,
+                user: reservation.advisor
             });
         }
         
