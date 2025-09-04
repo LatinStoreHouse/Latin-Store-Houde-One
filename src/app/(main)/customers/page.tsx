@@ -1,7 +1,7 @@
 
 
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -56,6 +56,7 @@ import { initialDistributorData } from '@/lib/distributors';
 import { initialPartnerData } from '@/lib/partners';
 import { initialCustomerData } from '@/lib/customers';
 import Link from 'next/link';
+import { InventoryContext } from '@/context/inventory-context';
 
 
 const sourceIcons: { [key: string]: React.ElementType } = {
@@ -92,6 +93,7 @@ export default function CustomersPage() {
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const { toast } = useToast();
   const router = useRouter();
+  const { addNotification } = useContext(InventoryContext)!;
 
   const { currentUser } = useUser();
   const userPermissions = useMemo(() => {
@@ -168,8 +170,18 @@ export default function CustomersPage() {
 
     if (selectedCustomer) {
       // Edit
+      const originalAssignedTo = selectedCustomer.assignedTo;
       setCustomers(customers.map(c => c.id === selectedCustomer.id ? { ...c, ...customerData } as Customer : c));
       toast({ title: 'Cliente Actualizado', description: 'Los datos del cliente se han actualizado.' });
+
+      if (customerData.assignedTo && customerData.assignedTo !== originalAssignedTo) {
+          addNotification({
+              title: 'Nuevo Cliente Asignado',
+              message: `Se te ha asignado el cliente: ${customerData.name}.`,
+              user: customerData.assignedTo
+          });
+      }
+
     } else {
       // Add - Check for duplicates first
       const isDuplicate = customers.some(c => 
@@ -194,6 +206,14 @@ export default function CustomersPage() {
         };
       setCustomers([...customers, newCustomer]);
       toast({ title: 'Cliente Agregado', description: 'El nuevo cliente se ha guardado.' });
+
+       if (newCustomer.assignedTo) {
+            addNotification({
+                title: 'Nuevo Cliente Asignado',
+                message: `Se te ha asignado el nuevo cliente: ${newCustomer.name}.`,
+                user: newCustomer.assignedTo
+            });
+        }
     }
     setIsModalOpen(false);
   };
@@ -212,6 +232,14 @@ export default function CustomersPage() {
         redirectedTo: partnerName,
         notes: c.notes ? `${c.notes}\n---\n${newNote}` : newNote 
     } : c));
+
+    if (partnerName) {
+        addNotification({
+            title: 'Nuevo Cliente Asignado',
+            message: `Se te ha asignado el cliente ${selectedCustomer.name} para seguimiento.`,
+            user: partnerName,
+        });
+    }
 
     toast({ title: 'Cliente Redireccionado', description: `${selectedCustomer.name} ha sido redireccionado y el estado actualizado.` });
     setIsRedirectModalOpen(false);
@@ -232,6 +260,12 @@ export default function CustomersPage() {
         assignedTo: transferAdvisor,
         notes: c.notes ? `${c.notes}\n---\n${newNote}` : newNote 
     } : c));
+
+    addNotification({
+        title: 'Nuevo Cliente Asignado',
+        message: `Se te ha transferido el cliente ${selectedCustomer.name}.`,
+        user: transferAdvisor
+    });
 
     toast({ title: 'Cliente Transferido', description: `${selectedCustomer.name} ha sido asignado a ${transferAdvisor}.` });
     setIsTransferModalOpen(false);
