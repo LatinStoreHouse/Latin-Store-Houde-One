@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -93,7 +93,7 @@ export function DesignRequestForm({ request, onSave, onCancel, currentUser }: De
         if (fileInputRef.current) fileInputRef.current.value = '';
     }
     
-    const canEditAdvisorFields = !isDesigner && isOwner;
+    const canEditAdvisorFields = isOwner && !isDesigner;
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">

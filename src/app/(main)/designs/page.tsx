@@ -184,15 +184,40 @@ export default function DesignRequestsPage() {
       const updatedRequest = { ...editingRequest, ...requestData };
       setRequests(prev => prev.map(r => r.id === editingRequest.id ? updatedRequest : r));
       toast({ title: 'Solicitud Actualizada', description: 'Los detalles de la solicitud de diseño han sido actualizados.' });
+      
+      const originalStatus = originalRequest?.status;
+      const newStatus = updatedRequest.status;
 
-      // Notify advisor on rejection
-      if (originalRequest && originalRequest.status !== 'Rechazado' && updatedRequest.status === 'Rechazado') {
-        addNotification({
-            title: 'Solicitud de Diseño Rechazada',
-            message: `Tu solicitud para "${updatedRequest.customerName}" fue rechazada. Revisa las notas del diseñador.`,
-            user: updatedRequest.advisor
-        });
-      }
+      if (originalStatus !== newStatus) {
+            let notificationTitle = '';
+            let notificationMessage = '';
+
+            switch (newStatus) {
+                case 'Rechazado':
+                    notificationTitle = 'Solicitud de Diseño Rechazada';
+                    notificationMessage = `Tu solicitud para "${updatedRequest.customerName}" fue rechazada. Revisa las notas del diseñador.`;
+                    break;
+                case 'En Proceso':
+                    notificationTitle = 'Solicitud de Diseño Aceptada';
+                    notificationMessage = `Tu solicitud para "${updatedRequest.customerName}" ha sido aceptada y está en proceso.`;
+                    break;
+                case 'Completado':
+                     notificationTitle = 'Propuesta de Diseño Lista';
+                     notificationMessage = `La propuesta de diseño para "${updatedRequest.customerName}" está completa y lista para descargar.`;
+                    break;
+                default:
+                    break;
+            }
+            
+            if (notificationTitle) {
+                 addNotification({
+                    title: notificationTitle,
+                    message: notificationMessage,
+                    user: updatedRequest.advisor
+                });
+            }
+        }
+
 
     } else {
       const newRequest: DesignRequest = {
