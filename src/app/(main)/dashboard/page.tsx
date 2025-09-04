@@ -144,18 +144,24 @@ export default function DashboardPage() {
     };
 
     const expiringReservations = useMemo(() => {
-        if (currentUserRole !== 'Asesor de Ventas') return [];
+        const canView = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Asesor de Ventas');
+        if (!canView) return [];
 
         const now = new Date();
         return reservations.filter(r => {
-            if (r.advisor !== currentUser.name || r.status !== 'Validada' || !r.expirationDate) return false;
+            if (r.status !== 'Validada' || !r.expirationDate) return false;
             
+            // Advisors only see their own expiring reservations
+            if (currentUser.roles.includes('Asesor de Ventas') && !currentUser.roles.includes('Administrador') && r.advisor !== currentUser.name) {
+                return false;
+            }
+
             const expiration = new Date(r.expirationDate);
             const diffTime = expiration.getTime() - now.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays <= 2 && diffDays >= 0; // Expires today, tomorrow, or in 2 days
+            return diffDays <= 2 && diffDays >= 0;
         });
-    }, [reservations, currentUser.name, currentUserRole]);
+    }, [reservations, currentUser.name, currentUser.roles]);
 
     const allNavItems = navItems.flatMap(item => item.subItems ? item.subItems.map(sub => ({...sub, icon: item.icon})) : [{ ...item, icon: item.icon }]);
     const accessibleNavItems = allNavItems.filter(item => item.href !== '/dashboard' && hasPermission(item.permission));

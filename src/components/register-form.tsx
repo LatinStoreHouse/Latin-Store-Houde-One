@@ -1,14 +1,15 @@
 
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Handshake } from 'lucide-react';
+import { AlertCircle, Handshake, UserPlus } from 'lucide-react';
 import Script from 'next/script';
+import { InventoryContext } from '@/context/inventory-context';
 
 declare global {
     interface Window {
@@ -24,24 +25,49 @@ interface RegisterFormProps {
 export function RegisterForm({ isDemo = false }: RegisterFormProps) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const recaptchaRef = useRef<HTMLDivElement>(null);
+  const { addNotification } = useContext(InventoryContext)!;
 
   const inviteType = isDemo ? 'distributor' : searchParams.get('type');
+  const inviteRole = searchParams.get('role');
+
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
   
-  const formTitle = inviteType === 'distributor' 
-    ? 'Solicitud de Cuenta de Distribuidor' 
-    : inviteType === 'partner' 
-    ? 'Solicitud de Cuenta de Partner' 
-    : 'Crear una Cuenta';
-    
-  const formDescription = inviteType 
-    ? `Complete el formulario para solicitar una cuenta de ${inviteType}. Su cuenta requerirá la aprobación de un administrador.`
-    : 'Complete el formulario para solicitar una cuenta. Su cuenta requerirá la aprobación de un administrador.';
+  const getInvitationDetails = () => {
+    if (inviteType === 'distributor') {
+        return {
+            title: 'Solicitud de Cuenta de Distribuidor',
+            description: `Complete el formulario para solicitar una cuenta de distribuidor. Su cuenta requerirá la aprobación de un administrador.`,
+            icon: Handshake
+        }
+    }
+     if (inviteType === 'partner') {
+        return {
+            title: 'Solicitud de Cuenta de Partner',
+            description: `Complete el formulario para solicitar una cuenta de partner. Su cuenta requerirá la aprobación de un administrador.`,
+            icon: Handshake
+        }
+    }
+    if (inviteRole) {
+        return {
+            title: `Registro para Rol de ${inviteRole}`,
+            description: `Complete el formulario para registrarse. Su cuenta será creada con el rol de ${inviteRole} y requerirá la aprobación de un administrador.`,
+            icon: UserPlus
+        }
+    }
+    return {
+        title: 'Crear una Cuenta',
+        description: 'Complete el formulario para solicitar una cuenta. Su cuenta requerirá la aprobación de un administrador.',
+        icon: null
+    };
+  }
+
+  const { title, description, icon: Icon } = getInvitationDetails();
 
 
   useEffect(() => {
@@ -70,14 +96,20 @@ export function RegisterForm({ isDemo = false }: RegisterFormProps) {
       return;
     }
 
-    if (!isVerified) {
+    if (!isVerified && !isDemo) {
       setError('Por favor, complete la verificación reCAPTCHA.');
       return;
     }
 
     // In a real app, you would handle the registration logic here,
     // like sending the data to your backend to create a user with a 'pending' status.
-    console.log('Registration submitted for type:', inviteType || 'standard');
+    console.log('Registration submitted for type:', inviteType || 'standard', 'with role:', inviteRole);
+
+    addNotification({
+        title: 'Nueva Solicitud de Registro',
+        message: `El usuario "${name}" se ha registrado y está pendiente de aprobación.`,
+        role: 'Administrador'
+    });
 
     // Redirect to login page with a query param to show the toast
     router.push('/login?pending_approval=true');
@@ -85,25 +117,25 @@ export function RegisterForm({ isDemo = false }: RegisterFormProps) {
 
   return (
     <>
-    {siteKey && (
+    {siteKey && !isDemo && (
         <Script 
             src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" 
             strategy="afterInteractive" 
         />
     )}
     <form onSubmit={handleSubmit} className="space-y-4">
-        {inviteType && (
+        {(inviteType || inviteRole) && Icon && (
             <Alert variant="default" className="border-primary/20 bg-primary/5">
-                <Handshake className="h-4 w-4 text-primary" />
-                <AlertTitle className="text-primary">{formTitle}</AlertTitle>
+                <Icon className="h-4 w-4 text-primary" />
+                <AlertTitle className="text-primary">{title}</AlertTitle>
                 <AlertDescription className="text-primary/80">
-                    {formDescription}
+                    {description}
                 </AlertDescription>
             </Alert>
         )}
         <div className="space-y-2">
             <Label htmlFor="fullname">Nombre Completo</Label>
-            <Input id="fullname" type="text" placeholder="John Doe" required />
+            <Input id="fullname" type="text" placeholder="John Doe" required value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="space-y-2">
             <Label htmlFor="email">Correo Electrónico</Label>
@@ -130,16 +162,18 @@ export function RegisterForm({ isDemo = false }: RegisterFormProps) {
             />
         </div>
 
-        {siteKey ? (
+        {siteKey && !isDemo ? (
             <div ref={recaptchaRef} className="flex justify-center"></div>
         ) : (
-            <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Configuración Requerida</AlertTitle>
-                <AlertDescription>
-                    La clave de sitio de reCAPTCHA no está configurada. Por favor, añádala a su archivo .env para habilitar el registro.
-                </AlertDescription>
-            </Alert>
+             !isDemo && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Configuración Requerida</AlertTitle>
+                    <AlertDescription>
+                        La clave de sitio de reCAPTCHA no está configurada. Por favor, añádala a su archivo .env para habilitar el registro.
+                    </AlertDescription>
+                </Alert>
+            )
         )}
         
         {error && (
@@ -148,7 +182,7 @@ export function RegisterForm({ isDemo = false }: RegisterFormProps) {
             </Alert>
         )}
 
-      <Button type="submit" className="w-full" disabled={!isVerified || !siteKey}>
+      <Button type="submit" className="w-full" disabled={(!isVerified && !isDemo) || !siteKey}>
         Crear Cuenta
       </Button>
       <div className="mt-4 text-center text-sm">

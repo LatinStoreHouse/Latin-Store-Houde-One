@@ -46,6 +46,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Combobox } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
+import { InventoryContext } from '@/context/inventory-context';
 
 
 type UserStatus = 'active' | 'inactive' | 'pending';
@@ -72,6 +73,7 @@ export default function UsersPage() {
   const [generatedLink, setGeneratedLink] = useState('');
   const [activeTab, setActiveTab] = useState<UserStatus>('active');
   const { toast } = useToast();
+  const { addNotification } = useContext(InventoryContext)!;
 
   const handleOpenInviteModal = () => {
     setIsInviteModalOpen(true);

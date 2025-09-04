@@ -238,9 +238,13 @@ export default function ValidationPage() {
                 setPendingDispatches(prev => [dispatch, ...prev]);
                 setValidationHistory(prev => prev.filter(h => h.id !== `DIS-${dispatch.id}`));
             }
-        } else {
-            toast({ title: 'Éxito', description: `Despacho para ${dispatch.cotizacion} ha sido ${newStatus.toLowerCase()}.` });
         }
+        
+        addNotification({
+            title: `Despacho ${newStatus}`,
+            message: `El despacho para "${dispatch.cliente}" (${dispatch.cotizacion}) fue ${newStatus.toLowerCase()}. Factura: ${factura}.`,
+            user: dispatch.vendedor
+        });
     };
 
     const filteredHistory = useMemo(() => {
