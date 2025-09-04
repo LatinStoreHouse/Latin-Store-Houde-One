@@ -1,5 +1,4 @@
 
-
 'use client';
 import Link from 'next/link';
 import React, { useState, useMemo, useContext, useEffect } from 'react';
@@ -275,15 +274,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => addNotification({
-              title: '¡Nuevo Material Disponible!',
-              message: 'El contenedor de prueba CONT-TEST ha llegado y su contenido ha sido añadido al inventario.',
-              role: 'Logística',
-              href: '/transit'
-          })}>
-            <Bell className="mr-2 h-4 w-4" />
-            Probar Notificación
-          </Button>
           {isAdvisor && (
               <Button variant="outline" onClick={() => setIsStatsModalOpen(true)}>
                   <BarChart className="mr-2 h-4 w-4" />
