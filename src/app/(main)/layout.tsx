@@ -607,38 +607,43 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                     {relevantNotifications.length > 0 ? (
                         <div className="space-y-3 p-1">
                             {relevantNotifications.map(n => {
-                                const NotificationWrapper = n.href
-                                    ? ({ children }: { children: React.ReactNode }) => <Link href={n.href!} onClick={() => setIsNotificationsOpen(false)}>{children}</Link>
-                                    : ({ children }: { children: React.ReactNode }) => <>{children}</>;
-
-                                return (
-                                <NotificationWrapper key={n.id}>
+                                const NotificationContent = () => (
                                     <div className={cn(
-                                        "relative rounded-lg border p-3 text-sm transition-colors",
+                                        "relative rounded-lg border p-3 text-sm transition-colors w-full",
                                         !n.read && "bg-primary/5",
                                         n.href && "cursor-pointer hover:bg-accent/50"
                                     )}>
                                         <div className="flex justify-between items-start">
-                                            <p className="font-semibold">{n.title}</p>
-                                            {!n.read && <div className="h-2 w-2 rounded-full bg-primary mt-1"></div>}
+                                            <p className="font-semibold pr-6">{n.title}</p>
+                                            {!n.read && <div className="h-2 w-2 rounded-full bg-primary mt-1 shrink-0"></div>}
                                         </div>
                                         <p className="text-muted-foreground">{n.message}</p>
                                         <p className="text-xs text-muted-foreground/70 mt-2">{new Date(n.date).toLocaleString()}</p>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="absolute top-1 right-1 h-6 w-6"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                inventoryContext?.dismissNotification(n.id);
-                                            }}
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
                                     </div>
-                                </NotificationWrapper>
-                                )
+                                );
+
+                                return (
+                                <div key={n.id} className="relative">
+                                    {n.href ? (
+                                        <Link href={n.href} onClick={() => setIsNotificationsOpen(false)} className="block">
+                                            <NotificationContent />
+                                        </Link>
+                                    ) : (
+                                        <NotificationContent />
+                                    )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute top-1 right-1 h-6 w-6"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            inventoryContext?.dismissNotification(n.id);
+                                        }}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                );
                             })}
                         </div>
                     ) : (
