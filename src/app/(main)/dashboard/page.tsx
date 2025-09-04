@@ -276,9 +276,10 @@ export default function DashboardPage() {
 
       <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => addNotification({
-              title: 'Notificación de Prueba',
-              message: `Hola ${currentUser.name}, ¡así es como se ve una notificación!`,
-              user: currentUser.name
+              title: '¡Nuevo Material Disponible!',
+              message: 'El contenedor de prueba CONT-TEST ha llegado y su contenido ha sido añadido al inventario.',
+              role: 'Logística',
+              href: '/transit'
           })}>
             <Bell className="mr-2 h-4 w-4" />
             Probar Notificación
