@@ -614,7 +614,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                                 return (
                                 <NotificationWrapper key={n.id}>
                                     <div className={cn(
-                                        "rounded-lg border p-3 text-sm transition-colors",
+                                        "relative rounded-lg border p-3 text-sm transition-colors",
                                         !n.read && "bg-primary/5",
                                         n.href && "cursor-pointer hover:bg-accent/50"
                                     )}>
@@ -624,6 +624,18 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                                         </div>
                                         <p className="text-muted-foreground">{n.message}</p>
                                         <p className="text-xs text-muted-foreground/70 mt-2">{new Date(n.date).toLocaleString()}</p>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute top-1 right-1 h-6 w-6"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                inventoryContext?.dismissNotification(n.id);
+                                            }}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
                                     </div>
                                 </NotificationWrapper>
                                 )
