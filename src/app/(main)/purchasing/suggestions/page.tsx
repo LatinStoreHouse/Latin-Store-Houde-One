@@ -100,12 +100,14 @@ export default function PurchaseSuggestionsPage() {
     addNotification({
         title: 'Nueva Sugerencia de Compra',
         message: `${currentUser.name} ha sugerido comprar ${quantity} unidades de "${productName}".`,
-        role: 'Tráfico' // Send to a role
+        role: 'Tráfico',
+        href: '/purchasing/suggestions'
     });
      addNotification({
         title: 'Nueva Sugerencia de Compra',
         message: `${currentUser.name} ha sugerido comprar ${quantity} unidades de "${productName}".`,
-        role: 'Administrador' // Also send to Admin
+        role: 'Administrador',
+        href: '/purchasing/suggestions'
     });
 
     toast({ title: 'Sugerencia Enviada', description: 'Gracias, tu recomendación ha sido enviada al equipo de compras.'});

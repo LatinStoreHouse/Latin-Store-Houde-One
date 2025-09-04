@@ -53,6 +53,7 @@ export interface AppNotification {
   read?: boolean;
   user?: string; // To target a notification to a specific user by name
   role?: Role; // To target a notification to a specific role
+  href?: string; // Optional link for the notification
 }
 
 export interface Suggestion {
@@ -466,6 +467,17 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
               message: `El nuevo producto "${name}" ha sido agregado al inventario pero no tiene un precio. Por favor, actualícelo en la página de Precios.`,
               date: new Date().toISOString(),
               read: false,
+              role: 'Contador',
+              href: '/pricing'
+            });
+            newNotifications.push({
+              id: Date.now() + Math.random(),
+              title: 'Precio Requerido para Nuevo Producto',
+              message: `El nuevo producto "${name}" ha sido agregado al inventario pero no tiene un precio. Por favor, actualícelo en la página de Precios.`,
+              date: new Date().toISOString(),
+              read: false,
+              role: 'Administrador',
+              href: '/pricing'
             });
           }
 
@@ -497,6 +509,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
         title: '¡Nuevo Material Disponible!',
         message: `El contenedor ${containerId} ha llegado y su contenido ha sido añadido al inventario de Zona Franca.`,
         role: 'Logística',
+        href: '/transit'
     };
     addNotification(generalNotification);
     addNotification({...generalNotification, role: 'Contador'});

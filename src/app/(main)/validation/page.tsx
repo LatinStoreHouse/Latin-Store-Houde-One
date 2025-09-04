@@ -108,7 +108,7 @@ export default function ValidationPage() {
 
 
     const handleReservationValidation = (reservationsToValidate: Reservation[], newStatus: 'Validada' | 'Rechazada', invoice: string) => {
-        if (!invoice) {
+        if (!invoice && newStatus === 'Validada') {
             toast({ variant: 'destructive', title: 'Error', description: 'Se requiere un número de factura para validar.' });
             return;
         }
@@ -160,15 +160,16 @@ export default function ValidationPage() {
                 status: newStatus,
                 validatedBy: currentUser.name,
                 validationDate: new Date().toISOString().split('T')[0],
-                factura: invoice,
+                factura: invoice || 'N/A',
                 type: 'Reserva',
             });
             
              // Notify the advisor
             addNotification({
                 title: `Reserva ${newStatus}`,
-                message: `Tu reserva para "${reservation.product}" (${reservation.quoteNumber}) fue ${newStatus.toLowerCase()}. Factura: ${invoice}.`,
-                user: reservation.advisor
+                message: `Tu reserva para "${reservation.product}" (${reservation.quoteNumber}) fue ${newStatus.toLowerCase()}${newStatus === 'Validada' ? `. Factura: ${invoice}` : '.'}`,
+                user: reservation.advisor,
+                href: '/reservations'
             });
         }
         
@@ -191,7 +192,7 @@ export default function ValidationPage() {
     
     const handleDispatchValidation = (dispatch: DispatchData, newStatus: 'Validada' | 'Rechazada') => {
         const factura = facturaNumbers[`dispatch-${dispatch.id}`];
-        if (!factura) {
+        if (!factura && newStatus === 'Validada') {
             toast({ variant: 'destructive', title: 'Error', description: 'Se requiere un número de factura para validar.' });
             return;
         }
@@ -206,7 +207,7 @@ export default function ValidationPage() {
             status: newStatus,
             validatedBy: currentUser.name,
             validationDate: new Date().toISOString().split('T')[0],
-            factura,
+            factura: factura || 'N/A',
             type: 'Despacho',
         };
         setValidationHistory([newHistoryEntry, ...validationHistory]);
@@ -243,7 +244,8 @@ export default function ValidationPage() {
         addNotification({
             title: `Despacho ${newStatus}`,
             message: `El despacho para "${dispatch.cliente}" (${dispatch.cotizacion}) fue ${newStatus.toLowerCase()}. Factura: ${factura}.`,
-            user: dispatch.vendedor
+            user: dispatch.vendedor,
+            href: '/orders'
         });
     };
 
@@ -396,7 +398,7 @@ export default function ValidationPage() {
                             <Button size="sm" onClick={() => handleBulkValidate('Validada')} disabled={!bulkFacturaNumber}>
                                 <Check className="h-4 w-4 mr-2" /> Validar
                             </Button>
-                             <Button size="sm" variant="destructive" onClick={() => handleBulkValidate('Rechazada')} disabled={!bulkFacturaNumber}>
+                             <Button size="sm" variant="destructive" onClick={() => handleBulkValidate('Rechazada')}>
                                 <X className="h-4 w-4 mr-2" /> Rechazar
                             </Button>
                         </div>
@@ -455,7 +457,7 @@ export default function ValidationPage() {
                                     <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(singleReservationArray, 'Validada', facturaNumbers[reservation.id] || '')} disabled={!facturaNumbers[reservation.id]}>
                                         <Check className="h-4 w-4 text-green-600" />
                                     </Button>
-                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(singleReservationArray, 'Rechazada', facturaNumbers[reservation.id] || '')} disabled={!facturaNumbers[reservation.id]}>
+                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleReservationValidation(singleReservationArray, 'Rechazada', facturaNumbers[reservation.id] || 'N/A')}>
                                         <X className="h-4 w-4 text-red-600" />
                                     </Button>
                                 </div>
@@ -508,7 +510,7 @@ export default function ValidationPage() {
                                         <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleDispatchValidation(dispatch, 'Validada')} disabled={!facturaNumbers[`dispatch-${dispatch.id}`]}>
                                             <Check className="h-4 w-4 text-green-600" />
                                         </Button>
-                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleDispatchValidation(dispatch, 'Rechazada')} disabled={!facturaNumbers[`dispatch-${dispatch.id}`]}>
+                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleDispatchValidation(dispatch, 'Rechazada')}>
                                             <X className="h-4 w-4 text-red-600" />
                                         </Button>
                                     </div>

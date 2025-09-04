@@ -171,14 +171,16 @@ export default function CustomersPage() {
     if (selectedCustomer) {
       // Edit
       const originalAssignedTo = selectedCustomer.assignedTo;
-      setCustomers(customers.map(c => c.id === selectedCustomer.id ? { ...c, ...customerData } as Customer : c));
+      const updatedCustomer = { ...selectedCustomer, ...customerData };
+      setCustomers(customers.map(c => c.id === selectedCustomer.id ? updatedCustomer : c));
       toast({ title: 'Cliente Actualizado', description: 'Los datos del cliente se han actualizado.' });
 
       if (customerData.assignedTo && customerData.assignedTo !== originalAssignedTo) {
           addNotification({
               title: 'Nuevo Cliente Asignado',
               message: `Se te ha asignado el cliente: ${customerData.name}.`,
-              user: customerData.assignedTo
+              user: customerData.assignedTo,
+              href: `/customers/${updatedCustomer.id}`
           });
       }
 
@@ -211,7 +213,8 @@ export default function CustomersPage() {
             addNotification({
                 title: 'Nuevo Cliente Asignado',
                 message: `Se te ha asignado el nuevo cliente: ${newCustomer.name}.`,
-                user: newCustomer.assignedTo
+                user: newCustomer.assignedTo,
+                href: `/customers/${newCustomer.id}`
             });
         }
     }
@@ -238,6 +241,7 @@ export default function CustomersPage() {
             title: 'Nuevo Cliente Asignado',
             message: `Se te ha asignado el cliente ${selectedCustomer.name} para seguimiento.`,
             user: partnerName,
+            href: '/assigned-customers'
         });
     }
 
@@ -264,7 +268,8 @@ export default function CustomersPage() {
     addNotification({
         title: 'Nuevo Cliente Asignado',
         message: `Se te ha transferido el cliente ${selectedCustomer.name}.`,
-        user: transferAdvisor
+        user: transferAdvisor,
+        href: `/customers/${selectedCustomer.id}`
     });
 
     toast({ title: 'Cliente Transferido', description: `${selectedCustomer.name} ha sido asignado a ${transferAdvisor}.` });

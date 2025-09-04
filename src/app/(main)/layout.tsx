@@ -606,16 +606,28 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                 <div className="flex-1 overflow-y-auto">
                     {relevantNotifications.length > 0 ? (
                         <div className="space-y-3 p-1">
-                            {relevantNotifications.map(n => (
-                                <div key={n.id} className={cn("rounded-lg border p-3 text-sm", !n.read && "bg-primary/5")}>
-                                    <div className="flex justify-between items-start">
-                                        <p className="font-semibold">{n.title}</p>
-                                        {!n.read && <div className="h-2 w-2 rounded-full bg-primary mt-1"></div>}
+                            {relevantNotifications.map(n => {
+                                const NotificationWrapper = n.href
+                                    ? ({ children }: { children: React.ReactNode }) => <Link href={n.href!} onClick={() => setIsNotificationsOpen(false)}>{children}</Link>
+                                    : ({ children }: { children: React.ReactNode }) => <>{children}</>;
+
+                                return (
+                                <NotificationWrapper key={n.id}>
+                                    <div className={cn(
+                                        "rounded-lg border p-3 text-sm transition-colors",
+                                        !n.read && "bg-primary/5",
+                                        n.href && "cursor-pointer hover:bg-accent/50"
+                                    )}>
+                                        <div className="flex justify-between items-start">
+                                            <p className="font-semibold">{n.title}</p>
+                                            {!n.read && <div className="h-2 w-2 rounded-full bg-primary mt-1"></div>}
+                                        </div>
+                                        <p className="text-muted-foreground">{n.message}</p>
+                                        <p className="text-xs text-muted-foreground/70 mt-2">{new Date(n.date).toLocaleString()}</p>
                                     </div>
-                                    <p className="text-muted-foreground">{n.message}</p>
-                                    <p className="text-xs text-muted-foreground/70 mt-2">{new Date(n.date).toLocaleString()}</p>
-                                </div>
-                            ))}
+                                </NotificationWrapper>
+                                )
+                            })}
                         </div>
                     ) : (
                          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
