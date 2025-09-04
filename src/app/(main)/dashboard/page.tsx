@@ -2,7 +2,7 @@
 
 'use client';
 import Link from 'next/link';
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
@@ -37,7 +37,7 @@ import {
     Package
 } from 'lucide-react';
 import { Role, roles } from '@/lib/roles';
-import { InventoryContext } from '@/context/inventory-context';
+import { InventoryContext, AppNotification } from '@/context/inventory-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { navItems, useUser } from '@/app/(main)/layout';
 import { initialSalesData } from '@/lib/sales-data';
@@ -129,14 +129,28 @@ export default function DashboardPage() {
     if (!inventoryContext || !userContext) {
       throw new Error('DashboardPage must be used within an InventoryProvider and UserProvider');
     }
-    const { notifications, dismissNotification, reservations, addNotification } = inventoryContext;
+    const { notifications, reservations, addNotification } = inventoryContext;
     const { currentUser } = userContext;
 
     const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
     const [statsDate, setStatsDate] = useState(new Date());
+    const [visibleNotifications, setVisibleNotifications] = useState<AppNotification[]>([]);
 
     const currentUserRole = currentUser.roles[0];
     const userPermissions = roles.find(r => r.name === currentUserRole)?.permissions || [];
+
+    useEffect(() => {
+        // Show only the 3 latest unread notifications relevant to the user
+        const unread = notifications
+            .filter(n => !n.read)
+            .filter(n => (!n.user && !n.role) || (n.user === currentUser.name) || (n.role && currentUser.roles.includes(n.role)))
+            .slice(0, 3);
+        setVisibleNotifications(unread);
+    }, [notifications, currentUser.name, currentUser.roles]);
+
+    const dismissDashboardNotification = (id: number) => {
+        setVisibleNotifications(prev => prev.filter(n => n.id !== id));
+    };
 
     const hasPermission = (permission?: string) => {
         if (!permission) return true;
@@ -241,7 +255,7 @@ export default function DashboardPage() {
              </AlertDescription>
            </Alert>
         ))}
-        {notifications.map(notification => (
+        {visibleNotifications.map(notification => (
            <Alert key={notification.id} className="relative bg-primary/10 border-primary/20">
              <Bell className="h-4 w-4 text-primary" />
              <AlertTitle className="text-primary font-semibold">{notification.title}</AlertTitle>
@@ -252,7 +266,7 @@ export default function DashboardPage() {
                 variant="ghost" 
                 size="icon" 
                 className="absolute top-2 right-2 h-6 w-6 text-primary/80 hover:text-primary"
-                onClick={() => dismissNotification(notification.id)}
+                onClick={() => dismissDashboardNotification(notification.id)}
              >
                 <X className="h-4 w-4" />
              </Button>
