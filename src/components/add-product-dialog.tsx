@@ -6,11 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Combobox } from '@/components/ui/combobox';
+import { Separator } from './ui/separator';
 
 interface AddProductDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
-    onSave: (product: { brand: string; line: string; name: string; price: number, size?: string }) => void;
+    onSave: (product: { brand: string; line: string; name: string; price: number, size?: string, stock: { bodega: number, zonaFranca: number, muestras: number } }) => void;
     brands: string[];
     linesByBrand: Record<string, string[]>;
 }
@@ -21,6 +22,7 @@ export function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesBy
     const [name, setName] = useState('');
     const [price, setPrice] = useState(0);
     const [size, setSize] = useState('');
+    const [stock, setStock] = useState({ bodega: 0, zonaFranca: 0, muestras: 0 });
     const [isNewBrand, setIsNewBrand] = useState(false);
     const [isNewLine, setIsNewLine] = useState(false);
     
@@ -28,7 +30,7 @@ export function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesBy
     const lineOptions = brand ? (linesByBrand[brand] || []).map(l => ({ value: l, label: l })) : [];
     
     const handleSave = () => {
-        onSave({ brand, line, name, price, size });
+        onSave({ brand, line, name, price, size, stock });
         resetForm();
     }
 
@@ -38,6 +40,7 @@ export function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesBy
         setName('');
         setPrice(0);
         setSize('');
+        setStock({ bodega: 0, zonaFranca: 0, muestras: 0 });
         setIsNewBrand(false);
         setIsNewLine(false);
     };
@@ -61,13 +64,17 @@ export function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesBy
         setLine('');
     };
 
+    const handleStockChange = (field: keyof typeof stock, value: string) => {
+        setStock(prev => ({...prev, [field]: Number(value) || 0}));
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Añadir Nuevo Producto</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
+                <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
                     <div className="space-y-2">
                         <div className="flex items-center space-x-2 mb-2">
                             <Checkbox id="is-new-brand-dialog" checked={isNewBrand} onCheckedChange={handleToggleNewBrand} />
@@ -116,6 +123,24 @@ export function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesBy
                      <div className="space-y-2">
                         <Label>Precio (COP)</Label>
                         <Input type="number" value={price} onChange={e => setPrice(Number(e.target.value))} />
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                        <Label>Cantidades Iniciales de Stock</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                            <div className="space-y-1">
+                                <Label htmlFor="stock-bodega" className="text-xs">Bodega</Label>
+                                <Input id="stock-bodega" type="number" value={stock.bodega} onChange={e => handleStockChange('bodega', e.target.value)} />
+                            </div>
+                             <div className="space-y-1">
+                                <Label htmlFor="stock-zf" className="text-xs">Zona Franca</Label>
+                                <Input id="stock-zf" type="number" value={stock.zonaFranca} onChange={e => handleStockChange('zonaFranca', e.target.value)} />
+                            </div>
+                             <div className="space-y-1">
+                                <Label htmlFor="stock-muestras" className="text-xs">Muestras</Label>
+                                <Input id="stock-muestras" type="number" value={stock.muestras} onChange={e => handleStockChange('muestras', e.target.value)} />
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <DialogFooter>

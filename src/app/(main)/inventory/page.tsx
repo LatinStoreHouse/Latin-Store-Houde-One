@@ -613,15 +613,20 @@ export default function InventoryPage() {
      }
   };
 
-  const handleAddProduct = (newProduct: { brand: string; line: string; name: string; price: number; size?: string }) => {
-    const { brand, line, name, price, size } = newProduct;
+  const handleAddProduct = (newProduct: { brand: string; line: string; name: string; price: number; size?: string; stock: { bodega: number; zonaFranca: number; muestras: number; } }) => {
+    const { brand, line, name, price, size, stock } = newProduct;
     if (!brand || !line || !name) {
       toast({ variant: 'destructive', title: 'Error', description: 'Todos los campos son requeridos para agregar un producto.' });
       return;
     }
 
-    // Use context function to add the product
-    addProduct({ name, brand, line, size, price, stock: { bodega: 0, zonaFranca: 0, separadasBodega: 0, separadasZonaFranca: 0, muestras: 0 }});
+    const stockData = {
+        ...stock,
+        separadasBodega: 0,
+        separadasZonaFranca: 0,
+    };
+
+    addProduct({ name, brand, line, size, price, stock: stockData});
 
     toast({ title: 'Producto Agregado', description: `Se ha agregado "${name}" al inventario.` });
     setIsAddDialogOpen(false);
@@ -966,5 +971,6 @@ export default function InventoryPage() {
     
 
     
+
 
 
