@@ -613,12 +613,12 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                                         !n.read && "bg-primary/5",
                                         n.href && "cursor-pointer hover:bg-accent/50"
                                     )}>
-                                        <div className="flex justify-between items-start">
-                                            <p className="font-semibold pr-6">{n.title}</p>
-                                            {!n.read && <div className="h-2 w-2 rounded-full bg-primary mt-1 shrink-0"></div>}
-                                        </div>
+                                        <p className="font-semibold pr-6">{n.title}</p>
                                         <p className="text-muted-foreground">{n.message}</p>
-                                        <p className="text-xs text-muted-foreground/70 mt-2">{new Date(n.date).toLocaleString()}</p>
+                                        <div className="flex justify-between items-center mt-2">
+                                            <p className="text-xs text-muted-foreground/70">{new Date(n.date).toLocaleString()}</p>
+                                            {!n.read && <div className="h-2 w-2 rounded-full bg-primary"></div>}
+                                        </div>
                                     </div>
                                 );
 
