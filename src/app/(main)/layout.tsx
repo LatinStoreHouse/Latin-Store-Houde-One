@@ -83,6 +83,7 @@ import { initialPendingDispatches } from '@/app/(main)/validation/page';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { PageLoader } from '@/components/page-loader';
 
 
 // CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
@@ -571,6 +572,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
+        <PageLoader />
         <header className="flex h-14 items-center justify-between gap-4 border-b bg-background/95 px-6 backdrop-blur-sm">
             <div className="flex items-center gap-4">
                 <SidebarTrigger />

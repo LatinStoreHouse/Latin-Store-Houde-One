@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Handshake, UserPlus } from 'lucide-react';
+import { AlertCircle, Handshake, Loader2, UserPlus } from 'lucide-react';
 import Script from 'next/script';
 import { InventoryContext } from '@/context/inventory-context';
 
@@ -33,6 +33,7 @@ export default function RegisterPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const [isVerified, setIsVerified] = useState(false);
     const router = useRouter();
     const recaptchaRef = useRef<HTMLDivElement>(null);
@@ -89,24 +90,29 @@ export default function RegisterPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setLoading(true);
 
         if (password !== confirmPassword) {
-        setError('Las contraseñas no coinciden.');
-        return;
+            setError('Las contraseñas no coinciden.');
+            setLoading(false);
+            return;
         }
 
         if (!isVerified) {
-        setError('Por favor, complete la verificación reCAPTCHA.');
-        return;
+            setError('Por favor, complete la verificación reCAPTCHA.');
+            setLoading(false);
+            return;
         }
+        
+        setTimeout(() => {
+            addNotification({
+                title: 'Nueva Solicitud de Registro',
+                message: `El usuario "${name}" se ha registrado y está pendiente de aprobación.`,
+                role: 'Administrador'
+            });
 
-        addNotification({
-            title: 'Nueva Solicitud de Registro',
-            message: `El usuario "${name}" se ha registrado y está pendiente de aprobación.`,
-            role: 'Administrador'
-        });
-
-        router.push('/login?pending_approval=true');
+            router.push('/login?pending_approval=true');
+        }, 1000);
     };
 
     return (
@@ -137,11 +143,11 @@ export default function RegisterPage() {
                         )}
                         <div className="space-y-2">
                             <Label htmlFor="fullname">Nombre Completo</Label>
-                            <Input id="fullname" type="text" placeholder="John Doe" required value={name} onChange={(e) => setName(e.target.value)} />
+                            <Input id="fullname" type="text" placeholder="John Doe" required value={name} onChange={(e) => setName(e.target.value)} disabled={loading}/>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Correo Electrónico</Label>
-                            <Input id="email" type="email" placeholder="nombre@ejemplo.com" required />
+                            <Input id="email" type="email" placeholder="nombre@ejemplo.com" required disabled={loading}/>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="password">Contraseña</Label>
@@ -151,6 +157,7 @@ export default function RegisterPage() {
                                 required 
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                disabled={loading}
                             />
                         </div>
                         <div className="space-y-2">
@@ -161,6 +168,7 @@ export default function RegisterPage() {
                                 required 
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
+                                disabled={loading}
                             />
                         </div>
 
@@ -182,8 +190,9 @@ export default function RegisterPage() {
                             </Alert>
                         )}
 
-                    <Button type="submit" className="w-full" disabled={!isVerified || !siteKey}>
-                        Crear Cuenta
+                    <Button type="submit" className="w-full" disabled={!isVerified || !siteKey || loading}>
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
                     </Button>
                     <div className="mt-4 text-center text-sm">
                         ¿Ya tienes una cuenta?{' '}
