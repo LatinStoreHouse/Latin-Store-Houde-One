@@ -20,7 +20,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Badge } from "./badge"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./carousel"
 
 export type ComboboxOption = {
   value: string
@@ -72,38 +71,26 @@ export function MultiSelectCombobox({
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
             {selected.length > 0 && (
-                <Carousel
-                    opts={{
-                        align: "start",
-                        dragFree: true,
-                    }}
-                    className="w-full"
-                >
-                    <CarouselContent className="-ml-2">
-                        {selected.map((value) => {
-                            const label = options.find((option) => option.value === value)?.label || value;
-                            return (
-                                <CarouselItem key={value} className="pl-2 basis-auto">
-                                     <Badge variant="secondary" className="gap-1.5">
-                                        <span className="max-w-[150px] truncate">{label}</span>
-                                        <button
-                                            aria-label={`Remove ${label}`}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleSelect(value);
-                                            }}
-                                            className="rounded-full ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </button>
-                                    </Badge>
-                                </CarouselItem>
-                            )
-                        })}
-                    </CarouselContent>
-                    <CarouselPrevious className="absolute -left-5 top-1/2 -translate-y-1/2 h-6 w-6" />
-                    <CarouselNext className="absolute -right-5 top-1/2 -translate-y-1/2 h-6 w-6" />
-                </Carousel>
+                <div className="flex flex-wrap gap-1">
+                    {selected.map((value) => {
+                        const label = options.find((option) => option.value === value)?.label || value;
+                        return (
+                            <Badge key={value} variant="secondary" className="gap-1.5">
+                                <span className="max-w-[150px] truncate">{label}</span>
+                                <button
+                                    aria-label={`Remove ${label}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSelect(value);
+                                    }}
+                                    className="rounded-full ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </Badge>
+                        )
+                    })}
+                </div>
             )}
         </div>
       </PopoverTrigger>
