@@ -32,6 +32,7 @@ import { LocationCombobox } from '@/components/location-combobox';
 import { InventoryContext } from '@/context/inventory-context';
 import { CustomerSelector } from '@/components/customer-selector';
 import { Customer } from '@/lib/customers';
+import { adhesiveYields, sealantYields } from '@/lib/supplies-data';
 
 
 
@@ -155,52 +156,29 @@ function AdhesiveReferenceTable() {
                 <DialogTitle>Tabla de Referencia de Insumos</DialogTitle>
                 <CardDescription>Rendimiento estimado de adhesivos y sellantes por tipo de referencia.</CardDescription>
             </DialogHeader>
-             <div className="space-y-6 py-4">
+            <div className="space-y-6 py-4">
                 <div>
                     <h3 className="font-semibold mb-2">Adhesivo (Rendimiento por unidad)</h3>
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Línea de Producto</TableHead>
-                                <TableHead>Adhesivo por Lámina (1.22x0.61)</TableHead>
-                                <TableHead>Adhesivo por Lámina (2.44x1.22)</TableHead>
+                                <TableHead>Adhesivo por Lámina (Estándar)</TableHead>
+                                <TableHead>Adhesivo por Lámina (XL)</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow>
-                                <TableCell>Pizarra, Cuarcitas, Mármol (excepto Himalaya), Clay</TableCell>
-                                <TableCell>0.5 unidades</TableCell>
-                                <TableCell>2 unidades</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Mármol (Línea Himalaya)</TableCell>
-                                <TableCell>1.5 unidades</TableCell>
-                                <TableCell>3.5 unidades</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Concreto</TableCell>
-                                <TableCell>1.8 unidades</TableCell>
-                                <TableCell>3 unidades</TableCell>
-                            </TableRow>
-                             <TableRow>
-                                <TableCell>Línea Translúcida</TableCell>
-                                <TableCell>0.5 unidades (Adhesivo Translúcido)</TableCell>
-                                <TableCell>2 unidades (Adhesivo Translúcido)</TableCell>
-                            </TableRow>
-                             <TableRow>
-                                <TableCell>Línea Metales</TableCell>
-                                <TableCell>1.5 unidades (2.44x0.61)</TableCell>
-                                <TableCell>3 unidades (2.44x1.22)</TableCell>
-                            </TableRow>
-                             <TableRow>
-                                <TableCell>Línea Madera</TableCell>
-                                <TableCell>0.5 unidades (0.15x2.44)</TableCell>
-                                <TableCell>N/A</TableCell>
-                            </TableRow>
+                            {adhesiveYields.map((yieldData, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>{yieldData.line}</TableCell>
+                                    <TableCell>{yieldData.standard}</TableCell>
+                                    <TableCell>{yieldData.xl}</TableCell>
+                                </TableRow>
+                            ))}
                         </TableBody>
                     </Table>
                 </div>
-                 <div>
+                <div>
                     <h3 className="font-semibold mb-2">Sellante (Rendimiento por M²)</h3>
                     <Table>
                         <TableHeader>
@@ -211,20 +189,17 @@ function AdhesiveReferenceTable() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow>
-                                <TableCell>Semi-Brillante (Galón)</TableCell>
-                                <TableCell>60 M²</TableCell>
-                                <TableCell>40 M²</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Semi-Brillante (1/4 Galón)</TableCell>
-                                <TableCell>18 M²</TableCell>
-                                <TableCell>10 M²</TableCell>
-                            </TableRow>
+                            {sealantYields.map((yieldData, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>{yieldData.sealant}</TableCell>
+                                    <TableCell>{yieldData.standardYield} M²</TableCell>
+                                    <TableCell>{yieldData.clayYield} M²</TableCell>
+                                </TableRow>
+                            ))}
                         </TableBody>
                     </Table>
                     <p className="text-xs text-muted-foreground mt-2">
-                       Nota: Se recomienda el uso del sellante semi-brillante para un acabado óptimo y duradero.
+                        Nota: Se recomienda el uso del sellante semi-brillante para un acabado óptimo y duradero.
                     </p>
                 </div>
             </div>
