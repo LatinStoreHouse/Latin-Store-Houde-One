@@ -9,15 +9,16 @@ import { Label } from '@/components/ui/label';
 import { Combobox } from '@/components/ui/combobox';
 import { shippingRates, cityOptions } from '@/lib/shipping-rates';
 import { Calculator, DollarSign, Truck } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function ShippingCalculatorPage() {
-    const [origin, setOrigin] = useState('');
     const [destination, setDestination] = useState('');
     const [weight, setWeight] = useState<number | string>('');
     const [length, setLength] = useState<number | string>('');
     const [width, setWidth] = useState<number | string>('');
     const [height, setHeight] = useState<number | string>('');
     const [calculatedCost, setCalculatedCost] = useState<number | null>(null);
+    const [calculationType, setCalculationType] = useState('');
 
     const handleCalculate = () => {
         const numWeight = Number(weight);
@@ -25,22 +26,23 @@ export default function ShippingCalculatorPage() {
         const numWidth = Number(width);
         const numHeight = Number(height);
 
-        if (!origin || !destination || numWeight <= 0 || numLength <= 0 || numWidth <= 0 || numHeight <= 0) {
+        if (!destination || numWeight <= 0 || numLength <= 0 || numWidth <= 0 || numHeight <= 0) {
             setCalculatedCost(null);
             return;
         }
 
-        const rate = shippingRates[destination];
-        if (!rate) {
+        const rateInfo = shippingRates.find(r => r.destino === destination);
+        if (!rateInfo) {
             setCalculatedCost(null);
-            // In a real app, show a toast or error message
             return;
         }
 
         const volumetricWeight = (numLength * numWidth * numHeight) / 5000;
         const chargeableWeight = Math.max(numWeight, volumetricWeight);
+        
+        setCalculationType(chargeableWeight > numWeight ? 'Peso Volumétrico' : 'Peso Real');
 
-        const cost = rate.base + (chargeableWeight * rate.perKg);
+        const cost = chargeableWeight * rateInfo.tarifa;
         setCalculatedCost(cost);
     };
 
@@ -63,21 +65,26 @@ export default function ShippingCalculatorPage() {
                         <div>
                             <CardTitle>Calculadora de Costos de Envío</CardTitle>
                             <CardDescription>
-                                Estime el costo de envío basado en el destino, peso y dimensiones del paquete.
+                                Estime el costo de envío desde Bogotá basado en el destino, peso y dimensiones del paquete.
                             </CardDescription>
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Origen</Label>
-                            <Combobox options={cityOptions} value={origin} onValueChange={setOrigin} placeholder="Seleccionar origen" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Destino</Label>
-                            <Combobox options={cityOptions} value={destination} onValueChange={setDestination} placeholder="Seleccionar destino" />
-                        </div>
+                     <div className="space-y-2">
+                        <Label>Origen</Label>
+                        <Input value="Bogotá D.C." disabled />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Destino</Label>
+                        <Combobox 
+                            options={cityOptions} 
+                            value={destination} 
+                            onValueChange={setDestination} 
+                            placeholder="Seleccionar destino" 
+                            searchPlaceholder='Buscar ciudad...'
+                            emptyPlaceholder='No se encontró la ciudad.'
+                        />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -105,10 +112,13 @@ export default function ShippingCalculatorPage() {
             {calculatedCost !== null && (
                 <Card className="bg-primary/5 border-primary/20">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-3 text-primary">
-                            <DollarSign className="h-6 w-6" />
-                            Costo de Envío Estimado
-                        </CardTitle>
+                        <div className="flex justify-between items-start">
+                            <CardTitle className="flex items-center gap-3 text-primary">
+                                <DollarSign className="h-6 w-6" />
+                                Costo de Envío Estimado
+                            </CardTitle>
+                             <Badge variant="outline">{calculationType}</Badge>
+                        </div>
                     </CardHeader>
                     <CardContent className="text-center">
                         <p className="text-4xl font-bold">{formatCurrency(calculatedCost)}</p>
