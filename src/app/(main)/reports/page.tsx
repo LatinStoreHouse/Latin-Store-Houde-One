@@ -81,7 +81,6 @@ const addPdfHeader = async (doc: jsPDF) => {
     doc.setTextColor(100);
     doc.text('Latin Store House S.A.S', pageWidth - 14, 15, { align: 'right' });
     doc.text('NIT: 901.401.708-1', pageWidth - 14, 19, { align: 'right' });
-    doc.text('Cali, Colombia', pageWidth - 14, 23, { align: 'right' });
 };
 
 
@@ -335,13 +334,15 @@ const QuotesReport = ({ quotes, date, user }: { quotes: Quote[], date: Date, use
         
         await addPdfHeader(doc);
         
+        let startY = 40;
         doc.setFontSize(14);
-        doc.text('Reporte de Cotizaciones', 14, 35);
+        doc.text('Reporte de Cotizaciones', 14, startY);
+        startY += 5;
         doc.setFontSize(11);
         doc.setTextColor(100);
-        doc.text(`Mes: ${monthName}`, 14, 40);
+        doc.text(`Mes: ${monthName}`, 14, startY);
+        startY += 5;
         
-        let startY = 45;
         if (advisorFilter) {
             doc.text(`Asesor: ${advisorFilter}`, 14, startY);
             startY += 5;
@@ -480,10 +481,10 @@ export default function ReportsPage() {
         
         await addPdfHeader(doc);
 
-        doc.setFontSize(14);
-        doc.text(`Reporte Mensual - ${monthName}`, 14, 35);
-
         let startY = 40;
+        doc.setFontSize(14);
+        doc.text(`Reporte Mensual - ${monthName}`, 14, startY);
+        startY += 10;
 
         if (isAdvisor) {
             doc.setFontSize(11);

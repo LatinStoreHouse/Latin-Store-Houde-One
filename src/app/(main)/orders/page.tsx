@@ -93,7 +93,6 @@ const addPdfHeader = async (doc: jsPDF) => {
     doc.setTextColor(100);
     doc.text('Latin Store House S.A.S', pageWidth - 14, 15, { align: 'right' });
     doc.text('NIT: 901.401.708-1', pageWidth - 14, 19, { align: 'right' });
-    doc.text('Cali, Colombia', pageWidth - 14, 23, { align: 'right' });
 };
 
 
@@ -351,10 +350,10 @@ export default function DispatchPage() {
     await addPdfHeader(doc);
     
     doc.setFontSize(14);
-    doc.text('Reporte de Despachos', 14, 35);
+    doc.text('Reporte de Despachos', 14, 40);
 
     doc.autoTable({
-      startY: 40,
+      startY: 45,
       head: [
         [
           'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',

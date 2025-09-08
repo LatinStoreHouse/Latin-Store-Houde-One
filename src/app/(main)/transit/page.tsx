@@ -110,7 +110,6 @@ const addPdfHeader = async (doc: jsPDF) => {
     doc.setTextColor(100);
     doc.text('Latin Store House S.A.S', pageWidth - 14, 15, { align: 'right' });
     doc.text('NIT: 901.401.708-1', pageWidth - 14, 19, { align: 'right' });
-    doc.text('Cali, Colombia', pageWidth - 14, 23, { align: 'right' });
 };
 
 
@@ -657,9 +656,9 @@ export default function TransitPage() {
     await addPdfHeader(doc);
     
     doc.setFontSize(14);
-    doc.text('Reporte de Contenedores', 14, 35);
+    doc.text('Reporte de Contenedores', 14, 40);
     
-    let yPos = 40;
+    let yPos = 45;
 
     containersToExport.forEach((container) => {
         const bodyData = container.products.map(p => [p.name, p.quantity]);
