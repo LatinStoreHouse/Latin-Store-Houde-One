@@ -7,7 +7,7 @@ import * as XLSX from 'xlsx';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle, ChevronDown, MessageSquare, Save } from 'lucide-react';
+import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle, ChevronDown, MessageSquare, Save, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -781,7 +781,7 @@ export default function StoneflexCalculatorPage() {
     }
     
     if (latinLogoData) {
-        const logoWidth = 20; // Reduced size
+        const logoWidth = 20;
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
         const xPos = pageWidth - logoWidth - 14;
         doc.addImage(latinLogoData.base64, 'PNG', xPos, 10, logoWidth, logoHeight);
@@ -1097,11 +1097,21 @@ export default function StoneflexCalculatorPage() {
                             <div className="mt-4 space-y-2 pl-6">
                                 <Label>Acabado del Sellante</Label>
                                 <RadioGroup value={sealantFinish} onValueChange={(v) => setSealantFinish(v as SealantFinish)} className="flex gap-4 pt-2">
-                                    <RadioGroupItem value="semibright" id="finish-semi" />
-                                    <Label htmlFor="finish-semi" className="font-normal">Semi-Brillante</Label>
-                                    <RadioGroupItem value="shiny" id="finish-shiny" />
-                                    <Label htmlFor="finish-shiny" className="font-normal">Brillante</Label>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="semibright" id="finish-semi" />
+                                        <Label htmlFor="finish-semi" className="font-normal">Semi-Brillante</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="shiny" id="finish-shiny" />
+                                        <Label htmlFor="finish-shiny" className="font-normal">Brillante</Label>
+                                    </div>
                                 </RadioGroup>
+                                 {sealantFinish === 'shiny' && (
+                                    <div className="flex items-center gap-2 text-xs text-amber-600 pt-2">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <span>Nota: Se recomienda el uso de sellante semi-brillante.</span>
+                                    </div>
+                                )}
                                 <Dialog>
                                     <DialogTrigger asChild>
                                         <Button variant="link" size="sm" className="text-xs p-0 h-auto">
