@@ -102,20 +102,20 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                 {yields.map((yieldData, index) => {
                     const displayNames = Array.isArray(yieldData.productNames) ? yieldData.productNames : [];
                     const groupTitle = yieldData.groupName || (displayNames.length > 0 ? displayNames[0] : 'Grupo sin nombre');
-                    const additionalProductsCount = displayNames.length - 1;
+                    const additionalProductsCount = displayNames.length > 1 ? displayNames.length : 0;
                     
                     return (
                     <TableRow key={index}>
                         <TableCell>
                             <Tooltip>
-                            <TooltipTrigger className="text-left">
-                                <span className="underline decoration-dashed cursor-help">
-                                    {groupTitle} {additionalProductsCount > 0 && `(y ${additionalProductsCount} más)`}
-                                </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p className="max-w-xs">{displayNames.join(', ')}</p>
-                            </TooltipContent>
+                                <TooltipTrigger className="text-left">
+                                    <span className="underline decoration-dashed cursor-help">
+                                        {groupTitle} {additionalProductsCount > 0 && `(y ${additionalProductsCount} más)`}
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="max-w-xs">{displayNames.join(', ')}</p>
+                                </TooltipContent>
                             </Tooltip>
                         </TableCell>
                         <TableCell>{yieldData.yield} und.</TableCell>
@@ -275,8 +275,8 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="w-[200px]">Nombre del Grupo</TableHead>
-                                    <TableHead className="min-w-[300px]">Referencias de Producto</TableHead>
-                                    <TableHead>Rendimiento</TableHead>
+                                    <TableHead className="min-w-[400px]">Referencias de Producto</TableHead>
+                                    <TableHead className="text-center">Rendimiento</TableHead>
                                     <TableHead className="text-center">Es Translúcido</TableHead>
                                     <TableHead className="w-10"></TableHead>
                                 </TableRow>
@@ -292,7 +292,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                                                     placeholder="Ej: Pizarras Estándar"
                                                 />
                                             </TableCell>
-                                            <TableCell className="min-w-[300px]">
+                                            <TableCell className="min-w-[400px]">
                                                 <MultiSelectCombobox
                                                     options={productOptions}
                                                     selected={yieldData.productNames || []}
@@ -302,13 +302,14 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                                                     emptyPlaceholder='Producto no encontrado.'
                                                 />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-center">
                                                  <div className="space-y-1">
                                                     <Input
                                                         type="number"
                                                         value={yieldData.yield ?? ''}
                                                         onChange={(e) => handleAdhesiveChange(index, 'yield', Number(e.target.value))}
                                                         placeholder={'0.0'}
+                                                        className="text-center"
                                                     />
                                                      <p className="text-xs text-muted-foreground">und.</p>
                                                  </div>

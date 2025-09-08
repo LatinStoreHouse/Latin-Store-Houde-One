@@ -3,7 +3,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown, X } from "lucide-react"
+import { Check, ChevronsUpDown, X, PlusCircle } from "lucide-react"
 import {
   Accordion,
   AccordionContent,
@@ -102,8 +102,8 @@ export function MultiSelectCombobox({
             </Accordion>
              <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-10">
-                    Añadir
+                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0">
+                    <PlusCircle className="h-4 w-4" />
                 </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="end">
