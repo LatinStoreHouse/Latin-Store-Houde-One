@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useMemo, useEffect, useContext } from 'react';
 import Image from 'next/image';
@@ -159,7 +160,7 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Referencia de Producto</TableHead>
+                                <TableHead>Referencias de Producto</TableHead>
                                 <TableHead>Adhesivo por Lámina (Estándar)</TableHead>
                                 <TableHead>Adhesivo por Lámina (XL)</TableHead>
                             </TableRow>
@@ -167,7 +168,7 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                         <TableBody>
                             {adhesiveYields.map((yieldData, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{yieldData.productNames.join(', ')}</TableCell>
+                                    <TableCell>{Array.isArray(yieldData.productNames) ? yieldData.productNames.join(', ') : ''}</TableCell>
                                     <TableCell>{yieldData.standard}</TableCell>
                                     <TableCell>{yieldData.xl}</TableCell>
                                 </TableRow>
