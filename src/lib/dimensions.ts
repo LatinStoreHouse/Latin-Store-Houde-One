@@ -55,11 +55,11 @@ export const productDimensions: { [key: string]: string } = {
     'Concreto medio': '2.44x1.22 Mts',
 
     // StoneFlex Metales
-    'Corten stell': '2.44x0.61 Mts',
+    'Corten Steel': '2.44x0.61 Mts',
     'Mural blue patina with copper': '2.44x0.61 Mts',
     'Mural white with copper gold': '2.44x0.61 Mts',
     'Gate turquoise patina copper': '2.44x0.61 Mts',
-    'Corten steel': '2.44x1.22 Mts',
+    'Corten Steel XL': '2.44x1.22 Mts',
 
     // StoneFlex Madera
     'Madera nogal': '0.15x2.44 Mts',

@@ -62,13 +62,13 @@ export const initialProductPrices: { [key: string]: number } = {
     'Madera ébano': 81512,
     
     // Metálicas 244x61
-    'Corten stell': 399050,
+    'Corten Steel': 399050,
     'Mural blue patina with copper': 399050,
     'Mural white with copper gold': 399050,
     'Gate turquoise patina copper': 399050,
 
     // Metálicas Gran Formato (244x122)
-    'Corten steel': 798100,
+    'Corten Steel XL': 798100,
 
     // Clay
     'Cut stone': 176000,

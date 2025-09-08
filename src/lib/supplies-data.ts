@@ -1,7 +1,7 @@
 
 
 export const initialAdhesiveYields = [
-    { groupName: 'Pizarras, Cuarcitas, Mármoles y Maderas Estándar', productNames: ['Cut stone', 'Travertino', 'Concreto encofrado', 'Tapia negra', 'Black', 'Kund multy', 'Tan', 'Indian autumn', 'Burning forest', 'Copper', 'Jeera green', 'Silver shine', 'Silver shine gold', 'Steel grey', 'Carrara', 'Crystal white', 'Mint white', 'Madera nogal', 'Madera teka', 'Madera ébano'], yield: 0.5, isTranslucent: false },
+    { groupName: 'Pizarras, Cuarcitas y Mármoles Estándar', productNames: ['Cut stone', 'Travertino', 'Concreto encofrado', 'Tapia negra', 'Black', 'Kund multy', 'Tan', 'Indian autumn', 'Burning forest', 'Copper', 'Jeera green', 'Silver shine', 'Silver shine gold', 'Steel grey', 'Carrara', 'Crystal white', 'Mint white'], yield: 0.5, isTranslucent: false },
     { groupName: 'Pizarras, Cuarcitas y Mármoles XL', productNames: ['Black XL', 'Kund multy XL', 'Tan XL', 'Indian autumn XL', 'Burning forest XL', 'Copper XL', 'Jeera green XL', 'Silver shine XL', 'Silver shine gold XL', 'Steel grey XL', 'Carrara XL', 'Crystal white XL'], yield: 2, isTranslucent: false },
     { groupName: 'Mármol Himalaya', productNames: ['Himalaya gold'], yield: 1.5, isTranslucent: false },
     { groupName: 'Mármol Himalaya XL', productNames: ['Himalaya gold XL'], yield: 3.5, isTranslucent: false },
@@ -9,7 +9,8 @@ export const initialAdhesiveYields = [
     { groupName: 'Concretos XL', productNames: ['Concreto blanco XL', 'Concreto gris XL', 'Concrete with holes XL', 'Concreto medio'], yield: 3, isTranslucent: false },
     { groupName: 'Translúcidas Estándar', productNames: ['Indian autumn translucido'], yield: 0.5, isTranslucent: true },
     { groupName: 'Translúcidas XL', productNames: ['Indian autumn translucido XL'], yield: 2, isTranslucent: true },
-    { groupName: 'Metálicos', productNames: ['Corten stell', 'Mural blue patina with copper', 'Mural white with copper gold', 'Gate turquoise patina copper', 'Corten steel'], yield: 1.5, isTranslucent: false },
+    { groupName: 'Metálicos', productNames: ['Corten Steel', 'Corten Steel XL', 'Mural blue patina with copper', 'Mural white with copper gold', 'Gate turquoise patina copper'], yield: 1.5, isTranslucent: false },
+    { groupName: 'Maderas', productNames: ['Madera nogal', 'Madera teka', 'Madera ébano'], yield: 0.5, isTranslucent: false },
 ];
 
 export const initialSealantYields = [
