@@ -32,6 +32,7 @@ import { InventoryContext, AdhesiveYield, SealantYield, InventoryData } from '@/
 import { CustomerSelector } from '@/components/customer-selector';
 import { Customer } from '@/lib/customers';
 import { MultiSelectCombobox } from '@/components/ui/multi-select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 const IVA_RATE = 0.19; // 19%
@@ -91,6 +92,7 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                 <DialogTitle>Tabla de Referencia de Insumos</DialogTitle>
                 <DialogDescription>Rendimiento estimado de adhesivos y sellantes por tipo de referencia.</DialogDescription>
             </DialogHeader>
+            <TooltipProvider>
             <div className="space-y-6 py-4">
                 <div>
                     <h3 className="font-semibold mb-2">Adhesivo (Rendimiento por unidad)</h3>
@@ -110,12 +112,21 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                                 return (
                                 <TableRow key={index}>
                                     <TableCell>
-                                        {firstProduct}
-                                        {remainingCount > 0 && (
-                                            <span className="text-muted-foreground text-xs ml-1">
-                                                (y {remainingCount} más)
+                                      <Tooltip>
+                                        <TooltipTrigger>
+                                            <span className="underline decoration-dashed cursor-help">
+                                                {firstProduct}
+                                                {remainingCount > 0 && (
+                                                    <span className="text-muted-foreground text-xs ml-1">
+                                                        (y {remainingCount} más)
+                                                    </span>
+                                                )}
                                             </span>
-                                        )}
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="max-w-xs">{displayNames.join(', ')}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
                                     </TableCell>
                                     <TableCell>{yieldData.yield} und.</TableCell>
                                 </TableRow>
@@ -148,6 +159,7 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                     </p>
                 </div>
             </div>
+            </TooltipProvider>
         </DialogContent>
     );
 }
@@ -563,7 +575,7 @@ export default function StoneflexCalculatorPage() {
           return {...item, itemTotal: itemCost, pricePerSheet: hasPrice ? convert(pricePerSheetCOP) : 0, hasPrice};
       }
 
-      const isClay = item.reference.toLowerCase().includes('travertino') || item.reference.toLowerCase().includes('cut stone') || item.reference.toLowerCase().includes('concreto encofrado') || item.reference.toLowerCase().includes('tapia');
+      const isClay = adhesiveYields.find(y => y.productNames.includes(item.reference) && !y.isTranslucent); // This needs to be better defined, for now use adhesive config as proxy
       if (hasPrice) {
         if (isClay) {
             totalSqmClay += item.sqMeters;
@@ -1469,3 +1481,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
