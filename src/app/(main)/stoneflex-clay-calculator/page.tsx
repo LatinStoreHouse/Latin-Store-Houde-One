@@ -212,20 +212,27 @@ const initialCustomerState = {
   address: '',
 };
 
-function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initialSealant, inventoryData }: { adhesiveYields: AdhesiveYield[], sealantYields: SealantYield[], inventoryData: InventoryData }) {
+function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
     const context = useContext(InventoryContext);
     if (!context) throw new Error("Context not found");
     
     const { setAdhesiveYields, setSealantYields } = context;
 
-    const [localAdhesiveYields, setLocalAdhesiveYields] = useState<AdhesiveYield[]>(initialAdhesive);
-    const [localSealantYields, setLocalSealantYields] = useState<SealantYield[]>(initialSealant);
+    const [localAdhesiveYields, setLocalAdhesiveYields] = useState<AdhesiveYield[]>(context.adhesiveYields);
+    const [localSealantYields, setLocalSealantYields] = useState<SealantYield[]>(context.sealantYields);
     const [hasChanges, setHasChanges] = useState(false);
     const { toast } = useToast();
 
     const productOptions = useMemo(() => {
         const products = inventoryData['StoneFlex'] ? Object.keys(inventoryData['StoneFlex']).flatMap(line => Object.keys(inventoryData['StoneFlex'][line])) : [];
         return products.map(product => ({ value: product, label: product }));
+    }, [inventoryData]);
+
+    const sealantOptions = useMemo(() => {
+        const sealantProducts = inventoryData['StoneFlex']?.['Insumos'] ? Object.keys(inventoryData['StoneFlex']['Insumos']) : [];
+        return sealantProducts
+            .filter(p => p.toLowerCase().includes('sellante'))
+            .map(p => ({ value: p, label: p }));
     }, [inventoryData]);
 
     const handleAdhesiveChange = (index: number, field: keyof AdhesiveYield, value: string) => {
@@ -299,10 +306,12 @@ function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initia
                                                 value={yieldData.productName}
                                                 onValueChange={(value) => handleAdhesiveChange(index, 'productName', value)}
                                                 placeholder="Seleccionar producto"
+                                                searchPlaceholder='Buscar producto...'
+                                                emptyPlaceholder='Producto no encontrado.'
                                             />
                                         </TableCell>
-                                        <TableCell><Input value={yieldData.standard} onChange={(e) => handleAdhesiveChange(index, 'standard', e.target.value)} /></TableCell>
-                                        <TableCell><Input value={yieldData.xl} onChange={(e) => handleAdhesiveChange(index, 'xl', e.target.value)} /></TableCell>
+                                        <TableCell><Input value={yieldData.standard} onChange={(e) => handleAdhesiveChange(index, 'standard', e.target.value)} placeholder="ej: 0.5 unidades" /></TableCell>
+                                        <TableCell><Input value={yieldData.xl} onChange={(e) => handleAdhesiveChange(index, 'xl', e.target.value)} placeholder="ej: 2 unidades" /></TableCell>
                                         <TableCell><Button size="icon" variant="ghost" onClick={() => handleRemoveYield(index, 'adhesive')}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
                                     </TableRow>
                                 ))}
@@ -328,7 +337,16 @@ function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initia
                         <TableBody>
                             {localSealantYields.map((yieldData, index) => (
                                 <TableRow key={index}>
-                                    <TableCell><Input value={yieldData.sealant} onChange={(e) => handleSealantChange(index, 'sealant', e.target.value)} /></TableCell>
+                                    <TableCell>
+                                        <Combobox
+                                            options={sealantOptions}
+                                            value={yieldData.sealant}
+                                            onValueChange={(value) => handleSealantChange(index, 'sealant', value)}
+                                            placeholder="Seleccionar sellante"
+                                            searchPlaceholder='Buscar sellante...'
+                                            emptyPlaceholder='Insumo no encontrado.'
+                                        />
+                                    </TableCell>
                                     <TableCell><Input type="number" value={yieldData.standardYield} onChange={(e) => handleSealantChange(index, 'standardYield', Number(e.target.value))} /></TableCell>
                                     <TableCell><Input type="number" value={yieldData.clayYield} onChange={(e) => handleSealantChange(index, 'clayYield', Number(e.target.value))} /></TableCell>
                                     <TableCell><Button size="icon" variant="ghost" onClick={() => handleRemoveYield(index, 'sealant')}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
@@ -1040,7 +1058,7 @@ export default function StoneflexCalculatorPage() {
                             <Settings className="h-4 w-4" />
                        </Button>
                     </DialogTrigger>
-                    <SettingsDialog adhesiveYields={adhesiveYields} sealantYields={sealantYields} inventoryData={inventoryData} />
+                    <SettingsDialog inventoryData={inventoryData} />
                 </Dialog>
                 <Image src="/imagenes/logos/Logo-StoneFlex-v-color.png" alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>
             </div>
