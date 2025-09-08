@@ -1,6 +1,6 @@
 
 
-export const adhesiveYields = [
+export const initialAdhesiveYields = [
     { line: 'Pizarra, Cuarcitas, Mármol (excepto Himalaya), Clay', standard: '0.5 unidades', xl: '2 unidades' },
     { line: 'Mármol (Línea Himalaya)', standard: '1.5 unidades', xl: '3.5 unidades' },
     { line: 'Concreto', standard: '1.8 unidades', xl: '3 unidades' },
@@ -9,7 +9,7 @@ export const adhesiveYields = [
     { line: 'Línea Madera', standard: '0.5 unidades (0.15x2.44)', xl: 'N/A' },
 ];
 
-export const sealantYields = [
-    { sealant: 'Semi-Brillante (Galón)', standardYield: 60, clayYield: 40 },
-    { sealant: 'Semi-Brillante (1/4 Galón)', standardYield: 18, clayYield: 10 },
+export const initialSealantYields = [
+    { sealant: 'Sellante semi - brigth 1/ 4 galon', standardYield: 18, clayYield: 10 },
+    { sealant: 'Sellante shyny 1/4 galon', standardYield: 18, clayYield: 10 },
 ];

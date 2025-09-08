@@ -69,6 +69,7 @@ import {
     X,
     Palette,
     Wrench,
+    Settings,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -116,14 +117,13 @@ export const navItems = [
   { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
   { href: '/assigned-customers', label: 'Mis Clientes', icon: Users, permission: 'partners:clients' },
   {
-    label: 'Calculadoras y Herramientas',
+    label: 'Calculadoras',
     icon: Calculator,
     permission: 'calculators:use',
     subItems: [
       { href: '/stoneflex-clay-calculator', label: 'Calculadora StoneFlex' },
       { href: '/starwood-calculator', label: 'Calculadora Starwood' },
       { href: '/shipping-calculator', label: 'Calculadora de Envíos' },
-      { href: '/invoices', label: 'Historial de Cotizaciones', permission: 'invoices:view' },
     ],
   },
    {
@@ -133,12 +133,19 @@ export const navItems = [
       { href: '/purchasing/suggestions', label: 'Sugerencias de Compra', permission: 'purchasing:suggestions:view' },
     ],
   },
+  { href: '/invoices', label: 'Historial de Cotizaciones', icon: Receipt, permission: 'invoices:view' },
   { href: '/designs', label: 'Diseño', icon: Palette, permission: 'designs:view' },
   { href: '/pricing', label: 'Precios', icon: Tags, permission: 'pricing:view' },
-  { href: '/marketing/campaigns', label: 'Marketing', icon: Megaphone, permission: 'marketing:view' },
-  { href: '/users', label: 'Usuarios', icon: UserCog, permission: 'users:manage' },
-  { href: '/roles', label: 'Roles y Permisos', icon: ShieldCheck, permission: 'roles:manage' },
-  { href: '/reports', label: 'Reportes', icon: FileText, permission: 'reports:view' },
+  {
+    label: 'Administración',
+    icon: Settings,
+    subItems: [
+        { href: '/users', label: 'Usuarios', permission: 'users:manage' },
+        { href: '/roles', label: 'Roles y Permisos', permission: 'roles:manage' },
+        { href: '/reports', label: 'Reportes', permission: 'reports:view' },
+        { href: '/settings', label: 'Ajustes Generales', permission: 'roles:manage' }, // Assuming only admin can manage settings
+    ]
+  }
 ];
 
 const getIconForSubItem = (label: string, parentIcon: React.ElementType) => {
@@ -152,6 +159,10 @@ const getIconForSubItem = (label: string, parentIcon: React.ElementType) => {
         case 'Calculadora StoneFlex': return Store;
         case 'Calculadora Starwood': return Store;
         case 'Calculadora de Envíos': return Truck;
+        case 'Usuarios': return UserCog;
+        case 'Roles y Permisos': return ShieldCheck;
+        case 'Reportes': return FileText;
+        case 'Ajustes Generales': return Wrench;
         default: return parentIcon;
     }
 }
