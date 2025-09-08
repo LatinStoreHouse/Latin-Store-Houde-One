@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useRef, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -109,7 +110,7 @@ export default function RegisterPage() {
             setConfirmationResult(result);
             setIsOtpSent(true);
             setError('Se ha enviado un código de verificación a tu teléfono.');
-        } catch (error: any) {
+        } catch (error: any) => {
             console.error("Error sending OTP:", error);
             setError(`Error al enviar el código: ${error.message}`);
         } finally {
@@ -146,7 +147,7 @@ export default function RegisterPage() {
             });
 
             router.push('/login?pending_approval=true');
-        } catch (error: any) {
+        } catch (error: any) => {
             console.error("Error verifying OTP:", error);
             setError(`Código de verificación incorrecto. Inténtelo de nuevo.`);
             setLoading(false);

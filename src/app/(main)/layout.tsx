@@ -380,9 +380,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const [isPhoneOtpSent, setIsPhoneOtpSent] = useState(false);
   const [phoneConfirmationResult, setPhoneConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  const auth = getAuth(app);
-  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
-
+  
   // Password change state
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -391,8 +389,31 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const [isPasswordOtpSent, setIsPasswordOtpSent] = useState(false);
   const [passwordConfirmationResult, setPasswordConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const passwordRecaptchaContainerRef = useRef<HTMLDivElement>(null);
   
+  const [auth, setAuth] = useState<any>(null);
+  
+  
+  useEffect(() => {
+    const authInstance = getAuth(app);
+    setAuth(authInstance);
+  }, []);
+
+  useEffect(() => {
+    if (isEditingProfile && auth) {
+        if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible', 'callback': () => {}
+            });
+            window.recaptchaVerifier.render();
+        }
+        if (!window.passwordRecaptchaVerifier) {
+            window.passwordRecaptchaVerifier = new RecaptchaVerifier(auth, 'password-recaptcha-container', {
+                'size': 'invisible', 'callback': () => {}
+            });
+            window.passwordRecaptchaVerifier.render();
+        }
+    }
+  }, [isEditingProfile, auth]);
   
   const userPermissions = useMemo(() => {
     const permissions = new Set<string>();
@@ -407,23 +428,6 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     return Array.from(permissions);
   }, [currentUser.roles, currentUser.individualPermissions]);
 
-  useEffect(() => {
-    if (isEditingProfile) {
-        if (recaptchaContainerRef.current && !window.recaptchaVerifier) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible', 'callback': () => {}
-            });
-            window.recaptchaVerifier.render();
-        }
-        if (passwordRecaptchaContainerRef.current && !window.passwordRecaptchaVerifier) {
-            window.passwordRecaptchaVerifier = new RecaptchaVerifier(auth, 'password-recaptcha-container', {
-                'size': 'invisible', 'callback': () => {}
-            });
-            window.passwordRecaptchaVerifier.render();
-        }
-    }
-  }, [isEditingProfile, auth]);
-  
   const hasPermission = (item: any) => {
     if (!item.permission) return true; // Items without a specific permission are public
     return userPermissions.includes(item.permission);
@@ -443,6 +447,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   };
 
   const handleSendPhoneOtp = async () => {
+    if (!auth) return;
     setPhoneError(null);
     if (!editedPhone || !editedPhone.startsWith('+57') || editedPhone.length !== 13) {
         setPhoneError('Por favor, ingrese un número de teléfono válido con el formato +57XXXXXXXXXX.');
@@ -469,6 +474,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   };
   
    const handleSendPasswordOtp = async () => {
+    if (!auth) return;
     setPasswordError(null);
     if (!currentUser.phone) {
         setPasswordError('No hay un número de teléfono registrado para enviar el código.');
@@ -495,6 +501,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   };
 
   const handleProfileSave = async () => {
+    if (!auth) return;
     let updatedPhone = currentUser.phone;
     let passwordUpdated = false;
 
@@ -639,8 +646,8 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                 </div>
             </DialogTrigger>
             <DialogContent>
-                 <div id="recaptcha-container" ref={recaptchaContainerRef} className="invisible"></div>
-                 <div id="password-recaptcha-container" ref={passwordRecaptchaContainerRef} className="invisible"></div>
+                 <div id="recaptcha-container" className="invisible"></div>
+                 <div id="password-recaptcha-container" className="invisible"></div>
                 <DialogHeader>
                     <DialogTitle>{isEditingProfile ? 'Editar Perfil' : 'Perfil de Usuario'}</DialogTitle>
                     <DialogDescription>
