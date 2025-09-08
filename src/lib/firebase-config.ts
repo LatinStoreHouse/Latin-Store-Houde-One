@@ -21,7 +21,11 @@ const auth = getAuth(app);
 
 let analytics;
 if (typeof window !== 'undefined' && isSupported()) {
-    analytics = getAnalytics(app);
+    try {
+        analytics = getAnalytics(app);
+    } catch (error) {
+        console.error("Failed to initialize Firebase Analytics", error);
+    }
 }
 
 export { app, auth, analytics };
