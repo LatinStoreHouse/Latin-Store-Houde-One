@@ -5,10 +5,12 @@
 import * as React from "react"
 import { Check, ChevronsUpDown, X } from "lucide-react"
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -61,74 +63,76 @@ export function MultiSelectCombobox({
 
   const displayLabel = selected.length > 0
     ? `${selected.length} producto(s) seleccionado(s)`
-    : placeholder;
+    : "No hay productos seleccionados";
 
   return (
     <div className={cn("w-full space-y-2", className)}>
-        <Collapsible>
-             <div className="flex items-center justify-between space-x-4 px-1">
-                 <h4 className="text-sm font-semibold">{displayLabel}</h4>
-                 <CollapsibleTrigger asChild>
-                    <Popover open={open} onOpenChange={setOpen}>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8">
-                            Añadir Productos
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="end">
-                        <Command>
-                          <CommandInput placeholder={searchPlaceholder} />
-                          <CommandList>
-                            <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
-                            <CommandGroup>
-                              {options.map((option) => (
-                                <CommandItem
-                                  key={option.value}
-                                  value={option.value}
-                                  onSelect={() => handleSelect(option.value)}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      selected.includes(option.value) ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  {option.label}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                 </CollapsibleTrigger>
-             </div>
-             <CollapsibleContent className="space-y-2 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
-                <div className="rounded-md border px-4 py-3 font-mono text-sm">
-                    {selected.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                            {selected.map((value) => {
-                                const label = options.find((option) => option.value === value)?.label || value;
-                                return (
-                                    <Badge key={value} variant="secondary">
-                                        {label}
-                                        <button
-                                            aria-label={`Remove ${label}`}
-                                            onClick={() => handleSelect(value)}
-                                            className="ml-1 rounded-full p-0.5 text-secondary-foreground/50 hover:bg-destructive/20 hover:text-destructive"
-                                        >
-                                            <X className="h-3 w-3" />
-                                        </button>
-                                    </Badge>
-                                )
-                            })}
-                        </div>
-                    ) : (
-                        <p className="text-sm text-center text-muted-foreground">No hay productos seleccionados.</p>
-                    )}
-                </div>
-             </CollapsibleContent>
-        </Collapsible>
+        <div className="flex items-center gap-2">
+           <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1" className="border-b-0">
+                <AccordionTrigger className="rounded-md border px-4 py-2 font-normal text-sm hover:no-underline data-[state=open]:rounded-b-none">
+                    <span>{displayLabel}</span>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <div className="rounded-b-md border border-t-0 px-4 py-3">
+                         {selected.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                                {selected.map((value) => {
+                                    const label = options.find((option) => option.value === value)?.label || value;
+                                    return (
+                                        <Badge key={value} variant="secondary">
+                                            {label}
+                                            <button
+                                                aria-label={`Remove ${label}`}
+                                                onClick={() => handleSelect(value)}
+                                                className="ml-1 rounded-full p-0.5 text-secondary-foreground/50 hover:bg-destructive/20 hover:text-destructive"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </Badge>
+                                    )
+                                })}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-center text-muted-foreground">No hay productos seleccionados.</p>
+                        )}
+                    </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+             <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-10">
+                    Añadir
+                </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                <Command>
+                    <CommandInput placeholder={searchPlaceholder} />
+                    <CommandList>
+                    <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
+                    <CommandGroup>
+                        {options.map((option) => (
+                        <CommandItem
+                            key={option.value}
+                            value={option.value}
+                            onSelect={() => handleSelect(option.value)}
+                        >
+                            <Check
+                            className={cn(
+                                "mr-2 h-4 w-4",
+                                selected.includes(option.value) ? "opacity-100" : "opacity-0"
+                            )}
+                            />
+                            {option.label}
+                        </CommandItem>
+                        ))}
+                    </CommandGroup>
+                    </CommandList>
+                </Command>
+                </PopoverContent>
+            </Popover>
+        </div>
     </div>
   )
 }
