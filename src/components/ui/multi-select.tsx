@@ -1,8 +1,14 @@
 
+
 "use client"
 
 import * as React from "react"
 import { Check, ChevronsUpDown, X } from "lucide-react"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -14,11 +20,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "./badge"
 import { Separator } from "./separator"
 
@@ -62,68 +64,71 @@ export function MultiSelectCombobox({
     : placeholder;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className={cn("w-full justify-between font-normal", className)}
-            disabled={disabled}
-        >
-            <span className="truncate">{displayLabel}</span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <div className="p-2 space-y-2">
-            {selected.length > 0 ? (
-                selected.map((value) => {
-                    const label = options.find((option) => option.value === value)?.label || value;
-                    return (
-                         <div key={value} className="flex items-center justify-between">
-                           <span className="text-sm truncate">{label}</span>
-                           <Button
-                                aria-label={`Remove ${label}`}
-                                onClick={() => handleSelect(value)}
-                                size="icon"
-                                variant="ghost"
-                                className="h-5 w-5"
-                            >
-                                <X className="h-3 w-3" />
-                            </Button>
-                         </div>
-                    )
-                })
-            ) : (
-                <p className="text-sm text-center text-muted-foreground">No hay productos seleccionados.</p>
-            )}
-        </div>
-        <Separator />
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} />
-          <CommandList>
-            <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={() => handleSelect(option.value)}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selected.includes(option.value) ? "opacity-100" : "opacity-0"
+    <div className={cn("w-full space-y-2", className)}>
+        <Collapsible>
+             <div className="flex items-center justify-between space-x-4 px-1">
+                 <h4 className="text-sm font-semibold">{displayLabel}</h4>
+                 <CollapsibleTrigger asChild>
+                    <Popover open={open} onOpenChange={setOpen}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-8">
+                            Añadir Productos
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="end">
+                        <Command>
+                          <CommandInput placeholder={searchPlaceholder} />
+                          <CommandList>
+                            <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
+                            <CommandGroup>
+                              {options.map((option) => (
+                                <CommandItem
+                                  key={option.value}
+                                  value={option.value}
+                                  onSelect={() => handleSelect(option.value)}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      selected.includes(option.value) ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {option.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                 </CollapsibleTrigger>
+             </div>
+             <CollapsibleContent className="space-y-2 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+                <div className="rounded-md border px-4 py-3 font-mono text-sm">
+                    {selected.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                            {selected.map((value) => {
+                                const label = options.find((option) => option.value === value)?.label || value;
+                                return (
+                                    <Badge key={value} variant="secondary">
+                                        {label}
+                                        <button
+                                            aria-label={`Remove ${label}`}
+                                            onClick={() => handleSelect(value)}
+                                            className="ml-1 rounded-full p-0.5 text-secondary-foreground/50 hover:bg-destructive/20 hover:text-destructive"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </Badge>
+                                )
+                            })}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-center text-muted-foreground">No hay productos seleccionados.</p>
                     )}
-                  />
-                  {option.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                </div>
+             </CollapsibleContent>
+        </Collapsible>
+    </div>
   )
 }
