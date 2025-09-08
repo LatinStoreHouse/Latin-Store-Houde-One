@@ -116,12 +116,14 @@ export const navItems = [
   { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
   { href: '/assigned-customers', label: 'Mis Clientes', icon: Users, permission: 'partners:clients' },
   {
-    label: 'Calculadoras',
+    label: 'Calculadoras y Herramientas',
     icon: Calculator,
     permission: 'calculators:use',
     subItems: [
-      { href: '/stoneflex-clay-calculator', label: 'StoneFlex' },
-      { href: '/starwood-calculator', label: 'Starwood' },
+      { href: '/stoneflex-clay-calculator', label: 'Calculadora StoneFlex' },
+      { href: '/starwood-calculator', label: 'Calculadora Starwood' },
+      { href: '/shipping-calculator', label: 'Calculadora de Envíos' },
+      { href: '/advisor', label: 'Asesor IA', permission: 'advisor:use' },
       { href: '/invoices', label: 'Historial de Cotizaciones', permission: 'invoices:view' },
     ],
   },
@@ -130,14 +132,6 @@ export const navItems = [
     icon: ShoppingBag,
     subItems: [
       { href: '/purchasing/suggestions', label: 'Sugerencias de Compra', permission: 'purchasing:suggestions:view' },
-    ],
-  },
-  {
-    label: 'Herramientas',
-    icon: Wrench,
-    subItems: [
-      { href: '/shipping-calculator', label: 'Calculadora de Envíos' },
-      { href: '/advisor', label: 'Asesor IA', permission: 'advisor:use' },
     ],
   },
   { href: '/designs', label: 'Diseño', icon: Palette, permission: 'designs:view' },
@@ -156,8 +150,8 @@ const getIconForSubItem = (label: string, parentIcon: React.ElementType) => {
         case 'Despachos': return Truck;
         case 'Historial de Cotizaciones': return Receipt;
         case 'Sugerencias de Compra': return Lightbulb;
-        case 'StoneFlex': return Store;
-        case 'Starwood': return Store;
+        case 'Calculadora StoneFlex': return Store;
+        case 'Calculadora Starwood': return Store;
         case 'Asesor IA': return BotMessageSquare;
         case 'Calculadora de Envíos': return Truck;
         default: return parentIcon;
