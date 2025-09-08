@@ -1,4 +1,3 @@
-
 'use client';
 
 export type Permission = 
@@ -189,6 +188,7 @@ export const roles: RoleConfig[] = [
             'marketing:view',
             'marketing:create',
             'reports:view',
+            'pricing:view',
         ]
     },
     {
