@@ -109,7 +109,7 @@ export default function RegisterPage() {
             setConfirmationResult(result);
             setIsOtpSent(true);
             setError('Se ha enviado un código de verificación a tu teléfono.');
-        } catch (error: any) => {
+        } catch (error: any) {
             console.error("Error sending OTP:", error);
             setError(`Error al enviar el código: ${error.message}`);
         } finally {
