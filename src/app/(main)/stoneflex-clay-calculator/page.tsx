@@ -86,8 +86,45 @@ const getImageBase64 = (src: string): Promise<{ base64: string; width: number; h
 
 
 function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYields: AdhesiveYield[], sealantYields: SealantYield[] }) {
+    const halfLength = Math.ceil(adhesiveYields.length / 2);
+    const firstHalfAdhesives = adhesiveYields.slice(0, halfLength);
+    const secondHalfAdhesives = adhesiveYields.slice(halfLength);
+
+    const renderAdhesiveTable = (yields: AdhesiveYield[]) => (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Grupo de Productos</TableHead>
+                    <TableHead>Rendimiento</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {yields.map((yieldData, index) => {
+                    const displayNames = Array.isArray(yieldData.productNames) ? yieldData.productNames : [];
+                    
+                    return (
+                    <TableRow key={index}>
+                        <TableCell>
+                            <Tooltip>
+                            <TooltipTrigger>
+                                <span className="underline decoration-dashed cursor-help">
+                                    {yieldData.groupName || displayNames[0] || 'Grupo sin nombre'}
+                                </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p className="max-w-xs">{displayNames.join(', ')}</p>
+                            </TooltipContent>
+                            </Tooltip>
+                        </TableCell>
+                        <TableCell>{yieldData.yield} und.</TableCell>
+                    </TableRow>
+                )})}
+            </TableBody>
+        </Table>
+    );
+
     return (
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl">
             <DialogHeader>
                 <DialogTitle>Tabla de Referencia de Insumos</DialogTitle>
                 <DialogDescription>Rendimiento estimado de adhesivos y sellantes por tipo de referencia.</DialogDescription>
@@ -96,36 +133,10 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
             <div className="space-y-6 py-4">
                 <div>
                     <h3 className="font-semibold mb-2">Adhesivo (Rendimiento por unidad)</h3>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Grupo de Productos</TableHead>
-                                <TableHead>Rendimiento</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {adhesiveYields.map((yieldData, index) => {
-                                const displayNames = Array.isArray(yieldData.productNames) ? yieldData.productNames : [];
-                                
-                                return (
-                                <TableRow key={index}>
-                                    <TableCell>
-                                      <Tooltip>
-                                        <TooltipTrigger>
-                                            <span className="underline decoration-dashed cursor-help">
-                                               {yieldData.groupName || displayNames[0] || 'Grupo sin nombre'}
-                                            </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p className="max-w-xs">{displayNames.join(', ')}</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TableCell>
-                                    <TableCell>{yieldData.yield} und.</TableCell>
-                                </TableRow>
-                            )})}
-                        </TableBody>
-                    </Table>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        <div>{renderAdhesiveTable(firstHalfAdhesives)}</div>
+                        <div>{renderAdhesiveTable(secondHalfAdhesives)}</div>
+                    </div>
                 </div>
                 <div>
                     <h3 className="font-semibold mb-2">Sellante (Rendimiento por M²)</h3>
