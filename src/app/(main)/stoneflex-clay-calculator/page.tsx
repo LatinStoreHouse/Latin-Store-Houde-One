@@ -102,7 +102,7 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                 {yields.map((yieldData, index) => {
                     const displayNames = Array.isArray(yieldData.productNames) ? yieldData.productNames : [];
                     const groupTitle = yieldData.groupName || (displayNames.length > 0 ? displayNames[0] : 'Grupo sin nombre');
-                    const additionalProductsCount = displayNames.length > 1 ? displayNames.length : 0;
+                    const additionalProductsCount = displayNames.length > 1 ? displayNames.length - 1 : 0;
                     
                     return (
                     <TableRow key={index}>
@@ -258,7 +258,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
     }
     
     return (
-         <DialogContent className="max-w-4xl">
+         <DialogContent className="max-w-6xl">
             <DialogHeader>
                 <DialogTitle>Ajustes de la Calculadora StoneFlex</DialogTitle>
                 <DialogDescription>
