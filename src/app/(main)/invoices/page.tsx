@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -67,7 +68,7 @@ const addPdfHeader = async (doc: jsPDF) => {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
     if (latinLogoData) {
-        const logoWidth = 30;
+        const logoWidth = 25;
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
         doc.addImage(latinLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     }
@@ -140,16 +141,16 @@ export default function InvoicesPage() {
     }
     
      const handleExportPDF = async () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF({ format: 'letter' });
 
         await addPdfHeader(doc);
         
         doc.setFontSize(14);
-        doc.text("Historial de Cotizaciones", 14, 40);
+        doc.text("Historial de Cotizaciones", 14, 45);
 
 
         doc.autoTable({
-          startY: 45,
+          startY: 50,
           head: [
             ['# Cotización', 'Factura #', 'Cliente', 'Asesor', 'Estado', 'Fecha Validación']
           ],

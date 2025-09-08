@@ -75,7 +75,7 @@ const addPdfHeader = async (doc: jsPDF) => {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
     if (latinLogoData) {
-        const logoWidth = 30;
+        const logoWidth = 25;
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
         doc.addImage(latinLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     }
@@ -358,16 +358,16 @@ export default function ValidationPage() {
     }
     
      const handleExportPDF = async () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF({ format: 'letter' });
         
         await addPdfHeader(doc);
         
         doc.setFontSize(14);
-        doc.text("Historial de Validaciones", 14, 40);
+        doc.text("Historial de Validaciones", 14, 45);
 
 
         doc.autoTable({
-          startY: 45,
+          startY: 50,
           head: [
             ['Tipo', '# Cotización', 'Factura #', 'Cliente', 'Estado', 'Validado Por', 'Fecha Validación']
           ],

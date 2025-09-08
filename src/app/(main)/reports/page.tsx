@@ -72,7 +72,7 @@ const addPdfHeader = async (doc: jsPDF) => {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
     if (latinLogoData) {
-        const logoWidth = 30;
+        const logoWidth = 25;
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
         doc.addImage(latinLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     }
@@ -329,12 +329,12 @@ const QuotesReport = ({ quotes, date, user }: { quotes: Quote[], date: Date, use
     };
 
     const handleDownloadQuotes = async () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF({ format: 'letter' });
         const monthName = date.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
         
         await addPdfHeader(doc);
         
-        let startY = 40;
+        let startY = 45;
         doc.setFontSize(14);
         doc.text('Reporte de Cotizaciones', 14, startY);
         startY += 5;
@@ -359,6 +359,7 @@ const QuotesReport = ({ quotes, date, user }: { quotes: Quote[], date: Date, use
                 new Date(q.creationDate).toLocaleDateString(),
                 formatCurrency(q.total, q.currency)
             ]),
+            headStyles: { fillColor: [41, 128, 185] },
         });
         
         doc.save(`Reporte_Cotizaciones_${date.getFullYear()}-${date.getMonth() + 1}.pdf`);
@@ -477,11 +478,11 @@ export default function ReportsPage() {
     }, [currentDate, isPastOrPresentMonth, isAdvisor]);
 
     const handleDownloadGeneralReport = async () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF({ format: 'letter' });
         
         await addPdfHeader(doc);
 
-        let startY = 40;
+        let startY = 45;
         doc.setFontSize(14);
         doc.text(`Reporte Mensual - ${monthName}`, 14, startY);
         startY += 10;
@@ -501,6 +502,7 @@ export default function ReportsPage() {
                 startY,
                 head: [['Producto', 'Unidades Predichas']],
                 body: forecast.forecast.map(item => [item.productName, item.predictedUnits]),
+                headStyles: { fillColor: [41, 128, 185] },
             });
             startY = (doc as any).autoTable.previous.finalY + 8;
             const forecastSummaryLines = doc.splitTextToSize(forecast.summary, 180);
@@ -519,6 +521,7 @@ export default function ReportsPage() {
                     head: [['Top Movers', 'Unidades', 'Cambio (%)']],
                     body: monthlyData.topMovers.map(p => [p.name, p.moved, p.change]),
                     startY,
+                    headStyles: { fillColor: [41, 128, 185] },
                 });
                 startY = (doc as any).autoTable.previous.finalY + 10;
             }
@@ -528,6 +531,7 @@ export default function ReportsPage() {
                     head: [['Bottom Movers', 'Unidades']],
                     body: monthlyData.bottomMovers.map(p => [p.name, p.moved]),
                     startY: startY,
+                    headStyles: { fillColor: [41, 128, 185] },
                 });
             }
         }

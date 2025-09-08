@@ -345,15 +345,16 @@ export default function DispatchPage() {
   const handleExportPDF = async () => {
     const doc = new jsPDF({
       orientation: 'landscape',
+      format: 'letter'
     });
     
     await addPdfHeader(doc);
     
     doc.setFontSize(14);
-    doc.text('Reporte de Despachos', 14, 30);
+    doc.text('Reporte de Despachos', 14, 45);
 
     doc.autoTable({
-      startY: 35,
+      startY: 50,
       head: [
         [
           'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',

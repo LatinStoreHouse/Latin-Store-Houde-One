@@ -651,14 +651,14 @@ export default function TransitPage() {
   };
 
   const handleExportPDF = async (containersToExport: ContainerType[]) => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ format: 'letter' });
     
     await addPdfHeader(doc);
     
     doc.setFontSize(14);
-    doc.text('Reporte de Contenedores', 14, 40);
+    doc.text('Reporte de Contenedores', 14, 45);
     
-    let yPos = 45;
+    let yPos = 50;
 
     containersToExport.forEach((container) => {
         const bodyData = container.products.map(p => [p.name, p.quantity]);

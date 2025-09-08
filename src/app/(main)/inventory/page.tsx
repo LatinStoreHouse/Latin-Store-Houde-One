@@ -573,12 +573,12 @@ export default function InventoryPage() {
         return;
     }
 
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'letter' });
     
     await addPdfHeader(doc);
     
     doc.setFontSize(14);
-    doc.text('Reporte de Inventario', 14, 40);
+    doc.text('Reporte de Inventario', 14, 45);
 
     const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
     const head: any[] = [['Marca', 'Categoría', 'Producto']];
@@ -595,7 +595,7 @@ export default function InventoryPage() {
     doc.autoTable({ 
       head,
       body,
-      startY: 45,
+      startY: 50,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185] },
     });
@@ -1028,6 +1028,7 @@ export default function InventoryPage() {
     
 
     
+
 
 
 
