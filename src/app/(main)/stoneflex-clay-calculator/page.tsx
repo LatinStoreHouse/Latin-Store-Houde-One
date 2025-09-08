@@ -29,11 +29,9 @@ import { productDimensions } from '@/lib/dimensions';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { useUser } from '@/app/(main)/layout';
 import { LocationCombobox } from '@/components/location-combobox';
-import { InventoryContext } from '@/context/inventory-context';
+import { InventoryContext, AdhesiveYield, SealantYield } from '@/context/inventory-context';
 import { CustomerSelector } from '@/components/customer-selector';
 import { Customer } from '@/lib/customers';
-import { adhesiveYields, sealantYields } from '@/lib/supplies-data';
-
 
 
 const referenceDetails: { [key: string]: { brand: string, line: string } } = {
@@ -149,7 +147,7 @@ const getImageBase64 = (src: string): Promise<{ base64: string; width: number; h
 };
 
 
-function AdhesiveReferenceTable() {
+function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYields: AdhesiveYield[], sealantYields: SealantYield[] }) {
     return (
         <DialogContent className="max-w-2xl">
             <DialogHeader>
@@ -219,7 +217,7 @@ export default function StoneflexCalculatorPage() {
   const searchParams = useSearchParams();
   const context = useContext(InventoryContext);
   if (!context) throw new Error("Inventory context not found");
-  const { addQuote } = context;
+  const { addQuote, adhesiveYields, sealantYields } = context;
 
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
@@ -1094,7 +1092,7 @@ export default function StoneflexCalculatorPage() {
                                             ¿No estás seguro? Ver tabla de rendimiento
                                         </Button>
                                     </DialogTrigger>
-                                    <AdhesiveReferenceTable />
+                                    <AdhesiveReferenceTable adhesiveYields={adhesiveYields} sealantYields={sealantYields} />
                                 </Dialog>
                             </div>
                         )}

@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { inventoryMovementData } from '@/lib/inventory-movement';
 import type { User, Role } from '@/lib/roles';
 import { initialQuotes } from '@/lib/quotes-history';
+import { initialAdhesiveYields, initialSealantYields } from '@/lib/supplies-data';
 
 
 export interface Product {
@@ -94,6 +95,18 @@ export interface Quote {
     details: any; // To store the full quote object for later view
 }
 
+export interface AdhesiveYield {
+    line: string;
+    standard: string;
+    xl: string;
+}
+
+export interface SealantYield {
+    sealant: string;
+    standardYield: number;
+    clayYield: number;
+}
+
 interface InventoryContextType {
   inventoryData: InventoryData;
   setInventoryData: (updater: (data: InventoryData) => InventoryData, user: User | null) => void;
@@ -125,6 +138,10 @@ interface InventoryContextType {
   toggleProductSubscription: (productName: string, userName: string) => void;
   quotes: Quote[];
   addQuote: (quote: Omit<Quote, 'id'>) => void;
+  adhesiveYields: AdhesiveYield[];
+  setAdhesiveYields: React.Dispatch<React.SetStateAction<AdhesiveYield[]>>;
+  sealantYields: SealantYield[];
+  setSealantYields: React.Dispatch<React.SetStateAction<SealantYield[]>>;
 }
 
 export const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -140,6 +157,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [productSubscriptions, setProductSubscriptions] = useState<Record<string, string[]>>({});
   const [seenSuggestionsCount, setSeenSuggestionsCount] = useState(0);
   const [quotes, setQuotes] = useState<Quote[]>(initialQuotes);
+  const [adhesiveYields, setAdhesiveYields] = useState<AdhesiveYield[]>(initialAdhesiveYields);
+  const [sealantYields, setSealantYields] = useState<SealantYield[]>(initialSealantYields);
   const { toast } = useToast();
 
     const addQuote = (quote: Omit<Quote, 'id'>) => {
@@ -728,7 +747,11 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       productSubscriptions,
       toggleProductSubscription,
       quotes,
-      addQuote
+      addQuote,
+      adhesiveYields,
+      setAdhesiveYields,
+      sealantYields,
+      setSealantYields,
     }}>
       {children}
     </InventoryContext.Provider>
