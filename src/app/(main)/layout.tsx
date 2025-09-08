@@ -393,6 +393,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editedName, setEditedName] = useState(currentUser.name);
+  const [editedPhone, setEditedPhone] = useState(currentUser.phone);
   const [editedAvatar, setEditedAvatar] = useState(currentUser.avatar);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
@@ -421,6 +422,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     setCurrentUser(prevUser => ({
       ...prevUser,
       name: editedName,
+      phone: editedPhone,
       avatar: editedAvatar,
     }));
     toast({
@@ -488,6 +490,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
               } else {
                  // Reset state when opening dialog
                 setEditedName(currentUser.name);
+                setEditedPhone(currentUser.phone);
                 setEditedAvatar(currentUser.avatar);
                 setAvatarError(null);
                 setAvatarFile(null);
@@ -539,18 +542,29 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                         </div>
                         <div>
                             {isEditingProfile ? (
-                                <Input value={editedName} onChange={(e) => setEditedName(e.target.value)} className="text-lg font-semibold" />
+                                <div className="space-y-2">
+                                     <div className="space-y-1">
+                                        <Label htmlFor="profile-name">Nombre</Label>
+                                        <Input id="profile-name" value={editedName} onChange={(e) => setEditedName(e.target.value)} className="text-lg font-semibold" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor="profile-phone">Teléfono</Label>
+                                        <Input id="profile-phone" value={editedPhone} onChange={(e) => setEditedPhone(e.target.value)} />
+                                    </div>
+                                </div>
                             ): (
+                                <>
                                 <h2 className="text-xl font-semibold">{currentUser.name}</h2>
+                                <p className="text-sm text-muted-foreground">{currentUser.jobTitle}</p>
+                                <p className="text-sm text-muted-foreground">{currentUser.email}</p>
+                                <p className="text-sm text-muted-foreground">{currentUser.phone}</p>
+                                <div className="mt-2 flex flex-wrap gap-1">
+                                    {currentUser.roles.map(role => (
+                                        <Badge key={role}>{role}</Badge>
+                                    ))}
+                                </div>
+                                </>
                             )}
-                            <p className="text-sm text-muted-foreground">{currentUser.jobTitle}</p>
-                            <p className="text-sm text-muted-foreground">{currentUser.email}</p>
-                             <p className="text-sm text-muted-foreground">{currentUser.phone}</p>
-                            <div className="mt-2 flex flex-wrap gap-1">
-                                {currentUser.roles.map(role => (
-                                    <Badge key={role}>{role}</Badge>
-                                ))}
-                            </div>
                         </div>
                     </div>
                     {avatarError && (
