@@ -122,7 +122,6 @@ export const navItems = [
     subItems: [
       { href: '/stoneflex-clay-calculator', label: 'Calculadora StoneFlex' },
       { href: '/starwood-calculator', label: 'Calculadora Starwood' },
-      { href: '/shipping-calculator', label: 'Calculadora de Envíos' },
       { href: '/invoices', label: 'Historial de Cotizaciones', permission: 'invoices:view' },
     ],
   },
@@ -151,7 +150,6 @@ const getIconForSubItem = (label: string, parentIcon: React.ElementType) => {
         case 'Sugerencias de Compra': return Lightbulb;
         case 'Calculadora StoneFlex': return Store;
         case 'Calculadora Starwood': return Store;
-        case 'Asesor IA': return BotMessageSquare;
         case 'Calculadora de Envíos': return Truck;
         default: return parentIcon;
     }
