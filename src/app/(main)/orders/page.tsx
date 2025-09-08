@@ -84,7 +84,7 @@ const addPdfHeader = async (doc: jsPDF) => {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
     if (latinLogoData) {
-        const logoWidth = 30;
+        const logoWidth = 25;
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
         doc.addImage(latinLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     }
@@ -350,10 +350,10 @@ export default function DispatchPage() {
     await addPdfHeader(doc);
     
     doc.setFontSize(14);
-    doc.text('Reporte de Despachos', 14, 40);
+    doc.text('Reporte de Despachos', 14, 30);
 
     doc.autoTable({
-      startY: 45,
+      startY: 35,
       head: [
         [
           'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',

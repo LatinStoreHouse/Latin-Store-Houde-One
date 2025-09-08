@@ -95,7 +95,7 @@ const addPdfHeader = async (doc: jsPDF) => {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
     if (latinLogoData) {
-        const logoWidth = 30;
+        const logoWidth = 25;
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
         doc.addImage(latinLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     }
@@ -578,7 +578,7 @@ export default function InventoryPage() {
     await addPdfHeader(doc);
     
     doc.setFontSize(14);
-    doc.text('Reporte de Inventario', 14, 40);
+    doc.text('Reporte de Inventario', 14, 30);
 
     const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
     const head: any[] = [['Marca', 'Categoría', 'Producto']];
@@ -595,7 +595,7 @@ export default function InventoryPage() {
     doc.autoTable({ 
       head,
       body,
-      startY: 45,
+      startY: 35,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185] },
     });
@@ -1028,6 +1028,7 @@ export default function InventoryPage() {
     
 
     
+
 
 
 

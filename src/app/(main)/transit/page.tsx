@@ -101,7 +101,7 @@ const addPdfHeader = async (doc: jsPDF) => {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
     if (latinLogoData) {
-        const logoWidth = 30;
+        const logoWidth = 25;
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
         doc.addImage(latinLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     }
@@ -656,9 +656,9 @@ export default function TransitPage() {
     await addPdfHeader(doc);
     
     doc.setFontSize(14);
-    doc.text('Reporte de Contenedores', 14, 40);
+    doc.text('Reporte de Contenedores', 14, 30);
     
-    let yPos = 45;
+    let yPos = 35;
 
     containersToExport.forEach((container) => {
         const bodyData = container.products.map(p => [p.name, p.quantity]);
