@@ -68,6 +68,7 @@ import {
     Bell,
     X,
     Palette,
+    Wrench,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -131,13 +132,20 @@ export const navItems = [
       { href: '/purchasing/suggestions', label: 'Sugerencias de Compra', permission: 'purchasing:suggestions:view' },
     ],
   },
+  {
+    label: 'Herramientas',
+    icon: Wrench,
+    subItems: [
+      { href: '/shipping-calculator', label: 'Calculadora de Envíos' },
+      { href: '/advisor', label: 'Asesor IA', permission: 'advisor:use' },
+    ],
+  },
   { href: '/designs', label: 'Diseño', icon: Palette, permission: 'designs:view' },
   { href: '/pricing', label: 'Precios', icon: Tags, permission: 'pricing:view' },
   { href: '/marketing/campaigns', label: 'Marketing', icon: Megaphone, permission: 'marketing:view' },
   { href: '/users', label: 'Usuarios', icon: UserCog, permission: 'users:manage' },
   { href: '/roles', label: 'Roles y Permisos', icon: ShieldCheck, permission: 'roles:manage' },
   { href: '/reports', label: 'Reportes', icon: FileText, permission: 'reports:view' },
-  { href: '/advisor', label: 'Asesor IA', icon: BotMessageSquare, permission: 'advisor:use' },
 ];
 
 const getIconForSubItem = (label: string, parentIcon: React.ElementType) => {
@@ -150,6 +158,8 @@ const getIconForSubItem = (label: string, parentIcon: React.ElementType) => {
         case 'Sugerencias de Compra': return Lightbulb;
         case 'StoneFlex': return Store;
         case 'Starwood': return Store;
+        case 'Asesor IA': return BotMessageSquare;
+        case 'Calculadora de Envíos': return Truck;
         default: return parentIcon;
     }
 }
