@@ -101,14 +101,16 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
             <TableBody>
                 {yields.map((yieldData, index) => {
                     const displayNames = Array.isArray(yieldData.productNames) ? yieldData.productNames : [];
+                    const groupTitle = yieldData.groupName || (displayNames.length > 0 ? displayNames[0] : 'Grupo sin nombre');
+                    const additionalProductsCount = displayNames.length - 1;
                     
                     return (
                     <TableRow key={index}>
                         <TableCell>
                             <Tooltip>
-                            <TooltipTrigger>
+                            <TooltipTrigger className="text-left">
                                 <span className="underline decoration-dashed cursor-help">
-                                    {yieldData.groupName || displayNames[0] || 'Grupo sin nombre'}
+                                    {groupTitle} {additionalProductsCount > 0 && `(y ${additionalProductsCount} más)`}
                                 </span>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -214,6 +216,23 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
     };
     
     const handleSaveChanges = () => {
+        // Validation for duplicate products
+        const productSet = new Set<string>();
+        for (const yieldGroup of localAdhesiveYields) {
+            for (const productName of yieldGroup.productNames) {
+                if (productSet.has(productName)) {
+                    toast({
+                        variant: 'destructive',
+                        title: 'Error de Duplicado',
+                        description: `El producto "${productName}" está asignado a más de un grupo de rendimiento. Cada producto solo puede pertenecer a un grupo.`,
+                        duration: 7000
+                    });
+                    return; // Stop the save process
+                }
+                productSet.add(productName);
+            }
+        }
+        
         setAdhesiveYields(localAdhesiveYields);
         setSealantYields(localSealantYields);
         setHasChanges(false);

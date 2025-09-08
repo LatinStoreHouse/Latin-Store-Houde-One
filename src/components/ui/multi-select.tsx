@@ -20,6 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Badge } from "./badge"
+import { Separator } from "./separator"
 
 export type ComboboxOption = {
   value: string
@@ -56,45 +57,49 @@ export function MultiSelectCombobox({
     onChange(newSelected)
   }
 
+  const displayLabel = selected.length > 0
+    ? `${selected.length} producto(s) seleccionado(s)`
+    : placeholder;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className={cn("group flex flex-col gap-2", className)}>
-            <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                className="w-full justify-between font-normal"
-                disabled={disabled}
-            >
-                <span className="truncate">{placeholder}</span>
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-            {selected.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                    {selected.map((value) => {
-                        const label = options.find((option) => option.value === value)?.label || value;
-                        return (
-                            <Badge key={value} variant="secondary" className="gap-1.5">
-                                <span className="max-w-[150px] truncate">{label}</span>
-                                <button
-                                    aria-label={`Remove ${label}`}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleSelect(value);
-                                    }}
-                                    className="rounded-full ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                >
-                                    <X className="h-3 w-3" />
-                                </button>
-                            </Badge>
-                        )
-                    })}
-                </div>
-            )}
-        </div>
+        <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn("w-full justify-between font-normal", className)}
+            disabled={disabled}
+        >
+            <span className="truncate">{displayLabel}</span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+        <div className="p-2 space-y-2">
+            {selected.length > 0 ? (
+                selected.map((value) => {
+                    const label = options.find((option) => option.value === value)?.label || value;
+                    return (
+                         <div key={value} className="flex items-center justify-between">
+                           <span className="text-sm truncate">{label}</span>
+                           <Button
+                                aria-label={`Remove ${label}`}
+                                onClick={() => handleSelect(value)}
+                                size="icon"
+                                variant="ghost"
+                                className="h-5 w-5"
+                            >
+                                <X className="h-3 w-3" />
+                            </Button>
+                         </div>
+                    )
+                })
+            ) : (
+                <p className="text-sm text-center text-muted-foreground">No hay productos seleccionados.</p>
+            )}
+        </div>
+        <Separator />
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
