@@ -96,7 +96,7 @@ export interface Quote {
 }
 
 export interface AdhesiveYield {
-    line: string;
+    productName: string;
     standard: string;
     xl: string;
 }

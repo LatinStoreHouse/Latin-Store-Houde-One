@@ -26,7 +26,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { productDimensions } from '@/lib/dimensions';
-import { initialInventoryData } from '@/lib/initial-inventory';
 import { useUser } from '@/app/(main)/layout';
 import { LocationCombobox } from '@/components/location-combobox';
 import { InventoryContext, AdhesiveYield, SealantYield, InventoryData } from '@/context/inventory-context';
@@ -160,7 +159,7 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Línea de Producto</TableHead>
+                                <TableHead>Referencia de Producto</TableHead>
                                 <TableHead>Adhesivo por Lámina (Estándar)</TableHead>
                                 <TableHead>Adhesivo por Lámina (XL)</TableHead>
                             </TableRow>
@@ -168,7 +167,7 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                         <TableBody>
                             {adhesiveYields.map((yieldData, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{yieldData.line}</TableCell>
+                                    <TableCell>{yieldData.productName}</TableCell>
                                     <TableCell>{yieldData.standard}</TableCell>
                                     <TableCell>{yieldData.xl}</TableCell>
                                 </TableRow>
@@ -224,9 +223,9 @@ function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initia
     const [hasChanges, setHasChanges] = useState(false);
     const { toast } = useToast();
 
-    const stoneflexLineOptions = useMemo(() => {
-        const lines = inventoryData['StoneFlex'] ? Object.keys(inventoryData['StoneFlex']) : [];
-        return lines.map(line => ({ value: line, label: line }));
+    const productOptions = useMemo(() => {
+        const products = inventoryData['StoneFlex'] ? Object.keys(inventoryData['StoneFlex']).flatMap(line => Object.keys(inventoryData['StoneFlex'][line])) : [];
+        return products.map(product => ({ value: product, label: product }));
     }, [inventoryData]);
 
     const handleAdhesiveChange = (index: number, field: keyof AdhesiveYield, value: string) => {
@@ -252,7 +251,7 @@ function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initia
     
     const handleAddYield = (type: 'adhesive' | 'sealant') => {
         if (type === 'adhesive') {
-            setLocalAdhesiveYields([...localAdhesiveYields, { line: '', standard: '', xl: '' }]);
+            setLocalAdhesiveYields([...localAdhesiveYields, { productName: '', standard: '', xl: '' }]);
         } else {
             setLocalSealantYields([...localSealantYields, { sealant: '', standardYield: 0, clayYield: 0 }]);
         }
@@ -285,7 +284,7 @@ function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initia
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Línea</TableHead>
+                                    <TableHead>Referencia de Producto</TableHead>
                                     <TableHead>Estándar</TableHead>
                                     <TableHead>XL</TableHead>
                                     <TableHead className="w-10"></TableHead>
@@ -296,10 +295,10 @@ function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initia
                                     <TableRow key={index}>
                                         <TableCell>
                                             <Combobox
-                                                options={stoneflexLineOptions}
-                                                value={yieldData.line}
-                                                onValueChange={(value) => handleAdhesiveChange(index, 'line', value)}
-                                                placeholder="Seleccionar línea"
+                                                options={productOptions}
+                                                value={yieldData.productName}
+                                                onValueChange={(value) => handleAdhesiveChange(index, 'productName', value)}
+                                                placeholder="Seleccionar producto"
                                             />
                                         </TableCell>
                                         <TableCell><Input value={yieldData.standard} onChange={(e) => handleAdhesiveChange(index, 'standard', e.target.value)} /></TableCell>
@@ -401,11 +400,11 @@ export default function StoneflexCalculatorPage() {
   }, []);
 
   const supplyOptions = useMemo(() => {
-    const stoneflexSupplies = Object.keys(initialInventoryData.StoneFlex?.Insumos || {});
-    const starwoodSupplies = Object.keys(initialInventoryData.Starwood?.Insumos || {});
+    const stoneflexSupplies = inventoryData.StoneFlex?.Insumos ? Object.keys(inventoryData.StoneFlex.Insumos) : [];
+    const starwoodSupplies = inventoryData.Starwood?.Insumos ? Object.keys(inventoryData.Starwood.Insumos) : [];
     const allSupplies = [...stoneflexSupplies, ...starwoodSupplies];
     return allSupplies.map(ref => ({ value: ref, label: ref }));
-  }, []);
+  }, [inventoryData]);
 
   useEffect(() => {
     const customerNameParam = searchParams.get('customerName');
@@ -456,7 +455,7 @@ export default function StoneflexCalculatorPage() {
     return parseFloat(value.toString().replace(',', '.')) || 0;
   };
   
-  const handleLocationChange = (newLocation: { lat: number; lng: number; address: string } | null) => {
+  const handleLocationChange = (newLocation: { lat: number; lng: number; address: string; } | null) => {
     setLocation(newLocation);
     if (newLocation) {
         setCustomerInfo(prev => ({ ...prev, address: newLocation.address }));
@@ -594,29 +593,19 @@ export default function StoneflexCalculatorPage() {
       if (hasPrice) totalProductCost += productCost;
       
       if (includeAdhesive && details.line !== '3D' && hasPrice) {
-          let adhesivePerSheet = 0;
-          const dimension = productDimensions[item.reference as keyof typeof productDimensions] || '';
-          const isStandardSize = dimension.includes('1.22x0.61') || dimension.includes('1.20*0.60');
-          const isMetalStandardSize = dimension.includes('2.44x0.61');
-          const isXLSize = dimension.includes('2.44x1.22') || dimension.includes('2.95*1.20') || dimension.includes('2.90*0.56');
-          const isWoodSize = dimension.includes('0.15x2.44');
+          const yieldRule = adhesiveYields.find(y => y.productName === item.reference);
+          
+          if (yieldRule) {
+              const isXL = item.reference.includes('XL');
+              const yieldValueStr = isXL ? yieldRule.xl : yieldRule.standard;
+              const adhesivePerSheet = parseDecimal(yieldValueStr.split(' ')[0] || '0');
+              const isTranslucent = yieldValueStr.toLowerCase().includes('translúcido');
 
-          if (details.line === 'Translucida') {
-              adhesivePerSheet = isStandardSize ? 0.5 : 2;
-              totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
-          } else {
-              if (details.line === 'Pizarra' || details.line === 'Cuarcitas' || (details.line === 'Mármol' && !item.reference.includes('Himalaya')) || details.line === 'Clay') {
-                  adhesivePerSheet = isStandardSize ? 0.5 : 2;
-              } else if (details.line === 'Mármol' && item.reference.includes('Himalaya')) {
-                  adhesivePerSheet = isStandardSize ? 1.5 : 3.5;
-              } else if (details.line === 'Concreto') {
-                  adhesivePerSheet = isStandardSize ? 1.8 : 3;
-              } else if (details.line === 'Metales') {
-                  adhesivePerSheet = isMetalStandardSize ? 1.5 : 3;
-              } else if (details.line === 'Madera') {
-                  adhesivePerSheet = isWoodSize ? 0.5 : 0;
+              if(isTranslucent) {
+                 totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
+              } else {
+                 totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
               }
-              totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
           }
       }
       
@@ -641,12 +630,11 @@ export default function StoneflexCalculatorPage() {
     if (includeSealant) {
         const quarterRef = sealantFinish === 'semibright' ? 'Sellante semi - brigth 1/ 4 galon' : 'Sellante shyny 1/4 galon';
         const quarterPriceCOP = initialProductPrices[quarterRef as keyof typeof initialProductPrices] || 0;
+        const yieldRule = sealantYields.find(y => y.sealant.toLowerCase().includes('1/4'));
         
-        if (quarterPriceCOP > 0) {
-            const quarterPerf = sealantPerformance[quarterRef as SealantType];
-            
-            const quartersForClay = totalSqmClay > 0 ? Math.ceil(totalSqmClay / quarterPerf.clay) : 0;
-            const quartersForOther = totalSqmOther > 0 ? Math.ceil(totalSqmOther / quarterPerf.other) : 0;
+        if (quarterPriceCOP > 0 && yieldRule) {
+            const quartersForClay = totalSqmClay > 0 ? Math.ceil(totalSqmClay / yieldRule.clayYield) : 0;
+            const quartersForOther = totalSqmOther > 0 ? Math.ceil(totalSqmOther / yieldRule.standardYield) : 0;
             
             sealantQuarters = quartersForClay + quartersForOther;
 
