@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown, Filter, DollarSign } from 'lucide-react';
-import { useState, useEffect, useMemo } from 'react';
+import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown, Filter, DollarSign, Receipt } from 'lucide-react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import { MonthPicker } from '@/components/month-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -18,8 +19,10 @@ import { initialCustomerData } from '@/lib/customers';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
 import { useUser } from '@/app/(main)/layout';
-import type { User } from '@/lib/roles';
+import type { User, Role } from '@/lib/roles';
 import { initialSalesData } from '@/lib/sales-data';
+import { InventoryContext, Quote } from '@/context/inventory-context';
+import { Combobox } from '@/components/ui/combobox';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -28,6 +31,8 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
   }
 }
+
+const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin', 'Laura Diaz'];
 
 const ForecastCard = ({ forecast, loading, error, selectedMonth }: { forecast: ForecastSalesOutput | null, loading: boolean, error: string | null, selectedMonth: string }) => {
     return (
@@ -237,8 +242,135 @@ const MonthlyAnalysis = ({ date, user }: { date: Date, user: User | null }) => {
     );
 }
 
+const QuotesReport = ({ quotes, date, user }: { quotes: Quote[], date: Date, user: User | null }) => {
+    const { toast } = useToast();
+    const isAdvisor = user?.roles.includes('Asesor de Ventas');
+    const isAdmin = user?.roles.includes('Administrador');
+
+    const [advisorFilter, setAdvisorFilter] = useState('');
+
+    const advisorOptions = salesAdvisors.map(name => ({ value: name, label: name }));
+
+    const filteredQuotes = useMemo(() => {
+        return quotes.filter(quote => {
+            const quoteDate = new Date(quote.creationDate);
+            const isSameMonth = quoteDate.getFullYear() === date.getFullYear() && quoteDate.getMonth() === date.getMonth();
+
+            if (!isSameMonth) return false;
+
+            if (isAdvisor && !isAdmin) {
+                return quote.advisorName === user?.name;
+            }
+            if (isAdmin && advisorFilter) {
+                return quote.advisorName === advisorFilter;
+            }
+            return true;
+        });
+    }, [quotes, date, user, isAdvisor, isAdmin, advisorFilter]);
+
+    const formatCurrency = (value: number, currency: string) => {
+        return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 0,
+        }).format(value);
+    };
+
+    const handleDownloadQuotes = () => {
+        const doc = new jsPDF();
+        const monthName = date.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
+        
+        doc.setFontSize(18);
+        doc.text('Reporte de Cotizaciones', 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Mes: ${monthName}`, 14, 30);
+        
+        if (advisorFilter) {
+            doc.text(`Asesor: ${advisorFilter}`, 14, 35);
+        }
+
+        doc.autoTable({
+            startY: 40,
+            head: [['# Cotización', 'Tipo', 'Cliente', 'Asesor', 'Fecha', 'Monto']],
+            body: filteredQuotes.map(q => [
+                q.quoteNumber,
+                q.calculatorType,
+                q.customerName,
+                q.advisorName,
+                new Date(q.creationDate).toLocaleDateString(),
+                formatCurrency(q.total, q.currency)
+            ]),
+        });
+        
+        doc.save(`Reporte_Cotizaciones_${date.getFullYear()}-${date.getMonth() + 1}.pdf`);
+        toast({ title: 'Éxito', description: 'Reporte de cotizaciones PDF generado.' });
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <CardTitle className="flex items-center gap-2"><Receipt />Reporte de Cotizaciones</CardTitle>
+                        <CardDescription>Análisis de las cotizaciones generadas en el mes seleccionado.</CardDescription>
+                    </div>
+                     <Button onClick={handleDownloadQuotes} disabled={filteredQuotes.length === 0}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Descargar Cotizaciones
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                 {isAdmin && (
+                    <div className="mb-4 w-full sm:w-64">
+                         <Combobox
+                            options={advisorOptions}
+                            value={advisorFilter}
+                            onValueChange={setAdvisorFilter}
+                            placeholder="Filtrar por asesor..."
+                        />
+                    </div>
+                 )}
+                 <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead># Cotización</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead>Cliente</TableHead>
+                            <TableHead>Asesor</TableHead>
+                            <TableHead>Fecha</TableHead>
+                            <TableHead className="text-right">Monto Total</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredQuotes.map(quote => (
+                            <TableRow key={quote.id}>
+                                <TableCell>{quote.quoteNumber}</TableCell>
+                                <TableCell><Badge variant="outline">{quote.calculatorType}</Badge></TableCell>
+                                <TableCell>{quote.customerName}</TableCell>
+                                <TableCell>{quote.advisorName}</TableCell>
+                                <TableCell>{new Date(quote.creationDate).toLocaleDateString()}</TableCell>
+                                <TableCell className="text-right font-medium">{formatCurrency(quote.total, quote.currency)}</TableCell>
+                            </TableRow>
+                        ))}
+                        {filteredQuotes.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-24 text-center">
+                                    No hay cotizaciones para los filtros seleccionados.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                 </Table>
+            </CardContent>
+        </Card>
+    );
+};
+
 export default function ReportsPage() {
     const { currentUser } = useUser();
+    const { quotes } = useContext(InventoryContext)!;
     const [currentDate, setCurrentDate] = useState(new Date());
     const [forecast, setForecast] = useState<ForecastSalesOutput | null>(null);
     const [loadingForecast, setLoadingForecast] = useState(true);
@@ -286,7 +418,7 @@ export default function ReportsPage() {
         fetchForecast();
     }, [currentDate, isPastOrPresentMonth, isAdvisor]);
 
-    const handleDownloadReport = async () => {
+    const handleDownloadGeneralReport = async () => {
         const doc = new jsPDF();
         
         doc.setFontSize(18);
@@ -354,9 +486,9 @@ export default function ReportsPage() {
           </div>
           <div className="flex items-center gap-2">
             <MonthPicker date={currentDate} onDateChange={setCurrentDate} />
-            <Button onClick={handleDownloadReport}>
+            <Button onClick={handleDownloadGeneralReport}>
               <Download className="mr-2 h-4 w-4" />
-              Descargar Reporte
+              Descargar Resumen
             </Button>
           </div>
         </CardHeader>
@@ -365,6 +497,8 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
       
+      <QuotesReport quotes={quotes} date={currentDate} user={currentUser} />
+
       {!isPastOrPresentMonth && !isAdvisor && (
         <ForecastCard forecast={forecast} loading={loadingForecast} error={forecastError} selectedMonth={monthName} />
       )}

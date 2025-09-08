@@ -11,6 +11,8 @@ import { initialProductPrices } from '@/lib/prices';
 import { useToast } from '@/hooks/use-toast';
 import { inventoryMovementData } from '@/lib/inventory-movement';
 import type { User, Role } from '@/lib/roles';
+import { initialQuotes } from '@/lib/quotes-history';
+
 
 export interface Product {
   name: string;
@@ -137,7 +139,7 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [productSubscriptions, setProductSubscriptions] = useState<Record<string, string[]>>({});
   const [seenSuggestionsCount, setSeenSuggestionsCount] = useState(0);
-  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>(initialQuotes);
   const { toast } = useToast();
 
     const addQuote = (quote: Omit<Quote, 'id'>) => {
