@@ -276,7 +276,7 @@ function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initia
                     Administre los parámetros y configuraciones para el cálculo de insumos.
                 </DialogDescription>
             </DialogHeader>
-             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
+             <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
                  <Card className="col-span-1">
                     <CardHeader>
                         <CardTitle className="text-lg">Rendimiento de Adhesivos</CardTitle>
@@ -1499,4 +1499,3 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
-
