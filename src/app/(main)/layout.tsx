@@ -117,7 +117,7 @@ export const navItems = [
   { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
   { href: '/assigned-customers', label: 'Mis Clientes', icon: Users, permission: 'partners:clients' },
   {
-    label: 'Calculadoras y Herramientas',
+    label: 'Calculadoras',
     icon: Calculator,
     permission: 'calculators:use',
     subItems: [
