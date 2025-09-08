@@ -20,7 +20,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -30,6 +30,7 @@ import { LocationCombobox } from '@/components/location-combobox';
 import { InventoryContext, AdhesiveYield, SealantYield, InventoryData } from '@/context/inventory-context';
 import { CustomerSelector } from '@/components/customer-selector';
 import { Customer } from '@/lib/customers';
+import { MultiSelectCombobox } from '@/components/ui/multi-select';
 
 
 const referenceDetails: { [key: string]: { brand: string, line: string } } = {
@@ -166,7 +167,7 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                         <TableBody>
                             {adhesiveYields.map((yieldData, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{yieldData.productName}</TableCell>
+                                    <TableCell>{yieldData.productNames.join(', ')}</TableCell>
                                     <TableCell>{yieldData.standard}</TableCell>
                                     <TableCell>{yieldData.xl}</TableCell>
                                 </TableRow>
@@ -234,7 +235,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
             .map(p => ({ value: p, label: p }));
     }, [inventoryData]);
 
-    const handleAdhesiveChange = (index: number, field: keyof AdhesiveYield, value: string) => {
+    const handleAdhesiveChange = (index: number, field: keyof AdhesiveYield, value: string | string[]) => {
         const newYields = [...localAdhesiveYields];
         (newYields[index] as any)[field] = value;
         setLocalAdhesiveYields(newYields);
@@ -257,7 +258,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
     
     const handleAddYield = (type: 'adhesive' | 'sealant') => {
         if (type === 'adhesive') {
-            setLocalAdhesiveYields([...localAdhesiveYields, { productName: '', standard: '', xl: '' }]);
+            setLocalAdhesiveYields([...localAdhesiveYields, { productNames: [], standard: '', xl: '' }]);
         } else {
             setLocalSealantYields([...localSealantYields, { sealant: '', standardYield: 0, clayYield: 0 }]);
         }
@@ -290,7 +291,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Referencia de Producto</TableHead>
+                                    <TableHead>Referencias de Producto</TableHead>
                                     <TableHead>Estándar</TableHead>
                                     <TableHead>XL</TableHead>
                                     <TableHead className="w-10"></TableHead>
@@ -299,12 +300,12 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                             <TableBody>
                                 {localAdhesiveYields.map((yieldData, index) => (
                                     <TableRow key={index}>
-                                        <TableCell>
-                                            <Combobox
+                                        <TableCell className="min-w-[300px]">
+                                            <MultiSelectCombobox
                                                 options={productOptions}
-                                                value={yieldData.productName}
-                                                onValueChange={(value) => handleAdhesiveChange(index, 'productName', value)}
-                                                placeholder="Seleccionar producto"
+                                                selected={yieldData.productNames}
+                                                onChange={(selected) => handleAdhesiveChange(index, 'productNames', selected)}
+                                                placeholder="Seleccionar productos..."
                                                 searchPlaceholder='Buscar producto...'
                                                 emptyPlaceholder='Producto no encontrado.'
                                             />
@@ -328,8 +329,8 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Sellante</TableHead>
-                                <TableHead>Otras</TableHead>
-                                <TableHead>Clay</TableHead>
+                                <TableHead>Otras (M²/galón)</TableHead>
+                                <TableHead>Clay (M²/galón)</TableHead>
                                 <TableHead className="w-10"></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -611,7 +612,7 @@ export default function StoneflexCalculatorPage() {
       if (hasPrice) totalProductCost += productCost;
       
       if (includeAdhesive && details.line !== '3D' && hasPrice) {
-          const yieldRule = adhesiveYields.find(y => y.productName === item.reference);
+          const yieldRule = adhesiveYields.find(y => y.productNames.includes(item.reference));
           
           if (yieldRule) {
               const isXL = item.reference.includes('XL');
