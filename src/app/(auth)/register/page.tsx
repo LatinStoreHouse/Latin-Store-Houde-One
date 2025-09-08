@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useRef, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +39,7 @@ export default function RegisterPage() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [isOtpSent, setIsOtpSent] = useState(false);
+    const [isClient, setIsClient] = useState(false);
     
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
@@ -47,9 +47,13 @@ export default function RegisterPage() {
     const recaptchaContainerRef = useRef<HTMLDivElement>(null);
     
     const auth = getAuth(app);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     
     useEffect(() => {
-        if (!window.recaptchaVerifier) {
+        if (isClient && !window.recaptchaVerifier) {
             window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
                 'size': 'invisible',
                 'callback': (response: any) => {
@@ -58,7 +62,7 @@ export default function RegisterPage() {
             });
             window.recaptchaVerifier.render();
         }
-    }, [auth]);
+    }, [isClient, auth]);
 
   
     const getInvitationDetails = () => {
@@ -179,7 +183,7 @@ export default function RegisterPage() {
                         <Label htmlFor="phone">Número de Celular</Label>
                         <div className="flex gap-2">
                             <Input id="phone" type="tel" placeholder="+573001234567" required value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isOtpSent || loading}/>
-                            <Button type="button" onClick={handleSendOtp} disabled={isOtpSent || loading || !window.recaptchaVerifier}>
+                            <Button type="button" onClick={handleSendOtp} disabled={!isClient || isOtpSent || loading}>
                                 {loading && isOtpSent === false ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Enviar Código'}
                             </Button>
                         </div>
