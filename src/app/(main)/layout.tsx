@@ -87,6 +87,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { PageLoader } from '@/components/page-loader';
 import { ThemeSwitcher } from '@/components/theme-switcher';
+import { Label } from '@/components/ui/label';
 
 
 // CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
@@ -558,9 +559,27 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                     <Separator />
 
                     {isEditingProfile ? (
-                        <div>
-                            <h3 className="text-sm font-medium mb-2">Tema de la Aplicación</h3>
-                            <ThemeSwitcher />
+                        <div className='space-y-4'>
+                            <div>
+                                <h3 className="text-sm font-medium mb-2">Tema de la Aplicación</h3>
+                                <ThemeSwitcher />
+                            </div>
+                             <Separator />
+                             <div>
+                                <h3 className="text-sm font-medium mb-2">Cambiar Contraseña</h3>
+                                <div className="space-y-2">
+                                    <Label htmlFor="current-password">Contraseña Actual</Label>
+                                    <Input id="current-password" type="password" />
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="new-password">Nueva Contraseña</Label>
+                                    <Input id="new-password" type="password" />
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="confirm-password">Confirmar Nueva Contraseña</Label>
+                                    <Input id="confirm-password" type="password" />
+                                </div>
+                             </div>
                         </div>
                     ) : (
                         <div>
