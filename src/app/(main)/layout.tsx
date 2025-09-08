@@ -86,6 +86,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { PageLoader } from '@/components/page-loader';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 
 
 // CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
@@ -505,7 +506,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                 <DialogHeader>
                     <DialogTitle>{isEditingProfile ? 'Editar Perfil' : 'Perfil de Usuario'}</DialogTitle>
                     <DialogDescription>
-                        {isEditingProfile ? 'Actualice su nombre y foto de perfil.' : 'Esta es tu información de perfil y tus permisos actuales.'}
+                        {isEditingProfile ? 'Actualice su nombre, foto de perfil y tema preferido.' : 'Esta es tu información de perfil y tus permisos actuales.'}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -553,7 +554,15 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                           <AlertDescription>{avatarError}</AlertDescription>
                         </Alert>
                     )}
-                    {!isEditingProfile && (
+                    
+                    <Separator />
+
+                    {isEditingProfile ? (
+                        <div>
+                            <h3 className="text-sm font-medium mb-2">Tema de la Aplicación</h3>
+                            <ThemeSwitcher />
+                        </div>
+                    ) : (
                         <div>
                             <h3 className="mb-2 font-medium">Módulos Accesibles</h3>
                             <div className="flex flex-wrap gap-2">
