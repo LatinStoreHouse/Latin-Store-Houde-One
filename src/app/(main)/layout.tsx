@@ -122,6 +122,7 @@ export const navItems = [
     subItems: [
       { href: '/stoneflex-clay-calculator', label: 'Calculadora StoneFlex' },
       { href: '/starwood-calculator', label: 'Calculadora Starwood' },
+      { href: '/shipping-calculator', label: 'Calculadora de Envíos' },
       { href: '/invoices', label: 'Historial de Cotizaciones', permission: 'invoices:view' },
     ],
   },
