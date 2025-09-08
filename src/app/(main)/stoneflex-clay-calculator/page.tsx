@@ -276,7 +276,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                                 <TableRow>
                                     <TableHead className="w-[200px]">Nombre del Grupo</TableHead>
                                     <TableHead className="min-w-[400px]">Referencias de Producto</TableHead>
-                                    <TableHead className="text-center">Rendimiento</TableHead>
+                                    <TableHead className="w-40 text-center">Rendimiento</TableHead>
                                     <TableHead className="text-center">Es Translúcido</TableHead>
                                     <TableHead className="w-10"></TableHead>
                                 </TableRow>
@@ -292,7 +292,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                                                     placeholder="Ej: Pizarras Estándar"
                                                 />
                                             </TableCell>
-                                            <TableCell className="min-w-[400px]">
+                                            <TableCell>
                                                 <MultiSelectCombobox
                                                     options={productOptions}
                                                     selected={yieldData.productNames || []}
