@@ -20,7 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Badge } from "./badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "./carousel"
 
 export type ComboboxOption = {
   value: string
@@ -36,7 +36,6 @@ type MultiSelectComboboxProps = {
   emptyPlaceholder?: string
   className?: string
   disabled?: boolean
-  displayLimit?: number;
 }
 
 export function MultiSelectCombobox({
@@ -48,7 +47,6 @@ export function MultiSelectCombobox({
   emptyPlaceholder = "No options found.",
   className,
   disabled,
-  displayLimit = 3,
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -58,9 +56,6 @@ export function MultiSelectCombobox({
       : [...selected, value]
     onChange(newSelected)
   }
-
-  const displayedItems = selected.slice(0, displayLimit);
-  const remainingCount = selected.length - displayedItems.length;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -77,43 +72,38 @@ export function MultiSelectCombobox({
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
             {selected.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                    {displayedItems.map((value) => {
-                        const label = options.find((option) => option.value === value)?.label || value;
-                        return (
-                            <Badge key={value} variant="secondary" className="gap-1.5">
-                                {label}
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleSelect(value);
-                                    }}
-                                    className="rounded-full ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                >
-                                    <X className="h-3 w-3" />
-                                </button>
-                            </Badge>
-                        )
-                    })}
-                     {remainingCount > 0 && (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Badge variant="secondary">
-                                        +{remainingCount} más
+                <Carousel
+                    opts={{
+                        align: "start",
+                        dragFree: true,
+                    }}
+                    className="w-full"
+                >
+                    <CarouselContent className="-ml-2">
+                        {selected.map((value) => {
+                            const label = options.find((option) => option.value === value)?.label || value;
+                            return (
+                                <CarouselItem key={value} className="pl-2 basis-auto">
+                                     <Badge variant="secondary" className="gap-1.5">
+                                        <span className="max-w-[150px] truncate">{label}</span>
+                                        <button
+                                            aria-label={`Remove ${label}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleSelect(value);
+                                            }}
+                                            className="rounded-full ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
                                     </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="max-w-xs">
-                                        {selected.slice(displayLimit).map(value => 
-                                            options.find(option => option.value === value)?.label || value
-                                        ).join(', ')}
-                                    </p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                     )}
-                </div>
+                                </CarouselItem>
+                            )
+                        })}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute -left-5 top-1/2 -translate-y-1/2 h-6 w-6" />
+                    <CarouselNext className="absolute -right-5 top-1/2 -translate-y-1/2 h-6 w-6" />
+                </Carousel>
             )}
         </div>
       </PopoverTrigger>
