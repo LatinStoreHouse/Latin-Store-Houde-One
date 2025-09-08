@@ -95,7 +95,7 @@ const addPdfHeader = async (doc: jsPDF) => {
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
     if (latinLogoData) {
-        const logoWidth = 25;
+        const logoWidth = 20;
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
         doc.addImage(latinLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
     }
@@ -103,7 +103,7 @@ const addPdfHeader = async (doc: jsPDF) => {
     doc.setFontSize(8);
     doc.setTextColor(100);
     doc.text('Latin Store House S.A.S', pageWidth - 14, 15, { align: 'right' });
-    doc.text('NIT: 901.401.708-1', pageWidth - 14, 19, { align: 'right' });
+    doc.text('NIT: 900493221-0', pageWidth - 14, 19, { align: 'right' });
 };
 
 
@@ -593,9 +593,9 @@ export default function InventoryPage() {
     });
 
     doc.autoTable({ 
+      startY: 50,
       head,
       body,
-      startY: 50,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185] },
     });
@@ -1028,6 +1028,7 @@ export default function InventoryPage() {
     
 
     
+
 
 
 

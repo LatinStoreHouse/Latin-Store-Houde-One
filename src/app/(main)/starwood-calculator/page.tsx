@@ -508,7 +508,7 @@ export default function StarwoodCalculatorPage() {
     if (latinLogoData) {
         const logoWidth = 30;
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
-        doc.addImage(latinLogoData.base64, 'PNG', pageWidth - logoWidth - 14, 10, logoWidth, logoHeight);
+        doc.addImage(latinLogoData.base64, 'PNG', pageWidth - logoWidth - 14, 10, logoHeight, logoHeight);
     }
     
     generatePdfContent(doc, quote, pageWidth);

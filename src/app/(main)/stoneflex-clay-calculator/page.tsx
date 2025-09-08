@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useMemo, useEffect, useContext } from 'react';
 import Image from 'next/image';
@@ -676,7 +677,7 @@ export default function StoneflexCalculatorPage() {
     quote.items.forEach((item, index) => {
         const dimensionText = productDimensions[item.reference as keyof typeof productDimensions] ? `(${productDimensions[item.reference as keyof typeof productDimensions]})` : '';
         const title = item.calculationMode === 'units' ? item.reference : `${item.reference} ${dimensionText}`;
-        const sqMetersText = item.calculationMode === 'sqm' ? item.sqMeters.toFixed(2) : '';
+        const sqMetersText = item.calculationMode !== 'units' ? item.sqMeters.toFixed(2) : '';
         const qty = item.sheets.toFixed(2);
         const price = item.hasPrice ? (item.pricePerSheet).toFixed(2) : '0.00';
         const total = item.hasPrice ? (item.itemTotal).toFixed(2) : '0.00';
@@ -782,7 +783,7 @@ export default function StoneflexCalculatorPage() {
     if (latinLogoData) {
         const logoWidth = 30;
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
-        doc.addImage(latinLogoData.base64, 'PNG', pageWidth - logoWidth - 14, 10, logoWidth, logoHeight);
+        doc.addImage(latinLogoData.base64, 'PNG', pageWidth - logoWidth - 14, 10, logoHeight, logoHeight);
     }
     
     generatePdfContent(doc, quote, pageWidth);
@@ -875,7 +876,7 @@ export default function StoneflexCalculatorPage() {
     if (quote.totalTranslucentAdhesiveCost > 0 && quote.totalTranslucentAdhesiveUnits > 0) {
         message += `- Adhesivo Translúcido (${quote.totalTranslucentAdhesiveUnits} u. @ ${formatCurrency(quote.translucentAdhesivePrice)}/u.): ${formatCurrency(quote.totalTranslucentAdhesiveCost)}\n`;
     }
-    if (quote.totalSealantCost > 0 && quote.sealantQuarters > 0) {
+     if (quote.totalSealantCost > 0 && quote.sealantQuarters > 0) {
         message += `- Costo Sellante (1/4 de galón) (${quote.sealantQuarters} u. @ ${formatCurrency(quote.sealantQuarterPrice)}/u.): ${formatCurrency(quote.totalSealantCost)}\n`;
     }
      if (quote.manualSuppliesCost > 0) {
