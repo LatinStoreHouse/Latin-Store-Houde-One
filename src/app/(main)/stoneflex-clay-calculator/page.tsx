@@ -5,9 +5,9 @@ import React, { useState, useMemo, useEffect, useContext } from 'react';
 import Image from 'next/image';
 import * as XLSX from 'xlsx';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle, ChevronDown, MessageSquare, Save, AlertCircle } from 'lucide-react';
+import { Calculator, PlusCircle, Trash2, Download, RefreshCw, Loader2, HelpCircle, ChevronDown, MessageSquare, Save, AlertCircle, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -212,6 +212,129 @@ const initialCustomerState = {
   taxId: '',
   address: '',
 };
+
+function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initialSealant }: { adhesiveYields: AdhesiveYield[], sealantYields: SealantYield[] }) {
+    const context = useContext(InventoryContext);
+    if (!context) throw new Error("Context not found");
+    
+    const { setAdhesiveYields, setSealantYields } = context;
+
+    const [localAdhesiveYields, setLocalAdhesiveYields] = useState<AdhesiveYield[]>(initialAdhesive);
+    const [localSealantYields, setLocalSealantYields] = useState<SealantYield[]>(initialSealant);
+    const [hasChanges, setHasChanges] = useState(false);
+    const { toast } = useToast();
+
+    const handleAdhesiveChange = (index: number, field: keyof AdhesiveYield, value: string) => {
+        const newYields = [...localAdhesiveYields];
+        (newYields[index] as any)[field] = value;
+        setLocalAdhesiveYields(newYields);
+        setHasChanges(true);
+    };
+
+    const handleSealantChange = (index: number, field: keyof SealantYield, value: string | number) => {
+        const newYields = [...localSealantYields];
+        (newYields[index] as any)[field] = value;
+        setLocalSealantYields(newYields);
+        setHasChanges(true);
+    };
+    
+    const handleSaveChanges = () => {
+        setAdhesiveYields(localAdhesiveYields);
+        setSealantYields(localSealantYields);
+        setHasChanges(false);
+        toast({ title: 'Ajustes Guardados', description: 'Los rendimientos de los insumos han sido actualizados.' });
+    };
+    
+    const handleAddYield = (type: 'adhesive' | 'sealant') => {
+        if (type === 'adhesive') {
+            setLocalAdhesiveYields([...localAdhesiveYields, { line: '', standard: '', xl: '' }]);
+        } else {
+            setLocalSealantYields([...localSealantYields, { sealant: '', standardYield: 0, clayYield: 0 }]);
+        }
+        setHasChanges(true);
+    };
+    
+    const handleRemoveYield = (index: number, type: 'adhesive' | 'sealant') => {
+        if (type === 'adhesive') {
+            setLocalAdhesiveYields(localAdhesiveYields.filter((_, i) => i !== index));
+        } else {
+            setLocalSealantYields(localSealantYields.filter((_, i) => i !== index));
+        }
+        setHasChanges(true);
+    }
+    
+    return (
+         <DialogContent className="max-w-4xl">
+            <DialogHeader>
+                <DialogTitle>Ajustes de la Calculadora StoneFlex</DialogTitle>
+                <DialogDescription>
+                    Administre los parámetros y configuraciones para el cálculo de insumos.
+                </DialogDescription>
+            </DialogHeader>
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
+                 <Card className="col-span-1">
+                    <CardHeader>
+                        <CardTitle className="text-lg">Rendimiento de Adhesivos</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Línea</TableHead>
+                                    <TableHead>Estándar</TableHead>
+                                    <TableHead>XL</TableHead>
+                                    <TableHead className="w-10"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {localAdhesiveYields.map((yieldData, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell><Input value={yieldData.line} onChange={(e) => handleAdhesiveChange(index, 'line', e.target.value)} /></TableCell>
+                                        <TableCell><Input value={yieldData.standard} onChange={(e) => handleAdhesiveChange(index, 'standard', e.target.value)} /></TableCell>
+                                        <TableCell><Input value={yieldData.xl} onChange={(e) => handleAdhesiveChange(index, 'xl', e.target.value)} /></TableCell>
+                                        <TableCell><Button size="icon" variant="ghost" onClick={() => handleRemoveYield(index, 'adhesive')}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                         <div className="flex justify-end mt-4"><Button variant="outline" size="sm" onClick={() => handleAddYield('adhesive')}><PlusCircle className="h-4 w-4 mr-2" /> Añadir Fila</Button></div>
+                    </CardContent>
+                </Card>
+                 <Card className="col-span-1">
+                    <CardHeader>
+                        <CardTitle className="text-lg">Rendimiento de Sellantes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Sellante</TableHead>
+                                <TableHead>Otras</TableHead>
+                                <TableHead>Clay</TableHead>
+                                <TableHead className="w-10"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {localSealantYields.map((yieldData, index) => (
+                                <TableRow key={index}>
+                                    <TableCell><Input value={yieldData.sealant} onChange={(e) => handleSealantChange(index, 'sealant', e.target.value)} /></TableCell>
+                                    <TableCell><Input type="number" value={yieldData.standardYield} onChange={(e) => handleSealantChange(index, 'standardYield', Number(e.target.value))} /></TableCell>
+                                    <TableCell><Input type="number" value={yieldData.clayYield} onChange={(e) => handleSealantChange(index, 'clayYield', Number(e.target.value))} /></TableCell>
+                                    <TableCell><Button size="icon" variant="ghost" onClick={() => handleRemoveYield(index, 'sealant')}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                     <div className="flex justify-end mt-4"><Button variant="outline" size="sm" onClick={() => handleAddYield('sealant')}><PlusCircle className="h-4 w-4 mr-2" /> Añadir Fila</Button></div>
+                    </CardContent>
+                </Card>
+            </div>
+            <DialogFooter>
+                {hasChanges && <Button onClick={handleSaveChanges}><Save className="mr-2 h-4 w-4" />Guardar Cambios</Button>}
+            </DialogFooter>
+        </DialogContent>
+    )
+}
 
 export default function StoneflexCalculatorPage() {
   const searchParams = useSearchParams();
@@ -903,14 +1026,24 @@ export default function StoneflexCalculatorPage() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
             <div>
                 <CardTitle>Calculadora de Cotizaciones - StoneFlex</CardTitle>
                 <CardDescription>
                   Añada productos y estime el costo total de la cotización.
                 </CardDescription>
             </div>
-            <Image src="/imagenes/logos/Logo-StoneFlex-v-color.png" alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>
+            <div className="flex items-center gap-2">
+                 <Dialog>
+                    <DialogTrigger asChild>
+                       <Button variant="outline" size="icon">
+                            <Settings className="h-4 w-4" />
+                       </Button>
+                    </DialogTrigger>
+                    <SettingsDialog adhesiveYields={adhesiveYields} sealantYields={sealantYields} />
+                </Dialog>
+                <Image src="/imagenes/logos/Logo-StoneFlex-v-color.png" alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>
+            </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

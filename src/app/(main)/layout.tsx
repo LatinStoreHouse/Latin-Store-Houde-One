@@ -117,7 +117,7 @@ export const navItems = [
   { href: '/distributors', label: 'Socios', icon: Handshake, permission: 'partners:view' },
   { href: '/assigned-customers', label: 'Mis Clientes', icon: Users, permission: 'partners:clients' },
   {
-    label: 'Calculadoras',
+    label: 'Calculadoras y Herramientas',
     icon: Calculator,
     permission: 'calculators:use',
     subItems: [
@@ -143,7 +143,6 @@ export const navItems = [
         { href: '/users', label: 'Usuarios', permission: 'users:manage' },
         { href: '/roles', label: 'Roles y Permisos', permission: 'roles:manage' },
         { href: '/reports', label: 'Reportes', permission: 'reports:view' },
-        { href: '/settings', label: 'Ajustes Generales', permission: 'roles:manage' }, // Assuming only admin can manage settings
     ]
   }
 ];
@@ -159,6 +158,7 @@ const getIconForSubItem = (label: string, parentIcon: React.ElementType) => {
         case 'Calculadora StoneFlex': return Store;
         case 'Calculadora Starwood': return Store;
         case 'Calculadora de Envíos': return Truck;
+        case 'Asesor IA': return BotMessageSquare;
         case 'Usuarios': return UserCog;
         case 'Roles y Permisos': return ShieldCheck;
         case 'Reportes': return FileText;
