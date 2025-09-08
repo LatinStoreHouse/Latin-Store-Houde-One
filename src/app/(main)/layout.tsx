@@ -89,7 +89,7 @@ import { Separator } from '@/components/ui/separator';
 import { PageLoader } from '@/components/page-loader';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Label } from '@/components/ui/label';
-import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult, updatePassword } from 'firebase/auth';
 import { app } from '@/lib/firebase-config';
 
 // CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
@@ -97,7 +97,7 @@ const initialUser: User = {
   id: '1',
   name: 'Admin Latin',
   email: 'admin@latinhouse.com',
-  phone: '3101234567',
+  phone: '+573101234567',
   jobTitle: 'Gerente General',
   roles: ['Administrador'], 
   avatar: 'https://placehold.co/40x40.png',
@@ -109,6 +109,7 @@ declare global {
     interface Window {
         grecaptcha: any;
         recaptchaVerifier?: RecaptchaVerifier;
+        passwordRecaptchaVerifier?: RecaptchaVerifier;
     }
 }
 
@@ -404,6 +405,16 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const auth = getAuth(app);
   const recaptchaContainerRef = useRef<HTMLDivElement>(null);
+
+  // Password change state
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordOtp, setPasswordOtp] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [isPasswordOtpSent, setIsPasswordOtpSent] = useState(false);
+  const [passwordConfirmationResult, setPasswordConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const passwordRecaptchaContainerRef = useRef<HTMLDivElement>(null);
   
   
   const userPermissions = useMemo(() => {
@@ -423,10 +434,15 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     if (isEditingProfile) {
         if (recaptchaContainerRef.current && !window.recaptchaVerifier) {
             window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible',
-                'callback': (response: any) => {},
+                'size': 'invisible', 'callback': () => {}
             });
             window.recaptchaVerifier.render();
+        }
+        if (passwordRecaptchaContainerRef.current && !window.passwordRecaptchaVerifier) {
+            window.passwordRecaptchaVerifier = new RecaptchaVerifier(auth, 'password-recaptcha-container', {
+                'size': 'invisible', 'callback': () => {}
+            });
+            window.passwordRecaptchaVerifier.render();
         }
     }
   }, [isEditingProfile, auth]);
@@ -474,11 +490,38 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         setPhoneLoading(false);
     }
   };
+  
+   const handleSendPasswordOtp = async () => {
+    setPasswordError(null);
+    if (!currentUser.phone) {
+        setPasswordError('No hay un número de teléfono registrado para enviar el código.');
+        return;
+    }
+    if (!window.passwordRecaptchaVerifier) {
+        setPasswordError("El verificador reCAPTCHA no está listo. Por favor, espere.");
+        return;
+    }
+
+    setPasswordLoading(true);
+    try {
+        const verifier = window.passwordRecaptchaVerifier;
+        const result = await signInWithPhoneNumber(auth, currentUser.phone, verifier);
+        setPasswordConfirmationResult(result);
+        setIsPasswordOtpSent(true);
+        toast({ title: 'Código Enviado', description: 'Se ha enviado un código de verificación a tu teléfono para el cambio de contraseña.'});
+    } catch (error: any) {
+        console.error("Error sending password OTP:", error);
+        setPasswordError(`Error al enviar el código: ${error.message}`);
+    } finally {
+        setPasswordLoading(false);
+    }
+  };
 
   const handleProfileSave = async () => {
     let updatedPhone = currentUser.phone;
+    let passwordUpdated = false;
 
-    // If phone has changed, it must be verified
+    // --- Phone Update Logic ---
     if (editedPhone !== currentUser.phone) {
         if (!phoneConfirmationResult || !phoneOtp) {
             setPhoneError("Debes verificar el nuevo número de teléfono antes de guardar.");
@@ -489,11 +532,39 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
             updatedPhone = editedPhone; // Update phone only if OTP is correct
             toast({ title: "Número de teléfono verificado y actualizado." });
         } catch (error) {
-            setPhoneError("El código de verificación es incorrecto.");
+            setPhoneError("El código de verificación del teléfono es incorrecto.");
+            return;
+        }
+    }
+    
+    // --- Password Update Logic ---
+    if (newPassword) {
+        if (newPassword !== confirmNewPassword) {
+            setPasswordError("Las nuevas contraseñas no coinciden.");
+            return;
+        }
+        if (!passwordConfirmationResult || !passwordOtp) {
+            setPasswordError("Debes verificar tu identidad antes de cambiar la contraseña.");
+            return;
+        }
+        
+        try {
+            await passwordConfirmationResult.confirm(passwordOtp);
+            const user = auth.currentUser;
+            if (user) {
+                await updatePassword(user, newPassword);
+                passwordUpdated = true;
+                toast({ title: "Contraseña actualizada exitosamente." });
+            } else {
+                 throw new Error("No se encontró el usuario actual.");
+            }
+        } catch (error) {
+            setPasswordError("No se pudo actualizar la contraseña. El código puede ser incorrecto o la nueva contraseña no es válida.");
             return;
         }
     }
 
+    // --- Final Save ---
     setCurrentUser(prevUser => ({
       ...prevUser,
       name: editedName,
@@ -505,11 +576,9 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         description: 'Tu información ha sido guardada exitosamente.'
     });
     setIsEditingProfile(false);
-    // Reset phone verification state
-    setIsPhoneOtpSent(false);
-    setPhoneOtp('');
-    setPhoneConfirmationResult(null);
-    setPhoneError(null);
+    // Reset all states
+    setIsPhoneOtpSent(false); setPhoneOtp(''); setPhoneConfirmationResult(null); setPhoneError(null);
+    setIsPasswordOtpSent(false); setPasswordOtp(''); setPasswordConfirmationResult(null); setPasswordError(null); setNewPassword(''); setConfirmNewPassword('');
   }
   
   const accessibleModules = navItems
@@ -575,10 +644,9 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                 setAvatarError(null);
                 setAvatarFile(null);
                 // Reset phone verification state
-                setIsPhoneOtpSent(false);
-                setPhoneOtp('');
-                setPhoneConfirmationResult(null);
-                setPhoneError(null);
+                setIsPhoneOtpSent(false); setPhoneOtp(''); setPhoneConfirmationResult(null); setPhoneError(null);
+                // Reset password state
+                setIsPasswordOtpSent(false); setPasswordOtp(''); setPasswordConfirmationResult(null); setPasswordError(null); setNewPassword(''); setConfirmNewPassword('');
               }
             }}>
             <DialogTrigger asChild>
@@ -594,7 +662,8 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                 </div>
             </DialogTrigger>
             <DialogContent>
-                 <div id="recaptcha-container" ref={recaptchaContainerRef}></div>
+                 <div id="recaptcha-container" ref={recaptchaContainerRef} className="invisible"></div>
+                 <div id="password-recaptcha-container" ref={passwordRecaptchaContainerRef} className="invisible"></div>
                 <DialogHeader>
                     <DialogTitle>{isEditingProfile ? 'Editar Perfil' : 'Perfil de Usuario'}</DialogTitle>
                     <DialogDescription>
@@ -689,17 +758,27 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                              <div>
                                 <h3 className="text-sm font-medium mb-2">Cambiar Contraseña</h3>
                                 <div className="space-y-2">
-                                    <Label htmlFor="current-password">Contraseña Actual</Label>
-                                    <Input id="current-password" type="password" />
-                                </div>
-                                 <div className="space-y-2">
                                     <Label htmlFor="new-password">Nueva Contraseña</Label>
-                                    <Input id="new-password" type="password" />
+                                    <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={!isPasswordOtpSent}/>
                                 </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="confirm-password">Confirmar Nueva Contraseña</Label>
-                                    <Input id="confirm-password" type="password" />
+                                    <Input id="confirm-password" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} disabled={!isPasswordOtpSent}/>
                                 </div>
+                                 <div className="p-4 border rounded-md bg-muted/50 space-y-3 mt-4">
+                                     <h4 className="font-semibold text-sm">Verificar para cambiar contraseña</h4>
+                                     {!isPasswordOtpSent ? (
+                                        <Button type="button" onClick={handleSendPasswordOtp} disabled={passwordLoading} className="w-full">
+                                            {passwordLoading ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Enviar código de verificación'}
+                                        </Button>
+                                    ) : (
+                                         <div className="space-y-2">
+                                            <Label htmlFor="password-otp">Código de Verificación</Label>
+                                            <Input id="password-otp" type="text" placeholder="Ingrese el código de 6 dígitos" required value={passwordOtp} onChange={(e) => setPasswordOtp(e.target.value)} />
+                                        </div>
+                                    )}
+                                     {passwordError && <AlertDescription className="text-destructive text-sm">{passwordError}</AlertDescription>}
+                                 </div>
                              </div>
                         </div>
                     ) : (
