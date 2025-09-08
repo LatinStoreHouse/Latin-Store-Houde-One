@@ -1,7 +1,6 @@
 
-
 'use client';
-import React, { useState, useRef, useMemo, useContext, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useContext, useEffect, createContext } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -79,7 +78,7 @@ import { Role, roles, User } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { InventoryProvider, InventoryContext, AppNotification } from '@/context/inventory-context';
+import { InventoryContext, AppNotification } from '@/context/inventory-context';
 import { RoleSwitcher } from '@/components/role-switcher';
 import { initialProductPrices } from '@/lib/prices';
 import { initialPendingDispatches } from '@/app/(main)/validation/page';
@@ -92,27 +91,19 @@ import { Label } from '@/components/ui/label';
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult, updatePassword } from 'firebase/auth';
 import { app } from '@/lib/firebase-config';
 
-// CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
-const initialUser: User = {
-  id: '1',
-  name: 'Admin Latin',
-  email: 'admin@latinhouse.com',
-  phone: '+573101234567',
-  jobTitle: 'Gerente General',
-  roles: ['Administrador'], 
-  avatar: 'https://placehold.co/40x40.png',
-  active: true,
-  individualPermissions: [],
-};
+// We need a context to pass the currentUser and its setter around.
+export const UserContext = createContext<{
+  currentUser: User;
+  setCurrentUser: React.Dispatch<React.SetStateAction<User>>;
+} | null>(null);
 
-declare global {
-    interface Window {
-        grecaptcha: any;
-        recaptchaVerifier?: RecaptchaVerifier;
-        passwordRecaptchaVerifier?: RecaptchaVerifier;
+export function useUser() {
+    const context = useContext(UserContext);
+    if (!context) {
+        throw new Error('useUser must be used within a UserProvider');
     }
+    return context;
 }
-
 
 export const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },
@@ -192,20 +183,6 @@ const Logo = () => (
         />
     </div>
 );
-
-// We need a context to pass the currentUser and its setter around.
-export const UserContext = React.createContext<{
-  currentUser: User;
-  setCurrentUser: React.Dispatch<React.SetStateAction<User>>;
-} | null>(null);
-
-export function useUser() {
-    const context = React.useContext(UserContext);
-    if (!context) {
-        throw new Error('useUser must be used within a UserProvider');
-    }
-    return context;
-}
 
 const NavMenu = () => {
     const pathname = usePathname();
@@ -598,7 +575,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     router.push('/login');
   };
 
-  const isSuperAdmin = initialUser.roles.includes('Administrador');
+  const isSuperAdmin = currentUser.roles.includes('Administrador');
   
   const relevantNotifications = useMemo(() => {
     if (!inventoryContext?.notifications) return [];
@@ -902,24 +879,9 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
 }
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState(initialUser);
-  
-  const inventoryContextValue = useContext(InventoryContext);
-  
-  const userNotifications = useMemo(() => {
-    if (!inventoryContextValue) return [];
-    return inventoryContextValue.notifications.filter(n => {
-        return !n.user || n.user === currentUser.name;
-    });
-  }, [inventoryContextValue, currentUser.name]);
-
   return (
-    <UserContext.Provider value={{ currentUser, setCurrentUser }}>
-      <InventoryProvider>
-          <SidebarProvider>
-            <LayoutContent>{children}</LayoutContent>
-          </SidebarProvider>
-      </InventoryProvider>
-    </UserContext.Provider>
+      <SidebarProvider>
+        <LayoutContent>{children}</LayoutContent>
+      </SidebarProvider>
   );
 }

@@ -28,7 +28,7 @@ export default function RegisterPage() {
     const inviteType = searchParams.get('type');
     const inviteRole = searchParams.get('role');
     
-    const { addNotification } = useContext(InventoryContext)!;
+    const inventoryContext = useContext(InventoryContext);
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
@@ -134,7 +134,7 @@ export default function RegisterPage() {
             await confirmationResult.confirm(otp);
             
             // Simulación de registro exitoso después de la verificación del teléfono
-            addNotification({
+            inventoryContext?.addNotification({
                 title: 'Nueva Solicitud de Registro',
                 message: `El usuario "${name}" se ha registrado y está pendiente de aprobación.`,
                 role: 'Administrador'
