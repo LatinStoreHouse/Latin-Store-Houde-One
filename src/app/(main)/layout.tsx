@@ -95,6 +95,8 @@ const initialUser: User = {
   id: '1',
   name: 'Admin Latin',
   email: 'admin@latinhouse.com',
+  phone: '3101234567',
+  jobTitle: 'Gerente General',
   roles: ['Administrador'], 
   avatar: 'https://placehold.co/40x40.png',
   active: true,
@@ -541,7 +543,9 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                             ): (
                                 <h2 className="text-xl font-semibold">{currentUser.name}</h2>
                             )}
+                            <p className="text-sm text-muted-foreground">{currentUser.jobTitle}</p>
                             <p className="text-sm text-muted-foreground">{currentUser.email}</p>
+                             <p className="text-sm text-muted-foreground">{currentUser.phone}</p>
                             <div className="mt-2 flex flex-wrap gap-1">
                                 {currentUser.roles.map(role => (
                                     <Badge key={role}>{role}</Badge>

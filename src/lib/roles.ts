@@ -1,3 +1,4 @@
+
 'use client';
 
 export type Permission = 
@@ -69,6 +70,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string;
+  jobTitle?: string;
   roles: Role[];
   avatar: string;
   active: boolean;

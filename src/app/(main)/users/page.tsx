@@ -52,12 +52,12 @@ import { InventoryContext } from '@/context/inventory-context';
 type UserStatus = 'active' | 'inactive' | 'pending';
 
 const initialUsers: (User & {status: UserStatus})[] = [
-  { id: '1', name: 'Admin Latin', email: 'admin@latinhouse.com', roles: ['Administrador'], avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true, status: 'active', individualPermissions: [] },
-  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png', active: true, status: 'active', individualPermissions: ['partners:manage'] },
-  { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false, status: 'inactive', individualPermissions: [] },
-  { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', roles: ['Logística'], avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true, status: 'active', individualPermissions: [] },
-  { id: '5', name: 'Carlos Ruiz', email: 'carlos.r@example.com', roles: ['Contador'], avatar: 'https://placehold.co/40x40/f44336/ffffff.png', active: true, status: 'active', individualPermissions: [] },
-  { id: '6', name: 'Laura Diaz', email: 'laura.d@example.com', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/4CAF50/ffffff.png', active: true, status: 'active', individualPermissions: [] },
+  { id: '1', name: 'Admin Latin', email: 'admin@latinhouse.com', phone: '3101234567', jobTitle: 'Gerente General', roles: ['Administrador'], avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true, status: 'active', individualPermissions: [] },
+  { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', phone: '3111234567', jobTitle: 'Asesora de Ventas Senior', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png', active: true, status: 'active', individualPermissions: ['partners:manage'] },
+  { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', phone: '3121234567', jobTitle: 'Asesor de Ventas', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false, status: 'inactive', individualPermissions: [] },
+  { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', phone: '3131234567', jobTitle: 'Coordinadora de Logística', roles: ['Logística'], avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true, status: 'active', individualPermissions: [] },
+  { id: '5', name: 'Carlos Ruiz', email: 'carlos.r@example.com', phone: '3141234567', jobTitle: 'Jefe de Contabilidad', roles: ['Contador'], avatar: 'https://placehold.co/40x40/f44336/ffffff.png', active: true, status: 'active', individualPermissions: [] },
+  { id: '6', name: 'Laura Diaz', email: 'laura.d@example.com', phone: '3151234567', jobTitle: 'Asesora de Ventas', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/4CAF50/ffffff.png', active: true, status: 'active', individualPermissions: [] },
   { id: '7', name: 'Solicitante Partner', email: 'nuevo.socio@email.com', roles: ['Partner'], avatar: '', active: false, status: 'pending', individualPermissions: [] },
   { id: '8', name: 'Solicitante Distribuidor', email: 'nuevo.dist@email.com', roles: ['Distribuidor'], avatar: '', active: false, status: 'pending', individualPermissions: [] },
 ];

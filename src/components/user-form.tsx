@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,8 @@ const additionalPermissions: { group: string; permissions: { id: Permission; lab
 export function UserForm({ user, onSave, onCancel }: UserFormProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
   const [active, setActive] = useState(true);
   const [individualPermissions, setIndividualPermissions] = useState<Permission[]>([]);
@@ -46,12 +49,16 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
     if (user) {
       setName(user.name);
       setEmail(user.email);
+      setPhone(user.phone || '');
+      setJobTitle(user.jobTitle || '');
       setSelectedRoles(user.roles);
       setActive(user.active);
       setIndividualPermissions(user.individualPermissions || []);
     } else {
       setName('');
       setEmail('');
+      setPhone('');
+      setJobTitle('');
       setSelectedRoles(['Asesor de Ventas']);
       setActive(true);
       setIndividualPermissions([]);
@@ -80,6 +87,8 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
       id: user?.id || '',
       name,
       email,
+      phone,
+      jobTitle,
       roles: selectedRoles,
       active,
       avatar: user?.avatar || `https://placehold.co/40x40.png`,
@@ -97,6 +106,16 @@ export function UserForm({ user, onSave, onCancel }: UserFormProps) {
           onChange={(e) => setName(e.target.value)}
           required
         />
+      </div>
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+            <Label htmlFor="jobTitle">Cargo</Label>
+            <Input id="jobTitle" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />
+        </div>
+         <div className="space-y-2">
+            <Label htmlFor="phone">Teléfono</Label>
+            <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="email">Correo Electrónico</Label>
