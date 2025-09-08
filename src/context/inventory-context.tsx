@@ -96,6 +96,7 @@ export interface Quote {
 }
 
 export interface AdhesiveYield {
+    groupName?: string;
     productNames: string[];
     yield: number | null;
     isTranslucent: boolean;

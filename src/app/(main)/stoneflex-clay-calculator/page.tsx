@@ -99,28 +99,21 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Referencias de Producto</TableHead>
+                                <TableHead>Grupo de Productos</TableHead>
                                 <TableHead>Rendimiento</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {adhesiveYields.map((yieldData, index) => {
                                 const displayNames = Array.isArray(yieldData.productNames) ? yieldData.productNames : [];
-                                const firstProduct = displayNames[0] || '';
-                                const remainingCount = displayNames.length - 1;
-
+                                
                                 return (
                                 <TableRow key={index}>
                                     <TableCell>
                                       <Tooltip>
                                         <TooltipTrigger>
                                             <span className="underline decoration-dashed cursor-help">
-                                                {firstProduct}
-                                                {remainingCount > 0 && (
-                                                    <span className="text-muted-foreground text-xs ml-1">
-                                                        (y {remainingCount} más)
-                                                    </span>
-                                                )}
+                                               {yieldData.groupName || displayNames[0] || 'Grupo sin nombre'}
                                             </span>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -218,7 +211,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
     
     const handleAddYield = (type: 'adhesive' | 'sealant') => {
         if (type === 'adhesive') {
-            setLocalAdhesiveYields([...localAdhesiveYields, { productNames: [], yield: 0, isTranslucent: false }]);
+            setLocalAdhesiveYields([...localAdhesiveYields, { groupName: '', productNames: [], yield: 0, isTranslucent: false }]);
         } else {
             setLocalSealantYields([...localSealantYields, { sealant: '', standardYield: 0, clayYield: 0 }]);
         }
@@ -251,6 +244,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-[200px]">Nombre del Grupo</TableHead>
                                     <TableHead className="min-w-[300px]">Referencias de Producto</TableHead>
                                     <TableHead>Rendimiento</TableHead>
                                     <TableHead className="text-center">Es Translúcido</TableHead>
@@ -261,6 +255,13 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                                 {localAdhesiveYields.map((yieldData, index) => {
                                     return (
                                         <TableRow key={index}>
+                                            <TableCell>
+                                                <Input
+                                                    value={yieldData.groupName || ''}
+                                                    onChange={(e) => handleAdhesiveChange(index, 'groupName', e.target.value)}
+                                                    placeholder="Ej: Pizarras Estándar"
+                                                />
+                                            </TableCell>
                                             <TableCell className="min-w-[300px]">
                                                 <MultiSelectCombobox
                                                     options={productOptions}
@@ -764,7 +765,7 @@ export default function StoneflexCalculatorPage() {
 
     quote.items.forEach((item, index) => {
         const dimensionText = productDimensions[item.reference as keyof typeof productDimensions] ? `(${productDimensions[item.reference as keyof typeof productDimensions]})` : '';
-        const title = item.calculationMode === 'units' ? item.reference : `${item.reference} ${dimensionText}`;
+        const title = item.calculationMode !== 'units' ? item.reference : `${item.reference} ${dimensionText}`;
         const sqMetersText = item.calculationMode !== 'units' ? item.sqMeters.toFixed(2) : '';
         const qty = item.sheets.toFixed(2);
         const price = item.hasPrice ? (item.pricePerSheet).toFixed(2) : '0.00';
