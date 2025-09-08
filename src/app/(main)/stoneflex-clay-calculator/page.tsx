@@ -293,23 +293,23 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="min-w-[300px]">Referencias de Producto</TableHead>
-                                    <TableHead>Adhesivo Estándar</TableHead>
-                                    <TableHead>Adhesivo XL</TableHead>
+                                    <TableHead>Estándar</TableHead>
+                                    <TableHead>XL</TableHead>
                                     <TableHead className="text-center">Es Translúcido</TableHead>
                                     <TableHead className="w-10"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {localAdhesiveYields.map((yieldData, index) => {
-                                    const hasStandard = yieldData.productNames.some(p => !p.includes('XL'));
-                                    const hasXL = yieldData.productNames.some(p => p.includes('XL'));
+                                    const hasStandard = Array.isArray(yieldData.productNames) && yieldData.productNames.some(p => !p.includes('XL'));
+                                    const hasXL = Array.isArray(yieldData.productNames) && yieldData.productNames.some(p => p.includes('XL'));
 
                                     return (
                                         <TableRow key={index}>
                                             <TableCell className="min-w-[300px]">
                                                 <MultiSelectCombobox
                                                     options={productOptions}
-                                                    selected={yieldData.productNames}
+                                                    selected={yieldData.productNames || []}
                                                     onChange={(selected) => handleAdhesiveChange(index, 'productNames', selected)}
                                                     placeholder="Seleccionar productos..."
                                                     searchPlaceholder='Buscar producto...'
