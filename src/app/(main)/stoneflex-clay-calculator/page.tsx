@@ -169,8 +169,8 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                             {adhesiveYields.map((yieldData, index) => (
                                 <TableRow key={index}>
                                     <TableCell>{Array.isArray(yieldData.productNames) ? yieldData.productNames.join(', ') : ''}</TableCell>
-                                    <TableCell>{yieldData.standard}</TableCell>
-                                    <TableCell>{yieldData.xl}</TableCell>
+                                    <TableCell>{yieldData.standardYield || 'N/A'}</TableCell>
+                                    <TableCell>{yieldData.xlYield || 'N/A'}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -236,7 +236,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
             .map(p => ({ value: p, label: p }));
     }, [inventoryData]);
 
-    const handleAdhesiveChange = (index: number, field: keyof AdhesiveYield, value: string | string[]) => {
+    const handleAdhesiveChange = (index: number, field: keyof AdhesiveYield, value: any) => {
         const newYields = [...localAdhesiveYields];
         (newYields[index] as any)[field] = value;
         setLocalAdhesiveYields(newYields);
@@ -259,7 +259,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
     
     const handleAddYield = (type: 'adhesive' | 'sealant') => {
         if (type === 'adhesive') {
-            setLocalAdhesiveYields([...localAdhesiveYields, { productNames: [], standard: '', xl: '' }]);
+            setLocalAdhesiveYields([...localAdhesiveYields, { productNames: [], standardYield: 0, xlYield: 0, isTranslucent: false }]);
         } else {
             setLocalSealantYields([...localSealantYields, { sealant: '', standardYield: 0, clayYield: 0 }]);
         }
@@ -283,7 +283,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                     Administre los parámetros y configuraciones para el cálculo de insumos.
                 </DialogDescription>
             </DialogHeader>
-             <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
+             <div className="grid grid-cols-1 gap-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
                  <Card className="col-span-1">
                     <CardHeader>
                         <CardTitle className="text-lg">Rendimiento de Adhesivos</CardTitle>
@@ -292,30 +292,66 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Referencias de Producto</TableHead>
-                                    <TableHead>Estándar</TableHead>
-                                    <TableHead>XL</TableHead>
+                                    <TableHead className="min-w-[300px]">Referencias de Producto</TableHead>
+                                    <TableHead>Adhesivo Estándar</TableHead>
+                                    <TableHead>Adhesivo XL</TableHead>
+                                    <TableHead className="text-center">Es Translúcido</TableHead>
                                     <TableHead className="w-10"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {localAdhesiveYields.map((yieldData, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell className="min-w-[300px]">
-                                            <MultiSelectCombobox
-                                                options={productOptions}
-                                                selected={yieldData.productNames}
-                                                onChange={(selected) => handleAdhesiveChange(index, 'productNames', selected)}
-                                                placeholder="Seleccionar productos..."
-                                                searchPlaceholder='Buscar producto...'
-                                                emptyPlaceholder='Producto no encontrado.'
-                                            />
-                                        </TableCell>
-                                        <TableCell><Input value={yieldData.standard} onChange={(e) => handleAdhesiveChange(index, 'standard', e.target.value)} placeholder="ej: 0.5 unidades" /></TableCell>
-                                        <TableCell><Input value={yieldData.xl} onChange={(e) => handleAdhesiveChange(index, 'xl', e.target.value)} placeholder="ej: 2 unidades" /></TableCell>
-                                        <TableCell><Button size="icon" variant="ghost" onClick={() => handleRemoveYield(index, 'adhesive')}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
-                                    </TableRow>
-                                ))}
+                                {localAdhesiveYields.map((yieldData, index) => {
+                                    const hasStandard = yieldData.productNames.some(p => !p.includes('XL'));
+                                    const hasXL = yieldData.productNames.some(p => p.includes('XL'));
+
+                                    return (
+                                        <TableRow key={index}>
+                                            <TableCell className="min-w-[300px]">
+                                                <MultiSelectCombobox
+                                                    options={productOptions}
+                                                    selected={yieldData.productNames}
+                                                    onChange={(selected) => handleAdhesiveChange(index, 'productNames', selected)}
+                                                    placeholder="Seleccionar productos..."
+                                                    searchPlaceholder='Buscar producto...'
+                                                    emptyPlaceholder='Producto no encontrado.'
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                 <div className="space-y-1">
+                                                    <Input
+                                                        type="number"
+                                                        value={yieldData.standardYield ?? ''}
+                                                        onChange={(e) => handleAdhesiveChange(index, 'standardYield', Number(e.target.value))}
+                                                        placeholder={hasStandard ? '0.0' : 'N/A'}
+                                                        disabled={!hasStandard}
+                                                    />
+                                                     <p className="text-xs text-muted-foreground">und.</p>
+                                                 </div>
+                                            </TableCell>
+                                             <TableCell>
+                                                 <div className="space-y-1">
+                                                    <Input
+                                                        type="number"
+                                                        value={yieldData.xlYield ?? ''}
+                                                        onChange={(e) => handleAdhesiveChange(index, 'xlYield', Number(e.target.value))}
+                                                        placeholder={hasXL ? '0.0' : 'N/A'}
+                                                        disabled={!hasXL}
+                                                    />
+                                                     <p className="text-xs text-muted-foreground">und.</p>
+                                                 </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <Checkbox
+                                                    checked={yieldData.isTranslucent}
+                                                    onCheckedChange={(checked) => handleAdhesiveChange(index, 'isTranslucent', Boolean(checked))}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Button size="icon" variant="ghost" onClick={() => handleRemoveYield(index, 'adhesive')}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                          <div className="flex justify-end mt-4"><Button variant="outline" size="sm" onClick={() => handleAddYield('adhesive')}><PlusCircle className="h-4 w-4 mr-2" /> Añadir Fila</Button></div>
@@ -617,14 +653,14 @@ export default function StoneflexCalculatorPage() {
           
           if (yieldRule) {
               const isXL = item.reference.includes('XL');
-              const yieldValueStr = isXL ? yieldRule.xl : yieldRule.standard;
-              const adhesivePerSheet = parseDecimal(yieldValueStr.split(' ')[0] || '0');
-              const isTranslucent = yieldValueStr.toLowerCase().includes('translúcido');
-
-              if(isTranslucent) {
-                 totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
-              } else {
-                 totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
+              const adhesivePerSheet = isXL ? yieldRule.xlYield : yieldRule.standardYield;
+              
+              if (adhesivePerSheet !== null) {
+                  if(yieldRule.isTranslucent) {
+                     totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
+                  } else {
+                     totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
+                  }
               }
           }
       }
