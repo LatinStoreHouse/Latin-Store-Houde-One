@@ -1,7 +1,18 @@
 
-require('dotenv').config();
 
 import type {NextConfig} from 'next';
+
+// Cargar las variables de entorno del archivo .env
+require('dotenv').config({ path: './.env' });
+
+// Recoger todas las variables de entorno que deben ser públicas
+const publicEnv: {[key: string]: string} = {};
+for (const key in process.env) {
+    if (key.startsWith('NEXT_PUBLIC_')) {
+        publicEnv[key] = process.env[key]!;
+    }
+}
+
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -21,10 +32,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  env: {
-    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-    NEXT_PUBLIC_RECAPTCHA_SITE_KEY: process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY,
-  }
+  env: publicEnv
 };
 
 export default nextConfig;
