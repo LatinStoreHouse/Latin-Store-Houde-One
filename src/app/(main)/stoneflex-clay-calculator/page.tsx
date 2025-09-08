@@ -369,7 +369,15 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                 </Card>
             </div>
             <DialogFooter>
-                {hasChanges && <Button onClick={handleSaveChanges}><Save className="mr-2 h-4 w-4" />Guardar Cambios</Button>}
+                 <DialogClose asChild>
+                    <Button variant="ghost">Cancelar</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                    <Button onClick={handleSaveChanges} disabled={!hasChanges}>
+                        <Save className="mr-2 h-4 w-4" />
+                        Guardar Cambios
+                    </Button>
+                </DialogClose>
             </DialogFooter>
         </DialogContent>
     )
