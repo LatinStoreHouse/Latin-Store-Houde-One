@@ -20,6 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Badge } from "./badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip"
 
 export type ComboboxOption = {
   value: string
@@ -35,6 +36,7 @@ type MultiSelectComboboxProps = {
   emptyPlaceholder?: string
   className?: string
   disabled?: boolean
+  displayLimit?: number;
 }
 
 export function MultiSelectCombobox({
@@ -46,6 +48,7 @@ export function MultiSelectCombobox({
   emptyPlaceholder = "No options found.",
   className,
   disabled,
+  displayLimit = 3,
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -55,6 +58,9 @@ export function MultiSelectCombobox({
       : [...selected, value]
     onChange(newSelected)
   }
+
+  const displayedItems = selected.slice(0, displayLimit);
+  const remainingCount = selected.length - displayedItems.length;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -72,7 +78,7 @@ export function MultiSelectCombobox({
             </Button>
             {selected.length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                    {selected.map((value) => {
+                    {displayedItems.map((value) => {
                         const label = options.find((option) => option.value === value)?.label || value;
                         return (
                             <Badge key={value} variant="secondary" className="gap-1.5">
@@ -89,6 +95,24 @@ export function MultiSelectCombobox({
                             </Badge>
                         )
                     })}
+                     {remainingCount > 0 && (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Badge variant="secondary">
+                                        +{remainingCount} más
+                                    </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="max-w-xs">
+                                        {selected.slice(displayLimit).map(value => 
+                                            options.find(option => option.value === value)?.label || value
+                                        ).join(', ')}
+                                    </p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                     )}
                 </div>
             )}
         </div>
