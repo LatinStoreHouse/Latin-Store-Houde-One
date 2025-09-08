@@ -15,7 +15,7 @@ import { app } from '@/lib/firebase-config'; // Asumiendo que tienes un archivo 
 declare global {
     interface Window {
         grecaptcha: any;
-        recaptchaVerifier: RecaptchaVerifier;
+        recaptchaVerifier?: RecaptchaVerifier;
     }
 }
 
@@ -45,21 +45,17 @@ export default function RegisterPage() {
     const recaptchaContainerRef = useRef<HTMLDivElement>(null);
     
     const auth = getAuth(app);
-
-    const setupRecaptcha = () => {
-         if (!window.recaptchaVerifier && recaptchaContainerRef.current) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
-                'size': 'invisible',
-                'callback': (response: any) => {
-                    // reCAPTCHA solved, allow signInWithPhoneNumber.
-                    console.log("reCAPTCHA solved");
-                }
-            });
-         }
-    };
     
     useEffect(() => {
-        setupRecaptcha();
+        if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response: any) => {
+                    console.log("reCAPTCHA solved, ready to send OTP");
+                }
+            });
+            window.recaptchaVerifier.render();
+        }
     }, [auth]);
 
   
@@ -103,7 +99,7 @@ export default function RegisterPage() {
 
         setLoading(true);
         try {
-            const verifier = window.recaptchaVerifier;
+            const verifier = window.recaptchaVerifier!;
             const result = await signInWithPhoneNumber(auth, phone, verifier);
             setConfirmationResult(result);
             setIsOtpSent(true);
@@ -162,7 +158,7 @@ export default function RegisterPage() {
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div ref={recaptchaContainerRef}></div>
+                    <div id="recaptcha-container" ref={recaptchaContainerRef}></div>
 
                     {(inviteType || inviteRole) && Icon && (
                         <Alert variant="default" className="border-primary/20 bg-primary/5">
@@ -181,7 +177,7 @@ export default function RegisterPage() {
                         <Label htmlFor="phone">Número de Celular</Label>
                         <div className="flex gap-2">
                             <Input id="phone" type="tel" placeholder="+573001234567" required value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isOtpSent || loading}/>
-                            <Button type="button" onClick={handleSendOtp} disabled={isOtpSent || loading}>
+                            <Button type="button" onClick={handleSendOtp} disabled={isOtpSent || loading || !window.recaptchaVerifier}>
                                 {loading && isOtpSent === false ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Enviar Código'}
                             </Button>
                         </div>
