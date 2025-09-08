@@ -578,7 +578,7 @@ export default function InventoryPage() {
     await addPdfHeader(doc);
     
     doc.setFontSize(14);
-    doc.text('Reporte de Inventario', 14, 30);
+    doc.text('Reporte de Inventario', 14, 40);
 
     const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
     const head: any[] = [['Marca', 'Categoría', 'Producto']];
@@ -595,7 +595,7 @@ export default function InventoryPage() {
     doc.autoTable({ 
       head,
       body,
-      startY: 35,
+      startY: 45,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185] },
     });
@@ -1028,6 +1028,7 @@ export default function InventoryPage() {
     
 
     
+
 
 
 
