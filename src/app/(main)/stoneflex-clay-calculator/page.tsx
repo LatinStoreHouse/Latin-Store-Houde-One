@@ -161,8 +161,8 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Referencias de Producto</TableHead>
-                                <TableHead>Adhesivo por Lámina (Estándar)</TableHead>
-                                <TableHead>Adhesivo por Lámina (XL)</TableHead>
+                                <TableHead>Estándar</TableHead>
+                                <TableHead>XL</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -182,8 +182,8 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Sellante</TableHead>
-                                <TableHead>Rendimiento (Otras Ref.)</TableHead>
-                                <TableHead>Rendimiento (Línea Clay)</TableHead>
+                                <TableHead>Otras (M²/galón)</TableHead>
+                                <TableHead>Clay (M²/galón)</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -301,9 +301,6 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                             </TableHeader>
                             <TableBody>
                                 {localAdhesiveYields.map((yieldData, index) => {
-                                    const hasStandard = Array.isArray(yieldData.productNames) && yieldData.productNames.some(p => !p.includes('XL'));
-                                    const hasXL = Array.isArray(yieldData.productNames) && yieldData.productNames.some(p => p.includes('XL'));
-
                                     return (
                                         <TableRow key={index}>
                                             <TableCell className="min-w-[300px]">
@@ -322,8 +319,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                                                         type="number"
                                                         value={yieldData.standardYield ?? ''}
                                                         onChange={(e) => handleAdhesiveChange(index, 'standardYield', Number(e.target.value))}
-                                                        placeholder={hasStandard ? '0.0' : 'N/A'}
-                                                        disabled={!hasStandard}
+                                                        placeholder={'0.0'}
                                                     />
                                                      <p className="text-xs text-muted-foreground">und.</p>
                                                  </div>
@@ -334,8 +330,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                                                         type="number"
                                                         value={yieldData.xlYield ?? ''}
                                                         onChange={(e) => handleAdhesiveChange(index, 'xlYield', Number(e.target.value))}
-                                                        placeholder={hasXL ? '0.0' : 'N/A'}
-                                                        disabled={!hasXL}
+                                                        placeholder={'0.0'}
                                                     />
                                                      <p className="text-xs text-muted-foreground">und.</p>
                                                  </div>
