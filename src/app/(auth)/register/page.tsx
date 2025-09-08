@@ -44,7 +44,6 @@ export default function RegisterPage() {
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
     const router = useRouter();
-    const recaptchaContainerRef = useRef<HTMLDivElement>(null);
     
     const auth = getAuth(app);
 
@@ -110,7 +109,7 @@ export default function RegisterPage() {
             setConfirmationResult(result);
             setIsOtpSent(true);
             setError('Se ha enviado un código de verificación a tu teléfono.');
-        } catch (error: any) {
+        } catch (error: any) => {
             console.error("Error sending OTP:", error);
             setError(`Error al enviar el código: ${error.message}`);
         } finally {
@@ -164,7 +163,7 @@ export default function RegisterPage() {
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div id="recaptcha-container" ref={recaptchaContainerRef}></div>
+                    <div id="recaptcha-container"></div>
 
                     {(inviteType || inviteRole) && Icon && (
                         <Alert variant="default" className="border-primary/20 bg-primary/5">
