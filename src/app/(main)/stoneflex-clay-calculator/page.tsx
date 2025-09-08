@@ -21,7 +21,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -152,7 +152,7 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
         <DialogContent className="max-w-2xl">
             <DialogHeader>
                 <DialogTitle>Tabla de Referencia de Insumos</DialogTitle>
-                <CardDescription>Rendimiento estimado de adhesivos y sellantes por tipo de referencia.</CardDescription>
+                <DialogDescription>Rendimiento estimado de adhesivos y sellantes por tipo de referencia.</DialogDescription>
             </DialogHeader>
             <div className="space-y-6 py-4">
                 <div>
@@ -1487,3 +1487,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
