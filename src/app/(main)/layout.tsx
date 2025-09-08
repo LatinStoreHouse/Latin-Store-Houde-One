@@ -70,6 +70,7 @@ import {
     Palette,
     Wrench,
     Settings,
+    Loader2
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -88,7 +89,8 @@ import { Separator } from '@/components/ui/separator';
 import { PageLoader } from '@/components/page-loader';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Label } from '@/components/ui/label';
-
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { app } from '@/lib/firebase-config';
 
 // CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
 const initialUser: User = {
@@ -102,6 +104,13 @@ const initialUser: User = {
   active: true,
   individualPermissions: [],
 };
+
+declare global {
+    interface Window {
+        grecaptcha: any;
+        recaptchaVerifier?: RecaptchaVerifier;
+    }
+}
 
 
 export const navItems = [
@@ -378,6 +387,25 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   const inventoryContext = useContext(InventoryContext);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editedName, setEditedName] = useState(currentUser.name);
+  const [editedPhone, setEditedPhone] = useState(currentUser.phone);
+  const [editedAvatar, setEditedAvatar] = useState(currentUser.avatar);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  // Phone verification state
+  const [phoneOtp, setPhoneOtp] = useState('');
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [isPhoneOtpSent, setIsPhoneOtpSent] = useState(false);
+  const [phoneConfirmationResult, setPhoneConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const auth = getAuth(app);
+  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
+  
+  
   const userPermissions = useMemo(() => {
     const permissions = new Set<string>();
     currentUser.roles.forEach(userRole => {
@@ -391,14 +419,17 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     return Array.from(permissions);
   }, [currentUser.roles, currentUser.individualPermissions]);
 
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [editedName, setEditedName] = useState(currentUser.name);
-  const [editedPhone, setEditedPhone] = useState(currentUser.phone);
-  const [editedAvatar, setEditedAvatar] = useState(currentUser.avatar);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarError, setAvatarError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  useEffect(() => {
+    if (isEditingProfile) {
+        if (recaptchaContainerRef.current && !window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response: any) => {},
+            });
+            window.recaptchaVerifier.render();
+        }
+    }
+  }, [isEditingProfile, auth]);
   
   const hasPermission = (item: any) => {
     if (!item.permission) return true; // Items without a specific permission are public
@@ -418,11 +449,55 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const handleProfileSave = () => {
+  const handleSendPhoneOtp = async () => {
+    setPhoneError(null);
+    if (!editedPhone || !editedPhone.startsWith('+57') || editedPhone.length !== 13) {
+        setPhoneError('Por favor, ingrese un número de teléfono válido con el formato +57XXXXXXXXXX.');
+        return;
+    }
+    if (!window.recaptchaVerifier) {
+        setPhoneError("El verificador reCAPTCHA no está listo. Por favor, espere.");
+        return;
+    }
+
+    setPhoneLoading(true);
+    try {
+        const verifier = window.recaptchaVerifier;
+        const result = await signInWithPhoneNumber(auth, editedPhone, verifier);
+        setPhoneConfirmationResult(result);
+        setIsPhoneOtpSent(true);
+        toast({ title: 'Código Enviado', description: 'Se ha enviado un código de verificación a tu nuevo número.'});
+    } catch (error: any) {
+        console.error("Error sending phone OTP:", error);
+        setPhoneError(`Error al enviar el código: ${error.message}`);
+    } finally {
+        setPhoneLoading(false);
+    }
+  };
+
+  const handleProfileSave = async () => {
+    let updatedPhone = currentUser.phone;
+
+    // If phone has changed, it must be verified
+    if (editedPhone !== currentUser.phone) {
+        if (!phoneConfirmationResult || !phoneOtp) {
+            setPhoneError("Debes verificar el nuevo número de teléfono antes de guardar.");
+            return;
+        }
+        try {
+            await phoneConfirmationResult.confirm(phoneOtp);
+            updatedPhone = editedPhone; // Update phone only if OTP is correct
+            toast({ title: "Número de teléfono verificado y actualizado." });
+        } catch (error) {
+            setPhoneError("El código de verificación es incorrecto.");
+            return;
+        }
+    }
+
     setCurrentUser(prevUser => ({
       ...prevUser,
       name: editedName,
-      phone: editedPhone,
+      phone: updatedPhone,
       avatar: editedAvatar,
     }));
     toast({
@@ -430,6 +505,11 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         description: 'Tu información ha sido guardada exitosamente.'
     });
     setIsEditingProfile(false);
+    // Reset phone verification state
+    setIsPhoneOtpSent(false);
+    setPhoneOtp('');
+    setPhoneConfirmationResult(null);
+    setPhoneError(null);
   }
   
   const accessibleModules = navItems
@@ -494,6 +574,11 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                 setEditedAvatar(currentUser.avatar);
                 setAvatarError(null);
                 setAvatarFile(null);
+                // Reset phone verification state
+                setIsPhoneOtpSent(false);
+                setPhoneOtp('');
+                setPhoneConfirmationResult(null);
+                setPhoneError(null);
               }
             }}>
             <DialogTrigger asChild>
@@ -504,11 +589,12 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                     </Avatar>
                     <div className="flex flex-col">
                     <span className="text-sm font-semibold">{currentUser.name}</span>
-                    <span className="text-xs text-muted-foreground">{currentUser.email}</span>
+                    <span className="text-sm text-muted-foreground">{currentUser.email}</span>
                     </div>
                 </div>
             </DialogTrigger>
             <DialogContent>
+                 <div id="recaptcha-container" ref={recaptchaContainerRef}></div>
                 <DialogHeader>
                     <DialogTitle>{isEditingProfile ? 'Editar Perfil' : 'Perfil de Usuario'}</DialogTitle>
                     <DialogDescription>
@@ -549,7 +635,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
                                     </div>
                                     <div className="space-y-1">
                                         <Label htmlFor="profile-phone">Teléfono</Label>
-                                        <Input id="profile-phone" value={editedPhone} onChange={(e) => setEditedPhone(e.target.value)} />
+                                        <Input id="profile-phone" value={editedPhone} onChange={(e) => setEditedPhone(e.target.value)} disabled={isPhoneOtpSent} />
                                     </div>
                                 </div>
                             ): (
@@ -578,6 +664,23 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
 
                     {isEditingProfile ? (
                         <div className='space-y-4'>
+                            {editedPhone !== currentUser.phone && (
+                                <div className="p-4 border rounded-md bg-muted/50 space-y-3">
+                                    <h4 className="font-semibold">Verificar nuevo número</h4>
+                                    {!isPhoneOtpSent ? (
+                                        <Button type="button" onClick={handleSendPhoneOtp} disabled={phoneLoading} className="w-full">
+                                            {phoneLoading ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Enviar código de verificación'}
+                                        </Button>
+                                    ) : (
+                                         <div className="space-y-2">
+                                            <Label htmlFor="phone-otp">Código de Verificación</Label>
+                                            <Input id="phone-otp" type="text" placeholder="Ingrese el código de 6 dígitos" required value={phoneOtp} onChange={(e) => setPhoneOtp(e.target.value)} />
+                                        </div>
+                                    )}
+                                     {phoneError && <AlertDescription className="text-destructive text-sm">{phoneError}</AlertDescription>}
+                                </div>
+                            )}
+
                             <div>
                                 <h3 className="text-sm font-medium mb-2">Tema de la Aplicación</h3>
                                 <ThemeSwitcher />
