@@ -21,7 +21,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -405,6 +405,7 @@ export default function StoneflexCalculatorPage() {
 
   const isDistributor = useMemo(() => currentUser.roles.includes('Distribuidor'), [currentUser.roles]);
   const isPartner = useMemo(() => currentUser.roles.includes('Partner'), [currentUser.roles]);
+  const canEditSettings = currentUser.roles.includes('Administrador');
   
   const viewMode = useMemo(() => {
     if (isDistributor) return 'distributor';
@@ -1052,14 +1053,16 @@ export default function StoneflexCalculatorPage() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                 <Dialog>
-                    <DialogTrigger asChild>
-                       <Button variant="outline" size="icon">
-                            <Settings className="h-4 w-4" />
-                       </Button>
-                    </DialogTrigger>
-                    <SettingsDialog inventoryData={inventoryData} />
-                </Dialog>
+                 {canEditSettings && (
+                    <Dialog>
+                        <DialogTrigger asChild>
+                        <Button variant="outline" size="icon">
+                                <Settings className="h-4 w-4" />
+                        </Button>
+                        </DialogTrigger>
+                        <SettingsDialog inventoryData={inventoryData} />
+                    </Dialog>
+                 )}
                 <Image src="/imagenes/logos/Logo-StoneFlex-v-color.png" alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>
             </div>
         </div>
