@@ -21,7 +21,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -29,7 +29,7 @@ import { productDimensions } from '@/lib/dimensions';
 import { initialInventoryData } from '@/lib/initial-inventory';
 import { useUser } from '@/app/(main)/layout';
 import { LocationCombobox } from '@/components/location-combobox';
-import { InventoryContext, AdhesiveYield, SealantYield } from '@/context/inventory-context';
+import { InventoryContext, AdhesiveYield, SealantYield, InventoryData } from '@/context/inventory-context';
 import { CustomerSelector } from '@/components/customer-selector';
 import { Customer } from '@/lib/customers';
 
@@ -213,7 +213,7 @@ const initialCustomerState = {
   address: '',
 };
 
-function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initialSealant }: { adhesiveYields: AdhesiveYield[], sealantYields: SealantYield[] }) {
+function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initialSealant, inventoryData }: { adhesiveYields: AdhesiveYield[], sealantYields: SealantYield[], inventoryData: InventoryData }) {
     const context = useContext(InventoryContext);
     if (!context) throw new Error("Context not found");
     
@@ -223,6 +223,11 @@ function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initia
     const [localSealantYields, setLocalSealantYields] = useState<SealantYield[]>(initialSealant);
     const [hasChanges, setHasChanges] = useState(false);
     const { toast } = useToast();
+
+    const stoneflexLineOptions = useMemo(() => {
+        const lines = inventoryData['StoneFlex'] ? Object.keys(inventoryData['StoneFlex']) : [];
+        return lines.map(line => ({ value: line, label: line }));
+    }, [inventoryData]);
 
     const handleAdhesiveChange = (index: number, field: keyof AdhesiveYield, value: string) => {
         const newYields = [...localAdhesiveYields];
@@ -289,7 +294,14 @@ function SettingsDialog({ adhesiveYields: initialAdhesive, sealantYields: initia
                             <TableBody>
                                 {localAdhesiveYields.map((yieldData, index) => (
                                     <TableRow key={index}>
-                                        <TableCell><Input value={yieldData.line} onChange={(e) => handleAdhesiveChange(index, 'line', e.target.value)} /></TableCell>
+                                        <TableCell>
+                                            <Combobox
+                                                options={stoneflexLineOptions}
+                                                value={yieldData.line}
+                                                onValueChange={(value) => handleAdhesiveChange(index, 'line', value)}
+                                                placeholder="Seleccionar línea"
+                                            />
+                                        </TableCell>
                                         <TableCell><Input value={yieldData.standard} onChange={(e) => handleAdhesiveChange(index, 'standard', e.target.value)} /></TableCell>
                                         <TableCell><Input value={yieldData.xl} onChange={(e) => handleAdhesiveChange(index, 'xl', e.target.value)} /></TableCell>
                                         <TableCell><Button size="icon" variant="ghost" onClick={() => handleRemoveYield(index, 'adhesive')}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
@@ -340,7 +352,7 @@ export default function StoneflexCalculatorPage() {
   const searchParams = useSearchParams();
   const context = useContext(InventoryContext);
   if (!context) throw new Error("Inventory context not found");
-  const { addQuote, adhesiveYields, sealantYields } = context;
+  const { inventoryData, addQuote, adhesiveYields, sealantYields } = context;
 
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
@@ -1040,7 +1052,7 @@ export default function StoneflexCalculatorPage() {
                             <Settings className="h-4 w-4" />
                        </Button>
                     </DialogTrigger>
-                    <SettingsDialog adhesiveYields={adhesiveYields} sealantYields={sealantYields} />
+                    <SettingsDialog adhesiveYields={adhesiveYields} sealantYields={sealantYields} inventoryData={inventoryData} />
                 </Dialog>
                 <Image src="/imagenes/logos/Logo-StoneFlex-v-color.png" alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>
             </div>
@@ -1487,3 +1499,4 @@ export default function StoneflexCalculatorPage() {
     </Card>
   )
 }
+
