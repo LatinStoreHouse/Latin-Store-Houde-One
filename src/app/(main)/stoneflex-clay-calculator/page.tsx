@@ -34,64 +34,6 @@ import { Customer } from '@/lib/customers';
 import { MultiSelectCombobox } from '@/components/ui/multi-select';
 
 
-const referenceDetails: { [key: string]: { brand: string, line: string } } = {
-    'Cut stone': { brand: 'StoneFlex', line: 'Clay' },
-    'Travertino': { brand: 'StoneFlex', line: 'Clay' },
-    'Concreto encofrado': { brand: 'StoneFlex', line: 'Clay' },
-    'Tapia negra': { brand: 'StoneFlex', line: 'Clay' },
-    'Black': { brand: 'StoneFlex', line: 'Pizarra' },
-    'Black XL': { brand: 'StoneFlex', line: 'Pizarra' },
-    'Kund multy': { brand: 'StoneFlex', line: 'Pizarra' },
-    'Kund multy XL': { brand: 'StoneFlex', line: 'Pizarra' },
-    'Tan': { brand: 'StoneFlex', line: 'Pizarra' },
-    'Tan XL': { brand: 'StoneFlex', line: 'Pizarra' },
-    'Indian autumn': { brand: 'StoneFlex', line: 'Pizarra' },
-    'Indian autumn XL': { brand: 'StoneFlex', line: 'Pizarra' },
-    'Indian autumn translucido': { brand: 'StoneFlex', line: 'Translucida' },
-    'Indian autumn translucido XL': { brand: 'StoneFlex', line: 'Translucida' },
-    'Burning forest': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Burning forest XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Copper': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Copper XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Jeera green': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Jeera green XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Silver shine': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Silver shine XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Silver shine gold': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Silver shine gold XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Steel grey': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Steel grey XL': { brand: 'StoneFlex', line: 'Cuarcitas' },
-    'Carrara': { brand: 'StoneFlex', line: 'Mármol' },
-    'Carrara XL': { brand: 'StoneFlex', line: 'Mármol' },
-    'Crystal white': { brand: 'StoneFlex', line: 'Mármol' },
-    'Crystal white XL': { brand: 'StoneFlex', line: 'Mármol' },
-    'Himalaya gold': { brand: 'StoneFlex', line: 'Mármol' },
-    'Himalaya gold XL': { brand: 'StoneFlex', line: 'Mármol' },
-    'Mint white': { brand: 'StoneFlex', line: 'Mármol' },
-    'Concreto blanco': { brand: 'StoneFlex', line: 'Concreto' },
-    'Concreto blanco XL': { brand: 'StoneFlex', line: 'Concreto' },
-    'Concreto gris': { brand: 'StoneFlex', line: 'Concreto' },
-    'Concreto gris XL': { brand: 'StoneFlex', line: 'Concreto' },
-    'Concrete with holes': { brand: 'StoneFlex', line: 'Concreto' },
-    'Concrete with holes XL': { brand: 'StoneFlex', line: 'Concreto' },
-    'Concreto gris medium': { brand: 'StoneFlex', line: 'Concreto' },
-    'Concreto medio': { brand: 'StoneFlex', line: 'Concreto' },
-    'Corten stell': { brand: 'StoneFlex', line: 'Metales' },
-    'Mural blue patina with copper': { brand: 'StoneFlex', line: 'Metales' },
-    'Mural white with copper gold': { brand: 'StoneFlex', line: 'Metales' },
-    'Gate turquoise patina copper': { brand: 'StoneFlex', line: 'Metales' },
-    'Corten steel': { brand: 'StoneFlex', line: 'Metales' },
-    'Madera nogal': { brand: 'StoneFlex', line: 'Madera' },
-    'Madera teka': { brand: 'StoneFlex', line: 'Madera' },
-    'Madera ébano': { brand: 'StoneFlex', line: 'Madera' },
-    '3d adhesivo - black': { brand: 'StoneFlex', line: '3D' },
-    '3d adhesivo - indian rustic': { brand: 'StoneFlex', line: '3D' },
-    '3d adhesivo - tan': { brand: 'StoneFlex', line: '3D' },
-};
-
-
-const allReferences = Object.keys(referenceDetails);
-
 const IVA_RATE = 0.19; // 19%
 
 type SealantType = 'Sellante semi - brigth 1/ 4 galon' | 'Sellante shyny 1/4 galon';
@@ -105,11 +47,6 @@ interface QuoteItem {
   calculationMode: 'sqm' | 'sheets' | 'units';
   pricePerSheet: number;
 }
-
-const sealantPerformance = {
-    'Sellante semi - brigth 1/ 4 galon': { clay: 10, other: 18 },
-    'Sellante shyny 1/4 galon': { clay: 10, other: 18 },
-};
 
 // Utility function to safely get base64 from an image
 const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
@@ -161,16 +98,14 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Referencias de Producto</TableHead>
-                                <TableHead>Estándar</TableHead>
-                                <TableHead>XL</TableHead>
+                                <TableHead>Rendimiento</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {adhesiveYields.map((yieldData, index) => (
                                 <TableRow key={index}>
                                     <TableCell>{Array.isArray(yieldData.productNames) ? yieldData.productNames.join(', ') : ''}</TableCell>
-                                    <TableCell>{yieldData.standardYield || 'N/A'}</TableCell>
-                                    <TableCell>{yieldData.xlYield || 'N/A'}</TableCell>
+                                    <TableCell>{yieldData.yield} und.</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -259,7 +194,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
     
     const handleAddYield = (type: 'adhesive' | 'sealant') => {
         if (type === 'adhesive') {
-            setLocalAdhesiveYields([...localAdhesiveYields, { productNames: [], standardYield: 0, xlYield: 0, isTranslucent: false }]);
+            setLocalAdhesiveYields([...localAdhesiveYields, { productNames: [], yield: 0, isTranslucent: false }]);
         } else {
             setLocalSealantYields([...localSealantYields, { sealant: '', standardYield: 0, clayYield: 0 }]);
         }
@@ -293,8 +228,7 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="min-w-[300px]">Referencias de Producto</TableHead>
-                                    <TableHead>Estándar</TableHead>
-                                    <TableHead>XL</TableHead>
+                                    <TableHead>Rendimiento</TableHead>
                                     <TableHead className="text-center">Es Translúcido</TableHead>
                                     <TableHead className="w-10"></TableHead>
                                 </TableRow>
@@ -317,19 +251,8 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
                                                  <div className="space-y-1">
                                                     <Input
                                                         type="number"
-                                                        value={yieldData.standardYield ?? ''}
-                                                        onChange={(e) => handleAdhesiveChange(index, 'standardYield', Number(e.target.value))}
-                                                        placeholder={'0.0'}
-                                                    />
-                                                     <p className="text-xs text-muted-foreground">und.</p>
-                                                 </div>
-                                            </TableCell>
-                                             <TableCell>
-                                                 <div className="space-y-1">
-                                                    <Input
-                                                        type="number"
-                                                        value={yieldData.xlYield ?? ''}
-                                                        onChange={(e) => handleAdhesiveChange(index, 'xlYield', Number(e.target.value))}
+                                                        value={yieldData.yield ?? ''}
+                                                        onChange={(e) => handleAdhesiveChange(index, 'yield', Number(e.target.value))}
                                                         placeholder={'0.0'}
                                                     />
                                                      <p className="text-xs text-muted-foreground">und.</p>
@@ -436,7 +359,6 @@ export default function StoneflexCalculatorPage() {
   const [offerValidity, setOfferValidity] = useState('');
 
   const isDistributor = useMemo(() => currentUser.roles.includes('Distribuidor'), [currentUser.roles]);
-  const isPartner = useMemo(() => currentUser.roles.includes('Partner'), [currentUser.roles]);
   const canEditSettings = currentUser.roles.includes('Administrador');
   
   const viewMode = useMemo(() => {
@@ -447,8 +369,10 @@ export default function StoneflexCalculatorPage() {
 
 
   const referenceOptions = useMemo(() => {
-    return allReferences.map(ref => ({ value: ref, label: `${ref} (${productDimensions[ref as keyof typeof productDimensions] || 'N/A'})` }));
-  }, []);
+    if (!inventoryData.StoneFlex) return [];
+    const stoneflexProducts = Object.values(inventoryData.StoneFlex).flatMap(line => Object.keys(line));
+    return stoneflexProducts.map(ref => ({ value: ref, label: `${ref} (${productDimensions[ref as keyof typeof productDimensions] || 'N/A'})` }));
+  }, [inventoryData]);
 
   const supplyOptions = useMemo(() => {
     const stoneflexSupplies = inventoryData.StoneFlex?.Insumos ? Object.keys(inventoryData.StoneFlex.Insumos) : [];
@@ -618,7 +542,6 @@ export default function StoneflexCalculatorPage() {
     const translucentAdhesivePriceCOP = initialProductPrices['ADHESIVO TRASLUCIDO'] || 0;
 
     const detailedItems = quoteItems.map(item => {
-      const details = referenceDetails[item.reference as keyof typeof referenceDetails];
       const pricePerSheetCOP = item.pricePerSheet;
       const hasPrice = pricePerSheetCOP > 0;
       
@@ -628,34 +551,28 @@ export default function StoneflexCalculatorPage() {
           return {...item, itemTotal: itemCost, pricePerSheet: hasPrice ? convert(pricePerSheetCOP) : 0, hasPrice};
       }
 
-      if (!details) return {...item, itemTotal: 0, pricePerSheet: 0, hasPrice: false};
-      
+      const isClay = item.reference.toLowerCase().includes('travertino') || item.reference.toLowerCase().includes('cut stone') || item.reference.toLowerCase().includes('concreto encofrado') || item.reference.toLowerCase().includes('tapia');
       if (hasPrice) {
-        if (details.line === 'Clay') {
+        if (isClay) {
             totalSqmClay += item.sqMeters;
         } else {
             totalSqmOther += item.sqMeters;
         }
       }
-
+      
       const calculatedSheets = item.sheets;
       const productCost = hasPrice ? convert(pricePerSheetCOP * calculatedSheets) : 0;
       
       if (hasPrice) totalProductCost += productCost;
       
-      if (includeAdhesive && details.line !== '3D' && hasPrice) {
+      if (includeAdhesive && !item.reference.toLowerCase().includes('3d adhesivo')) {
           const yieldRule = adhesiveYields.find(y => y.productNames.includes(item.reference));
           
-          if (yieldRule) {
-              const isXL = item.reference.includes('XL');
-              const adhesivePerSheet = isXL ? yieldRule.xlYield : yieldRule.standardYield;
-              
-              if (adhesivePerSheet !== null) {
-                  if(yieldRule.isTranslucent) {
-                     totalTranslucentAdhesiveUnits += calculatedSheets * adhesivePerSheet;
-                  } else {
-                     totalStandardAdhesiveUnits += calculatedSheets * adhesivePerSheet;
-                  }
+          if (yieldRule && yieldRule.yield) {
+              if(yieldRule.isTranslucent) {
+                 totalTranslucentAdhesiveUnits += calculatedSheets * yieldRule.yield;
+              } else {
+                 totalStandardAdhesiveUnits += calculatedSheets * yieldRule.yield;
               }
           }
       }

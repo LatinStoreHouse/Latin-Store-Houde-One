@@ -97,8 +97,7 @@ export interface Quote {
 
 export interface AdhesiveYield {
     productNames: string[];
-    standardYield: number | null;
-    xlYield: number | null;
+    yield: number | null;
     isTranslucent: boolean;
 }
 
