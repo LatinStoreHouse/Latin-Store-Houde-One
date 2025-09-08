@@ -108,6 +108,13 @@ export interface SealantYield {
     clayYield: number;
 }
 
+export interface StarwoodYields {
+    clipsPerSqM: number;
+    sleeperLinearMetersPerSqM: number;
+    listonsPerAdhesive: number;
+    listonsPerSealant: number;
+}
+
 interface InventoryContextType {
   inventoryData: InventoryData;
   setInventoryData: (updater: (data: InventoryData) => InventoryData, user: User | null) => void;
@@ -143,6 +150,8 @@ interface InventoryContextType {
   setAdhesiveYields: React.Dispatch<React.SetStateAction<AdhesiveYield[]>>;
   sealantYields: SealantYield[];
   setSealantYields: React.Dispatch<React.SetStateAction<SealantYield[]>>;
+  starwoodYields: StarwoodYields;
+  setStarwoodYields: React.Dispatch<React.SetStateAction<StarwoodYields>>;
 }
 
 export const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -160,6 +169,12 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [quotes, setQuotes] = useState<Quote[]>(initialQuotes);
   const [adhesiveYields, setAdhesiveYields] = useState<AdhesiveYield[]>(initialAdhesiveYields);
   const [sealantYields, setSealantYields] = useState<SealantYield[]>(initialSealantYields);
+  const [starwoodYields, setStarwoodYields] = useState<StarwoodYields>({
+    clipsPerSqM: 21,
+    sleeperLinearMetersPerSqM: 3.5,
+    listonsPerAdhesive: 8,
+    listonsPerSealant: 30,
+  });
   const { toast } = useToast();
 
     const addQuote = (quote: Omit<Quote, 'id'>) => {
@@ -753,6 +768,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       setAdhesiveYields,
       sealantYields,
       setSealantYields,
+      starwoodYields,
+      setStarwoodYields,
     }}>
       {children}
     </InventoryContext.Provider>

@@ -5,7 +5,7 @@ import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Trash2, Download, MessageSquare, Save } from 'lucide-react';
+import { PlusCircle, Trash2, Download, MessageSquare, Save, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,9 +18,11 @@ import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
 import { LocationCombobox } from '@/components/location-combobox';
 import { useUser } from '@/app/(main)/layout';
-import { InventoryContext } from '@/context/inventory-context';
+import { InventoryContext, StarwoodYields } from '@/context/inventory-context';
 import { CustomerSelector } from '@/components/customer-selector';
 import { Customer } from '@/lib/customers';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 
 const starwoodProducts = [
@@ -105,11 +107,68 @@ const getImageBase64 = (src: string): Promise<{ base64: string; width: number; h
     });
 };
 
+function SettingsDialog() {
+    const context = useContext(InventoryContext);
+    if (!context) throw new Error("Context not found");
+    const { starwoodYields, setStarwoodYields } = context;
+    const { toast } = useToast();
+
+    const [localYields, setLocalYields] = useState<StarwoodYields>(starwoodYields);
+
+    const handleYieldChange = (key: keyof StarwoodYields, value: string) => {
+        setLocalYields(prev => ({ ...prev, [key]: Number(value) }));
+    };
+
+    const handleSave = () => {
+        setStarwoodYields(localYields);
+        toast({ title: "Ajustes guardados", description: "Los rendimientos de Starwood han sido actualizados." });
+    };
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Ajustes de la Calculadora Starwood</DialogTitle>
+                <DialogDescription>
+                    Modifique los valores de rendimiento para los insumos calculados automáticamente.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                        <Label>Clips por M² de Deck</Label>
+                        <Input type="number" value={localYields.clipsPerSqM} onChange={(e) => handleYieldChange('clipsPerSqM', e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label>M. Lineales de Durmiente por M²</Label>
+                        <Input type="number" value={localYields.sleeperLinearMetersPerSqM} onChange={(e) => handleYieldChange('sleeperLinearMetersPerSqM', e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label># Listones por Adhesivo</Label>
+                        <Input type="number" value={localYields.listonsPerAdhesive} onChange={(e) => handleYieldChange('listonsPerAdhesive', e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label># Listones por Sellante (1/4 gal)</Label>
+                        <Input type="number" value={localYields.listonsPerSealant} onChange={(e) => handleYieldChange('listonsPerSealant', e.target.value)} />
+                    </div>
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button variant="ghost">Cancelar</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                    <Button onClick={handleSave}>Guardar Cambios</Button>
+                </DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    );
+}
+
 export default function StarwoodCalculatorPage() {
   const searchParams = useSearchParams();
   const context = useContext(InventoryContext);
   if (!context) throw new Error("Inventory context not found");
-  const { addQuote } = context;
+  const { addQuote, starwoodYields } = context;
 
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   
@@ -141,6 +200,7 @@ export default function StarwoodCalculatorPage() {
   const {currentUser} = useUser();
   
   const isDistributor = useMemo(() => currentUser.roles.includes('Distribuidor'), [currentUser.roles]);
+  const canEditSettings = currentUser.roles.includes('Administrador');
 
   const viewMode = useMemo(() => {
     return isDistributor ? 'distributor' : 'internal';
@@ -260,13 +320,13 @@ export default function StarwoodCalculatorPage() {
 
     if (totalDeckSqm > 0) {
         if (includeClips) {
-            clipCount = Math.ceil(totalDeckSqm * 21);
+            clipCount = Math.ceil(totalDeckSqm * starwoodYields.clipsPerSqM);
             const clipPrice = productPrices['Clip plastico para deck wpc'] || 0;
             clipsCost = clipCount * clipPrice;
             subtotal += clipsCost;
         }
         if (includeSleepers) {
-            const sleeperLinearMeters = (totalDeckSqm * 3.5);
+            const sleeperLinearMeters = (totalDeckSqm * starwoodYields.sleeperLinearMetersPerSqM);
             sleeperCount = Math.ceil(sleeperLinearMeters / 2.3);
             const sleeperPrice = productPrices['Durmiente plastico 3x3'] || 0;
             sleepersCost = sleeperCount * sleeperPrice;
@@ -276,13 +336,13 @@ export default function StarwoodCalculatorPage() {
 
     if (totalListonUnits > 0) {
         if (includeAdhesive) {
-            adhesiveCount = Math.ceil(totalListonUnits / 8);
+            adhesiveCount = Math.ceil(totalListonUnits / starwoodYields.listonsPerAdhesive);
             const adhesivePrice = productPrices['Adhesivo'] || 0;
             adhesiveCost = adhesiveCount * adhesivePrice;
             subtotal += adhesiveCost;
         }
         if (includeSealant) {
-            sealantCount = Math.ceil(totalListonUnits / 30);
+            sealantCount = Math.ceil(totalListonUnits / starwoodYields.listonsPerSealant);
             const sealantPrice = productPrices['Sellante wpc 1/4 galon'] || 0;
             sealantCost = sealantCount * sealantPrice;
             subtotal += sealantCost;
@@ -586,7 +646,19 @@ export default function StarwoodCalculatorPage() {
                 Estime el costo para productos Starwood por unidad, con cálculo automático de insumos para deck y listones.
               </CardDescription>
             </div>
-            <Image src="/imagenes/logos/Logo-Starwood-color.png" alt="Starwood Logo" width={80} height={26} className="object-contain"/>
+            <div className="flex items-center gap-2">
+                 {canEditSettings && (
+                    <Dialog>
+                        <DialogTrigger asChild>
+                        <Button variant="outline" size="icon">
+                                <Settings className="h-4 w-4" />
+                        </Button>
+                        </DialogTrigger>
+                        <SettingsDialog />
+                    </Dialog>
+                 )}
+                <Image src="/imagenes/logos/Logo-Starwood-color.png" alt="Starwood Logo" width={80} height={26} className="object-contain"/>
+            </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
