@@ -55,6 +55,59 @@ declare module 'jspdf' {
   }
 }
 
+// Utility function to safely get base64 from an image
+const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
+    return new Promise((resolve) => {
+        const img = new window.Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = src;
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                resolve(null);
+                return;
+            }
+            ctx.drawImage(img, 0, 0);
+
+            try {
+                const dataURL = canvas.toDataURL('image/png');
+                resolve({ base64: dataURL, width: img.width, height: img.height });
+            } catch (e) {
+                console.error("Error converting canvas to data URL", e);
+                resolve(null);
+            }
+        };
+
+        img.onerror = (e) => {
+            console.error("Failed to load image for PDF conversion:", src, e);
+            resolve(null); // Resolve with null if the image fails to load
+        };
+    });
+};
+
+const addPdfHeader = async (doc: jsPDF) => {
+    const latinLogoData = await getImageBase64('/imagenes/logos/Logo-Latin-Store-House-color.png');
+    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+
+    if (latinLogoData) {
+        const logoWidth = 30;
+        const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
+        doc.addImage(latinLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
+    }
+    
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.text('Latin Store House S.A.S', pageWidth - 14, 15, { align: 'right' });
+    doc.text('NIT: 901.401.708-1', pageWidth - 14, 19, { align: 'right' });
+    doc.text('Cali, Colombia', pageWidth - 14, 23, { align: 'right' });
+};
+
+
 const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMarketing, onDataChange, inventoryData, onReserve }: { products: { [key: string]: any }, brand: string, subCategory: string, canEdit: boolean, isPartner: boolean, isMarketing: boolean, onDataChange: Function, inventoryData: any, onReserve: (productName: string) => void }) => {
   const context = useContext(InventoryContext);
   const { currentUser } = useUser();
@@ -523,11 +576,10 @@ export default function InventoryPage() {
 
     const doc = new jsPDF();
     
-    doc.setFontSize(18);
-    doc.text('Latin Store House', 14, 22);
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text('Reporte de Inventario', 14, 30);
+    await addPdfHeader(doc);
+    
+    doc.setFontSize(14);
+    doc.text('Reporte de Inventario', 14, 35);
 
     const columns = Object.keys(exportOptions.columns).filter(c => exportOptions.columns[c as keyof typeof exportOptions.columns]);
     const head: any[] = [['Marca', 'Categoría', 'Producto']];
@@ -541,7 +593,13 @@ export default function InventoryPage() {
         return row;
     });
 
-    doc.autoTable({ head, body, startY: 35 });
+    doc.autoTable({ 
+      head,
+      body,
+      startY: 40,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
     doc.save('inventario.pdf');
     toast({ title: 'Éxito', description: 'Inventario exportado a PDF.' });
   }
@@ -971,6 +1029,7 @@ export default function InventoryPage() {
     
 
     
+
 
 
 
