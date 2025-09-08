@@ -656,9 +656,9 @@ export default function TransitPage() {
     await addPdfHeader(doc);
     
     doc.setFontSize(14);
-    doc.text('Reporte de Contenedores', 14, 30);
+    doc.text('Reporte de Contenedores', 14, 40);
     
-    let yPos = 35;
+    let yPos = 45;
 
     containersToExport.forEach((container) => {
         const bodyData = container.products.map(p => [p.name, p.quantity]);
