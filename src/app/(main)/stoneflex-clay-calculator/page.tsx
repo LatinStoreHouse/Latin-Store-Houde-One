@@ -102,12 +102,24 @@ function AdhesiveReferenceTable({ adhesiveYields, sealantYields }: { adhesiveYie
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {adhesiveYields.map((yieldData, index) => (
+                            {adhesiveYields.map((yieldData, index) => {
+                                const displayNames = Array.isArray(yieldData.productNames) ? yieldData.productNames : [];
+                                const firstProduct = displayNames[0] || '';
+                                const remainingCount = displayNames.length - 1;
+
+                                return (
                                 <TableRow key={index}>
-                                    <TableCell>{Array.isArray(yieldData.productNames) ? yieldData.productNames.join(', ') : ''}</TableCell>
+                                    <TableCell>
+                                        {firstProduct}
+                                        {remainingCount > 0 && (
+                                            <span className="text-muted-foreground text-xs ml-1">
+                                                (y {remainingCount} más)
+                                            </span>
+                                        )}
+                                    </TableCell>
                                     <TableCell>{yieldData.yield} und.</TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                         </TableBody>
                     </Table>
                 </div>
@@ -165,8 +177,8 @@ function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
     }, [inventoryData]);
 
     const sealantOptions = useMemo(() => {
-        const sealantProducts = inventoryData['StoneFlex']?.['Insumos'] ? Object.keys(inventoryData['StoneFlex']['Insumos']) : [];
-        return sealantProducts
+        const stoneflexSupplies = inventoryData.StoneFlex?.Insumos ? Object.keys(inventoryData.StoneFlex.Insumos) : [];
+        return stoneflexSupplies
             .filter(p => p.toLowerCase().includes('sellante'))
             .map(p => ({ value: p, label: p }));
     }, [inventoryData]);
