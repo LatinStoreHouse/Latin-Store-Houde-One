@@ -506,9 +506,12 @@ export default function StarwoodCalculatorPage() {
     }
     
     if (latinLogoData) {
-        const logoWidth = 30;
+        const logoWidth = 20; // Reduced size
         const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
-        doc.addImage(latinLogoData.base64, 'PNG', pageWidth - logoWidth - 14, 10, logoHeight, logoHeight);
+        const xPos = pageWidth - logoWidth - 14;
+        doc.addImage(latinLogoData.base64, 'PNG', xPos, 10, logoWidth, logoHeight);
+        doc.setFontSize(8);
+        doc.text('NIT: 900493221-0', xPos + logoWidth / 2, 10 + logoHeight + 4, { align: 'center' });
     }
     
     generatePdfContent(doc, quote, pageWidth);
