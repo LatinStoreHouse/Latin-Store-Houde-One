@@ -3,6 +3,10 @@
 import { initializeApp, getApp, getApps, type FirebaseApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
+import { config } from 'dotenv';
+
+// Cargar las variables de entorno explícitamente
+config();
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
