@@ -53,6 +53,7 @@ type UserStatus = 'active' | 'inactive' | 'pending';
 
 const initialUsers: (User & {status: UserStatus})[] = [
   { id: '1', name: 'Admin Latin', email: 'admin@latinhouse.com', phone: '3101234567', jobTitle: 'Gerente General', roles: ['Administrador'], avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true, status: 'active', individualPermissions: [] },
+  { id: '9', name: 'Marketing Admin', email: 'marketing@lsh.com.co', phone: '3101234568', jobTitle: 'Gerente de Marketing', roles: ['Administrador', 'Marketing'], avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png', active: true, status: 'active', individualPermissions: [] },
   { id: '2', name: 'Jane Smith', email: 'jane.smith@example.com', phone: '3111234567', jobTitle: 'Asesora de Ventas Senior', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/29ABE2/ffffff.png', active: true, status: 'active', individualPermissions: ['partners:manage'] },
   { id: '3', name: 'Peter Jones', email: 'peter.jones@example.com', phone: '3121234567', jobTitle: 'Asesor de Ventas', roles: ['Asesor de Ventas'], avatar: 'https://placehold.co/40x40/00BCD4/ffffff.png', active: false, status: 'inactive', individualPermissions: [] },
   { id: '4', name: 'Mary Johnson', email: 'mary.j@example.com', phone: '3131234567', jobTitle: 'Coordinadora de Logística', roles: ['Logística'], avatar: 'https://placehold.co/40x40/E2E229/000000.png', active: true, status: 'active', individualPermissions: [] },
