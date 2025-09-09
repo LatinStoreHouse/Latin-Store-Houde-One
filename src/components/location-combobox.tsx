@@ -10,6 +10,7 @@ import { Input } from './ui/input';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { firebaseConfig } from '@/lib/firebase-config';
 
 const libraries: ('places' | 'drawing' | 'geometry' | 'localContext' | 'visualization')[] = ['places'];
 
@@ -31,7 +32,7 @@ const defaultCenter = {
 };
 
 export function LocationCombobox({ value, onChange, city }: LocationComboboxProps) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const apiKey = firebaseConfig.apiKey;
 
   if (!apiKey) {
     return (
