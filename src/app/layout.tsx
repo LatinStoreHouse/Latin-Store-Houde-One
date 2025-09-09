@@ -13,7 +13,7 @@ import { User, Role } from '@/lib/roles';
 const inter = Inter({ subsets: ['latin'] });
 
 const metadata: Metadata = {
-  title: 'Latin Store House',
+  title: 'One By Latin',
   description: 'Gestión de Inventario y Clientes por Firebase Studio',
 };
 
