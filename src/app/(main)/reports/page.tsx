@@ -11,8 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { inventoryMovementData } from '@/lib/inventory-movement';
 import { getSalesForecast } from '@/app/actions';
 import { ForecastSalesOutput } from '@/ai/flows/forecast-sales';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { useToast } from '@/hooks/use-toast';
 import { initialCustomerData } from '@/lib/customers';
 import { cn } from '@/lib/utils';
@@ -23,13 +21,6 @@ import { initialSalesData } from '@/lib/sales-data';
 import { InventoryContext, Quote } from '@/context/inventory-context';
 import { Combobox } from '@/components/ui/combobox';
 
-
-// Extend the jsPDF type to include the autoTable method
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 // Utility function to safely get base64 from an image
 const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
@@ -66,7 +57,8 @@ const getImageBase64 = (src: string): Promise<{ base64: string; width: number; h
     });
 };
 
-const addPdfHeader = async (doc: jsPDF) => {
+const addPdfHeader = async (doc: any) => {
+    const { jsPDF } = await import('jspdf');
     const latinLogoData = await getImageBase64('/imagenes/logos/Logo-Latin-Store-House-color.png');
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
@@ -328,6 +320,8 @@ const QuotesReport = ({ quotes, date, user }: { quotes: Quote[], date: Date, use
     };
 
     const handleDownloadQuotes = async () => {
+        const { default: jsPDF } = await import('jspdf');
+        await import('jspdf-autotable');
         const doc = new jsPDF({ format: 'letter' });
         const monthName = date.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
         
@@ -347,7 +341,7 @@ const QuotesReport = ({ quotes, date, user }: { quotes: Quote[], date: Date, use
             startY += 5;
         }
 
-        doc.autoTable({
+        (doc as any).autoTable({
             startY,
             head: [['# Cotización', 'Tipo', 'Cliente', 'Asesor', 'Fecha', 'Monto']],
             body: filteredQuotes.map(q => [
@@ -477,6 +471,8 @@ export default function ReportsPage() {
     }, [currentDate, isPastOrPresentMonth, isAdvisor]);
 
     const handleDownloadGeneralReport = async () => {
+        const { default: jsPDF } = await import('jspdf');
+        await import('jspdf-autotable');
         const doc = new jsPDF({ format: 'letter' });
         
         await addPdfHeader(doc);
@@ -497,7 +493,7 @@ export default function ReportsPage() {
             doc.setFontSize(12);
             doc.text(`Pronóstico de Ventas con IA para ${monthName}`, 14, startY);
             startY += 8;
-            doc.autoTable({
+            (doc as any).autoTable({
                 startY,
                 head: [['Producto', 'Unidades Predichas']],
                 body: forecast.forecast.map(item => [item.productName, item.predictedUnits]),
@@ -516,7 +512,7 @@ export default function ReportsPage() {
             startY += 8;
 
             if(monthlyData.topMovers.length > 0) {
-                doc.autoTable({
+                (doc as any).autoTable({
                     head: [['Top Movers', 'Unidades', 'Cambio (%)']],
                     body: monthlyData.topMovers.map(p => [p.name, p.moved, p.change]),
                     startY,
@@ -526,7 +522,7 @@ export default function ReportsPage() {
             }
             
             if(monthlyData.bottomMovers.length > 0) {
-                doc.autoTable({
+                (doc as any).autoTable({
                     head: [['Bottom Movers', 'Unidades']],
                     body: monthlyData.bottomMovers.map(p => [p.name, p.moved]),
                     startY: startY,

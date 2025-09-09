@@ -2,8 +2,6 @@
 'use client';
 import React, { useState, useMemo, useContext } from 'react';
 import { useRouter } from 'next/navigation';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import {
   Table,
   TableBody,

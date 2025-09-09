@@ -4,9 +4,6 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -37,13 +34,6 @@ import { useUser } from '@/context/user-context';
 import { initialCustomerData } from '@/lib/customers';
 import { DispatchForm } from '@/components/dispatch-form';
 import { useToast } from '@/hooks/use-toast';
-
-// Extend the jsPDF type to include the autoTable method
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 // Utility function to safely get base64 from an image
 const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
@@ -80,7 +70,8 @@ const getImageBase64 = (src: string): Promise<{ base64: string; width: number; h
     });
 };
 
-const addPdfHeader = async (doc: jsPDF) => {
+const addPdfHeader = async (doc: any) => {
+    const { jsPDF } = await import('jspdf');
     const latinLogoData = await getImageBase64('/imagenes/logos/Logo-Latin-Store-House-color.png');
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
@@ -344,6 +335,9 @@ export default function DispatchPage() {
 
 
   const handleExportPDF = async () => {
+    const { default: jsPDF } = await import('jspdf');
+    await import('jspdf-autotable');
+    
     const doc = new jsPDF({
       orientation: 'landscape',
       format: 'letter'
@@ -354,7 +348,7 @@ export default function DispatchPage() {
     doc.setFontSize(14);
     doc.text('Reporte de Despachos', 14, 45);
 
-    doc.autoTable({
+    (doc as any).autoTable({
       startY: 50,
       head: [
         [
@@ -389,7 +383,8 @@ export default function DispatchPage() {
     doc.save('Reporte de Despachos.pdf');
   };
 
-  const handleExportXLSX = () => {
+  const handleExportXLSX = async () => {
+    const { utils, writeFile } = await import('xlsx');
     const tableHeaders = [
         'Vendedor', 'Fecha Sol.', 'Cotización', 'Cliente', 'Ciudad',
         'Dirección', 'Productos', 'Observación', 'Rutero', 'Fecha Desp.',
@@ -417,10 +412,10 @@ export default function DispatchPage() {
         }
     });
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport, { header: tableHeaders });
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Despachos");
-    XLSX.writeFile(wb, "Reporte de Despachos.xlsx");
+    const ws = utils.json_to_sheet(dataToExport, { header: tableHeaders });
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, "Despachos");
+    writeFile(wb, "Reporte de Despachos.xlsx");
   };
 
   return (

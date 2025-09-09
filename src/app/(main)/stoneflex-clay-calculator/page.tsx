@@ -1,9 +1,9 @@
 
 
+
 'use client';
 import React, { useState, useMemo, useEffect, useContext } from 'react';
 import Image from 'next/image';
-import * as XLSX from 'xlsx';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,8 +17,6 @@ import { Separator } from '@/components/ui/separator';
 import { initialProductPrices } from '@/lib/prices';
 import { getExchangeRate } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
@@ -757,7 +755,7 @@ export default function StoneflexCalculatorPage() {
       setCustomerInfo(prev => ({...prev, [field]: value}));
   };
   
-   const generatePdfContent = (doc: jsPDF, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
+   const generatePdfContent = (doc: any, quote: NonNullable<ReturnType<typeof calculateQuote>>, pageWidth: number) => {
     const today = new Date();
     const quoteNumber = `V - 100 - ${Math.floor(Math.random() * 9000) + 1000}`;
 
@@ -896,6 +894,9 @@ export default function StoneflexCalculatorPage() {
   
  const handleDownloadPdf = async () => {
     if (!quote) return;
+    const { default: jsPDF } = await import('jspdf');
+    await import('jspdf-autotable');
+
     const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'letter' });
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
@@ -928,8 +929,9 @@ export default function StoneflexCalculatorPage() {
   };
 
 
-  const handleExportXLSX = () => {
+  const handleExportXLSX = async () => {
     if (!quote) return;
+    const { utils, writeFile } = await import('xlsx');
 
     const dataToExport = quote.items.map(item => ({
         'Referencia': item.reference,
@@ -951,20 +953,20 @@ export default function StoneflexCalculatorPage() {
         dataToExport.push({ 'Referencia': `Sellante (1/4 de galón)`, 'Modo Cálculo': 'Automático', 'M²': '', 'Láminas/Unidades': quote.sealantQuarters, 'Precio Unitario': formatCurrency(quote.sealantQuarterPrice), 'Costo Total': formatCurrency(quote.totalSealantCost) });
     }
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const ws = utils.json_to_sheet(dataToExport);
 
     // Add summary
-    const finalRow = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']).e.r + 3 : dataToExport.length + 2;
-    XLSX.utils.sheet_add_aoa(ws, [['Subtotal', formatCurrency(quote.subtotal)]], { origin: `E${finalRow}` });
-    XLSX.utils.sheet_add_aoa(ws, [['IVA (19%)', formatCurrency(quote.ivaAmount)]], { origin: `E${finalRow + 1}` });
-    XLSX.utils.sheet_add_aoa(ws, [['Mano de Obra', formatCurrency(quote.laborCost)]], { origin: `E${finalRow + 2}` });
-    XLSX.utils.sheet_add_aoa(ws, [['Transporte', formatCurrency(quote.transportationCost)]], { origin: `E${finalRow + 3}` });
-    XLSX.utils.sheet_add_aoa(ws, [['TOTAL', formatCurrency(quote.totalCost)]], { origin: `E${finalRow + 4}` });
+    const finalRow = (ws['!ref'] ? utils.decode_range(ws['!ref']).e.r : dataToExport.length) + 3;
+    utils.sheet_add_aoa(ws, [['Subtotal', formatCurrency(quote.subtotal)]], { origin: `E${finalRow}` });
+    utils.sheet_add_aoa(ws, [['IVA (19%)', formatCurrency(quote.ivaAmount)]], { origin: `E${finalRow + 1}` });
+    utils.sheet_add_aoa(ws, [['Mano de Obra', formatCurrency(quote.laborCost)]], { origin: `E${finalRow + 2}` });
+    utils.sheet_add_aoa(ws, [['Transporte', formatCurrency(quote.transportationCost)]], { origin: `E${finalRow + 3}` });
+    utils.sheet_add_aoa(ws, [['TOTAL', formatCurrency(quote.totalCost)]], { origin: `E${finalRow + 4}` });
 
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Cotizacion StoneFlex");
-    XLSX.writeFile(wb, "Cotizacion_StoneFlex.xlsx");
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, "Cotizacion StoneFlex");
+    writeFile(wb, "Cotizacion_StoneFlex.xlsx");
     toast({ title: 'Éxito', description: 'Cotización exportada a Excel.' });
   };
   

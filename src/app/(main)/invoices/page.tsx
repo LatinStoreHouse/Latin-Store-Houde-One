@@ -2,9 +2,6 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, Calendar as CalendarIcon, Download, ChevronDown, Receipt } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,13 +16,6 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/context/user-context';
-
-// Extend the jsPDF type to include the autoTable method
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 // Utility function to safely get base64 from an image
 const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
@@ -62,7 +52,8 @@ const getImageBase64 = (src: string): Promise<{ base64: string; width: number; h
     });
 };
 
-const addPdfHeader = async (doc: jsPDF) => {
+const addPdfHeader = async (doc: any) => {
+    const { jsPDF } = await import('jspdf');
     const latinLogoData = await getImageBase64('/imagenes/logos/Logo-Latin-Store-House-color.png');
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
@@ -140,6 +131,9 @@ export default function InvoicesPage() {
     }
     
      const handleExportPDF = async () => {
+        const { default: jsPDF } = await import('jspdf');
+        await import('jspdf-autotable');
+
         const doc = new jsPDF({ format: 'letter' });
 
         await addPdfHeader(doc);
@@ -148,7 +142,7 @@ export default function InvoicesPage() {
         doc.text("Historial de Cotizaciones", 14, 45);
 
 
-        doc.autoTable({
+        (doc as any).autoTable({
           startY: 50,
           head: [
             ['# Cotización', 'Factura #', 'Cliente', 'Asesor', 'Estado', 'Fecha Validación']
@@ -168,7 +162,8 @@ export default function InvoicesPage() {
         doc.save('Historial de Cotizaciones.pdf');
     };
 
-    const handleExportXLSX = () => {
+    const handleExportXLSX = async () => {
+        const { utils, writeFile } = await import('xlsx');
         const dataToExport = filteredHistory.map(item => ({
             '# Cotización': item.quoteNumber,
             'Factura #': item.factura,
@@ -178,10 +173,10 @@ export default function InvoicesPage() {
             'Fecha Validación': item.validationDate,
         }));
 
-        const ws = XLSX.utils.json_to_sheet(dataToExport);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Facturas");
-        XLSX.writeFile(wb, "Historial de Cotizaciones.xlsx");
+        const ws = utils.json_to_sheet(dataToExport);
+        const wb = utils.book_new();
+        utils.book_append_sheet(wb, ws, "Facturas");
+        writeFile(wb, "Historial de Cotizaciones.xlsx");
     };
 
 

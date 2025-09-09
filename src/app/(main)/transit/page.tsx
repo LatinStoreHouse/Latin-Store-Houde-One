@@ -1,12 +1,10 @@
 
 
+
 'use client';
 import React, { useState, useMemo, useContext, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -54,13 +52,6 @@ import { productDimensions } from '@/lib/dimensions';
 import { Combobox } from '@/components/ui/combobox';
 
 
-// Extend the jsPDF type to include the autoTable method
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
-
 // Utility function to safely get base64 from an image
 const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
     return new Promise((resolve) => {
@@ -96,7 +87,8 @@ const getImageBase64 = (src: string): Promise<{ base64: string; width: number; h
     });
 };
 
-const addPdfHeader = async (doc: jsPDF) => {
+const addPdfHeader = async (doc: any) => {
+    const { jsPDF } = await import('jspdf');
     const latinLogoData = await getImageBase64('/imagenes/logos/Logo-Latin-Store-House-color.png');
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
 
@@ -651,6 +643,9 @@ export default function TransitPage() {
   };
 
   const handleExportPDF = async (containersToExport: ContainerType[]) => {
+    const { default: jsPDF } = await import('jspdf');
+    await import('jspdf-autotable');
+    
     const doc = new jsPDF({ format: 'letter' });
     
     await addPdfHeader(doc);
@@ -672,7 +667,7 @@ export default function TransitPage() {
         doc.text(`Contenedor: ${container.id} | Llegada a Puerto: ${container.eta}`, 14, yPos);
         yPos += 5;
 
-        doc.autoTable({
+        (doc as any).autoTable({
             startY: yPos,
             head: [['Producto', 'Cantidad']],
             body: bodyData,
@@ -688,7 +683,8 @@ export default function TransitPage() {
     toast({ title: 'Éxito', description: 'Reporte PDF generado.' });
   };
 
-  const handleExportXLS = (containersToExport: ContainerType[]) => {
+  const handleExportXLS = async (containersToExport: ContainerType[]) => {
+    const { utils, writeFile } = await import('xlsx');
     let html = '<table><thead><tr><th>Contenedor</th><th>Llegada a Puerto</th><th>Estado</th><th>Fecha Creación</th><th>Producto</th><th>Cantidad</th></tr></thead><tbody>';
 
     containersToExport.forEach(container => {
