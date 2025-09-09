@@ -2,8 +2,6 @@
 'use client';
 import Link from 'next/link';
 import React, { useState, useMemo, useContext, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { format } from 'date-fns';
 import {
   Card,
@@ -211,8 +209,12 @@ export default function DashboardPage() {
 
     }, [isAdvisor, statsDate, currentUser.name]);
 
-     const handleDownloadStats = () => {
+     const handleDownloadStats = async () => {
         if (!advisorStats) return;
+
+        const { default: jsPDF } = await import('jspdf');
+        await import('jspdf-autotable');
+
         const doc = new jsPDF();
         const monthName = statsDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
         
@@ -225,7 +227,7 @@ export default function DashboardPage() {
         doc.setFontSize(12);
         doc.text(`Nuevos Clientes en ${monthName}: ${advisorStats.newCustomersCount}`, 14, 45);
 
-        doc.autoTable({
+        (doc as any).autoTable({
             startY: 50,
             head: [['Nombre', 'Email', 'Teléfono', 'Fuente']],
             body: advisorStats.newCustomersList.map(c => [c.name, c.email, c.phone, c.source]),
