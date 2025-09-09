@@ -1,3 +1,5 @@
+# Plataforma para integrar
+
 # Firebase Studio
 
 This is a NextJS starter in Firebase Studio.
