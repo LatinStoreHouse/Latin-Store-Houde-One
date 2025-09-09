@@ -2,6 +2,7 @@
 'use client';
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
 // This configuration is public and safe to expose.
@@ -20,6 +21,7 @@ const firebaseConfig = {
 const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 let analytics;
 if (typeof window !== 'undefined') {
@@ -32,4 +34,4 @@ if (typeof window !== 'undefined') {
   }
 }
 
-export { app, auth, analytics, firebaseConfig };
+export { app, auth, db, analytics, firebaseConfig };
