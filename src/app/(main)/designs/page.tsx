@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useMemo, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, MoreHorizontal, Edit, Trash2, Palette, Link as LinkIcon, Download, Info } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { useToast } from '@/hooks/use-toast';
 import { initialDesignRequests, DesignRequest, DesignStatus } from '@/lib/designs';
 import { DesignRequestForm } from '@/components/design-request-form';

@@ -46,7 +46,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InventoryContext, Product, Reservation } from '@/context/inventory-context';
 import { Container as ContainerType, ContainerStatus } from '@/context/inventory-context';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { initialReservations } from '@/lib/sales-history';
 import { useRouter } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';

@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { PlusCircle, Trash2 } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 
 interface ReservationItem {
     id: number;

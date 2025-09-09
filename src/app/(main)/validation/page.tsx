@@ -21,7 +21,7 @@ import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
 import type { DispatchData } from '@/app/(main)/orders/page';
 import { Checkbox } from '@/components/ui/checkbox';

@@ -1,5 +1,4 @@
 
-
 'use client';
 import React, { useState, useMemo, useContext } from 'react';
 import { useRouter } from 'next/navigation';
@@ -47,7 +46,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';

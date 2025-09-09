@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Megaphone, Users, Send } from 'lucide-react';
 import { Role, roles } from '@/lib/roles';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 
 
 const campaigns = [

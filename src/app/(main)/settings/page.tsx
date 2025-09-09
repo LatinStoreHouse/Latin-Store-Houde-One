@@ -1,5 +1,4 @@
 
-
 'use client';
 import React, { useState, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +10,7 @@ import { Save, Settings, AlertTriangle, PlusCircle, Trash2 } from 'lucide-react'
 import { InventoryContext } from '@/context/inventory-context';
 import { useToast } from '@/hooks/use-toast';
 import { AdhesiveYield, SealantYield } from '@/context/inventory-context';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 
 
 export default function SettingsPage() {

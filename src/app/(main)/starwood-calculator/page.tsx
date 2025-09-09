@@ -17,7 +17,7 @@ import 'jspdf-autotable';
 import Image from 'next/image';
 import { Textarea } from '@/components/ui/textarea';
 import { LocationCombobox } from '@/components/location-combobox';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { InventoryContext, StarwoodYields } from '@/context/inventory-context';
 import { CustomerSelector } from '@/components/customer-selector';
 import { Customer } from '@/lib/customers';

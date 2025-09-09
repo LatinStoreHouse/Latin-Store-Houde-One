@@ -1,5 +1,6 @@
 
 
+
 'use client';
 import React, { useState, useMemo, useEffect, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -21,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { cn } from '@/lib/utils';
 import { ReservationForm } from '@/components/reservation-form';
 

@@ -1,7 +1,6 @@
 
-
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import {
   Card,
@@ -38,7 +37,7 @@ import {
 } from '@/components/ui/dialog';
 import { UserForm } from '@/components/user-form';
 import { User, Role, roles } from '@/lib/roles';
-import { useUser } from '../layout';
+import { useUser } from '@/context/user-context';
 import { SetSalesForm } from '@/components/set-sales-form';
 import { initialSalesData, MonthlySales } from '@/lib/sales-data';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';

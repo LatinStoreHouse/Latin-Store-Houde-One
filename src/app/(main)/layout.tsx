@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useRef, useMemo, useContext, useEffect, createContext } from 'react';
+import React, { useState, useRef, useMemo, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -88,20 +88,8 @@ import { Separator } from '@/components/ui/separator';
 import { PageLoader } from '@/components/page-loader';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Label } from '@/components/ui/label';
+import { UserContext, useUser } from '@/context/user-context';
 
-// We need a context to pass the currentUser and its setter around.
-export const UserContext = createContext<{
-  currentUser: User;
-  setCurrentUser: React.Dispatch<React.SetStateAction<User>>;
-} | null>(null);
-
-export function useUser() {
-    const context = useContext(UserContext);
-    if (!context) {
-        throw new Error('useUser must be used within a UserProvider');
-    }
-    return context;
-}
 
 export const navItems = [
   { href: '/dashboard', label: 'Inicio', icon: LayoutDashboard },

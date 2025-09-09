@@ -39,7 +39,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { TransferInventoryForm, type TransferItem } from '@/components/transfer-inventory-form';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useBeforeUnload } from '@/hooks/use-before-unload';
@@ -1028,12 +1028,3 @@ export default function InventoryPage() {
     
 
     
-
-
-
-
-
-
-
-
-

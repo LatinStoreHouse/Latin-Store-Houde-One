@@ -38,7 +38,8 @@ import {
 import { Role, roles } from '@/lib/roles';
 import { InventoryContext, AppNotification } from '@/context/inventory-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { navItems, useUser } from '@/app/(main)/layout';
+import { navItems } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { initialSalesData } from '@/lib/sales-data';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MonthPicker } from '@/components/month-picker';

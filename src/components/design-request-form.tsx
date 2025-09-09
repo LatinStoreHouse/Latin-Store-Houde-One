@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DesignRequest, DesignStatus, designStatuses } from '@/lib/designs';
 import { FileUp, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 
 interface DesignRequestFormProps {
     request?: DesignRequest | null;

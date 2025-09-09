@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Save, MoreHorizontal, Edit, Trash2, PlusCircle, AlertTriangle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { roles } from '@/lib/roles';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
@@ -184,7 +184,7 @@ export default function PricingPage() {
     }
   };
   
-  const handleAddProduct = (newProduct: { brand: string; line: string; name: string; price: number; size?: string; stock: { bodega: number; zonaFranca: number; muestras: number; } }) => {
+  const handleAddProduct = (newProduct: { brand: string; line: string; name: string; price: number; size?: string; stock: { bodega: number, zonaFranca: number, muestras: number; } }) => {
     const { brand, line, name, price, size, stock } = newProduct;
     if (!brand || !line || !name) {
       toast({ variant: 'destructive', title: 'Error', description: 'Todos los campos son requeridos para agregar un producto.' });

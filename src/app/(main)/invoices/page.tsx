@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -19,7 +18,7 @@ import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 
 // Extend the jsPDF type to include the autoTable method
 declare module 'jspdf' {

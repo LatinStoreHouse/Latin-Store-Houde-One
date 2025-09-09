@@ -14,7 +14,7 @@ import { InventoryContext, Quote, Reservation } from '@/context/inventory-contex
 import { DispatchData, initialDispatchData } from '@/app/(main)/orders/page';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { useToast } from '@/hooks/use-toast';
 
 function CustomerQuotes({ quotes }: { quotes: Quote[] }) {

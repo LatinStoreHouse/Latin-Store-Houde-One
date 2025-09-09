@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { InventoryProvider } from '@/context/inventory-context';
-import { UserContext } from '@/app/(main)/layout';
+import { UserContext } from '@/context/user-context';
 import React, { useState } from 'react';
 import { User, Role } from '@/lib/roles';
 

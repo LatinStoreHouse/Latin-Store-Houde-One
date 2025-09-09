@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { initialCustomerData } from '@/lib/customers';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import type { User, Role } from '@/lib/roles';
 import { initialSalesData } from '@/lib/sales-data';
 import { InventoryContext, Quote } from '@/context/inventory-context';

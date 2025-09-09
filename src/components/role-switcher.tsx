@@ -1,7 +1,8 @@
+
 'use client';
 
 import React from 'react';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

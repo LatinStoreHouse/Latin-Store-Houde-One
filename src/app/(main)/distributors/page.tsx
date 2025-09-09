@@ -36,7 +36,7 @@ import { initialCustomerData, Customer } from '@/lib/customers';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { DistributorForm } from '@/components/distributor-form';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { roles } from '@/lib/roles';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';

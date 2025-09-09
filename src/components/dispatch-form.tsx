@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useContext, useMemo } from 'react';
@@ -8,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Combobox } from '@/components/ui/combobox';
 import type { DispatchData, DispatchProduct } from '@/app/(main)/orders/page';
 import { initialCustomerData } from '@/lib/customers';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { PlusCircle, Trash2, Warehouse, Building } from 'lucide-react';

@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { initialCustomerData, Customer, customerStatuses, CustomerStatus } from '@/lib/customers';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { BookUser, StickyNote, MoreHorizontal, Edit, Milestone } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
