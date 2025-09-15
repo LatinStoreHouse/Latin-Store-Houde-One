@@ -116,7 +116,7 @@ const QuickAccessItem = ({ href, icon: Icon, label }: { href: string; icon: Reac
     <Button variant="outline" className="flex flex-col h-28 w-full justify-center" asChild>
         <Link href={href}>
             <Icon className="h-8 w-8 text-primary mb-2" />
-            <span className="text-center text-xs">{label}</span>
+            <span className="text-center text-xs whitespace-normal">{label}</span>
         </Link>
     </Button>
 );
