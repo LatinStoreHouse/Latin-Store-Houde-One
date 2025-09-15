@@ -55,10 +55,12 @@ const DynamicMonthlyAnalysis = dynamic(() => import('@/components/dashboard/mont
 
 const DynamicTopMovers = dynamic(() => import('@/components/dashboard/top-movers').then(mod => mod.TopMovers), {
     loading: () => <Skeleton className="h-[300px] w-full" />,
+    ssr: false
 });
 
 const DynamicBottomMovers = dynamic(() => import('@/components/dashboard/bottom-movers').then(mod => mod.BottomMovers), {
     loading: () => <Skeleton className="h-[300px] w-full" />,
+    ssr: false
 });
 
 
