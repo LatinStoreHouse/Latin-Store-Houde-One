@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
@@ -31,26 +32,7 @@ const defaultCenter = {
   lng: -74.08175,
 };
 
-export function LocationCombobox({ value, onChange, city }: LocationComboboxProps) {
-  const apiKey = firebaseConfig.apiKey;
-
-  if (!apiKey) {
-    return (
-       <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Configuración Requerida</AlertTitle>
-            <AlertDescription>
-                La clave de API de Google Maps no está configurada. Por favor, añádala a su archivo .env.
-            </AlertDescription>
-        </Alert>
-    );
-  }
-
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: apiKey,
-    libraries,
-  });
-
+function LocationComboboxComponent({ value, onChange, city }: LocationComboboxProps) {
   const [map, setMap] = React.useState<google.maps.Map | null>(null);
   const [searchBox, setSearchBox] = React.useState<google.maps.places.SearchBox | null>(null);
   const [markerPosition, setMarkerPosition] = useState(value);
@@ -86,33 +68,6 @@ export function LocationCombobox({ value, onChange, city }: LocationComboboxProp
       }
     }
   };
-  
-  if (loadError) {
-    return (
-        <div className="space-y-2">
-            <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error al Cargar Google Maps</AlertTitle>
-                <AlertDescription>
-                    No se pudo cargar la API. Verifica que la clave sea válida y que las APIs correctas estén habilitadas. Se ha activado un campo de texto manual.
-                </AlertDescription>
-            </Alert>
-            <Input 
-              placeholder="Ingrese la dirección manualmente" 
-              defaultValue={city}
-              onChange={(e) => onChange({ address: e.target.value, lat: 0, lng: 0 })}
-            />
-        </div>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center h-24">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -152,3 +107,56 @@ export function LocationCombobox({ value, onChange, city }: LocationComboboxProp
     </div>
   );
 }
+
+
+export function LocationCombobox({ value, onChange, city }: LocationComboboxProps) {
+  const apiKey = firebaseConfig.apiKey;
+
+  if (!apiKey) {
+    return (
+       <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Configuración Requerida</AlertTitle>
+            <AlertDescription>
+                La clave de API de Google Maps no está configurada. Por favor, añádala a su archivo .env.
+            </AlertDescription>
+        </Alert>
+    );
+  }
+
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: apiKey,
+    libraries,
+  });
+
+  
+  if (loadError) {
+    return (
+        <div className="space-y-2">
+            <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error al Cargar Google Maps</AlertTitle>
+                <AlertDescription>
+                    No se pudo cargar la API. Verifica que la clave sea válida y que las APIs correctas estén habilitadas. Se ha activado un campo de texto manual.
+                </AlertDescription>
+            </Alert>
+            <Input 
+              placeholder="Ingrese la dirección manualmente" 
+              defaultValue={city}
+              onChange={(e) => onChange({ address: e.target.value, lat: 0, lng: 0 })}
+            />
+        </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center h-24">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return <LocationComboboxComponent value={value} onChange={onChange} city={city} />;
+}
+

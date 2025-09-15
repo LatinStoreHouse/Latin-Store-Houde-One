@@ -1,10 +1,12 @@
 
+
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown, Filter, DollarSign, Receipt } from 'lucide-react';
-import { useState, useEffect, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useMemo, useContext, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { MonthPicker } from '@/components/month-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -20,60 +22,18 @@ import type { User, Role } from '@/lib/roles';
 import { initialSalesData } from '@/lib/sales-data';
 import { InventoryContext, Quote } from '@/context/inventory-context';
 import { Combobox } from '@/components/ui/combobox';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
-// Utility function to safely get base64 from an image
-const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
-    return new Promise((resolve) => {
-        const img = new window.Image();
-        img.crossOrigin = 'Anonymous';
-        img.src = src;
+const DynamicMonthlyAnalysis = dynamic(() => import('@/components/reports/monthly-analysis').then(mod => mod.MonthlyAnalysis), {
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+    ssr: false
+});
 
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-                resolve(null);
-                return;
-            }
-            ctx.drawImage(img, 0, 0);
-
-            try {
-                const dataURL = canvas.toDataURL('image/png');
-                resolve({ base64: dataURL, width: img.width, height: img.height });
-            } catch (e) {
-                console.error("Error converting canvas to data URL", e);
-                resolve(null);
-            }
-        };
-
-        img.onerror = (e) => {
-            console.error("Failed to load image for PDF conversion:", src, e);
-            resolve(null); // Resolve with null if the image fails to load
-        };
-    });
-};
-
-const addPdfHeader = async (doc: any) => {
-    const { jsPDF } = await import('jspdf');
-    const latinLogoData = await getImageBase64('/imagenes/logos/Logo-Latin-Store-House-color.png');
-    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-
-    if (latinLogoData) {
-        const logoWidth = 20;
-        const logoHeight = latinLogoData.height * (logoWidth / latinLogoData.width);
-        doc.addImage(latinLogoData.base64, 'PNG', 14, 10, logoWidth, logoHeight);
-    }
-    
-    doc.setFontSize(8);
-    doc.setTextColor(100);
-    doc.text('Latin Store House S.A.S', pageWidth - 14, 15, { align: 'right' });
-    doc.text('NIT: 900493221-0', pageWidth - 14, 19, { align: 'right' });
-};
-
+const DynamicQuotesReport = dynamic(() => import('@/components/reports/quotes-report').then(mod => mod.QuotesReport), {
+    loading: () => <Skeleton className="h-[300px] w-full" />,
+    ssr: false
+});
 
 const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin', 'Laura Diaz'];
 
@@ -129,297 +89,6 @@ const ForecastCard = ({ forecast, loading, error, selectedMonth }: { forecast: F
     )
 }
 
-const MonthlyAnalysis = ({ date, user }: { date: Date, user: User | null }) => {
-    const isAdvisor = user?.roles.includes('Asesor de Ventas');
-
-    const { newCustomersCount, customersChangePercentage, salesFunnelData, funnelOutcomes, monthlySales } = useMemo(() => {
-        if (!user) return { newCustomersCount: 0, customersChangePercentage: 0, salesFunnelData: [], funnelOutcomes: [], monthlySales: 0 };
-
-        const selectedYear = date.getFullYear();
-        const selectedMonth = date.getMonth();
-
-        const getCustomersInMonth = (year: number, month: number) => {
-            return initialCustomerData.filter(c => {
-                const regDate = new Date(c.registrationDate);
-                const isCorrectMonth = regDate.getFullYear() === year && regDate.getMonth() === month;
-                const isAssignedToAdvisor = isAdvisor ? c.assignedTo === user.name : true;
-                return isCorrectMonth && isAssignedToAdvisor;
-            });
-        };
-
-        const currentMonthCustomers = getCustomersInMonth(selectedYear, selectedMonth);
-
-        const prevMonthDate = new Date(date);
-        prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
-        const previousMonthCustomers = getCustomersInMonth(prevMonthDate.getFullYear(), prevMonthDate.getMonth());
-        
-        let changePercentage = 0;
-        if (previousMonthCustomers.length > 0) {
-            changePercentage = ((currentMonthCustomers.length - previousMonthCustomers.length) / previousMonthCustomers.length) * 100;
-        } else if (currentMonthCustomers.length > 0) {
-            changePercentage = 100;
-        }
-
-        const statusCounts = currentMonthCustomers.reduce((acc, customer) => {
-            acc[customer.status] = (acc[customer.status] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-
-        const salesFunnelData = [
-            { name: 'Contactado', value: statusCounts['Contactado'] || 0 },
-            { name: 'Showroom', value: statusCounts['Showroom'] || 0 },
-            { name: 'Cotizado', value: statusCounts['Cotizado'] || 0 },
-            { name: 'Facturado', value: statusCounts['Facturado'] || 0 },
-        ];
-
-        const funnelOutcomes = [
-            { name: 'Declinado', value: statusCounts['Declinado'] || 0 },
-            { name: 'Sin respuesta', value: statusCounts['Sin respuesta'] || 0 },
-            { name: 'Redireccionado', value: statusCounts['Redireccionado'] || 0 },
-        ].filter(outcome => outcome.value > 0);
-
-        const monthKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
-        const sales = isAdvisor ? (initialSalesData[user.name]?.[monthKey]?.sales || 0) : 0;
-
-        return { 
-            newCustomersCount: currentMonthCustomers.length,
-            customersChangePercentage: changePercentage,
-            salesFunnelData,
-            funnelOutcomes,
-            monthlySales: sales,
-        };
-    }, [date, user, isAdvisor]);
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 0,
-        }).format(value);
-    };
-
-    return (
-        <>
-        <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-                <CardHeader className="flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Nuevos Clientes</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                <div className="text-2xl font-bold">+{newCustomersCount}</div>
-                <p className={cn("text-xs text-muted-foreground flex items-center", customersChangePercentage >= 0 ? "text-green-600" : "text-red-600")}>
-                    {customersChangePercentage >= 0 ? <ArrowUp className="h-3 w-3 mr-1" /> : <ArrowDown className="h-3 w-3 mr-1" />}
-                    {customersChangePercentage.toFixed(1)}% desde el mes pasado
-                </p>
-                </CardContent>
-            </Card>
-            {isAdvisor ? (
-                <Card>
-                    <CardHeader className="flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Ventas del Mes</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(monthlySales)}</div>
-                        <p className="text-xs text-muted-foreground">Total registrado para este mes.</p>
-                    </CardContent>
-                </Card>
-            ) : (
-                <Card>
-                    <CardHeader className="flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">Pedidos Completados</CardTitle>
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                    <div className="text-2xl font-bold">+1,286</div>
-                    <p className="text-xs text-muted-foreground">+12.2% desde el mes pasado</p>
-                    </CardContent>
-                </Card>
-            )}
-        </div>
-        <Card>
-             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Filter />Embudo de Clientes por Estado</CardTitle>
-                <CardDescription>Visualización del flujo de clientes a través de las etapas de venta en el mes seleccionado.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                 <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                       <BarChart layout="vertical" data={salesFunnelData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                         <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                         <XAxis type="number" />
-                         <YAxis type="category" dataKey="name" width={80} />
-                         <RechartsTooltip cursor={{ fill: 'hsl(var(--muted))' }} />
-                         <Bar dataKey="value" fill="hsl(var(--primary))" barSize={30} />
-                       </BarChart>
-                    </ResponsiveContainer>
-                 </div>
-                 <div>
-                    <h4 className="font-semibold mb-2">Resultados del Embudo</h4>
-                    <p className="text-sm text-muted-foreground mb-4">Clientes que salieron del embudo de ventas durante el mes.</p>
-                    {funnelOutcomes.length > 0 ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Estado</TableHead>
-                                    <TableHead className="text-right"># Clientes</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {funnelOutcomes.map(item => (
-                                    <TableRow key={item.name}>
-                                        <TableCell>{item.name}</TableCell>
-                                        <TableCell className="text-right font-bold">{item.value}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    ) : (
-                        <p className="text-sm text-center text-muted-foreground py-4">No hay clientes con estados de salida este mes.</p>
-                    )}
-                 </div>
-            </CardContent>
-        </Card>
-        </>
-    );
-}
-
-const QuotesReport = ({ quotes, date, user }: { quotes: Quote[], date: Date, user: User | null }) => {
-    const { toast } = useToast();
-    const isAdvisor = user?.roles.includes('Asesor de Ventas');
-    const isAdmin = user?.roles.includes('Administrador');
-
-    const [advisorFilter, setAdvisorFilter] = useState('');
-
-    const advisorOptions = salesAdvisors.map(name => ({ value: name, label: name }));
-
-    const filteredQuotes = useMemo(() => {
-        return quotes.filter(quote => {
-            const quoteDate = new Date(quote.creationDate);
-            const isSameMonth = quoteDate.getFullYear() === date.getFullYear() && quoteDate.getMonth() === date.getMonth();
-
-            if (!isSameMonth) return false;
-
-            if (isAdvisor && !isAdmin) {
-                return quote.advisorName === user?.name;
-            }
-            if (isAdmin && advisorFilter) {
-                return quote.advisorName === advisorFilter;
-            }
-            return true;
-        });
-    }, [quotes, date, user, isAdvisor, isAdmin, advisorFilter]);
-
-    const formatCurrency = (value: number, currency: string) => {
-        return new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 0,
-        }).format(value);
-    };
-
-    const handleDownloadQuotes = async () => {
-        const { default: jsPDF } = await import('jspdf');
-        await import('jspdf-autotable');
-        const doc = new jsPDF({ format: 'letter' });
-        const monthName = date.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
-        
-        await addPdfHeader(doc);
-        
-        let startY = 45;
-        doc.setFontSize(14);
-        doc.text('Reporte de Cotizaciones', 14, startY);
-        startY += 5;
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text(`Mes: ${monthName}`, 14, startY);
-        startY += 5;
-        
-        if (advisorFilter) {
-            doc.text(`Asesor: ${advisorFilter}`, 14, startY);
-            startY += 5;
-        }
-
-        (doc as any).autoTable({
-            startY,
-            head: [['# Cotización', 'Tipo', 'Cliente', 'Asesor', 'Fecha', 'Monto']],
-            body: filteredQuotes.map(q => [
-                q.quoteNumber,
-                q.calculatorType,
-                q.customerName,
-                q.advisorName,
-                new Date(q.creationDate).toLocaleDateString(),
-                formatCurrency(q.total, q.currency)
-            ]),
-            headStyles: { fillColor: [41, 128, 185] },
-        });
-        
-        doc.save(`Reporte_Cotizaciones_${date.getFullYear()}-${date.getMonth() + 1}.pdf`);
-        toast({ title: 'Éxito', description: 'Reporte de cotizaciones PDF generado.' });
-    };
-
-    return (
-        <Card>
-            <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <CardTitle className="flex items-center gap-2"><Receipt />Reporte de Cotizaciones</CardTitle>
-                        <CardDescription>Análisis de las cotizaciones generadas en el mes seleccionado.</CardDescription>
-                    </div>
-                     <Button onClick={handleDownloadQuotes} disabled={filteredQuotes.length === 0}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Descargar Cotizaciones
-                    </Button>
-                </div>
-            </CardHeader>
-            <CardContent>
-                 {isAdmin && (
-                    <div className="mb-4 w-full sm:w-64">
-                         <Combobox
-                            options={advisorOptions}
-                            value={advisorFilter}
-                            onValueChange={setAdvisorFilter}
-                            placeholder="Filtrar por asesor..."
-                        />
-                    </div>
-                 )}
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead># Cotización</TableHead>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Cliente</TableHead>
-                            <TableHead>Asesor</TableHead>
-                            <TableHead>Fecha</TableHead>
-                            <TableHead className="text-right">Monto Total</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredQuotes.map(quote => (
-                            <TableRow key={quote.id}>
-                                <TableCell>{quote.quoteNumber}</TableCell>
-                                <TableCell><Badge variant="outline">{quote.calculatorType}</Badge></TableCell>
-                                <TableCell>{quote.customerName}</TableCell>
-                                <TableCell>{quote.advisorName}</TableCell>
-                                <TableCell>{new Date(quote.creationDate).toLocaleDateString()}</TableCell>
-                                <TableCell className="text-right font-medium">{formatCurrency(quote.total, quote.currency)}</TableCell>
-                            </TableRow>
-                        ))}
-                        {filteredQuotes.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center">
-                                    No hay cotizaciones para los filtros seleccionados.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                 </Table>
-            </CardContent>
-        </Card>
-    );
-};
-
 export default function ReportsPage() {
     const { currentUser } = useUser();
     const { quotes } = useContext(InventoryContext)!;
@@ -474,6 +143,9 @@ export default function ReportsPage() {
         const { default: jsPDF } = await import('jspdf');
         await import('jspdf-autotable');
         const doc = new jsPDF({ format: 'letter' });
+        
+        // Dynamic import for header function
+        const { addPdfHeader } = await import('@/components/reports/pdf-utils');
         
         await addPdfHeader(doc);
 
@@ -553,11 +225,15 @@ export default function ReportsPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <MonthlyAnalysis date={currentDate} user={currentUser} />
+          <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
+            <DynamicMonthlyAnalysis date={currentDate} user={currentUser} />
+          </Suspense>
         </CardContent>
       </Card>
       
-      <QuotesReport quotes={quotes} date={currentDate} user={currentUser} />
+      <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>
+        <DynamicQuotesReport quotes={quotes} date={currentDate} user={currentUser} />
+      </Suspense>
 
       {!isPastOrPresentMonth && !isAdvisor && (
         <ForecastCard forecast={forecast} loading={loadingForecast} error={forecastError} selectedMonth={monthName} />

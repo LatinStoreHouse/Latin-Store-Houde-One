@@ -1,7 +1,9 @@
 
+
 'use client';
 import Link from 'next/link';
-import React, { useState, useMemo, useContext, useEffect } from 'react';
+import React, { useState, useMemo, useContext, useEffect, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { format } from 'date-fns';
 import {
   Card,
@@ -44,6 +46,20 @@ import { MonthPicker } from '@/components/month-picker';
 import { Separator } from '@/components/ui/separator';
 import { ResponsiveContainer, Pie, Cell, Tooltip as RechartsTooltip, Legend, PieChart } from 'recharts';
 import { initialCustomerData } from '@/lib/customers';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const DynamicMonthlyAnalysis = dynamic(() => import('@/components/dashboard/monthly-analysis').then(mod => mod.MonthlyAnalysis), {
+    loading: () => <Skeleton className="h-[400px] w-full" />,
+    ssr: false,
+});
+
+const DynamicTopMovers = dynamic(() => import('@/components/dashboard/top-movers').then(mod => mod.TopMovers), {
+    loading: () => <Skeleton className="h-[300px] w-full" />,
+});
+
+const DynamicBottomMovers = dynamic(() => import('@/components/dashboard/bottom-movers').then(mod => mod.BottomMovers), {
+    loading: () => <Skeleton className="h-[300px] w-full" />,
+});
 
 
 const inventoryOverviewItems = [
@@ -88,22 +104,6 @@ const salesOverviewItems = [
     },
 ]
 
-const topMovers = [
-    { name: 'Kund multy', moved: 152, change: 12.5 },
-    { name: 'Concreto gris', moved: 121, change: 8.2 },
-    { name: 'Tan', moved: 98, change: 5.1 },
-    { name: 'Carrara', moved: 85, change: 15.3 },
-    { name: 'Silver shine gold', moved: 76, change: -2.1 },
-];
-
-const bottomMovers = [
-    { name: 'Mint white', moved: 2, change: 0 },
-    { name: 'Copper', moved: 1, change: 0 },
-    { name: 'Concreto medio', moved: 1, change: 0 },
-    { name: 'Panel 3d - tan', moved: 0, change: 0 },
-    { name: 'Indian autumn translucido', moved: 0, change: 0 },
-];
-
 const latestQuotes = [
     { id: 'COT-2024-088', customer: 'Diseños Modernos SAS', date: '2024-07-28' },
     { id: 'COT-2024-087', customer: 'Constructora XYZ', date: '2024-07-27' },
@@ -119,7 +119,6 @@ const QuickAccessItem = ({ href, icon: Icon, label }: { href: string; icon: Reac
     </Button>
 );
 
-const PIE_COLORS = ['#29ABE2', '#00BCD4', '#f44336', '#E2E229', '#E29ABE', '#FFC107', '#4CAF50'];
 
 export default function DashboardPage() {
     const inventoryContext = useContext(InventoryContext);
@@ -180,70 +179,6 @@ export default function DashboardPage() {
     const overviewItems = currentUserRole === 'Asesor de Ventas' ? salesOverviewItems : inventoryOverviewItems;
     const isAdvisor = currentUserRole === 'Asesor de Ventas';
   
-    const advisorStats = useMemo(() => {
-        if (!isAdvisor) return null;
-        
-        const year = statsDate.getFullYear();
-        const month = statsDate.getMonth();
-        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
-
-        const newCustomersThisMonth = initialCustomerData.filter(c => {
-            const regDate = new Date(c.registrationDate);
-            return c.assignedTo === currentUser.name && regDate.getFullYear() === year && regDate.getMonth() === month;
-        });
-        
-        const monthlySales = initialSalesData[currentUser.name]?.[monthKey]?.sales || 0;
-
-        const allAdvisorCustomers = initialCustomerData.filter(c => c.assignedTo === currentUser.name);
-        const statusDistribution = allAdvisorCustomers.reduce((acc, customer) => {
-            acc[customer.status] = (acc[customer.status] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-
-        return {
-            newCustomersCount: newCustomersThisMonth.length,
-            newCustomersList: newCustomersThisMonth,
-            statusDistribution: Object.entries(statusDistribution).map(([name, value]) => ({ name, value })),
-            monthlySales: monthlySales,
-        }
-
-    }, [isAdvisor, statsDate, currentUser.name]);
-
-     const handleDownloadStats = async () => {
-        if (!advisorStats) return;
-
-        const { default: jsPDF } = await import('jspdf');
-        await import('jspdf-autotable');
-
-        const doc = new jsPDF();
-        const monthName = statsDate.toLocaleString('es-CO', { month: 'long', year: 'numeric' });
-        
-        doc.setFontSize(18);
-        doc.text(`Reporte de Asesor - ${currentUser.name}`, 14, 22);
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text(`Mes: ${monthName}`, 14, 30);
-
-        doc.setFontSize(12);
-        doc.text(`Nuevos Clientes en ${monthName}: ${advisorStats.newCustomersCount}`, 14, 45);
-
-        (doc as any).autoTable({
-            startY: 50,
-            head: [['Nombre', 'Email', 'Teléfono', 'Fuente']],
-            body: advisorStats.newCustomersList.map(c => [c.name, c.email, c.phone, c.source]),
-        });
-        
-        doc.save(`Reporte_${currentUser.name}_${format(statsDate, 'yyyy-MM')}.pdf`);
-    }
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 0,
-        }).format(value);
-    };
-
   return (
     <>
     <div className="space-y-6">
@@ -352,66 +287,17 @@ export default function DashboardPage() {
 
       {currentUserRole !== 'Partners' && currentUserRole !== 'Asesor de Ventas' && currentUserRole !== 'Marketing' &&(
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Productos con Mayor Movimiento</CardTitle>
-                    <CardDescription>Los productos más vendidos este mes.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Producto</TableHead>
-                                <TableHead className="text-right">Unidades Movidas</TableHead>
-                                <TableHead className="text-right">Cambio</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {topMovers.map(item => (
-                                <TableRow key={item.name}>
-                                    <TableCell>{item.name}</TableCell>
-                                    <TableCell className="text-right">{item.moved}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Badge variant={item.change > 0 ? 'default' : 'destructive'} className="flex w-fit items-center gap-1 ml-auto">
-                                            {item.change > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                                            {item.change}%
-                                        </Badge>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Productos con Menor Movimiento</CardTitle>
-                    <CardDescription>Los productos menos vendidos este mes.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Producto</TableHead>
-                                <TableHead className="text-right">Unidades Movidas</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {bottomMovers.map(item => (
-                                <TableRow key={item.name}>
-                                    <TableCell>{item.name}</TableCell>
-                                    <TableCell className="text-right">{item.moved}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+            <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>
+                <DynamicTopMovers />
+            </Suspense>
+            <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>
+                <DynamicBottomMovers />
+            </Suspense>
         </div>
       )}
     </div>
 
-    {isAdvisor && advisorStats && (
+    {isAdvisor && (
         <Dialog open={isStatsModalOpen} onOpenChange={setIsStatsModalOpen}>
             <DialogContent className="max-w-3xl">
                 <DialogHeader>
@@ -420,80 +306,9 @@ export default function DashboardPage() {
                         Revise su rendimiento de captación de clientes y el estado general de su cartera.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-                    <div className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg">Rendimiento Mensual</CardTitle>
-                                <div className="flex items-center justify-between">
-                                 <p className="text-sm text-muted-foreground">Datos para el mes seleccionado.</p>
-                                 <MonthPicker date={statsDate} onDateChange={setStatsDate} />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-sm font-medium text-muted-foreground">Nuevos Clientes</p>
-                                        <p className="text-2xl font-bold">{advisorStats.newCustomersCount}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-muted-foreground">Total Ventas</p>
-                                        <p className="text-2xl font-bold">{formatCurrency(advisorStats.monthlySales)}</p>
-                                    </div>
-                                </div>
-                                <Separator className="my-4" />
-                                <h4 className="font-semibold mb-2">Clientes Captados este Mes:</h4>
-                                {advisorStats.newCustomersList.length > 0 ? (
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Nombre</TableHead>
-                                                <TableHead>Fuente</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {advisorStats.newCustomersList.map(c => (
-                                                <TableRow key={c.id}>
-                                                    <TableCell>{c.name}</TableCell>
-                                                    <TableCell>{c.source}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground text-center">No hay nuevos clientes este mes.</p>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                    <div className="space-y-4">
-                       <Card>
-                         <CardHeader>
-                            <CardTitle className="text-lg">Estado General de Clientes</CardTitle>
-                             <CardDescription>Distribución de todos sus clientes por estado.</CardDescription>
-                         </CardHeader>
-                         <CardContent>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <PieChart>
-                                    <Pie data={advisorStats.statusDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                                        {advisorStats.statusDistribution.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <RechartsTooltip />
-                                    <Legend />
-                                </PieChart>
-                            </ResponsiveContainer>
-                         </CardContent>
-                       </Card>
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button onClick={handleDownloadStats}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Descargar Reporte del Mes
-                    </Button>
-                </DialogFooter>
+                <Suspense fallback={<div className="h-[400px] flex justify-center items-center"><Skeleton className="h-full w-full" /></div>}>
+                    <DynamicMonthlyAnalysis date={statsDate} onDateChange={setStatsDate} />
+                </Suspense>
             </DialogContent>
         </Dialog>
     )}

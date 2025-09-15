@@ -1,4 +1,5 @@
 
+
 'use client';
 import type { Metadata } from 'next';
 import './globals.css';
@@ -11,11 +12,6 @@ import React, { useState } from 'react';
 import { User, Role } from '@/lib/roles';
 
 const inter = Inter({ subsets: ['latin'] });
-
-const metadata: Metadata = {
-  title: 'One By Latin',
-  description: 'Gestión de Inventario y Clientes por Firebase Studio',
-};
 
 // CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
 const initialUser: User = {
