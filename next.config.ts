@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+   experimental: {
+    allowedDevOrigins: [
+        "https://6000-firebase-one-by-latin-8-1757338175733.cluster-ux5mmlia3zhhask7riihruxydo.cloudworkstations.dev",
+    ]
+  }
 };
 
 export default nextConfig;
