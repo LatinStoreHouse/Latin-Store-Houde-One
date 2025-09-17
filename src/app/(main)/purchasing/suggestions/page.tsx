@@ -11,7 +11,7 @@ import { Lightbulb, PackagePlus, FileDown, AlertTriangle, TrendingUp, UserPlus, 
 import { InventoryContext, Suggestion } from '@/context/inventory-context';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { roles } from '@/lib/roles';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

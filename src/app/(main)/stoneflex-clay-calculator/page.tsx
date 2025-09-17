@@ -1,6 +1,5 @@
 
 
-
 'use client';
 import React, { useState, useMemo, useEffect, useContext } from 'react';
 import Image from 'next/image';
@@ -24,7 +23,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { productDimensions } from '@/lib/dimensions';
-import { useUser } from '@/app/(main)/layout';
+import { useUser } from '@/context/user-context';
 import { LocationCombobox } from '@/components/location-combobox';
 import { InventoryContext, AdhesiveYield, SealantYield, InventoryData } from '@/context/inventory-context';
 import { CustomerSelector } from '@/components/customer-selector';
