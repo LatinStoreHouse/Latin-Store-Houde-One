@@ -1,59 +1,31 @@
+// src/app/layout.tsx
 
-'use client';
 import type { Metadata } from 'next';
-import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
 import { Inter } from 'next/font/google';
-import { ThemeProvider } from '@/components/theme-provider';
-import { InventoryProvider } from '@/context/inventory-context';
-import { UserContext } from '@/app/(main)/layout';
-import React, { useState } from 'react';
-import { User, Role } from '@/lib/roles';
+import { Providers } from './providers'; // Importamos nuestro nuevo componente agrupador
+import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
-const metadata: Metadata = {
+// Exportamos metadata para que Next.js la use. Esto solo funciona en Componentes de Servidor.
+export const metadata: Metadata = {
   title: 'One By Latin',
   description: 'Gestión de Inventario y Clientes por Firebase Studio',
 };
 
-// CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
-const initialUser: User = {
-  id: '1',
-  name: 'Admin Latin',
-  email: 'admin@latinhouse.com',
-  phone: '+573101234567',
-  jobTitle: 'Gerente General',
-  roles: ['Administrador'], 
-  avatar: 'https://placehold.co/40x40.png',
-  active: true,
-  individualPermissions: [],
-};
-
-
+// Este es ahora un Componente de Servidor limpio. No usa hooks ni estado.
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [currentUser, setCurrentUser] = useState(initialUser);
-
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
-        <UserContext.Provider value={{ currentUser, setCurrentUser }}>
-          <InventoryProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-              <Toaster />
-            </ThemeProvider>
-          </InventoryProvider>
-        </UserContext.Provider>
+        {/* Usamos nuestro componente Providers para envolver las páginas */}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
