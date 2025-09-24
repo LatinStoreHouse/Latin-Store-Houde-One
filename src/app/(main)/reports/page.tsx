@@ -23,6 +23,7 @@ import { initialSalesData } from '@/lib/sales-data';
 import { InventoryContext, Quote } from '@/context/inventory-context';
 import { Combobox } from '@/components/ui/combobox';
 import { Skeleton } from '@/components/ui/skeleton';
+import { addPdfHeader } from '@/lib/pdf-utils';
 
 
 const DynamicMonthlyAnalysis = dynamic(() => import('@/components/reports/monthly-analysis').then(mod => mod.MonthlyAnalysis), {
@@ -143,9 +144,6 @@ export default function ReportsPage() {
         const { default: jsPDF } = await import('jspdf');
         await import('jspdf-autotable');
         const doc = new jsPDF({ format: 'letter' });
-        
-        // Dynamic import for header function
-        const { addPdfHeader } = await import('@/components/reports/pdf-utils');
         
         await addPdfHeader(doc);
 
