@@ -230,7 +230,7 @@ export default function ReportsPage() {
       </Card>
       
       <Suspense fallback={<Skeleton className="h-[300px] w-full" />}>
-        <DynamicQuotesReport quotes={quotes} date={currentDate} user={currentUser} />
+        <DynamicQuotesReport date={currentDate} user={currentUser} />
       </Suspense>
 
       {!isPastOrPresentMonth && !isAdvisor && (
