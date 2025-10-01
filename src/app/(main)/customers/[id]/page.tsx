@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useMemo, useContext, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { initialCustomerData, Customer } from '@/lib/customers';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -10,7 +10,9 @@ import { ArrowLeft, Mail, Phone, MapPin, StickyNote, Edit, UserCircle, BadgeCent
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { InventoryContext, Quote, Reservation } from '@/context/inventory-context';
+import { Quote, Reservation } from '@/context/inventory-context';
+import { initialQuotes } from '@/lib/quotes-history';
+import { initialReservations } from '@/lib/sales-history';
 import { DispatchData, initialDispatchData } from '@/app/(main)/orders/page';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/customer-form';
@@ -154,7 +156,9 @@ export default function CustomerDetailPage() {
     const { currentUser } = useUser();
     const { toast } = useToast();
 
-    const { quotes, reservations } = useContext(InventoryContext)!;
+    const [quotes, setQuotes] = useState(initialQuotes);
+    const [reservations, setReservations] = useState(initialReservations);
+    
     const id = params.id as string;
     
     // Simulate finding and updating the customer in a local state

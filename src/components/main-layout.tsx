@@ -32,7 +32,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
@@ -80,8 +79,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryContext, AppNotification } from '@/context/inventory-context';
 import { RoleSwitcher } from '@/components/role-switcher';
-import { initialProductPrices } from '@/lib/prices';
-import { initialPendingDispatches } from '@/app/(main)/validation/page';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -173,7 +170,6 @@ const Logo = () => (
 const NavMenu = () => {
     const pathname = usePathname();
     const { currentUser } = useUser();
-    const inventoryContext = useContext(InventoryContext);
     const { setOpenMobile } = useSidebar();
 
     const userPermissions = useMemo(() => {
@@ -188,72 +184,6 @@ const NavMenu = () => {
         return Array.from(permissions);
     }, [currentUser.roles, currentUser.individualPermissions]);
 
-    const pendingValidations = useMemo(() => {
-        if (!inventoryContext) return 0;
-        const pendingReservations = inventoryContext.reservations.filter(r => r.status === 'En espera de validación').length;
-        const pendingDispatches = initialPendingDispatches.length;
-        return pendingReservations + pendingDispatches;
-    }, [inventoryContext]);
-
-    const pendingPrices = useMemo(() => {
-        if (!inventoryContext) return 0;
-        const allProducts = Object.values(inventoryContext.inventoryData).flatMap(brand =>
-            Object.values(brand).flatMap(line => Object.keys(line))
-        );
-        return allProducts.filter(productName => !(productName in initialProductPrices) || initialProductPrices[productName as keyof typeof initialProductPrices] === 0).length;
-    }, [inventoryContext?.inventoryData]);
-
-    const pendingReservationAlerts = useMemo(() => {
-        if (!inventoryContext) return 0;
-
-        const isAdmin = currentUser.roles.includes('Administrador');
-        const isAdvisor = currentUser.roles.includes('Asesor de Ventas');
-
-        if (!isAdmin && !isAdvisor) return 0;
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-
-        return inventoryContext.reservations.filter(r => {
-            if (r.status !== 'Validada' || !r.expirationDate) {
-                return false;
-            }
-
-            if (isAdvisor && !isAdmin && r.advisor !== currentUser.name) {
-                return false;
-            }
-
-            const expiration = new Date(r.expirationDate);
-            expiration.setHours(0,0,0,0);
-
-            return expiration <= tomorrow;
-        }).length;
-    }, [inventoryContext, currentUser]);
-
-    const hasLateContainersAlert = useMemo(() => {
-        if (!inventoryContext?.containers) return false;
-
-        const canSeeAlert = currentUser.roles.includes('Logística') || currentUser.roles.includes('Contador') || currentUser.roles.includes('Administrador');
-        if (!canSeeAlert) return false;
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        return inventoryContext.containers.some(c => {
-            const etaDate = new Date(c.eta);
-            return etaDate < today && c.status !== 'Ya llego';
-        });
-    }, [inventoryContext?.containers, currentUser.roles]);
-
-    const hasPurchaseSuggestions = useMemo(() => {
-        if (!inventoryContext?.systemSuggestions) return false;
-        const canSeeSuggestions = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Tráfico');
-        if (!canSeeSuggestions) return false;
-        
-        return inventoryContext.systemSuggestions.length > inventoryContext.seenSuggestionsCount;
-    }, [inventoryContext?.systemSuggestions, inventoryContext?.seenSuggestionsCount, currentUser.roles]);
 
     const hasPermission = (item: any) => {
         if (!item.permission) return true;
@@ -276,9 +206,7 @@ const NavMenu = () => {
     }
 
     const visibleNavItems = getVisibleNavItems() as typeof navItems;
-    const canEditPrices = hasPermission({ permission: 'pricing:edit' });
-    const canViewReservationsAlert = hasPermission({ permission: 'reservations:view' });
-
+    
     return (
         <SidebarMenu className="px-2">
             {visibleNavItems.map((item) => {
@@ -305,9 +233,6 @@ const NavMenu = () => {
                                                     <Link href={subItem.href!} onClick={() => setOpenMobile(false)}>
                                                         {SubIcon && <SubIcon />}
                                                         <span className="truncate">{subItem.label}</span>
-                                                        {subItem.href === '/reservations' && pendingReservationAlerts > 0 && canViewReservationsAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
-                                                        {subItem.href === '/transit' && hasLateContainersAlert && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
-                                                        {subItem.href === '/purchasing/suggestions' && hasPurchaseSuggestions && <div className="h-2 w-2 rounded-full bg-white ml-auto" />}
                                                     </Link>
                                                 </SidebarMenuSubButton>
                                             </SidebarMenuSubItem>
@@ -330,8 +255,6 @@ const NavMenu = () => {
                                         <item.icon />
                                         <span>{item.label}</span>
                                     </div>
-                                    {item.href === '/validation' && pendingValidations > 0 && <div className="h-2 w-2 rounded-full bg-white" />}
-                                    {item.href === '/pricing' && pendingPrices > 0 && canEditPrices && <div className="h-2 w-2 rounded-full bg-white" />}
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -347,7 +270,6 @@ export const MainLayoutContent = ({ children }: { children: React.ReactNode }) =
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser, setCurrentUser } = useUser();
-  const { setOpenMobile } = useSidebar();
   const inventoryContext = useContext(InventoryContext);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 

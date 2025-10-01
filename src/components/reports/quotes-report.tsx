@@ -1,15 +1,16 @@
 
 
 'use client';
-import React, { useMemo, useContext } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
-import { InventoryContext, Quote } from '@/context/inventory-context';
+import { Quote } from '@/context/inventory-context';
 import type { User } from '@/lib/roles';
 import { Receipt } from 'lucide-react';
+import { initialQuotes } from '@/lib/quotes-history';
 
 export function QuotesReport({ date, user }: { date: Date, user: User }) {
-    const { quotes } = useContext(InventoryContext)!;
+    const [quotes, setQuotes] = useState(initialQuotes);
     const isAdvisor = user.roles.includes('Asesor de Ventas');
 
     const monthlyQuotesData = useMemo(() => {
@@ -74,4 +75,3 @@ export function QuotesReport({ date, user }: { date: Date, user: User }) {
         </Card>
     );
 }
-

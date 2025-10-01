@@ -8,7 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTo
 import { MonthPicker } from '@/components/month-picker';
 import { useUser } from '@/context/user-context';
 import { cn } from '@/lib/utils';
-import { DollarSign, Users, TrendingUp } from 'lucide-react';
+import { DollarSign, Users } from 'lucide-react';
 
 
 const StatCard = ({ title, value, change, icon: Icon, formatAsCurrency = false }: { title: string, value: number, change: number, icon: React.ElementType, formatAsCurrency?: boolean }) => {
@@ -109,4 +109,3 @@ export function MonthlyAnalysis({ date, onDateChange }: { date: Date, onDateChan
         </div>
     );
 }
-

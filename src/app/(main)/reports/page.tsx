@@ -4,8 +4,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, TrendingUp, Users, Package, TrendingDown, BotMessageSquare, Loader2, ArrowUp, ArrowDown, Filter, DollarSign, Receipt } from 'lucide-react';
-import React, { useState, useEffect, useMemo, useContext, Suspense } from 'react';
+import { Download, TrendingUp, TrendingDown, BotMessageSquare, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { MonthPicker } from '@/components/month-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,14 +14,7 @@ import { inventoryMovementData } from '@/lib/inventory-movement';
 import { getSalesForecast } from '@/app/actions';
 import { ForecastSalesOutput } from '@/ai/flows/forecast-sales';
 import { useToast } from '@/hooks/use-toast';
-import { initialCustomerData } from '@/lib/customers';
-import { cn } from '@/lib/utils';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
 import { useUser } from '@/context/user-context';
-import type { User, Role } from '@/lib/roles';
-import { initialSalesData } from '@/lib/sales-data';
-import { InventoryContext, Quote } from '@/context/inventory-context';
-import { Combobox } from '@/components/ui/combobox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { addPdfHeader } from '@/lib/pdf-utils';
 
@@ -35,8 +28,6 @@ const DynamicQuotesReport = dynamic(() => import('@/components/reports/quotes-re
     loading: () => <Skeleton className="h-[300px] w-full" />,
     ssr: false
 });
-
-const salesAdvisors = ['John Doe', 'Jane Smith', 'Peter Jones', 'Admin Latin', 'Laura Diaz'];
 
 const ForecastCard = ({ forecast, loading, error, selectedMonth }: { forecast: ForecastSalesOutput | null, loading: boolean, error: string | null, selectedMonth: string }) => {
     return (
@@ -92,7 +83,6 @@ const ForecastCard = ({ forecast, loading, error, selectedMonth }: { forecast: F
 
 export default function ReportsPage() {
     const { currentUser } = useUser();
-    const { quotes } = useContext(InventoryContext)!;
     const [currentDate, setCurrentDate] = useState(new Date());
     const [forecast, setForecast] = useState<ForecastSalesOutput | null>(null);
     const [loadingForecast, setLoadingForecast] = useState(true);

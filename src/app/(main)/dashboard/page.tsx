@@ -4,7 +4,6 @@
 import Link from 'next/link';
 import React, { useState, useMemo, useContext, useEffect, Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -20,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
     TrendingUp,
@@ -28,25 +26,17 @@ import {
     Users,
     Bell,
     X,
-    Receipt,
     Clock,
     BarChart,
-    Download,
-    DollarSign,
-    Package
 } from 'lucide-react';
 import { roles } from '@/lib/roles';
 import { InventoryContext, AppNotification } from '@/context/inventory-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { navItems } from '@/components/main-layout';
 import { useUser } from '@/context/user-context';
-import { initialSalesData } from '@/lib/sales-data';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { MonthPicker } from '@/components/month-picker';
-import { Separator } from '@/components/ui/separator';
-import { ResponsiveContainer, Pie, Cell, Tooltip as RechartsTooltip, Legend, PieChart } from 'recharts';
-import { initialCustomerData } from '@/lib/customers';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { initialReservations } from '@/lib/sales-history';
 
 const DynamicMonthlyAnalysis = dynamic(() => import('@/components/dashboard/monthly-analysis').then(mod => mod.MonthlyAnalysis), {
     loading: () => <Skeleton className="h-[400px] w-full" />,
@@ -128,9 +118,10 @@ export default function DashboardPage() {
     if (!inventoryContext || !userContext) {
       throw new Error('DashboardPage must be used within an InventoryProvider and UserProvider');
     }
-    const { notifications, reservations, addNotification } = inventoryContext;
+    const { notifications } = inventoryContext;
     const { currentUser } = userContext;
 
+    const [reservations, setReservations] = useState(initialReservations);
     const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
     const [statsDate, setStatsDate] = useState(new Date());
     const [visibleNotifications, setVisibleNotifications] = useState<AppNotification[]>([]);

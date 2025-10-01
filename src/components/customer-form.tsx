@@ -1,7 +1,7 @@
 
 
 'use client';
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,6 @@ import { Customer, CustomerStatus, customerSources, customerStatuses } from '@/l
 import { Textarea } from './ui/textarea';
 import { User } from '@/lib/roles';
 import { LocationCombobox } from './location-combobox';
-import { InventoryContext } from '@/context/inventory-context';
 
 
 interface CustomerFormProps {
