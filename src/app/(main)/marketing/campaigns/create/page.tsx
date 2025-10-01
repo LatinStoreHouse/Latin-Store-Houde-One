@@ -265,7 +265,7 @@ export default function CreateCampaignPage() {
                             </Button>
                         ) : (
                             <div className="relative w-full h-48 rounded-md border p-2">
-                                <Image src={imagePreview} alt="Vista previa de la imagen" fill style={{ objectFit: 'contain' }} />
+                                <Image src={imagePreview} alt="Vista previa de la imagen" layout="fill" objectFit="contain" />
                                 <Button 
                                     type="button" 
                                     variant="destructive" 

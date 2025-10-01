@@ -1,7 +1,8 @@
 
 import React from 'react';
 import Image from 'next/image';
+import WhatsappLogo from '@/assets/images/logos/Logo Whatsapp.svg';
 
 export const WhatsAppIcon = () => (
-    <Image src="/imagenes/logos/Logo Whatsapp.svg" alt="WhatsApp" width={32} height={32} />
+    <Image src={WhatsappLogo} alt="WhatsApp" width={32} height={32} />
 );

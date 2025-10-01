@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { Smartphone, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import WhatsappLogo from '@/assets/images/logos/Logo Whatsapp.svg';
 
 interface CampaignPreviewProps {
     campaignName: string;
@@ -13,7 +14,7 @@ interface CampaignPreviewProps {
 }
 
 const WhatsAppIcon = () => (
-    <Image src="/imagenes/logos/Logo Whatsapp.svg" alt="WhatsApp" width={32} height={32} />
+    <Image src={WhatsappLogo} alt="WhatsApp" width={32} height={32} />
 );
 
 export function CampaignPreview({ campaignName, message }: CampaignPreviewProps) {
