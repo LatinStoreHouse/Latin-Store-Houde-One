@@ -7,7 +7,7 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 
 // This configuration is public and safe to expose.
 // Security is enforced by Firebase Security Rules and App Check.
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyC3-8tI_c0aZ3g5l8jY7xKV_q2H1o4",
   authDomain: "latin-store-house.firebaseapp.com",
   projectId: "latin-store-house",
@@ -34,4 +34,4 @@ if (typeof window !== 'undefined') {
   }
 }
 
-export { app, auth, db, analytics, firebaseConfig };
+export { app, auth, db, analytics };
