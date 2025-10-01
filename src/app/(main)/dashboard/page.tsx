@@ -35,7 +35,7 @@ import {
     DollarSign,
     Package
 } from 'lucide-react';
-import { Role, roles } from '@/lib/roles';
+import { roles } from '@/lib/roles';
 import { InventoryContext, AppNotification } from '@/context/inventory-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { navItems } from '@/components/main-layout';

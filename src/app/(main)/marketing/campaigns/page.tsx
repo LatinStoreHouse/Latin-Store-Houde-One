@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Megaphone, Users, Send } from 'lucide-react';
-import { Role, roles } from '@/lib/roles';
+import { roles } from '@/lib/roles';
 import { useUser } from '@/context/user-context';
 
 

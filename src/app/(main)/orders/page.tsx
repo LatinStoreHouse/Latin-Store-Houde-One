@@ -1,8 +1,7 @@
 
 
-
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, FileDown, Search, ChevronDown, Trash2, Copy, Edit, Calendar as CalendarIcon, PackageOpen, Warehouse, Building } from 'lucide-react';
-import { Role } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -35,6 +33,7 @@ import { initialCustomerData } from '@/lib/customers';
 import { DispatchForm } from '@/components/dispatch-form';
 import { useToast } from '@/hooks/use-toast';
 import { addPdfHeader } from '@/lib/pdf-utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Mocks - In a real app, this would come from a global state/context/API
 const validationHistory = [
@@ -139,7 +138,8 @@ export const initialDispatchData: DispatchData[] = [
   },
 ];
 
-export default function DispatchPage() {
+
+function DispatchPageContent() {
   const [dispatchData, setDispatchData] = useState<DispatchData[]>(initialDispatchData);
   const [searchTerm, setSearchTerm] = useState('');
   const [date, setDate] = useState<DateRange | undefined>(undefined);
@@ -646,3 +646,12 @@ export default function DispatchPage() {
     </>
   );
 }
+
+export default function DispatchPage() {
+    return (
+        <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
+            <DispatchPageContent />
+        </Suspense>
+    );
+}
+

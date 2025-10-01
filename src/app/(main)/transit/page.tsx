@@ -1,6 +1,5 @@
 
 
-
 'use client';
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { Role, roles } from '@/lib/roles';
+import { roles } from '@/lib/roles';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion } from '@/components/ui/accordion';
