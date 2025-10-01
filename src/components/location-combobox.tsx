@@ -110,26 +110,13 @@ function LocationComboboxComponent({ value, onChange, city }: LocationComboboxPr
 
 
 export function LocationCombobox({ value, onChange, city }: LocationComboboxProps) {
-  const apiKey = firebaseConfig.apiKey;
-
-  if (!apiKey) {
-    return (
-       <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Configuración Requerida</AlertTitle>
-            <AlertDescription>
-                La clave de API de Google Maps no está configurada. Por favor, añádala a su archivo .env.
-            </AlertDescription>
-        </Alert>
-    );
-  }
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || firebaseConfig.apiKey;
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: apiKey,
     libraries,
   });
 
-  
   if (loadError) {
     return (
         <div className="space-y-2">
@@ -159,4 +146,3 @@ export function LocationCombobox({ value, onChange, city }: LocationComboboxProp
 
   return <LocationComboboxComponent value={value} onChange={onChange} city={city} />;
 }
-
