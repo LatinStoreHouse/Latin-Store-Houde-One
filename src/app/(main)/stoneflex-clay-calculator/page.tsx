@@ -30,6 +30,11 @@ import { CustomerSelector } from '@/components/customer-selector';
 import { Customer } from '@/lib/customers';
 import { MultiSelectCombobox } from '@/components/ui/multi-select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import StoneflexLogo from '@/assets/images/logos/Logo-StoneFlex-v-color.png';
+import LatinStoreHouseLogo from '@/assets/images/logos/Logo-Latin-Store-House-color.png';
+import { initialInventoryData } from '@/lib/initial-inventory';
 
 
 const IVA_RATE = 0.19; // 19%
@@ -47,11 +52,11 @@ interface QuoteItem {
 }
 
 // Utility function to safely get base64 from an image
-const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
+const getImageBase64 = (src: any): Promise<{ base64: string; width: number; height: number } | null> => {
     return new Promise((resolve) => {
         const img = new window.Image();
         img.crossOrigin = 'Anonymous';
-        img.src = src;
+        img.src = src.src;
 
         img.onload = () => {
             const canvas = document.createElement('canvas');
@@ -385,7 +390,9 @@ export default function StoneflexCalculatorPage() {
   const searchParams = useSearchParams();
   const context = useContext(InventoryContext);
   if (!context) throw new Error("Inventory context not found");
-  const { inventoryData, addQuote, adhesiveYields, sealantYields } = context;
+  const { addQuote, adhesiveYields, sealantYields } = context;
+  const [inventoryData, setInventoryData] = useState(initialInventoryData);
+
 
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [reference, setReference] = useState('');
@@ -893,14 +900,12 @@ export default function StoneflexCalculatorPage() {
   
  const handleDownloadPdf = async () => {
     if (!quote) return;
-    const { default: jsPDF } = await import('jspdf');
-    await import('jspdf-autotable');
 
     const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'letter' });
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
-    const stoneflexLogoData = await getImageBase64('/imagenes/logos/Logo-StoneFlex-v-color.png');
-    const latinLogoData = await getImageBase64('/imagenes/logos/Logo-Latin-Store-House-color.png');
+    const stoneflexLogoData = await getImageBase64(StoneflexLogo);
+    const latinLogoData = await getImageBase64(LatinStoreHouseLogo);
 
     if (stoneflexLogoData) {
         const logoWidth = 25;
@@ -1077,7 +1082,7 @@ export default function StoneflexCalculatorPage() {
                         <SettingsDialog inventoryData={inventoryData} />
                     </Dialog>
                  )}
-                <Image src="/imagenes/logos/Logo-StoneFlex-v-color.png" alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>
+                <Image src={StoneflexLogo} alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>
             </div>
         </div>
       </CardHeader>
