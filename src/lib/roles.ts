@@ -51,7 +51,6 @@ export type Permission =
   'partners:view' |
   'partners:manage' |
   'partners:clients' |
-  'leader:view:assignments' |
   // Design
   'designs:view' |
   'designs:create' |
@@ -113,6 +112,7 @@ export const roles: RoleConfig[] = [
             'marketing:view',
             'marketing:create',
             'purchasing:suggestions:view',
+            'purchasing:suggestions:create',
             'partners:view',
             'partners:manage',
             'designs:view',

@@ -39,7 +39,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Customer, CustomerStatus, statusColors, customerStatuses, customerSources } from '@/lib/customers';
-import { Role, roles } from '@/lib/roles';
+import { roles } from '@/lib/roles';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
