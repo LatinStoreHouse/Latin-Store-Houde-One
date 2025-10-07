@@ -33,6 +33,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { initialInventoryData } from '@/lib/initial-inventory';
+import { initialAdhesiveYields, initialSealantYields } from '@/lib/supplies-data';
 
 
 const IVA_RATE = 0.19; // 19%
@@ -178,14 +179,14 @@ const initialCustomerState = {
   address: '',
 };
 
-function SettingsDialog({ inventoryData }: { inventoryData: InventoryData }) {
+function SettingsDialog({ inventoryData, adhesiveYields: initialAdhesive, sealantYields: initialSealant }: { inventoryData: InventoryData, adhesiveYields: AdhesiveYield[], sealantYields: SealantYield[] }) {
     const context = useContext(InventoryContext);
     if (!context) throw new Error("Context not found");
     
     const { setAdhesiveYields, setSealantYields } = context;
 
-    const [localAdhesiveYields, setLocalAdhesiveYields] = useState<AdhesiveYield[]>(context.adhesiveYields);
-    const [localSealantYields, setLocalSealantYields] = useState<SealantYield[]>(context.sealantYields);
+    const [localAdhesiveYields, setLocalAdhesiveYields] = useState<AdhesiveYield[]>(initialAdhesive);
+    const [localSealantYields, setLocalSealantYields] = useState<SealantYield[]>(initialSealant);
     const [hasChanges, setHasChanges] = useState(false);
     const { toast } = useToast();
 
@@ -388,8 +389,10 @@ export default function StoneflexCalculatorPage() {
   const searchParams = useSearchParams();
   const context = useContext(InventoryContext);
   if (!context) throw new Error("Inventory context not found");
-  const { addQuote, adhesiveYields, sealantYields } = context;
+  const { addQuote } = context;
   const [inventoryData, setInventoryData] = useState(initialInventoryData);
+  const [adhesiveYields, setAdhesiveYields] = useState(initialAdhesiveYields);
+  const [sealantYields, setSealantYields] = useState(initialSealantYields);
 
 
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
@@ -1077,7 +1080,7 @@ export default function StoneflexCalculatorPage() {
                                 <Settings className="h-4 w-4" />
                         </Button>
                         </DialogTrigger>
-                        <SettingsDialog inventoryData={inventoryData} />
+                        <SettingsDialog inventoryData={inventoryData} adhesiveYields={adhesiveYields} sealantYields={sealantYields} />
                     </Dialog>
                  )}
                 <Image src={'/imagenes/logos/Logo-StoneFlex-v-color.png'} alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>

@@ -23,6 +23,7 @@ import { CustomerSelector } from '@/components/customer-selector';
 import { Customer } from '@/lib/customers';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { initialStarwoodYields } from '@/lib/supplies-data';
 
 
 const starwoodProducts = [
@@ -107,13 +108,13 @@ const getImageBase64 = (src: string): Promise<{ base64: string; width: number; h
     });
 };
 
-function SettingsDialog() {
+function SettingsDialog({ initialYields }: { initialYields: StarwoodYields }) {
     const context = useContext(InventoryContext);
     if (!context) throw new Error("Context not found");
-    const { starwoodYields, setStarwoodYields } = context;
+    const { setStarwoodYields } = context;
     const { toast } = useToast();
 
-    const [localYields, setLocalYields] = useState<StarwoodYields>(starwoodYields);
+    const [localYields, setLocalYields] = useState<StarwoodYields>(initialYields);
 
     const handleYieldChange = (key: keyof StarwoodYields, value: string) => {
         setLocalYields(prev => ({ ...prev, [key]: Number(value) }));
@@ -168,7 +169,9 @@ export default function StarwoodCalculatorPage() {
   const searchParams = useSearchParams();
   const context = useContext(InventoryContext);
   if (!context) throw new Error("Inventory context not found");
-  const { addQuote, starwoodYields } = context;
+  const { addQuote } = context;
+
+  const [starwoodYields, setStarwoodYields] = useState(initialStarwoodYields);
 
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   
@@ -654,7 +657,7 @@ export default function StarwoodCalculatorPage() {
                                 <Settings className="h-4 w-4" />
                         </Button>
                         </DialogTrigger>
-                        <SettingsDialog />
+                        <SettingsDialog initialYields={starwoodYields} />
                     </Dialog>
                  )}
                 <Image src={'/imagenes/logos/Logo-Starwood-color.png'} alt="Starwood Logo" width={80} height={26} className="object-contain"/>

@@ -4,6 +4,7 @@
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Role } from '@/lib/roles';
+import { initialAdhesiveYields, initialSealantYields, initialStarwoodYields } from '@/lib/supplies-data';
 
 export interface Product {
   name: string;
@@ -113,6 +114,13 @@ interface InventoryContextType {
   toggleProductSubscription: (productName: string, userName: string) => void;
   reservations: Reservation[];
   setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
+  addQuote: (quote: Quote) => void;
+  adhesiveYields: AdhesiveYield[];
+  setAdhesiveYields: React.Dispatch<React.SetStateAction<AdhesiveYield[]>>;
+  sealantYields: SealantYield[];
+  setSealantYields: React.Dispatch<React.SetStateAction<SealantYield[]>>;
+  starwoodYields: StarwoodYields;
+  setStarwoodYields: React.Dispatch<React.SetStateAction<StarwoodYields>>;
 }
 
 export const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -121,6 +129,11 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [productSubscriptions, setProductSubscriptions] = useState<Record<string, string[]>>({});
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [adhesiveYields, setAdhesiveYields] = useState<AdhesiveYield[]>(initialAdhesiveYields);
+  const [sealantYields, setSealantYields] = useState<SealantYield[]>(initialSealantYields);
+  const [starwoodYields, setStarwoodYields] = useState<StarwoodYields>(initialStarwoodYields);
+  
   const { toast } = useToast();
 
   const addNotification = (notification: Omit<AppNotification, 'id' | 'date' | 'read'>) => {
@@ -156,6 +169,11 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
     });
   }
 
+  const addQuote = (quote: Quote) => {
+    setQuotes(prev => [...prev, quote]);
+    toast({ title: 'Cotización Guardada', description: `La cotización #${quote.quoteNumber} ha sido guardada en el historial.` });
+  }
+
   // Effect to show toast on unsubscribing, avoiding setState in render issue
   useEffect(() => {
     const handler = (e: any) => {
@@ -178,6 +196,13 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       toggleProductSubscription,
       reservations,
       setReservations,
+      addQuote,
+      adhesiveYields,
+      setAdhesiveYields,
+      sealantYields,
+      setSealantYields,
+      starwoodYields,
+      setStarwoodYields,
     }}>
       {children}
     </InventoryContext.Provider>

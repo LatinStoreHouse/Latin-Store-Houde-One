@@ -17,3 +17,10 @@ export const initialSealantYields = [
     { sealant: 'Sellante semi - brigth 1/ 4 galon', standardYield: 18, clayYield: 10 },
     { sealant: 'Sellante shyny 1/4 galon', standardYield: 18, clayYield: 10 },
 ];
+
+export const initialStarwoodYields = {
+    clipsPerSqM: 17,
+    sleeperLinearMetersPerSqM: 3.3,
+    listonsPerAdhesive: 4,
+    listonsPerSealant: 12,
+};
