@@ -2,8 +2,6 @@
 
 'use client';
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
-import { initialInventoryData } from '@/lib/initial-inventory';
-import { initialProductPrices } from '@/lib/prices';
 import { useToast } from '@/hooks/use-toast';
 import type { Role } from '@/lib/roles';
 
@@ -58,7 +56,7 @@ export interface Suggestion {
   reason: 'Stock Bajo' | 'Alta Demanda' | 'Sin Existencias';
 }
 
-export type InventoryData = typeof initialInventoryData;
+export type InventoryData = import('@/lib/initial-inventory').initialInventoryData;
 
 export interface InventoryHistoryEntry {
   id: string;
@@ -113,6 +111,8 @@ interface InventoryContextType {
   dismissNotification: (id: number) => void;
   productSubscriptions: Record<string, string[]>;
   toggleProductSubscription: (productName: string, userName: string) => void;
+  reservations: Reservation[];
+  setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
 }
 
 export const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -120,6 +120,7 @@ export const InventoryContext = createContext<InventoryContextType | undefined>(
 export const InventoryProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [productSubscriptions, setProductSubscriptions] = useState<Record<string, string[]>>({});
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const { toast } = useToast();
 
   const addNotification = (notification: Omit<AppNotification, 'id' | 'date' | 'read'>) => {
@@ -175,6 +176,8 @@ export const InventoryProvider = ({ children }: { children: ReactNode }) => {
       dismissNotification,
       productSubscriptions,
       toggleProductSubscription,
+      reservations,
+      setReservations,
     }}>
       {children}
     </InventoryContext.Provider>

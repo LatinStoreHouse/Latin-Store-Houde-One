@@ -13,6 +13,8 @@ import { Separator } from './ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryContext, Reservation } from '@/context/inventory-context';
 import { useUser } from '@/context/user-context';
+import { initialInventoryData } from '@/lib/initial-inventory';
+import { initialContainers } from '@/lib/initial-containers';
 
 interface ReservationItem {
     id: number;
@@ -29,11 +31,9 @@ interface ReservationFormProps {
 }
 
 export function ReservationForm({ initialProduct, onSave, onCancel }: ReservationFormProps) {
-    const context = useContext(InventoryContext);
-    if (!context) {
-        throw new Error('ReservationForm must be used within an InventoryProvider');
-    }
-    const { inventoryData, containers, reservations } = context;
+    const {reservations} = useContext(InventoryContext)!;
+    const [inventoryData, setInventoryData] = useState(initialInventoryData);
+    const [containers, setContainers] = useState(initialContainers);
     const { currentUser } = useUser();
     const { toast } = useToast();
 
