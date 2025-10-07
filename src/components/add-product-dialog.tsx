@@ -7,16 +7,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Combobox } from '@/components/ui/combobox';
 import { Separator } from './ui/separator';
+import type { InventoryData } from '@/context/inventory-context';
 
 interface AddProductDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     onSave: (product: { brand: string; line: string; name: string; price: number, size?: string, stock: { bodega: number, zonaFranca: number, muestras: number } }) => void;
-    brands: string[];
-    linesByBrand: Record<string, string[]>;
+    inventoryData: InventoryData;
 }
 
-export function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesByBrand }: AddProductDialogProps) {
+export function AddProductDialog({ isOpen, onOpenChange, onSave, inventoryData }: AddProductDialogProps) {
     const [brand, setBrand] = useState('');
     const [line, setLine] = useState('');
     const [name, setName] = useState('');
@@ -26,8 +26,8 @@ export function AddProductDialog({ isOpen, onOpenChange, onSave, brands, linesBy
     const [isNewBrand, setIsNewBrand] = useState(false);
     const [isNewLine, setIsNewLine] = useState(false);
     
-    const brandOptions = brands.map(b => ({ value: b, label: b }));
-    const lineOptions = brand ? (linesByBrand[brand] || []).map(l => ({ value: l, label: l })) : [];
+    const brandOptions = Object.keys(inventoryData).map(b => ({ value: b, label: b }));
+    const lineOptions = brand && inventoryData[brand] ? Object.keys(inventoryData[brand]).map(l => ({ value: l, label: l })) : [];
     
     const handleSave = () => {
         onSave({ brand, line, name, price, size, stock });

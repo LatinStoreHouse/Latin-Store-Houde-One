@@ -568,11 +568,7 @@ export default function PricingPage() {
         isOpen={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
         onSave={handleAddProduct}
-        brands={Object.keys(localProductStructure)}
-        linesByBrand={Object.entries(localProductStructure).reduce((acc, [brand, lines]) => {
-            acc[brand] = Object.keys(lines);
-            return acc;
-        }, {} as Record<string, string[]>)}
+        inventoryData={inventoryData}
       />
 
     </Card>

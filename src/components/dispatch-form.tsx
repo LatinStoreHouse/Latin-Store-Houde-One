@@ -14,7 +14,7 @@ import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { PlusCircle, Trash2, Warehouse, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { InventoryContext } from '@/context/inventory-context';
+import { InventoryContext, InventoryData } from '@/context/inventory-context';
 import { LocationCombobox } from './location-combobox';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { cn } from '@/lib/utils';
@@ -27,10 +27,10 @@ interface DispatchFormProps {
     dispatch?: DispatchData | null;
     onSave: (dispatch: DispatchData) => void;
     onCancel: () => void;
+    inventoryData: InventoryData;
 }
 
-export function DispatchForm({ dispatch, onSave, onCancel }: DispatchFormProps) {
-    const { inventoryData } = useContext(InventoryContext)!;
+export function DispatchForm({ dispatch, onSave, onCancel, inventoryData }: DispatchFormProps) {
     const { currentUser } = useUser();
     const { toast } = useToast();
     

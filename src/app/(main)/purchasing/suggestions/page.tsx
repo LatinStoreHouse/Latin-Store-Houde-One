@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Combobox } from '@/components/ui/combobox';
+import { initialInventoryData } from '@/lib/initial-inventory';
 
 // Extend jsPDF type
 declare module 'jspdf' {
@@ -39,7 +40,8 @@ const initialAdvisorSuggestions: AdvisorSuggestion[] = [
 ];
 
 export default function PurchaseSuggestionsPage() {
-  const { inventoryData, systemSuggestions, markSuggestionsAsSeen, addNotification } = useContext(InventoryContext)!;
+  const { systemSuggestions, markSuggestionsAsSeen, addNotification } = useContext(InventoryContext)!;
+  const [inventoryData, setInventoryData] = useState(initialInventoryData);
   const { currentUser } = useUser();
   const { toast } = useToast();
   

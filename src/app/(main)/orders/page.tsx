@@ -1,7 +1,7 @@
 
 
 'use client';
-import React, { useState, useMemo, useEffect, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense, useContext } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +34,9 @@ import { DispatchForm } from '@/components/dispatch-form';
 import { useToast } from '@/hooks/use-toast';
 import { addPdfHeader } from '@/lib/pdf-utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { initialInventoryData } from '@/lib/initial-inventory';
+import { InventoryContext } from '@/context/inventory-context';
+
 
 // Mocks - In a real app, this would come from a global state/context/API
 const validationHistory = [
@@ -150,6 +153,12 @@ function DispatchPageContent() {
   const { toast } = useToast();
   
   const { currentUser } = useUser();
+  const context = useContext(InventoryContext);
+  if (!context) {
+    throw new Error('InventoryContext must be used within an InventoryProvider');
+  }
+  const { inventoryData } = context;
+
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -601,6 +610,7 @@ function DispatchPageContent() {
                 dispatch={editingDispatch}
                 onSave={handleSaveDispatch}
                 onCancel={() => setIsFormOpen(false)}
+                inventoryData={inventoryData}
             />
         </DialogContent>
     </Dialog>
