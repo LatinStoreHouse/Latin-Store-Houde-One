@@ -32,8 +32,6 @@ import { MultiSelectCombobox } from '@/components/ui/multi-select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import StoneflexLogo from '@/assets/images/logos/Logo-StoneFlex-v-color.png';
-import LatinStoreHouseLogo from '@/assets/images/logos/Logo-Latin-Store-House-color.png';
 import { initialInventoryData } from '@/lib/initial-inventory';
 
 
@@ -52,11 +50,11 @@ interface QuoteItem {
 }
 
 // Utility function to safely get base64 from an image
-const getImageBase64 = (src: any): Promise<{ base64: string; width: number; height: number } | null> => {
+const getImageBase64 = (src: string): Promise<{ base64: string; width: number; height: number } | null> => {
     return new Promise((resolve) => {
         const img = new window.Image();
         img.crossOrigin = 'Anonymous';
-        img.src = src.src;
+        img.src = src;
 
         img.onload = () => {
             const canvas = document.createElement('canvas');
@@ -471,7 +469,7 @@ export default function StoneflexCalculatorPage() {
     if (currency === 'USD' && trm === '') {
       fetchTrm();
     }
-  }, [currency]);
+  }, [currency, trm]);
 
 
   const getSqmPerSheet = (ref: string) => {
@@ -904,8 +902,8 @@ export default function StoneflexCalculatorPage() {
     const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'letter' });
     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
     
-    const stoneflexLogoData = await getImageBase64(StoneflexLogo);
-    const latinLogoData = await getImageBase64(LatinStoreHouseLogo);
+    const stoneflexLogoData = await getImageBase64('/imagenes/logos/Logo-StoneFlex-v-color.png');
+    const latinLogoData = await getImageBase64('/imagenes/logos/Logo-Latin-Store-House-color.png');
 
     if (stoneflexLogoData) {
         const logoWidth = 25;
@@ -1082,7 +1080,7 @@ export default function StoneflexCalculatorPage() {
                         <SettingsDialog inventoryData={inventoryData} />
                     </Dialog>
                  )}
-                <Image src={StoneflexLogo} alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>
+                <Image src={'/imagenes/logos/Logo-StoneFlex-v-color.png'} alt="StoneFlex Logo" width={80} height={80} className="object-contain"/>
             </div>
         </div>
       </CardHeader>

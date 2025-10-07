@@ -657,7 +657,7 @@ export default function StarwoodCalculatorPage() {
                         <SettingsDialog />
                     </Dialog>
                  )}
-                <Image src="/imagenes/logos/Logo-Starwood-color.png" alt="Starwood Logo" width={80} height={26} className="object-contain"/>
+                <Image src={'/imagenes/logos/Logo-Starwood-color.png'} alt="Starwood Logo" width={80} height={26} className="object-contain"/>
             </div>
         </div>
       </CardHeader>
