@@ -39,6 +39,15 @@ export function LoginForm() {
     }, 1000); // Simulate network delay
   };
 
+  const handleForgotPassword = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+        title: 'Función no implementada',
+        description: 'La recuperación de contraseña aún no está disponible.',
+        variant: 'destructive'
+    });
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -48,7 +57,7 @@ export function LoginForm() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
             <Label htmlFor="password">Contraseña</Label>
-            <Link href="#" className="text-sm text-primary hover:underline">
+            <Link href="#" onClick={handleForgotPassword} className="text-sm text-primary hover:underline">
                 ¿Olvidaste tu contraseña?
             </Link>
         </div>
