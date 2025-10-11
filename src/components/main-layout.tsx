@@ -1,5 +1,4 @@
 
-
 'use client';
 import React, { useState, useRef, useMemo, useContext, useEffect } from 'react';
 import Link from 'next/link';
@@ -87,7 +86,6 @@ import { PageLoader } from '@/components/page-loader';
 import { ThemeSwitcher } from '@/components/theme-switcher';
 import { Label } from '@/components/ui/label';
 import { useUser } from '@/context/user-context';
-import OneLogo from '@/assets/images/logos/Logo-One-Blanco.png';
 
 
 export const navItems = [
@@ -160,7 +158,7 @@ const getIconForSubItem = (label: string, parentIcon: React.ElementType) => {
 const Logo = () => (
     <div className="flex h-24 w-full items-center justify-center p-4">
         <Image
-            src={OneLogo}
+            src="/imagenes/logos/Logo-One-Blanco.png"
             alt="ONE by Latin Store House Logo"
             width={150}
             height={70}

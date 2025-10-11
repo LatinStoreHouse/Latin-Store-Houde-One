@@ -12,7 +12,7 @@ import { User, Role } from '@/lib/roles';
 
 const inter = Inter({ subsets: ['latin'] });
 
-// CENTRALIZED USER DEFINITION FOR ROLE SIMULATION
+// Define the initial user state within the layout to be passed to the provider
 const initialUser: User = {
   id: '1',
   name: 'Admin Latin',
@@ -20,7 +20,7 @@ const initialUser: User = {
   phone: '+573101234567',
   jobTitle: 'Gerente General',
   roles: ['Administrador'], 
-  avatar: 'https://placehold.co/40x40.png',
+  avatar: 'https://placehold.co/40x40/E29ABE/ffffff.png',
   active: true,
   individualPermissions: [],
 };
