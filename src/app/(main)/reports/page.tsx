@@ -19,7 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { addPdfHeader } from '@/lib/pdf-utils';
 
 
-const DynamicMonthlyAnalysis = dynamic(() => import('@/components/reports/monthly-analysis').then(mod => mod.MonthlyAnalysis), {
+const DynamicMonthlyAnalysis = dynamic(() => import('@/components/dashboard/monthly-analysis').then(mod => mod.MonthlyAnalysis), {
     loading: () => <Skeleton className="h-[400px] w-full" />,
     ssr: false
 });
