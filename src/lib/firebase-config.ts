@@ -3,18 +3,18 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getAnalytics, isSupported } from "firebase/analytics";
+import { getAnalytics, isSupported }from "firebase/analytics";
 
 // This configuration is public and safe to expose.
 // Security is enforced by Firebase Security Rules and App Check.
 export const firebaseConfig = {
-  apiKey: "AIzaSyC3-8tI_c0aZ3g5l8jY7xKV_q2H1o4",
-  authDomain: "latin-store-house.firebaseapp.com",
-  projectId: "latin-store-house",
-  storageBucket: "latin-store-house.appspot.com",
-  messagingSenderId: "1009843657393",
-  appId: "1:1009843657393:web:9681c6314f3c4c8b211a3b",
-  measurementId: "G-8B41E7B9V0"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase for SSR
@@ -35,3 +35,4 @@ if (typeof window !== 'undefined') {
 }
 
 export { app, auth, db, analytics };
+
