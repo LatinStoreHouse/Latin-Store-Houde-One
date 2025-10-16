@@ -48,6 +48,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ReservationForm } from '@/components/reservation-form';
 import { addPdfHeader } from '@/lib/pdf-utils';
 import { initialInventoryData } from '@/lib/initial-inventory';
+import { productDimensions } from '@/lib/dimensions';
 
 
 // Extend the jsPDF type to include the autoTable method
@@ -64,7 +65,7 @@ const ProductTable = ({ products, brand, subCategory, canEdit, isPartner, isMark
   if (!context || !currentUser) {
     throw new Error('ProductTable must be used within an InventoryProvider and UserProvider');
   }
-  const { reservations: allReservations, toggleProductSubscription, productSubscriptions, productDimensions } = context;
+  const { reservations: allReservations, toggleProductSubscription, productSubscriptions } = context;
   const canEditName = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador') || currentUser.roles.includes('Logística');
   const canEditQuantities = currentUser.roles.includes('Administrador') || currentUser.roles.includes('Contador') || currentUser.roles.includes('Logística');
   
