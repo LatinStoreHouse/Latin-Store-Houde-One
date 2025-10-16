@@ -18,6 +18,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { InventoryContext } from '@/context/inventory-context';
 import { AddProductDialog } from '@/components/add-product-dialog';
+import { initialInventoryData } from '@/lib/initial-inventory';
 
 
 const productStructure: { [key: string]: { [line: string]: string[] } } = {
@@ -143,7 +144,8 @@ export default function PricingPage() {
   if (!context) {
     throw new Error('PricingPage must be used within an InventoryProvider');
   }
-  const { inventoryData, productPrices, setProductPrices, addProduct: addProductToContext } = context;
+  const { productPrices, setProductPrices, addProduct: addProductToContext } = context;
+  const [inventoryData, setInventoryData] = useState(initialInventoryData);
 
   const [localProductStructure, setLocalProductStructure] = useState(() => {
     // Initialize structure from inventory data

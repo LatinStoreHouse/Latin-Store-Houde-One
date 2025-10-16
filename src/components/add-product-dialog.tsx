@@ -26,7 +26,7 @@ export function AddProductDialog({ isOpen, onOpenChange, onSave, inventoryData }
     const [isNewBrand, setIsNewBrand] = useState(false);
     const [isNewLine, setIsNewLine] = useState(false);
     
-    const brandOptions = Object.keys(inventoryData).map(b => ({ value: b, label: b }));
+    const brandOptions = inventoryData ? Object.keys(inventoryData).map(b => ({ value: b, label: b })) : [];
     const lineOptions = brand && inventoryData[brand] ? Object.keys(inventoryData[brand]).map(l => ({ value: l, label: l })) : [];
     
     const handleSave = () => {
